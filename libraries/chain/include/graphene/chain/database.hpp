@@ -157,6 +157,8 @@ namespace graphene { namespace chain {
 
          void pop_block();
          void clear_pending();
+		 SecretHashType get_secret(uint32_t block_num,
+			 const fc::ecc::private_key& block_signing_private_key);
 
          /**
           *  This method is used to track appied operations during the evaluation of a block, these
@@ -245,6 +247,8 @@ namespace graphene { namespace chain {
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
          void update_witness_schedule();
+
+		 void database::update_witness_random_seed(const SecretHashType& new_secret);
 
          //////////////////// db_getter.cpp ////////////////////
 

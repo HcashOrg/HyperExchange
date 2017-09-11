@@ -67,8 +67,11 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
       {
          if( op.new_url.valid() )
             wit.url = *op.new_url;
-         if( op.new_signing_key.valid() )
-            wit.signing_key = *op.new_signing_key;
+		 if (op.new_signing_key.valid())
+		 {
+			 wit.signing_key = *op.new_signing_key;
+			 wit.last_change_signing_key_block_num = _db.head_block_num()+1;
+		 }
       });
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }

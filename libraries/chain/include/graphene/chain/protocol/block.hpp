@@ -35,6 +35,9 @@ namespace graphene { namespace chain {
       witness_id_type               witness;
       checksum_type                 transaction_merkle_root;
       extensions_type               extensions;
+	  SecretHashType				next_secret_hash;
+	  SecretHashType				previous_secret;
+	  
 
       static uint32_t num_from_id(const block_id_type& id);
    };

@@ -148,6 +148,8 @@
 
 #define GRAPHENE_IRREVERSIBLE_THRESHOLD                      (70 * GRAPHENE_1_PERCENT)
 
+#define GRAPHENE_PRODUCT_PER_ROUND							 25
+
 /**
  *  Reserved Account IDs with special meaning
  */

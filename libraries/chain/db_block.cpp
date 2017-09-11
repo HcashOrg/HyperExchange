@@ -397,6 +397,36 @@ signed_block database::_generate_block(
    pending_block.transaction_merkle_root = pending_block.calculate_merkle_root();
    pending_block.witness = witness_id;
 
+
+
+   //Add a random number generation process to the signature
+   const uint32_t last_produced_block_num = witness_obj.last_confirmed_block_num;
+
+   const optional<SecretHashType>& prev_secret_hash = witness_obj.next_secret_hash;
+   if (prev_secret_hash.valid())
+   {
+	   const uint32_t last_signing_key_change_block_num = witness_obj.last_change_signing_key_block_num;
+
+	   if (last_produced_block_num > last_signing_key_change_block_num)
+	   {
+		   pending_block.previous_secret = get_secret(last_produced_block_num, block_signing_private_key);
+		   FC_ASSERT(fc::ripemd160::hash(pending_block.previous_secret) == *prev_secret_hash);
+	   }
+	   else
+	   {
+		   // We need to use the old key to reveal the previous secret
+		   
+		   pending_block.previous_secret = *prev_secret_hash;
+	   }
+
+	   
+   }
+
+   pending_block.next_secret_hash = fc::ripemd160::hash(get_secret(pending_block.block_num(), block_signing_private_key));
+
+
+
+
    if( !(skip & skip_witness_signature) )
       pending_block.sign( block_signing_private_key );
 
@@ -411,6 +441,25 @@ signed_block database::_generate_block(
    return pending_block;
 } FC_CAPTURE_AND_RETHROW( (witness_id) ) }
 
+
+SecretHashType database::get_secret(uint32_t block_num,
+	const fc::ecc::private_key& block_signing_private_key)
+{
+	head_block_id();
+	block_id_type header_id;
+	if (block_num != uint32_t(-1) && block_num > 1)
+	{
+		header_id = get_block_id_for_num(block_num-1);
+	}
+
+	fc::sha512::encoder key_enc;
+	fc::raw::pack(key_enc, block_signing_private_key);
+	fc::sha512::encoder enc;
+	fc::raw::pack(enc, key_enc.result());
+	fc::raw::pack(enc, header_id);
+
+	return fc::ripemd160::hash(enc.result());
+}
 /**
  * Removes the most recent block from the database and
  * undoes any changes it made.
@@ -512,7 +561,7 @@ void database::_apply_block( const signed_block& next_block )
       apply_transaction( trx, skip );
       ++_current_trx_in_block;
    }
-
+   
    update_global_dynamic_data(next_block);
    update_signing_witness(signing_witness, next_block);
    update_last_irreversible_block();
@@ -534,7 +583,9 @@ void database::_apply_block( const signed_block& next_block )
    // update_global_dynamic_data() as perhaps these methods only need
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
+   
    update_witness_schedule();
+   update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
 

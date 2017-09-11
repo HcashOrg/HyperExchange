@@ -40,12 +40,18 @@ namespace graphene { namespace chain {
          account_id_type  witness_account;
          uint64_t         last_aslot = 0;
          public_key_type  signing_key;
+		 uint32_t		  last_change_signing_key_block_num = 0;
          optional< vesting_balance_id_type > pay_vb;
          vote_id_type     vote_id;
          uint64_t         total_votes = 0;
          string           url;
          int64_t          total_missed = 0;
+		 int64_t		  total_produced = 0;
          uint32_t         last_confirmed_block_num = 0;
+		 uint64_t       pledge_weight = 100;
+		 uint8_t		  participation_rate = 100;
+
+		 optional<SecretHashType>        next_secret_hash;
 
          witness_object() : vote_id(vote_id_type::witness) {}
    };
@@ -74,10 +80,15 @@ FC_REFLECT_DERIVED( graphene::chain::witness_object, (graphene::db::object),
                     (witness_account)
                     (last_aslot)
                     (signing_key)
+					(last_change_signing_key_block_num)
                     (pay_vb)
                     (vote_id)
                     (total_votes)
                     (url) 
                     (total_missed)
+					(total_produced)
                     (last_confirmed_block_num)
+					(pledge_weight)
+					(participation_rate)
+					(next_secret_hash)
                   )

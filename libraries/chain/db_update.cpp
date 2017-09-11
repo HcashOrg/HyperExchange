@@ -62,7 +62,7 @@ void database::update_global_dynamic_data( const signed_block& b )
          });
       } 
    }
-
+   
    // dynamic global properties updating
    modify( _dgp, [&]( dynamic_global_property_object& dgp ){
       if( BOOST_UNLIKELY( b.block_num() == 1 ) )
@@ -118,6 +118,8 @@ void database::update_signing_witness(const witness_object& signing_witness, con
    {
       _wit.last_aslot = new_block_aslot;
       _wit.last_confirmed_block_num = new_block.block_num();
+	  _wit.total_produced++;
+	  _wit.next_secret_hash = new_block.next_secret_hash;
    } );
 }
 
