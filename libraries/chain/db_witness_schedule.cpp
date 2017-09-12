@@ -36,7 +36,7 @@ witness_id_type database::get_scheduled_witness( uint32_t slot_num )const
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    const witness_schedule_object& wso = witness_schedule_id_type()(*this);
    uint64_t current_aslot = dpo.current_aslot + slot_num;
-   return wso.current_shuffled_witnesses[ current_aslot % wso.current_shuffled_witnesses.size() ];
+   return wso.current_shuffled_witnesses[ current_aslot % GRAPHENE_PRODUCT_PER_ROUND];
 }
 
 fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
@@ -112,7 +112,7 @@ void database::update_witness_schedule()
 	const witness_schedule_object& wso = witness_schedule_id_type()(*this);
 	const global_property_object& gpo = get_global_properties();
 	const auto& dgp = get_dynamic_global_properties();
-
+	
 	auto caluate_slot = [&](vector<uint64_t> vec,int count,uint64_t value) {
 		uint64_t init = 0;
 		for (int i = 0; i < count; ++i)
@@ -128,13 +128,13 @@ void database::update_witness_schedule()
 	try {//todo remove????
 		 // if( pending_state->get_head_block_num() < ALP_V0_7_0_FORK_BLOCK_NUM )
 		 // return update_active_delegate_list_v1( block_num, pending_state );
-		
+		printf("block_num: %d\n",block_num);
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
 				_wso.current_shuffled_witnesses.clear();
-				_wso.current_shuffled_witnesses.reserve(gpo.active_witnesses.size());
+				_wso.current_shuffled_witnesses.reserve(GRAPHENE_PRODUCT_PER_ROUND);
 				vector< uint64_t > temp_witnesses_weight;
 				vector<witness_id_type> temp_active_witnesses;
 				uint64_t total_weight = 0;
@@ -145,7 +145,11 @@ void database::update_witness_schedule()
 					temp_witnesses_weight.push_back(witness_obj.pledge_weight * witness_obj.participation_rate / 100);
 					temp_active_witnesses.push_back(w);
 				}
-				fc::sha256 rand_seed = fc::sha256::hash(*dgp.current_random_seed);
+				fc::sha256 rand_seed;
+				if (dgp.current_random_seed.valid())
+					rand_seed = fc::sha256::hash(*dgp.current_random_seed);
+				else
+					rand_seed = fc::sha256::hash(SecretHashType());
 				for (uint32_t i = 0, x = 0; i < GRAPHENE_PRODUCT_PER_ROUND; ++i)
 				{
 					uint64_t r = rand_seed._hash[x];
@@ -153,8 +157,8 @@ void database::update_witness_schedule()
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
 					_wso.current_shuffled_witnesses.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
-					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1]);
-					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1]);
+					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i ]);
+					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1 - i]);
 
 					x = (x + 1) & 3;
 					if (x == 0)

@@ -323,6 +323,7 @@ signed_block database::_generate_block(
    FC_ASSERT( scheduled_witness == witness_id );
 
    const auto& witness_obj = witness_id(*this);
+   const auto& account_obj = witness_obj.witness_account(*this);
 
    if( !(skip & skip_witness_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
