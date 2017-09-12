@@ -33,21 +33,21 @@
 
 namespace graphene { namespace chain {
 
-void_result committee_member_create_evaluator::do_evaluate( const committee_member_create_operation& op )
+void_result guard_member_create_evaluator::do_evaluate( const guard_member_create_operation& op )
 { try {
-   FC_ASSERT(db().get(op.committee_member_account).is_lifetime_member());
+   //FC_ASSERT(db().get(op.guard_member_account).is_lifetime_member());
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-object_id_type committee_member_create_evaluator::do_apply( const committee_member_create_operation& op )
+object_id_type guard_member_create_evaluator::do_apply( const guard_member_create_operation& op )
 { try {
    vote_id_type vote_id;
    db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
       vote_id = get_next_vote_id(p, vote_id_type::committee);
    });
 
-   const auto& new_del_object = db().create<committee_member_object>( [&]( committee_member_object& obj ){
-         obj.committee_member_account   = op.committee_member_account;
+   const auto& new_del_object = db().create<guard_member_object>( [&]( guard_member_object& obj ){
+         obj.guard_member_account   = op.guard_member_account;
          obj.vote_id            = vote_id;
          obj.url                = op.url;
    });
@@ -56,7 +56,7 @@ object_id_type committee_member_create_evaluator::do_apply( const committee_memb
 
 void_result committee_member_update_evaluator::do_evaluate( const committee_member_update_operation& op )
 { try {
-   FC_ASSERT(db().get(op.committee_member).committee_member_account == op.committee_member_account);
+   FC_ASSERT(db().get(op.committee_member).guard_member_account == op.guard_member_account);
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
@@ -65,7 +65,7 @@ void_result committee_member_update_evaluator::do_apply( const committee_member_
    database& _db = db();
    _db.modify(
       _db.get(op.committee_member),
-      [&]( committee_member_object& com )
+      [&]( guard_member_object& com )
       {
          if( op.new_url.valid() )
             com.url = *op.new_url;

@@ -253,7 +253,7 @@ struct database_fixture {
       uint8_t referrer_percent = 100
       );
 
-   const committee_member_object& create_committee_member( const account_object& owner );
+   const guard_member_object& create_guard_member( const account_object& owner );
    const miner_object& create_witness(account_id_type owner,
                                         const fc::ecc::private_key& signing_private_key = generate_private_key("null_key"));
    const miner_object& create_witness(const account_object& owner,

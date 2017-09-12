@@ -1474,18 +1474,18 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (authorizing_account)(account_to_list)(new_listing_status)(broadcast) ) }
 
-   signed_transaction create_committee_member(string owner_account, string url,
+   signed_transaction create_guard_member(string owner_account, string url,
                                       bool broadcast /* = false */)
    { try {
 
-      committee_member_create_operation committee_member_create_op;
-      committee_member_create_op.committee_member_account = get_account_id(owner_account);
-      committee_member_create_op.url = url;
-      if (_remote_db->get_committee_member_by_account(committee_member_create_op.committee_member_account))
-         FC_THROW("Account ${owner_account} is already a committee_member", ("owner_account", owner_account));
+      guard_member_create_operation guard_member_create_op;
+      guard_member_create_op.guard_member_account = get_account_id(owner_account);
+      guard_member_create_op.url = url;
+      if (_remote_db->get_guard_member_by_account(guard_member_create_op.guard_member_account))
+         FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", owner_account));
 
       signed_transaction tx;
-      tx.operations.push_back( committee_member_create_op );
+	  tx.operations.push_back(guard_member_create_op);
       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
       tx.validate();
 
@@ -1527,18 +1527,18 @@ public:
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
 
-   committee_member_object get_committee_member(string owner_account)
+   guard_member_object get_guard_member(string owner_account)
    {
       try
       {
-         fc::optional<committee_member_id_type> committee_member_id = maybe_id<committee_member_id_type>(owner_account);
+         fc::optional<guard_member_id_type> committee_member_id = maybe_id<guard_member_id_type>(owner_account);
          if (committee_member_id)
          {
-            std::vector<committee_member_id_type> ids_to_get;
+            std::vector<guard_member_id_type> ids_to_get;
             ids_to_get.push_back(*committee_member_id);
-            std::vector<fc::optional<committee_member_object>> committee_member_objects = _remote_db->get_committee_members(ids_to_get);
-            if (committee_member_objects.front())
-               return *committee_member_objects.front();
+            std::vector<fc::optional<guard_member_object>> guard_member_objects = _remote_db->get_guard_members(ids_to_get);
+            if (guard_member_objects.front())
+               return *guard_member_objects.front();
             FC_THROW("No committee_member is registered for id ${id}", ("id", owner_account));
          }
          else
@@ -1547,7 +1547,7 @@ public:
             try
             {
                account_id_type owner_account_id = get_account_id(owner_account);
-               fc::optional<committee_member_object> committee_member = _remote_db->get_committee_member_by_account(owner_account_id);
+               fc::optional<guard_member_object> committee_member = _remote_db->get_guard_member_by_account(owner_account_id);
                if (committee_member)
                   return *committee_member;
                else
@@ -1797,7 +1797,7 @@ public:
    { try {
       account_object voting_account_object = get_account(voting_account);
       account_id_type committee_member_owner_account_id = get_account_id(committee_member);
-      fc::optional<committee_member_object> committee_member_obj = _remote_db->get_committee_member_by_account(committee_member_owner_account_id);
+      fc::optional<guard_member_object> committee_member_obj = _remote_db->get_guard_member_by_account(committee_member_owner_account_id);
       if (!committee_member_obj)
          FC_THROW("Account ${committee_member} is not registered as a committee_member", ("committee_member", committee_member));
       if (approve)
@@ -1889,7 +1889,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_modify)(voting_account)(broadcast) ) }
 
-   signed_transaction set_desired_witness_and_committee_member_count(string account_to_modify,
+   signed_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
                                                              uint16_t desired_number_of_witnesses,
                                                              uint16_t desired_number_of_committee_members,
                                                              bool broadcast /* = false */)
@@ -3507,10 +3507,10 @@ signed_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-signed_transaction wallet_api::create_committee_member(string owner_account, string url,
+signed_transaction wallet_api::create_guard_member(string owner_account, string url,
                                                bool broadcast /* = false */)
 {
-   return my->create_committee_member(owner_account, url, broadcast);
+   return my->create_guard_member(owner_account, url, broadcast);
 }
 
 map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
@@ -3518,9 +3518,9 @@ map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint
    return my->_remote_db->lookup_miner_accounts(lowerbound, limit);
 }
 
-map<string,committee_member_id_type> wallet_api::list_committee_members(const string& lowerbound, uint32_t limit)
+map<string,guard_member_id_type> wallet_api::list_guard_members(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_db->lookup_committee_member_accounts(lowerbound, limit);
+   return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit);
 }
 
 miner_object wallet_api::get_miner(string owner_account)
@@ -3528,9 +3528,9 @@ miner_object wallet_api::get_miner(string owner_account)
    return my->get_miner(owner_account);
 }
 
-committee_member_object wallet_api::get_committee_member(string owner_account)
+guard_member_object wallet_api::get_guard_member(string owner_account)
 {
-   return my->get_committee_member(owner_account);
+   return my->get_guard_member(owner_account);
 }
 
 signed_transaction wallet_api::create_miner(string owner_account,
@@ -3608,12 +3608,12 @@ signed_transaction wallet_api::set_voting_proxy(string account_to_modify,
    return my->set_voting_proxy(account_to_modify, voting_account, broadcast);
 }
 
-signed_transaction wallet_api::set_desired_witness_and_committee_member_count(string account_to_modify,
+signed_transaction wallet_api::set_desired_miner_and_guard_member_count(string account_to_modify,
                                                                       uint16_t desired_number_of_witnesses,
                                                                       uint16_t desired_number_of_committee_members,
                                                                       bool broadcast /* = false */)
 {
-   return my->set_desired_witness_and_committee_member_count(account_to_modify, desired_number_of_witnesses,
+   return my->set_desired_miner_and_guard_member_count(account_to_modify, desired_number_of_witnesses,
                                                      desired_number_of_committee_members, broadcast);
 }
 

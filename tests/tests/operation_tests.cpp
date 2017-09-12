@@ -589,23 +589,23 @@ BOOST_AUTO_TEST_CASE( transfer_core_asset )
    }
 }
 
-BOOST_AUTO_TEST_CASE( create_committee_member )
+BOOST_AUTO_TEST_CASE( create_guard_member )
 {
    try {
-      committee_member_create_operation op;
-      op.committee_member_account = account_id_type();
+      guard_member_create_operation op;
+      op.guard_member_account = account_id_type();
       op.fee = asset();
       trx.operations.push_back(op);
 
-      REQUIRE_THROW_WITH_VALUE(op, committee_member_account, account_id_type(99999999));
+      REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(99999999));
       REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
       trx.operations.back() = op;
 
-      committee_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<committee_member_object>>>().get_next_id();
+      guard_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<guard_member_object>>>().get_next_id();
       PUSH_TX( db, trx, ~0 );
-      const committee_member_object& d = committee_member_id(db);
+      const guard_member_object& d = committee_member_id(db);
 
-      BOOST_CHECK(d.committee_member_account == account_id_type());
+      BOOST_CHECK(d.guard_member_account == account_id_type());
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;

@@ -674,7 +674,7 @@ BOOST_FIXTURE_TEST_CASE( maintenance_interval, database_fixture )
       auto initial_properties = db.get_global_properties();
       const account_object& nathan = create_account("nathan");
       upgrade_to_lifetime_member(nathan);
-      const committee_member_object nathans_committee_member = create_committee_member(nathan);
+      const guard_member_object nathans_committee_member = create_guard_member(nathan);
       {
          account_update_operation op;
          op.account = nathan.id;
