@@ -120,8 +120,8 @@ const uint8_t vesting_balance_object::type_id;
 const uint8_t withdraw_permission_object::space_id;
 const uint8_t withdraw_permission_object::type_id;
 
-const uint8_t witness_object::space_id;
-const uint8_t witness_object::type_id;
+const uint8_t miner_object::space_id;
+const uint8_t miner_object::type_id;
 
 const uint8_t worker_object::space_id;
 const uint8_t worker_object::type_id;
@@ -159,7 +159,7 @@ void database::initialize_evaluators()
    register_evaluator<proposal_delete_evaluator>();
    register_evaluator<vesting_balance_create_evaluator>();
    register_evaluator<vesting_balance_withdraw_evaluator>();
-   register_evaluator<witness_create_evaluator>();
+   register_evaluator<miner_create_evaluator>();
    register_evaluator<witness_update_evaluator>();
    register_evaluator<withdraw_permission_create_evaluator>();
    register_evaluator<withdraw_permission_claim_evaluator>();
@@ -392,7 +392,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    create<dynamic_global_property_object>([&](dynamic_global_property_object& p) {
       p.time = genesis_state.initial_timestamp;
       p.dynamic_flags = 0;
-      p.witness_budget = 0;
+      p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
 
@@ -612,15 +612,15 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    }
 
    // Create special witness account
-   const witness_object& wit = create<witness_object>([&](witness_object& w) {});
+   const miner_object& wit = create<miner_object>([&](miner_object& w) {});
    FC_ASSERT( wit.id == GRAPHENE_NULL_WITNESS );
    remove(wit);
 
    // Create initial witnesses
    std::for_each(genesis_state.initial_witness_candidates.begin(), genesis_state.initial_witness_candidates.end(),
                  [&](const genesis_state_type::initial_witness_type& witness) {
-      witness_create_operation op;
-      op.witness_account = get_account_id(witness.owner_name);
+      miner_create_operation op;
+      op.miner_account = get_account_id(witness.owner_name);
       op.block_signing_key = witness.block_signing_key;
       apply_operation(genesis_eval_state, op);
    });
@@ -652,7 +652,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    modify(get_global_properties(), [&](global_property_object& p) {
       for( uint32_t i = 1; i <= genesis_state.initial_active_witnesses; ++i )
       {
-         p.active_witnesses.insert(witness_id_type(i));
+         p.active_witnesses.insert(miner_id_type(i));
       }
    });
 
@@ -664,8 +664,8 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create witness scheduler
    create<witness_schedule_object>([&]( witness_schedule_object& wso )
    {
-      for( const witness_id_type& wid : get_global_properties().active_witnesses )
-         wso.current_shuffled_witnesses.push_back( wid );
+      for( const miner_id_type& wid : get_global_properties().active_witnesses )
+         wso.current_shuffled_miners.push_back( wid );
    });
 
    // Create FBA counters

@@ -67,7 +67,7 @@ namespace graphene { namespace chain {
             asset_settle_operation,
             asset_global_settle_operation,
             asset_publish_feed_operation,
-            witness_create_operation,
+            miner_create_operation,
             witness_update_operation,
             proposal_create_operation,
             proposal_update_operation,

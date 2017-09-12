@@ -187,7 +187,7 @@ struct wallet_data
    // map of account_name -> base58_private_key for
    //    incomplete account regs
    map<string, address > pending_account_registrations;
-   map<string, string> pending_witness_registrations;
+   map<string, string> pending_miner_registrations;
 
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
@@ -1299,7 +1299,7 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      map<string,witness_id_type>       list_witnesses(const string& lowerbound, uint32_t limit);
+      map<string,miner_id_type>       list_miners(const string& lowerbound, uint32_t limit);
 
       /** Lists all committee_members registered in the blockchain.
        * This returns a list of all account names that own committee_members, and the associated committee_member id,
@@ -1320,7 +1320,7 @@ class wallet_api
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
-      witness_object get_witness(string owner_account);
+      miner_object get_miner(string owner_account);
 
       /** Returns information about the given committee_member.
        * @param owner_account the name or id of the committee_member account owner, or the id of the committee_member
@@ -1328,17 +1328,17 @@ class wallet_api
        */
       committee_member_object get_committee_member(string owner_account);
 
-      /** Creates a witness object owned by the given account.
+      /** Creates a miner object owned by the given account.
        *
        * An account can have at most one witness object.
        *
        * @param owner_account the name or id of the account which is creating the witness
-       * @param url a URL to include in the witness record in the blockchain.  Clients may
-       *            display this when showing a list of witnesses.  May be blank.
+       * @param url a URL to include in the miner record in the blockchain.  Clients may
+       *            display this when showing a list of miner.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a witness
        */
-      signed_transaction create_witness(string owner_account,
+      signed_transaction create_miner(string owner_account,
                                         string url,
                                         bool broadcast = false);
 
@@ -1625,7 +1625,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_accounts)
             (cipher_keys)
             (extra_keys)
-            (pending_account_registrations)(pending_witness_registrations)
+            (pending_account_registrations)(pending_miner_registrations)
             (labeled_keys)
             (blind_receipts)
             (ws_server)
@@ -1726,11 +1726,11 @@ FC_API( graphene::wallet::wallet_api,
         (settle_asset)
         (whitelist_account)
         (create_committee_member)
-        (get_witness)
+        (get_miner)
         (get_committee_member)
-        (list_witnesses)
+        (list_miners)
         (list_committee_members)
-        (create_witness)
+        (create_miner)
         (update_witness)
         (create_worker)
         (update_worker_votes)

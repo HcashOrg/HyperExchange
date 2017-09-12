@@ -439,14 +439,14 @@ class database_api
        *
        * This function has semantics identical to @ref get_objects
        */
-      vector<optional<witness_object>> get_witnesses(const vector<witness_id_type>& witness_ids)const;
+      vector<optional<miner_object>> get_miners(const vector<miner_id_type>& witness_ids)const;
 
       /**
        * @brief Get the witness owned by a given account
        * @param account The ID of the account whose witness should be retrieved
        * @return The witness object, or null if the account does not have a witness
        */
-      fc::optional<witness_object> get_witness_by_account(account_id_type account)const;
+      fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
 
       /**
        * @brief Get names and IDs for registered witnesses
@@ -454,12 +454,12 @@ class database_api
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of witness names to corresponding IDs
        */
-      map<string, witness_id_type> lookup_witness_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, miner_id_type> lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const;
 
       /**
        * @brief Get the total number of witnesses registered with the blockchain
        */
-      uint64_t get_witness_count()const;
+      uint64_t get_miner_count()const;
 
       ///////////////////////
       // Committee members //
@@ -505,7 +505,7 @@ class database_api
       /**
        *  @brief Given a set of votes, return the objects they are voting for.
        *
-       *  This will be a mixture of committee_member_object, witness_objects, and worker_objects
+       *  This will be a mixture of committee_member_object, miner_objects, and worker_objects
        *
        *  The results will be in the same order as the votes.  Null will be returned for
        *  any vote ids that are not found.
@@ -646,10 +646,10 @@ FC_API(graphene::app::database_api,
 	(get_trade_history)
 
 	// Witnesses
-	(get_witnesses)
-	(get_witness_by_account)
-	(lookup_witness_accounts)
-	(get_witness_count)
+	(get_miners)
+	(get_miner_by_account)
+	(lookup_miner_accounts)
+	(get_miner_count)
 
 	// Committee members
 	(get_committee_members)

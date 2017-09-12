@@ -1153,8 +1153,8 @@ BOOST_AUTO_TEST_CASE( witness_feeds )
       const asset_object& bit_usd = get_asset("USDBIT");
       auto& global_props = db.get_global_properties();
       vector<account_id_type> active_witnesses;
-      for( const witness_id_type& wit_id : global_props.active_witnesses )
-         active_witnesses.push_back( wit_id(db).witness_account );
+      for( const miner_id_type& wit_id : global_props.active_witnesses )
+         active_witnesses.push_back( wit_id(db).miner_account );
       BOOST_REQUIRE_EQUAL(active_witnesses.size(), 10);
 
       asset_publish_feed_operation op;
@@ -1277,7 +1277,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    auto last_witness_vbo_balance = [&]() -> share_type
    {
-      const witness_object& wit = db.fetch_block_by_number(db.head_block_num())->witness(db);
+      const miner_object& wit = db.fetch_block_by_number(db.head_block_num())->witness(db);
       if( !wit.pay_vb.valid() )
          return 0;
       return (*wit.pay_vb)(db).balance.amount;
@@ -1353,26 +1353,26 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
    BOOST_CHECK( core->reserved(db).value == 8000*prec );
    generate_block();
    BOOST_CHECK_EQUAL( core->reserved(db).value, 999999406 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget );
    // first witness paid from old budget (so no pay)
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
    // second witness finally gets paid!
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget - witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - witness_ppb );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget - 2 * witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - 2 * witness_ppb );
 
    generate_block();
    BOOST_CHECK_LT( last_witness_vbo_balance().value, witness_ppb );
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, ref_budget - 2 * witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
    BOOST_CHECK_EQUAL(core->reserved(db).value, 999999406 );
 
 } FC_LOG_AND_RETHROW() }

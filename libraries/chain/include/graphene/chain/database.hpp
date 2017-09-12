@@ -129,7 +129,7 @@ namespace graphene { namespace chain {
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
           */
-         uint32_t witness_participation_rate()const;
+         uint32_t miner_participation_rate()const;
 
          void                              add_checkpoints( const flat_map<uint32_t,block_id_type>& checkpts );
          const flat_map<uint32_t,block_id_type> get_checkpoints()const { return _checkpoints; }
@@ -145,13 +145,13 @@ namespace graphene { namespace chain {
 
          signed_block generate_block(
             const fc::time_point_sec when,
-            witness_id_type witness_id,
+            miner_id_type miner_id,
             const fc::ecc::private_key& block_signing_private_key,
             uint32_t skip
             );
          signed_block _generate_block(
             const fc::time_point_sec when,
-            witness_id_type witness_id,
+            miner_id_type miner_id,
             const fc::ecc::private_key& block_signing_private_key
             );
 
@@ -222,7 +222,7 @@ namespace graphene { namespace chain {
           *
           * Passing slot_num == 0 returns GRAPHENE_NULL_WITNESS
           */
-         witness_id_type get_scheduled_witness(uint32_t slot_num)const;
+         miner_id_type get_scheduled_miner(uint32_t slot_num)const;
 
          /**
           * Get the time at which the given slot occurs.
@@ -244,7 +244,7 @@ namespace graphene { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         void update_witness_schedule();
+         void update_miner_schedule();
 
          //////////////////// db_getter.cpp ////////////////////
 
@@ -259,7 +259,7 @@ namespace graphene { namespace chain {
          time_point_sec   head_block_time()const;
          uint32_t         head_block_num()const;
          block_id_type    head_block_id()const;
-         witness_id_type  head_block_witness()const;
+         miner_id_type  head_block_witness()const;
 
          decltype( chain_parameters::block_interval ) block_interval( )const;
 
@@ -329,7 +329,7 @@ namespace graphene { namespace chain {
          // helper to handle cashback rewards
          void deposit_cashback(const account_object& acct, share_type amount, bool require_vesting = true);
          // helper to handle witness pay
-         void deposit_witness_pay(const witness_object& wit, share_type amount);
+         void deposit_miner_pay(const miner_object& wit, share_type amount);
 
          //////////////////// db_debug.cpp ////////////////////
 
@@ -432,13 +432,13 @@ namespace graphene { namespace chain {
          ///Steps involved in applying a new block
          ///@{
 
-         const witness_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
-         const witness_object& _validate_block_header( const signed_block& next_block )const;
+         const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
+         const miner_object& _validate_block_header( const signed_block& next_block )const;
          void create_block_summary(const signed_block& next_block);
 
          //////////////////// db_update.cpp ////////////////////
          void update_global_dynamic_data( const signed_block& b );
-         void update_signing_witness(const witness_object& signing_witness, const signed_block& new_block);
+         void update_signing_miner(const miner_object& signing_witness, const signed_block& new_block);
          void update_last_irreversible_block();
          void clear_expired_transactions();
          void clear_expired_proposals();
@@ -457,7 +457,7 @@ namespace graphene { namespace chain {
          void process_budget();
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
-         void update_active_witnesses();
+         void update_active_miners();
          void update_active_committee_members();
          void update_worker_votes();
 

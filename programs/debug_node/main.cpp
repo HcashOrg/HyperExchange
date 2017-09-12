@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
       bpo::variables_map options;
 
-      auto witness_plug = node->register_plugin<debug_witness_plugin::debug_witness_plugin>();
+      auto witness_plug = node->register_plugin<debug_miner_plugin::debug_miner_plugin>();
       auto history_plug = node->register_plugin<account_history::account_history_plugin>();
       auto market_history_plug = node->register_plugin<market_history::market_history_plugin>();
 

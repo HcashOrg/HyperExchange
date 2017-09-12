@@ -211,7 +211,7 @@ void database::deposit_cashback(const account_object& acct, share_type amount, b
    return;
 }
 
-void database::deposit_witness_pay(const witness_object& wit, share_type amount)
+void database::deposit_miner_pay(const miner_object& wit, share_type amount)
 {
    if( amount == 0 )
       return;
@@ -220,12 +220,12 @@ void database::deposit_witness_pay(const witness_object& wit, share_type amount)
       wit.pay_vb,
       amount,
       get_global_properties().parameters.witness_pay_vesting_seconds,
-      wit.witness_account,
+      wit.miner_account,
       true );
 
    if( new_vbid.valid() )
    {
-      modify( wit, [&]( witness_object& _wit )
+      modify( wit, [&](miner_object& _wit )
       {
          _wit.pay_vb = *new_vbid;
       } );

@@ -15,7 +15,7 @@
 #include <graphene/debug_witness/debug_api.hpp>
 #include <graphene/debug_witness/debug_witness.hpp>
 
-namespace graphene { namespace debug_witness {
+namespace graphene { namespace debug_miner {
 
 namespace detail {
 
@@ -30,8 +30,7 @@ class debug_api_impl
       //void debug_save_db( std::string db_path );
       void debug_stream_json_objects( const std::string& filename );
       void debug_stream_json_objects_flush();
-      std::shared_ptr< graphene::debug_witness_plugin::debug_witness_plugin > get_plugin();
-
+      std::shared_ptr< graphene::debug_miner_plugin::debug_miner_plugin > get_plugin();
       graphene::app::application& app;
 };
 
@@ -87,17 +86,17 @@ void debug_api_impl::debug_generate_blocks( const std::string& debug_key, uint32
    std::shared_ptr< graphene::chain::database > db = app.chain_database();
    for( uint32_t i=0; i<count; i++ )
    {
-      graphene::chain::witness_id_type scheduled_witness = db->get_scheduled_witness( 1 );
+      graphene::chain::miner_id_type scheduled_miner = db->get_scheduled_miner( 1 );
       fc::time_point_sec scheduled_time = db->get_slot_time( 1 );
-      graphene::chain::public_key_type scheduled_key = scheduled_witness( *db ).signing_key;
+      graphene::chain::public_key_type scheduled_key = scheduled_miner( *db ).signing_key;
       if( scheduled_key != debug_public_key )
       {
-         ilog( "Modified key for witness ${w}", ("w", scheduled_witness) );
+         ilog( "Modified key for miner ${w}", ("w", scheduled_miner) );
          fc::mutable_variant_object update;
-         update("_action", "update")("id", scheduled_witness)("signing_key", debug_public_key);
+         update("_action", "update")("id", scheduled_miner)("signing_key", debug_public_key);
          db->debug_update( update );
       }
-      db->generate_block( scheduled_time, scheduled_witness, *debug_private_key, graphene::chain::database::skip_nothing );
+      db->generate_block( scheduled_time, scheduled_miner, *debug_private_key, graphene::chain::database::skip_nothing );
    }
 }
 
@@ -107,9 +106,9 @@ void debug_api_impl::debug_update_object( const fc::variant_object& update )
    db->debug_update( update );
 }
 
-std::shared_ptr< graphene::debug_witness_plugin::debug_witness_plugin > debug_api_impl::get_plugin()
+std::shared_ptr< graphene::debug_miner_plugin::debug_miner_plugin > debug_api_impl::get_plugin()
 {
-   return app.get_plugin< graphene::debug_witness_plugin::debug_witness_plugin >( "debug_witness" );
+   return app.get_plugin< graphene::debug_miner_plugin::debug_miner_plugin >( "debug_miner" );
 }
 
 void debug_api_impl::debug_stream_json_objects( const std::string& filename )
@@ -155,4 +154,4 @@ void debug_api::debug_stream_json_objects_flush()
 }
 
 
-} } // graphene::debug_witness
+} } // graphene::debug_miner

@@ -254,9 +254,9 @@ struct database_fixture {
       );
 
    const committee_member_object& create_committee_member( const account_object& owner );
-   const witness_object& create_witness(account_id_type owner,
+   const miner_object& create_witness(account_id_type owner,
                                         const fc::ecc::private_key& signing_private_key = generate_private_key("null_key"));
-   const witness_object& create_witness(const account_object& owner,
+   const miner_object& create_witness(const account_object& owner,
                                         const fc::ecc::private_key& signing_private_key = generate_private_key("null_key"));
    uint64_t fund( const account_object& account, const asset& amount = asset(500000) );
    digest_type digest( const transaction& tx );

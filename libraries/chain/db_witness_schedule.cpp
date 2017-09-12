@@ -31,12 +31,12 @@ namespace graphene { namespace chain {
 
 using boost::container::flat_set;
 
-witness_id_type database::get_scheduled_witness( uint32_t slot_num )const
+miner_id_type database::get_scheduled_miner( uint32_t slot_num )const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    const witness_schedule_object& wso = witness_schedule_id_type()(*this);
    uint64_t current_aslot = dpo.current_aslot + slot_num;
-   return wso.current_shuffled_witnesses[ current_aslot % wso.current_shuffled_witnesses.size() ];
+   return wso.current_shuffled_miners[ current_aslot % wso.current_shuffled_miners.size() ];
 }
 
 fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
@@ -77,13 +77,13 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
    return (when - first_slot_time).to_seconds() / block_interval() + 1;
 }
 
-uint32_t database::witness_participation_rate()const
+uint32_t database::miner_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    return uint64_t(GRAPHENE_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
 }
 
-void database::update_witness_schedule()
+void database::update_miner_schedule()
 {
    const witness_schedule_object& wso = witness_schedule_id_type()(*this);
    const global_property_object& gpo = get_global_properties();
@@ -92,14 +92,14 @@ void database::update_witness_schedule()
    {
       modify( wso, [&]( witness_schedule_object& _wso )
       {
-         _wso.current_shuffled_witnesses.clear();
-         _wso.current_shuffled_witnesses.reserve( gpo.active_witnesses.size() );
+         _wso.current_shuffled_miners.clear();
+         _wso.current_shuffled_miners.reserve( gpo.active_witnesses.size() );
 
-         for( const witness_id_type& w : gpo.active_witnesses )
-            _wso.current_shuffled_witnesses.push_back( w );
+         for( const miner_id_type& w : gpo.active_witnesses )
+            _wso.current_shuffled_miners.push_back( w );
 
          auto now_hi = uint64_t(head_block_time().sec_since_epoch()) << 32;
-         for( uint32_t i = 0; i < _wso.current_shuffled_witnesses.size(); ++i )
+         for( uint32_t i = 0; i < _wso.current_shuffled_miners.size(); ++i )
          {
             /// High performance random generator
             /// http://xorshift.di.unimi.it/
@@ -109,10 +109,10 @@ void database::update_witness_schedule()
             k ^= (k >> 27);
             k *= 2685821657736338717ULL;
 
-            uint32_t jmax = _wso.current_shuffled_witnesses.size() - i;
+            uint32_t jmax = _wso.current_shuffled_miners.size() - i;
             uint32_t j = i + k%jmax;
-            std::swap( _wso.current_shuffled_witnesses[i],
-                       _wso.current_shuffled_witnesses[j] );
+            std::swap( _wso.current_shuffled_miners[i],
+                       _wso.current_shuffled_miners[j] );
          }
       });
    }

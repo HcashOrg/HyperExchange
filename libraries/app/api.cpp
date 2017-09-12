@@ -107,8 +107,8 @@ namespace graphene { namespace app {
        else if( api_name == "debug_api" )
        {
           // can only enable this API if the plugin was loaded
-          if( _app.get_plugin( "debug_witness" ) )
-             _debug_api = std::make_shared< graphene::debug_witness::debug_api >( std::ref(_app) );
+          if( _app.get_plugin( "debug_miner" ) )
+             _debug_api = std::make_shared< graphene::debug_miner::debug_api >( std::ref(_app) );
        }
        return;
     }
@@ -262,7 +262,7 @@ namespace graphene { namespace app {
        return *_asset_api;
     }
 
-    fc::api<graphene::debug_witness::debug_api> login_api::debug() const
+    fc::api<graphene::debug_miner::debug_api> login_api::debug() const
     {
        FC_ASSERT(_debug_api);
        return *_debug_api;
@@ -297,10 +297,10 @@ namespace graphene { namespace app {
                assert( aobj != nullptr );
                result.push_back( aobj->committee_member_account );
                break;
-            } case witness_object_type:{
-               const auto& aobj = dynamic_cast<const witness_object*>(obj);
+            } case miner_object_type:{
+               const auto& aobj = dynamic_cast<const miner_object*>(obj);
                assert( aobj != nullptr );
-               result.push_back( aobj->witness_account );
+               result.push_back( aobj->miner_account );
                break;
             } case limit_order_object_type:{
                const auto& aobj = dynamic_cast<const limit_order_object*>(obj);

@@ -199,7 +199,7 @@ void database_fixture::verify_asset_supplies( const database& db )
    for( const fba_accumulator_object& fba : db.get_index_type< simple_index< fba_accumulator_object > >() )
       total_balances[ asset_id_type() ] += fba.accumulated_fba_fees;
 
-   total_balances[asset_id_type()] += db.get_dynamic_global_properties().witness_budget;
+   total_balances[asset_id_type()] += db.get_dynamic_global_properties().miner_budget;
 
    for( const auto& item : total_delnk )
    {
@@ -312,7 +312,7 @@ signed_block database_fixture::generate_block(uint32_t skip, const fc::ecc::priv
    skip |= database::skip_undo_history_check;
    // skip == ~0 will skip checks specified in database::validation_steps
    auto block = db.generate_block(db.get_slot_time(miss_blocks + 1),
-                            db.get_scheduled_witness(miss_blocks + 1),
+                            db.get_scheduled_miner(miss_blocks + 1),
                             key, skip);
    db.clear_pending();
    return block;
@@ -648,22 +648,22 @@ const committee_member_object& database_fixture::create_committee_member( const 
    return db.get<committee_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
-const witness_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)
+const miner_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)
 {
    return create_witness(owner(db), signing_private_key);
 }
 
-const witness_object& database_fixture::create_witness( const account_object& owner,
+const miner_object& database_fixture::create_witness( const account_object& owner,
                                                         const fc::ecc::private_key& signing_private_key )
 { try {
-   witness_create_operation op;
-   op.witness_account = owner.id;
+   miner_create_operation op;
+   op.miner_account = owner.id;
    op.block_signing_key = signing_private_key.get_public_key();
    trx.operations.push_back(op);
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.clear();
-   return db.get<witness_object>(ptx.operation_results[0].get<object_id_type>());
+   return db.get<miner_object>(ptx.operation_results[0].get<object_id_type>());
 } FC_CAPTURE_AND_RETHROW() }
 
 uint64_t database_fixture::fund(

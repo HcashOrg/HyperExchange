@@ -85,9 +85,9 @@ struct get_impacted_account_visitor
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
    void operator()( const asset_publish_feed_operation& op ) {}
-   void operator()( const witness_create_operation& op )
+   void operator()( const miner_create_operation& op )
    {
-      _impacted.insert( op.witness_account );
+      _impacted.insert( op.miner_account );
    }
    void operator()( const witness_update_operation& op )
    {
@@ -228,10 +228,10 @@ void get_relevant_accounts( const object* obj, flat_set<account_id_type>& accoun
            assert( aobj != nullptr );
            accounts.insert( aobj->committee_member_account );
            break;
-        } case witness_object_type:{
-           const auto& aobj = dynamic_cast<const witness_object*>(obj);
+        } case miner_object_type:{
+           const auto& aobj = dynamic_cast<const miner_object*>(obj);
            assert( aobj != nullptr );
-           accounts.insert( aobj->witness_account );
+           accounts.insert( aobj->miner_account );
            break;
         } case limit_order_object_type:{
            const auto& aobj = dynamic_cast<const limit_order_object*>(obj);

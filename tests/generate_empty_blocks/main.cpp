@@ -131,7 +131,7 @@ int main( int argc, char** argv )
 
       for( uint32_t i = 1; i < num_blocks; ++i )
       {
-         signed_block b = db.generate_block(db.get_slot_time(slot), db.get_scheduled_witness(slot), nathan_priv_key, database::skip_nothing);
+         signed_block b = db.generate_block(db.get_slot_time(slot), db.get_scheduled_miner(slot), nathan_priv_key, database::skip_nothing);
          FC_ASSERT( db.head_block_id() == b.id() );
          fc::sha256 h = b.digest();
          uint64_t rand = h._hash[0];
@@ -148,8 +148,8 @@ int main( int argc, char** argv )
                break;
          }
          
-         witness_id_type prev_witness = b.witness;
-         witness_id_type cur_witness = db.get_scheduled_witness(1);
+         miner_id_type prev_witness = b.witness;
+         miner_id_type cur_witness = db.get_scheduled_miner(1);
          if( verbose )
          {
             wdump( (prev_witness)(cur_witness) );

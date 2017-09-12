@@ -281,10 +281,10 @@ private:
 
    // after a witness registration succeeds, this saves the private key in the wallet permanently
    //
-   void claim_registered_witness(const std::string& witness_name)
+   void claim_registered_miner(const std::string& witness_name)
    {
-      auto iter = _wallet.pending_witness_registrations.find(witness_name);
-      FC_ASSERT(iter != _wallet.pending_witness_registrations.end());
+      auto iter = _wallet.pending_miner_registrations.find(witness_name);
+      FC_ASSERT(iter != _wallet.pending_miner_registrations.end());
       std::string wif_key = iter->second;
 
       // get the list key id this key is registered with in the chain
@@ -292,8 +292,9 @@ private:
       FC_ASSERT(witness_private_key);
 
       auto pub_key = witness_private_key->get_public_key();
-      _keys[pub_key] = wif_key;
-      _wallet.pending_witness_registrations.erase(iter);
+      //_keys[pub_key] = wif_key;
+	  FC_ASSERT(_keys.count(pub_key));
+      _wallet.pending_miner_registrations.erase(iter);
    }
 
    fc::mutex _resync_mutex;
@@ -323,10 +324,10 @@ private:
                claim_registered_account(*optional_account);
       }
 
-      if (!_wallet.pending_witness_registrations.empty())
+      if (!_wallet.pending_miner_registrations.empty())
       {
          // make a vector of the owner accounts for witnesses pending registration
-         std::vector<string> pending_witness_names = boost::copy_range<std::vector<string> >(boost::adaptors::keys(_wallet.pending_witness_registrations));
+         std::vector<string> pending_witness_names = boost::copy_range<std::vector<string> >(boost::adaptors::keys(_wallet.pending_miner_registrations));
 
          // look up the owners on the blockchain
          std::vector<fc::optional<graphene::chain::account_object>> owner_account_objects = _remote_db->lookup_account_names(pending_witness_names);
@@ -335,9 +336,9 @@ private:
          for( const fc::optional<graphene::chain::account_object>& optional_account : owner_account_objects )
             if (optional_account)
             {
-               fc::optional<witness_object> witness_obj = _remote_db->get_witness_by_account(optional_account->id);
+               fc::optional<miner_object> witness_obj = _remote_db->get_miner_by_account(optional_account->id);
                if (witness_obj)
-                  claim_registered_witness(optional_account->name);
+				   claim_registered_miner(optional_account->name);
             }
       }
    }
@@ -1491,18 +1492,18 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
 
-   witness_object get_witness(string owner_account)
+   miner_object get_miner(string owner_account)
    {
       try
       {
-         fc::optional<witness_id_type> witness_id = maybe_id<witness_id_type>(owner_account);
-         if (witness_id)
+         fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
+         if (miner_id)
          {
-            std::vector<witness_id_type> ids_to_get;
-            ids_to_get.push_back(*witness_id);
-            std::vector<fc::optional<witness_object>> witness_objects = _remote_db->get_witnesses(ids_to_get);
-            if (witness_objects.front())
-               return *witness_objects.front();
+            std::vector<miner_id_type> ids_to_get;
+            ids_to_get.push_back(*miner_id);
+            std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(ids_to_get);
+            if (miner_objects.front())
+               return *miner_objects.front();
             FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
          }
          else
@@ -1511,7 +1512,7 @@ public:
             try
             {
                account_id_type owner_account_id = get_account_id(owner_account);
-               fc::optional<witness_object> witness = _remote_db->get_witness_by_account(owner_account_id);
+               fc::optional<miner_object> witness = _remote_db->get_miner_by_account(owner_account_id);
                if (witness)
                   return *witness;
                else
@@ -1561,30 +1562,30 @@ public:
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
 
-   signed_transaction create_witness(string owner_account,
+   signed_transaction create_miner(string owner_account,
                                      string url,
                                      bool broadcast /* = false */)
    { try {
-      account_object witness_account = get_account(owner_account);
-      fc::ecc::private_key active_private_key = get_private_key_for_account(witness_account);
-      int witness_key_index = find_first_unused_derived_key_index(active_private_key);
-      fc::ecc::private_key witness_private_key = derive_private_key(key_to_wif(active_private_key), witness_key_index);
-      graphene::chain::public_key_type witness_public_key = witness_private_key.get_public_key();
+      account_object miner_account = get_account(owner_account);
+      fc::ecc::private_key active_private_key = get_private_key_for_account(miner_account);
+      //int witness_key_index = find_first_unused_derived_key_index(active_private_key);
+      //fc::ecc::private_key witness_private_key = derive_private_key(key_to_wif(active_private_key), witness_key_index);
+      graphene::chain::public_key_type miner_public_key = active_private_key.get_public_key();
 
-      witness_create_operation witness_create_op;
-      witness_create_op.witness_account = witness_account.id;
-      witness_create_op.block_signing_key = witness_public_key;
-      witness_create_op.url = url;
+      miner_create_operation miner_create_op;
+	  miner_create_op.miner_account = miner_account.id;
+	  miner_create_op.block_signing_key = miner_public_key;
+	  miner_create_op.url = url;
 
-      if (_remote_db->get_witness_by_account(witness_create_op.witness_account))
+      if (_remote_db->get_miner_by_account(miner_create_op.miner_account))
          FC_THROW("Account ${owner_account} is already a witness", ("owner_account", owner_account));
 
       signed_transaction tx;
-      tx.operations.push_back( witness_create_op );
+      tx.operations.push_back(miner_create_op);
       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
       tx.validate();
 
-      _wallet.pending_witness_registrations[owner_account] = key_to_wif(witness_private_key);
+      _wallet.pending_miner_registrations[owner_account] = key_to_wif(active_private_key);
 
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
@@ -1594,8 +1595,8 @@ public:
                                      string block_signing_key,
                                      bool broadcast /* = false */)
    { try {
-      witness_object witness = get_witness(witness_name);
-      account_object witness_account = get_account( witness.witness_account );
+      miner_object witness = get_miner(witness_name);
+      account_object witness_account = get_account( witness.miner_account );
       fc::ecc::private_key active_private_key = get_private_key_for_account(witness_account);
 
       witness_update_operation witness_update_op;
@@ -1768,7 +1769,7 @@ public:
       fc::optional<vesting_balance_id_type> vbid = maybe_id<vesting_balance_id_type>(witness_name);
       if( !vbid )
       {
-         witness_object wit = get_witness( witness_name );
+         miner_object wit = get_miner( witness_name );
          FC_ASSERT( wit.pay_vb );
          vbid = wit.pay_vb;
       }
@@ -1830,7 +1831,7 @@ public:
    { try {
       account_object voting_account_object = get_account(voting_account);
       account_id_type witness_owner_account_id = get_account_id(witness);
-      fc::optional<witness_object> witness_obj = _remote_db->get_witness_by_account(witness_owner_account_id);
+      fc::optional<miner_object> witness_obj = _remote_db->get_miner_by_account(witness_owner_account_id);
       if (!witness_obj)
          FC_THROW("Account ${witness} is not registered as a witness", ("witness", witness));
       if (approve)
@@ -2770,7 +2771,7 @@ public:
    fc::api<network_broadcast_api>   _remote_net_broadcast;
    fc::api<history_api>    _remote_hist;
    optional< fc::api<network_node_api> > _remote_net_node;
-   optional< fc::api<graphene::debug_witness::debug_api> > _remote_debug;
+   optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
 
    flat_map<string, operation> _prototype_ops;
 
@@ -3512,9 +3513,9 @@ signed_transaction wallet_api::create_committee_member(string owner_account, str
    return my->create_committee_member(owner_account, url, broadcast);
 }
 
-map<string,witness_id_type> wallet_api::list_witnesses(const string& lowerbound, uint32_t limit)
+map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_db->lookup_witness_accounts(lowerbound, limit);
+   return my->_remote_db->lookup_miner_accounts(lowerbound, limit);
 }
 
 map<string,committee_member_id_type> wallet_api::list_committee_members(const string& lowerbound, uint32_t limit)
@@ -3522,9 +3523,9 @@ map<string,committee_member_id_type> wallet_api::list_committee_members(const st
    return my->_remote_db->lookup_committee_member_accounts(lowerbound, limit);
 }
 
-witness_object wallet_api::get_witness(string owner_account)
+miner_object wallet_api::get_miner(string owner_account)
 {
-   return my->get_witness(owner_account);
+   return my->get_miner(owner_account);
 }
 
 committee_member_object wallet_api::get_committee_member(string owner_account)
@@ -3532,11 +3533,11 @@ committee_member_object wallet_api::get_committee_member(string owner_account)
    return my->get_committee_member(owner_account);
 }
 
-signed_transaction wallet_api::create_witness(string owner_account,
+signed_transaction wallet_api::create_miner(string owner_account,
                                               string url,
                                               bool broadcast /* = false */)
 {
-   return my->create_witness(owner_account, url, broadcast);
+   return my->create_miner(owner_account, url, broadcast);
 }
 
 signed_transaction wallet_api::create_worker(

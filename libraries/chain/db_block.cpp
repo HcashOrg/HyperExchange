@@ -296,7 +296,7 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
 signed_block database::generate_block(
    fc::time_point_sec when,
-   witness_id_type witness_id,
+   miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key,
    uint32_t skip /* = 0 */
    )
@@ -311,7 +311,7 @@ signed_block database::generate_block(
 
 signed_block database::_generate_block(
    fc::time_point_sec when,
-   witness_id_type witness_id,
+	miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key
    )
 {
@@ -319,7 +319,7 @@ signed_block database::_generate_block(
    uint32_t skip = get_node_properties().skip_flags;
    uint32_t slot_num = get_slot_at_time( when );
    FC_ASSERT( slot_num > 0 );
-   witness_id_type scheduled_witness = get_scheduled_witness( slot_num );
+   miner_id_type scheduled_witness = get_scheduled_miner( slot_num );
    FC_ASSERT( scheduled_witness == witness_id );
 
    const auto& witness_obj = witness_id(*this);
@@ -493,7 +493,7 @@ void database::_apply_block( const signed_block& next_block )
 
    FC_ASSERT( (skip & skip_merkle_check) || next_block.transaction_merkle_root == next_block.calculate_merkle_root(), "", ("next_block.transaction_merkle_root",next_block.transaction_merkle_root)("calc",next_block.calculate_merkle_root())("next_block",next_block)("id",next_block.id()) );
 
-   const witness_object& signing_witness = validate_block_header(skip, next_block);
+   const miner_object& signing_witness = validate_block_header(skip, next_block);
    const auto& global_props = get_global_properties();
    const auto& dynamic_global_props = get<dynamic_global_property_object>(dynamic_global_property_id_type());
    bool maint_needed = (dynamic_global_props.next_maintenance_time <= next_block.timestamp);
@@ -514,7 +514,7 @@ void database::_apply_block( const signed_block& next_block )
    }
 
    update_global_dynamic_data(next_block);
-   update_signing_witness(signing_witness, next_block);
+   update_signing_miner(signing_witness, next_block);
    update_last_irreversible_block();
 
    // Are we at the maintenance interval?
@@ -534,7 +534,7 @@ void database::_apply_block( const signed_block& next_block )
    // update_global_dynamic_data() as perhaps these methods only need
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
-   update_witness_schedule();
+   update_miner_schedule();
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
 
@@ -645,11 +645,11 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-const witness_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
+const miner_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
-   const witness_object& witness = next_block.witness(*this);
+   const miner_object& witness = next_block.witness(*this);
 
    if( !(skip&skip_witness_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
@@ -659,10 +659,10 @@ const witness_object& database::validate_block_header( uint32_t skip, const sign
       uint32_t slot_num = get_slot_at_time( next_block.timestamp );
       FC_ASSERT( slot_num > 0 );
 
-      witness_id_type scheduled_witness = get_scheduled_witness( slot_num );
+      miner_id_type scheduled_miner = get_scheduled_miner( slot_num );
 
-      FC_ASSERT( next_block.witness == scheduled_witness, "Witness produced block at wrong time",
-                 ("block witness",next_block.witness)("scheduled",scheduled_witness)("slot_num",slot_num) );
+      FC_ASSERT( next_block.witness == scheduled_miner, "Witness produced block at wrong time",
+                 ("block witness",next_block.witness)("scheduled",scheduled_miner)("slot_num",slot_num) );
    }
 
    return witness;
