@@ -128,7 +128,6 @@ void database::update_witness_schedule()
 	try {//todo remove????
 		 // if( pending_state->get_head_block_num() < ALP_V0_7_0_FORK_BLOCK_NUM )
 		 // return update_active_delegate_list_v1( block_num, pending_state );
-		printf("block_num: %d\n",block_num);
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
 			modify(wso, [&](witness_schedule_object& _wso)

@@ -218,6 +218,76 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 }
 
 
+
+BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
+{
+	try {
+		fc::time_point_sec now(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
+		fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
+		signed_block b;
+		std::map<witness_id_type, int> details;
+		// TODO:  Don't generate this here
+		auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+		signed_block cutoff_block;
+		{
+			database db;
+			db.open(data_dir.path(), make_genesis_30);
+			auto gpo = db.get_global_properties();
+			auto& all_witness_object = db.get_index_type<witness_index>().indices();
+			int step = 0;
+			for (const witness_object& wit : all_witness_object)
+			{
+				++step;
+				db.modify(wit, [&](witness_object& obj) {
+					obj.pledge_weight = obj.pledge_weight * step;
+				});
+			}
+				
+			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+
+			// TODO:  Change this test when we correct #406
+			// n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
+			for (uint32_t i = 1; ; ++i)
+			{
+				BOOST_CHECK(db.head_block_id() == b.id());
+				//witness_id_type prev_witness = b.witness;
+				witness_id_type cur_witness = db.get_scheduled_witness(1);
+				if (details.count(cur_witness) == 0)
+				{
+					details[cur_witness] = 1;
+				}
+				else
+				{
+					details[cur_witness] += 1;
+				}
+				//BOOST_CHECK( cur_witness != prev_witness );
+				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+				BOOST_CHECK(b.witness == cur_witness);
+				uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
+				if (cutoff_height >= 2000)
+				{
+					cutoff_block = *(db.fetch_block_by_number(cutoff_height));
+					break;
+				}
+			}
+
+			for (auto iter = details.begin(); iter != details.end(); ++iter)
+			{
+				const auto& account_obj = iter->first(db).witness_account(db);
+				printf("witness_name:%s,appear count:%d\n", account_obj.name.c_str(), iter->second);
+			}
+
+			db.close();
+		}
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+
+
 BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
 {
    try {
@@ -253,7 +323,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
             b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
             BOOST_CHECK( b.witness == cur_witness );
             uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
-            if( cutoff_height >= 20000 )
+            if( cutoff_height >= 2000 )
             {
                cutoff_block = *(db.fetch_block_by_number( cutoff_height ));
                break;
