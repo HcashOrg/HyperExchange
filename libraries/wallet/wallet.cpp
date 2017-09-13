@@ -1578,7 +1578,7 @@ public:
 	  miner_create_op.url = url;
 
       if (_remote_db->get_miner_by_account(miner_create_op.miner_account))
-         FC_THROW("Account ${owner_account} is already a witness", ("owner_account", owner_account));
+         FC_THROW("Account ${owner_account} is already a miner", ("owner_account", owner_account));
 
       signed_transaction tx;
       tx.operations.push_back(miner_create_op);
