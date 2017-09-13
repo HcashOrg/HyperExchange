@@ -93,7 +93,7 @@ namespace detail {
                                                      nathan_key.get_public_key(),
                                                      true);
          initial_state.initial_committee_candidates.push_back({name});
-         initial_state.initial_witness_candidates.push_back({name, nathan_key.get_public_key()});
+         initial_state.initial_miner_candidates.push_back({name, nathan_key.get_public_key()});
       }
 
       initial_state.initial_accounts.emplace_back("nathan", nathan_key.get_public_key());
@@ -317,7 +317,7 @@ namespace detail {
          flat_set< std::string > initial_witness_names;
          public_key_type init_pubkey( init_key );
          for( uint64_t i=0; i<genesis.initial_active_witnesses; i++ )
-            genesis.initial_witness_candidates[i].block_signing_key = init_pubkey;
+            genesis.initial_miner_candidates[i].block_signing_key = init_pubkey;
          return;
       }
 
@@ -344,7 +344,7 @@ namespace detail {
                if( _options->count("dbg-init-key") )
                {
                   std::string init_key = _options->at( "dbg-init-key" ).as<string>();
-                  FC_ASSERT( genesis.initial_witness_candidates.size() >= genesis.initial_active_witnesses );
+                  FC_ASSERT( genesis.initial_miner_candidates.size() >= genesis.initial_active_witnesses );
                   set_dbg_init_key( genesis, init_key );
                   modified_genesis = true;
                   std::cerr << "Set init witness key to " << init_key << "\n";
