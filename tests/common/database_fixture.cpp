@@ -393,7 +393,7 @@ account_create_operation database_fixture::make_account(
       create_account.options.memo_key = key;
       create_account.options.voting_account = GRAPHENE_PROXY_TO_SELF_ACCOUNT;
 
-      const vector<committee_member_id_type>& active_committee_members = db.get_global_properties().active_committee_members;
+      const vector<guard_member_id_type>& active_committee_members = db.get_global_properties().active_committee_members;
       if( active_committee_members.size() > 0 )
       {
          set<vote_id_type> votes;
@@ -637,15 +637,15 @@ const account_object& database_fixture::create_account(
    FC_CAPTURE_AND_RETHROW( (name)(registrar_id)(referrer_id) )
 }
 
-const committee_member_object& database_fixture::create_committee_member( const account_object& owner )
+const guard_member_object& database_fixture::create_guard_member( const account_object& owner )
 {
-   committee_member_create_operation op;
-   op.committee_member_account = owner.id;
+   guard_member_create_operation op;
+   op.guard_member_account = owner.id;
    trx.operations.push_back(op);
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.operations.clear();
-   return db.get<committee_member_object>(ptx.operation_results[0].get<object_id_type>());
+   return db.get<guard_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
 const miner_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)

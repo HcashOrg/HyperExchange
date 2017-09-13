@@ -472,14 +472,14 @@ class database_api
        *
        * This function has semantics identical to @ref get_objects
        */
-      vector<optional<committee_member_object>> get_committee_members(const vector<committee_member_id_type>& committee_member_ids)const;
+      vector<optional<guard_member_object>> get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const;
 
       /**
        * @brief Get the committee_member owned by a given account
        * @param account The ID of the account whose committee_member should be retrieved
        * @return The committee_member object, or null if the account does not have a committee_member
        */
-      fc::optional<committee_member_object> get_committee_member_by_account(account_id_type account)const;
+      fc::optional<guard_member_object> get_guard_member_by_account(account_id_type account)const;
 
       /**
        * @brief Get names and IDs for registered committee_members
@@ -487,7 +487,7 @@ class database_api
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of committee_member names to corresponding IDs
        */
-      map<string, committee_member_id_type> lookup_committee_member_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const;
 
 
       /// WORKERS
@@ -505,7 +505,7 @@ class database_api
       /**
        *  @brief Given a set of votes, return the objects they are voting for.
        *
-       *  This will be a mixture of committee_member_object, miner_objects, and worker_objects
+       *  This will be a mixture of guard_member_object, miner_objects, and worker_objects
        *
        *  The results will be in the same order as the votes.  Null will be returned for
        *  any vote ids that are not found.
@@ -652,9 +652,9 @@ FC_API(graphene::app::database_api,
 	(get_miner_count)
 
 	// Committee members
-	(get_committee_members)
-	(get_committee_member_by_account)
-	(lookup_committee_member_accounts)
+	(get_guard_members)
+	(get_guard_member_by_account)
+	(lookup_guard_member_accounts)
 
 	// workers
 	(get_workers_by_account)

@@ -126,13 +126,13 @@ struct get_impacted_account_visitor
       _impacted.insert( op.authorized_account );
    }
 
-   void operator()( const committee_member_create_operation& op )
+   void operator()( const guard_member_create_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
 
@@ -223,10 +223,10 @@ void get_relevant_accounts( const object* obj, flat_set<account_id_type>& accoun
            assert( aobj != nullptr );
            accounts.insert( aobj->owner );
            break;
-        } case committee_member_object_type:{
-           const auto& aobj = dynamic_cast<const committee_member_object*>(obj);
+        } case guard_member_object_type:{
+           const auto& aobj = dynamic_cast<const guard_member_object*>(obj);
            assert( aobj != nullptr );
-           accounts.insert( aobj->committee_member_account );
+           accounts.insert( aobj->guard_member_account );
            break;
         } case miner_object_type:{
            const auto& aobj = dynamic_cast<const miner_object*>(obj);

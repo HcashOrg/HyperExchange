@@ -1282,7 +1282,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a committee_member
        */
-      signed_transaction create_committee_member(string owner_account,
+      signed_transaction create_guard_member(string owner_account,
                                          string url, 
                                          bool broadcast = false);
 
@@ -1307,14 +1307,14 @@ class wallet_api
        *
        * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all committee_members,
        * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-       * the last committee_member name returned as the \c lowerbound for the next \c list_committee_members() call.
+       * the last committee_member name returned as the \c lowerbound for the next \c list_guard_members() call.
        *
        * @param lowerbound the name of the first committee_member to return.  If the named committee_member does not exist, 
        *                   the list will start at the committee_member that comes after \c lowerbound
        * @param limit the maximum number of committee_members to return (max: 1000)
        * @returns a list of committee_members mapping committee_member names to committee_member ids
        */
-      map<string, committee_member_id_type>       list_committee_members(const string& lowerbound, uint32_t limit);
+      map<string, guard_member_id_type>       list_guard_members(const string& lowerbound, uint32_t limit);
 
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
@@ -1326,7 +1326,7 @@ class wallet_api
        * @param owner_account the name or id of the committee_member account owner, or the id of the committee_member
        * @returns the information about the committee_member stored in the block chain
        */
-      committee_member_object get_committee_member(string owner_account);
+      guard_member_object get_guard_member(string owner_account);
 
       /** Creates a miner object owned by the given account.
        *
@@ -1499,7 +1499,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      signed_transaction set_desired_witness_and_committee_member_count(string account_to_modify,
+      signed_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
@@ -1725,11 +1725,11 @@ FC_API( graphene::wallet::wallet_api,
         (global_settle_asset)
         (settle_asset)
         (whitelist_account)
-        (create_committee_member)
+        (create_guard_member)
         (get_miner)
-        (get_committee_member)
+        (get_guard_member)
         (list_miners)
-        (list_committee_members)
+        (list_guard_members)
         (create_miner)
         (update_witness)
         (create_worker)
@@ -1739,7 +1739,7 @@ FC_API( graphene::wallet::wallet_api,
         (vote_for_committee_member)
         (vote_for_witness)
         (set_voting_proxy)
-        (set_desired_witness_and_committee_member_count)
+        (set_desired_miner_and_guard_member_count)
         (get_account)
         (get_account_id)
         (get_block)

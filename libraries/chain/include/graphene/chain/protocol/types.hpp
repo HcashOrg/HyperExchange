@@ -123,7 +123,7 @@ namespace graphene { namespace chain {
       account_object_type,
       asset_object_type,
       force_settlement_object_type,
-      committee_member_object_type,
+      guard_member_object_type,
       miner_object_type,
       limit_order_object_type,
       call_order_object_type,
@@ -161,7 +161,7 @@ namespace graphene { namespace chain {
    //typedef fc::unsigned_int            object_id_type;
    //typedef uint64_t                    object_id_type;
    class account_object;
-   class committee_member_object;
+   class guard_member_object;
    class miner_object;
    class asset_object;
    class force_settlement_object;
@@ -179,7 +179,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
    typedef object_id< protocol_ids, force_settlement_object_type,   force_settlement_object>      force_settlement_id_type;
-   typedef object_id< protocol_ids, committee_member_object_type,           committee_member_object>              committee_member_id_type;
+   typedef object_id< protocol_ids, guard_member_object_type,           guard_member_object>              guard_member_id_type;
    typedef object_id< protocol_ids, miner_object_type,            miner_object>               miner_id_type;
    typedef object_id< protocol_ids, limit_order_object_type,        limit_order_object>           limit_order_id_type;
    typedef object_id< protocol_ids, call_order_object_type,         call_order_object>            call_order_id_type;
@@ -328,7 +328,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (account_object_type)
                  (force_settlement_object_type)
                  (asset_object_type)
-                 (committee_member_object_type)
+                 (guard_member_object_type)
                  (miner_object_type)
                  (limit_order_object_type)
                  (call_order_object_type)
@@ -366,7 +366,7 @@ FC_REFLECT_TYPENAME( graphene::chain::share_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::asset_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::force_settlement_id_type )
-FC_REFLECT_TYPENAME( graphene::chain::committee_member_id_type )
+FC_REFLECT_TYPENAME( graphene::chain::guard_member_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::miner_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::limit_order_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::call_order_id_type )

@@ -256,11 +256,11 @@ void database::update_active_committee_members()
          stake_tally += _committee_count_histogram_buffer[++committee_member_count];
 
    const chain_property_object& cpo = get_chain_properties();
-   auto committee_members = sort_votable_objects<committee_member_index>(std::max(committee_member_count*2+1, (size_t)cpo.immutable_parameters.min_committee_member_count));
+   auto committee_members = sort_votable_objects<guard_member_index>(std::max(committee_member_count*2+1, (size_t)cpo.immutable_parameters.min_committee_member_count));
 
-   for( const committee_member_object& del : committee_members )
+   for( const guard_member_object& del : committee_members )
    {
-      modify( del, [&]( committee_member_object& obj ){
+      modify( del, [&]( guard_member_object& obj ){
               obj.total_votes = _vote_tally_buffer[del.vote_id];
               });
    }
@@ -277,9 +277,9 @@ void database::update_active_committee_members()
             a.active.weight_threshold = 0;
             a.active.clear();
 
-            for( const committee_member_object& del : committee_members )
+            for( const guard_member_object& del : committee_members )
             {
-               weights.emplace(del.committee_member_account, _vote_tally_buffer[del.vote_id]);
+               weights.emplace(del.guard_member_account, _vote_tally_buffer[del.vote_id]);
                total_votes += _vote_tally_buffer[del.vote_id];
             }
 
@@ -300,8 +300,8 @@ void database::update_active_committee_members()
          else
          {
             vote_counter vc;
-            for( const committee_member_object& cm : committee_members )
-               vc.add( cm.committee_member_account, _vote_tally_buffer[cm.vote_id] );
+            for( const guard_member_object& cm : committee_members )
+               vc.add( cm.guard_member_account, _vote_tally_buffer[cm.vote_id] );
             vc.finish( a.active );
          }
       } );
@@ -313,7 +313,7 @@ void database::update_active_committee_members()
       gp.active_committee_members.clear();
       std::transform(committee_members.begin(), committee_members.end(),
                      std::inserter(gp.active_committee_members, gp.active_committee_members.begin()),
-                     [](const committee_member_object& d) { return d.id; });
+                     [](const guard_member_object& d) { return d.id; });
    });
 } FC_CAPTURE_AND_RETHROW() }
 
