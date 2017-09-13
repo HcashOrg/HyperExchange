@@ -149,7 +149,11 @@ FC_REFLECT(graphene::chain::genesis_state_type::initial_worker_type, (owner_name
 
 FC_REFLECT(graphene::chain::genesis_state_type,
            (initial_timestamp)(max_core_supply)(initial_parameters)(initial_accounts)(initial_assets)(initial_balances)
+<<<<<<< HEAD
            (initial_vesting_balances)(initial_active_miners)(initial_miner_candidates)
+=======
+           (initial_vesting_balances)(initial_active_witnesses)(initial_miner_candidates)
+>>>>>>> aad9bfdd1d0b9a89d168b4032ebc2d2898ed36b5
            (initial_committee_candidates)(initial_worker_candidates)
            (initial_chain_id)
            (immutable_parameters))
