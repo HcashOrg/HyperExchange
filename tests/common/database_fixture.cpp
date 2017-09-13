@@ -79,8 +79,8 @@ database_fixture::database_fixture()
 
    genesis_state.initial_timestamp = time_point_sec( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
 
-   genesis_state.initial_active_witnesses = 10;
-   for( int i = 0; i < genesis_state.initial_active_witnesses; ++i )
+   genesis_state.initial_active_miners = 10;
+   for( int i = 0; i < genesis_state.initial_active_miners; ++i )
    {
       auto name = "init"+fc::to_string(i);
       genesis_state.initial_accounts.emplace_back(name,
@@ -88,7 +88,7 @@ database_fixture::database_fixture()
                                                   init_account_priv_key.get_public_key(),
                                                   true);
       genesis_state.initial_committee_candidates.push_back({name});
-      genesis_state.initial_witness_candidates.push_back({name, init_account_priv_key.get_public_key()});
+      genesis_state.initial_miner_candidates.push_back({name, init_account_priv_key.get_public_key()});
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
    open_database();

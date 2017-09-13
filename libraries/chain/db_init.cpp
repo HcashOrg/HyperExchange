@@ -223,9 +223,9 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    FC_ASSERT( genesis_state.initial_timestamp != time_point_sec(), "Must initialize genesis timestamp." );
    FC_ASSERT( genesis_state.initial_timestamp.sec_since_epoch() % GRAPHENE_DEFAULT_BLOCK_INTERVAL == 0,
               "Genesis timestamp must be divisible by GRAPHENE_DEFAULT_BLOCK_INTERVAL." );
-   FC_ASSERT(genesis_state.initial_witness_candidates.size() > 0,
+   FC_ASSERT(genesis_state.initial_miner_candidates.size() > 0,
              "Cannot start a chain with zero witnesses.");
-   FC_ASSERT(genesis_state.initial_active_witnesses <= genesis_state.initial_witness_candidates.size(),
+   FC_ASSERT(genesis_state.initial_active_miners <= genesis_state.initial_miner_candidates.size(),
              "initial_active_witnesses is larger than the number of candidate witnesses.");
 
    _undo_db.disable();
@@ -617,8 +617,8 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    remove(wit);
 
    // Create initial witnesses
-   std::for_each(genesis_state.initial_witness_candidates.begin(), genesis_state.initial_witness_candidates.end(),
-                 [&](const genesis_state_type::initial_witness_type& witness) {
+   std::for_each(genesis_state.initial_miner_candidates.begin(), genesis_state.initial_miner_candidates.end(),
+                 [&](const genesis_state_type::initial_miner_type& witness) {
       miner_create_operation op;
       op.miner_account = get_account_id(witness.owner_name);
       op.block_signing_key = witness.block_signing_key;
@@ -650,7 +650,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    // Set active witnesses
    modify(get_global_properties(), [&](global_property_object& p) {
-      for( uint32_t i = 1; i <= genesis_state.initial_active_witnesses; ++i )
+      for( uint32_t i = 1; i <= genesis_state.initial_active_miners; ++i )
       {
          p.active_witnesses.insert(miner_id_type(i));
       }
