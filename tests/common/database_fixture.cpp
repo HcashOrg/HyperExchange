@@ -430,7 +430,7 @@ const account_object& database_fixture::get_account( const string& name )const
 
 const asset_object& database_fixture::create_bitasset(
    const string& name,
-   account_id_type issuer /* = GRAPHENE_WITNESS_ACCOUNT */,
+   account_id_type issuer /* = GRAPHENE_MINER_ACCOUNT */,
    uint16_t market_fee_percent /* = 100 */ /* 1% */,
    uint16_t flags /* = charge_market_fee */
    )
@@ -442,7 +442,7 @@ const asset_object& database_fixture::create_bitasset(
    creator.common_options.max_supply = GRAPHENE_MAX_SHARE_SUPPLY;
    creator.precision = 2;
    creator.common_options.market_fee_percent = market_fee_percent;
-   if( issuer == GRAPHENE_WITNESS_ACCOUNT )
+   if( issuer == GRAPHENE_MINER_ACCOUNT )
       flags |= witness_fed_asset;
    creator.common_options.issuer_permissions = flags;
    creator.common_options.flags = flags & ~global_settle;
@@ -457,7 +457,7 @@ const asset_object& database_fixture::create_bitasset(
 
 const asset_object& database_fixture::create_prediction_market(
    const string& name,
-   account_id_type issuer /* = GRAPHENE_WITNESS_ACCOUNT */,
+   account_id_type issuer /* = GRAPHENE_MINER_ACCOUNT */,
    uint16_t market_fee_percent /* = 100 */ /* 1% */,
    uint16_t flags /* = charge_market_fee */
    )
@@ -471,7 +471,7 @@ const asset_object& database_fixture::create_prediction_market(
    creator.common_options.market_fee_percent = market_fee_percent;
    creator.common_options.issuer_permissions = flags | global_settle;
    creator.common_options.flags = flags & ~global_settle;
-   if( issuer == GRAPHENE_WITNESS_ACCOUNT )
+   if( issuer == GRAPHENE_MINER_ACCOUNT )
       creator.common_options.flags |= witness_fed_asset;
    creator.common_options.core_exchange_rate = price({asset(1,asset_id_type(1)),asset(1)});
    creator.bitasset_opts = bitasset_options();

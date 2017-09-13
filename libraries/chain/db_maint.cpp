@@ -191,7 +191,7 @@ void database::update_active_miners()
    }
 
    // Update witness authority
-   modify( get(GRAPHENE_WITNESS_ACCOUNT), [&]( account_object& a )
+   modify( get(GRAPHENE_MINER_ACCOUNT), [&]( account_object& a )
    {
       if( head_block_time() < HARDFORK_533_TIME )
       {
