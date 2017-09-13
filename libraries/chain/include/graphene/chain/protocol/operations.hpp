@@ -23,6 +23,7 @@
  */
 #pragma once
 #include <graphene/chain/protocol/base.hpp>
+#include <graphene/chain/protocol/lockbalance.hpp>
 #include <graphene/chain/protocol/account.hpp>
 #include <graphene/chain/protocol/assert.hpp>
 #include <graphene/chain/protocol/asset_ops.hpp>
@@ -38,6 +39,7 @@
 #include <graphene/chain/protocol/withdraw_permission.hpp>
 #include <graphene/chain/protocol/witness.hpp>
 #include <graphene/chain/protocol/worker.hpp>
+
 
 namespace graphene { namespace chain {
 
@@ -91,7 +93,8 @@ namespace graphene { namespace chain {
             transfer_from_blind_operation,
             asset_settle_cancel_operation,  // VIRTUAL
             asset_claim_fees_operation,
-            fba_distribute_operation        // VIRTUAL
+	   graphene::chain::lockbalance_operation,
+            fba_distribute_operation      // VIRTUAL
          > operation;
 
    /// @} // operations group
