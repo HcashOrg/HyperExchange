@@ -135,6 +135,7 @@ namespace graphene { namespace chain {
       worker_object_type,
       balance_object_type,
 	  lockbalance_object_type,
+	  guard_lock_balance_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -177,6 +178,7 @@ namespace graphene { namespace chain {
    class balance_object;
    class blinded_balance_object;
    class lockbalance_object;
+   class guard_lock_balance_object;
 
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
@@ -193,6 +195,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, worker_object_type,             worker_object>                worker_id_type;
    typedef object_id< protocol_ids, balance_object_type,            balance_object>               balance_id_type;
    typedef object_id<protocol_ids, lockbalance_object_type, lockbalance_object>			  lockbalance_id_type;
+   typedef object_id< protocol_ids, guard_lock_balance_object_type, guard_lock_balance_object>	  guard_lock_balance_id_type;
 
    // implementation types
    class global_property_object;
