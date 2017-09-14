@@ -813,7 +813,7 @@ BOOST_FIXTURE_TEST_CASE( change_block_interval, database_fixture )
    BOOST_TEST_MESSAGE( "Creating a proposal to change the block_interval to 1 second" );
    {
       proposal_create_operation cop = proposal_create_operation::committee_proposal(db.get_global_properties().parameters, db.head_block_time());
-      cop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
+      //cop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
       cop.expiration_time = db.head_block_time() + *cop.review_period_seconds + 10;
       committee_member_update_global_parameters_operation uop;
       uop.new_parameters.block_interval = 1;

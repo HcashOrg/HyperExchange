@@ -177,11 +177,11 @@ void database::update_active_miners()
    }
 
    const chain_property_object& cpo = get_chain_properties();
-   auto wits = sort_votable_objects<witness_index>(std::max(witness_count*2+1, (size_t)cpo.immutable_parameters.min_witness_count));
+   auto wits = sort_votable_objects<miner_index>(std::max(witness_count*2+1, (size_t)cpo.immutable_parameters.min_witness_count));
 
    const global_property_object& gpo = get_global_properties();
 
-   const auto& all_witnesses = get_index_type<witness_index>().indices();
+   const auto& all_witnesses = get_index_type<miner_index>().indices();
 
    for( const miner_object& wit : all_witnesses )
    {

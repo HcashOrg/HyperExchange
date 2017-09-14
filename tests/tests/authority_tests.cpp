@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE( proposed_single_account )
       transfer_op.amount = core.amount(100); 
 
       proposal_create_operation op;
-      op.fee_paying_account = moneyman.id;
+      op.fee_paying_account = moneyman.addr;
       op.proposed_ops.emplace_back( transfer_op );
       op.expiration_time =  db.head_block_time() + fc::days(1);
                                      
@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE( committee_authority )
    proposal_create_operation pop;
    pop.proposed_ops.push_back({trx.operations.front()});
    pop.expiration_time = db.head_block_time() + global_params.committee_proposal_review_period*2;
-   pop.fee_paying_account = nathan.id;
+   pop.fee_paying_account = nathan.addr;
    trx.operations = {pop};
    _sign();
 
@@ -511,7 +511,7 @@ BOOST_FIXTURE_TEST_CASE( fired_committee_members, database_fixture )
 
    //A proposal is created to give nathan lots more money.
    proposal_create_operation pop = proposal_create_operation::committee_proposal(db.get_global_properties().parameters, db.head_block_time());
-   pop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
+   //pop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
    pop.expiration_time = db.head_block_time() + *pop.review_period_seconds + fc::days(1).to_seconds();
    ilog( "Creating proposal to give nathan money that expires: ${e}", ("e", pop.expiration_time ) );
    ilog( "The proposal has a review period of: ${r} sec", ("r",*pop.review_period_seconds) );
@@ -608,7 +608,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_two_accounts, database_fixture )
       std::swap(top.from, top.to);
       pop.proposed_ops.emplace_back(top);
 
-      pop.fee_paying_account = nathan.get_id();
+      pop.fee_paying_account = nathan.addr;
       pop.expiration_time = db.head_block_time() + fc::days(1);
       trx.operations.push_back(pop);
       sign( trx, nathan_key );
@@ -670,7 +670,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
       top.amount = asset(6000);
       pop.proposed_ops.emplace_back(top);
 
-      pop.fee_paying_account = nathan.get_id();
+      pop.fee_paying_account = nathan.addr;
       pop.expiration_time = db.head_block_time() + fc::days(1);
       trx.operations.push_back(pop);
       sign( trx, nathan_key );
@@ -746,7 +746,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_owner_authority_delete, database_fixture )
       top.amount = asset(6000);
       pop.proposed_ops.emplace_back(top);
 
-      pop.fee_paying_account = nathan.get_id();
+      pop.fee_paying_account = nathan.addr;
       pop.expiration_time = db.head_block_time() + fc::days(1);
       trx.operations.push_back(pop);
       sign( trx, nathan_key );
@@ -823,7 +823,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_owner_authority_complete, database_fixture )
       top.amount = asset(6000);
       pop.proposed_ops.emplace_back(top);
 
-      pop.fee_paying_account = nathan.get_id();
+      pop.fee_paying_account = nathan.addr;
       pop.expiration_time = db.head_block_time() + fc::days(1);
       trx.operations.push_back(pop);
       sign( trx, nathan_key );

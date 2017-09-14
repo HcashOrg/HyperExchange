@@ -1282,9 +1282,9 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a committee_member
        */
-      signed_transaction create_guard_member(string owner_account,
-                                         string url, 
-                                         bool broadcast = false);
+      signed_transaction create_guard_member(string proposing_account, string account, string url,
+		                                     int64_t expiration_time,
+                                             bool broadcast = false);
 
       /** Lists all witnesses registered in the blockchain.
        * This returns a list of all account names that own witnesses, and the associated witness id,
@@ -1578,7 +1578,8 @@ class wallet_api
          const approval_delta& delta,
          bool broadcast /* = false */
          );
-         
+	  //get current proposal proposed by proposer
+	  vector<proposal_object>  get_proposal(const string& proposer) ;
       order_book get_order_book( const string& base, const string& quote, unsigned limit = 50);
 
       void dbg_make_uia(string creator, string symbol);
@@ -1788,4 +1789,5 @@ FC_API( graphene::wallet::wallet_api,
         (receive_blind_transfer)
         (get_order_book)
 		(get_account_addr)
+		(get_proposal)
       )

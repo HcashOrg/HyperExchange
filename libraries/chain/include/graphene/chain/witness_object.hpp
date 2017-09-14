@@ -53,7 +53,7 @@ namespace graphene { namespace chain {
    struct by_account;
    struct by_vote_id;
    struct by_last_block;
-   using witness_multi_index_type = multi_index_container<
+   using miner_multi_index_type = multi_index_container<
       miner_object,
       indexed_by<
          ordered_unique< tag<by_id>,
@@ -67,7 +67,7 @@ namespace graphene { namespace chain {
          >
       >
    >;
-   using witness_index = generic_index<miner_object, witness_multi_index_type>;
+   using miner_index = generic_index<miner_object, miner_multi_index_type>;
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::miner_object, (graphene::db::object),

@@ -241,6 +241,14 @@ class database_api
        * This function has semantics identical to @ref get_objects
        */
       vector<optional<account_object>> get_accounts(const vector<account_id_type>& account_ids)const;
+	  /**
+	  * @brief Get a list of accounts by address
+	  * @param addresses of the accounts to retrieve
+	  * @return The accounts corresponding to the provided addresses
+	  *
+	  * This function has semantics identical to @ref get_objects
+	  */
+	  vector<optional<account_object>> get_accounts_addr(const vector<address>& account_ids)const;
 
       /**
        * @brief Fetch all objects relevant to the specified accounts and subscribe to updates
@@ -562,6 +570,7 @@ class database_api
        *  @return the set of proposed transactions relevant to the specified account id.
        */
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
+	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
 
       //////////////////////
       // Blinded balances //
@@ -620,6 +629,7 @@ FC_API(graphene::app::database_api,
 	(lookup_account_names)
 	(lookup_accounts)
 	(get_account_count)
+	(get_accounts_addr)
 
 	// Balances
 	(get_account_balances)
@@ -673,7 +683,7 @@ FC_API(graphene::app::database_api,
 
 	// Proposed transactions
 	(get_proposed_transactions)
-
+	(get_proposer_transactions)
 	// Blinded balances
 	(get_blinded_balances)
 );

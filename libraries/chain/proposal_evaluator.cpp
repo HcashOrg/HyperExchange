@@ -26,7 +26,8 @@
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/exceptions.hpp>
-
+#include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/witness_object.hpp>
 #include <fc/smart_ref_impl.hpp>
 
 namespace graphene { namespace chain {
@@ -88,7 +89,7 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
       proposal.expiration_time = o.expiration_time;
       if( o.review_period_seconds )
          proposal.review_period_time = o.expiration_time - *o.review_period_seconds;
-
+	  proposal.type = o.type;
       //Populate the required approval sets
       flat_set<account_id_type> required_active;
       vector<authority> other;
@@ -96,12 +97,27 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
       // TODO: consider caching values from evaluate?
       for( auto& op : _proposed_trx.operations )
          operation_get_required_authorities(op, required_active, proposal.required_owner_approvals, other);
+	  proposal.proposer = o.proposer;
+      //proposal should only be approved by guard or miners
+	  const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
+	  if (o.type == vote_id_type::committee)
+	  {
+		  const auto& iter = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)
 
-      //All accounts which must provide both owner and active authority should be omitted from the active authority set;
-      //owner authority approval implies active authority approval.
-      std::set_difference(required_active.begin(), required_active.end(),
-                          proposal.required_owner_approvals.begin(), proposal.required_owner_approvals.end(),
-                          std::inserter(proposal.required_active_approvals, proposal.required_active_approvals.begin()));
+		  {
+			  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
+		  });
+	  }
+	  else
+	  {
+		  const auto& iter = d.get_index_type<miner_index>().indices().get<by_account>();
+		  std::for_each(iter.begin(), iter.end(), [&](const miner_object& a)
+
+		  {
+			  proposal.required_account_approvals.insert(acc.find(a.miner_account)->addr);
+		  });
+	  }
    });
 
    return proposal.id;
@@ -152,17 +168,28 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
    // Potential optimization: if _executed_proposal is true, we can skip the modify step and make push_proposal skip
    // signature checks. This isn't done now because I just wrote all the proposals code, and I'm not yet 100% sure the
    // required approvals are sufficient to authorize the transaction.
+  
    d.modify(*_proposal, [&o, &d](proposal_object& p) {
-      p.available_active_approvals.insert(o.active_approvals_to_add.begin(), o.active_approvals_to_add.end());
-      p.available_owner_approvals.insert(o.owner_approvals_to_add.begin(), o.owner_approvals_to_add.end());
-      for( account_id_type id : o.active_approvals_to_remove )
-         p.available_active_approvals.erase(id);
-      for( account_id_type id : o.owner_approvals_to_remove )
-         p.available_owner_approvals.erase(id);
-      for( const auto& id : o.key_approvals_to_add )
-         p.available_key_approvals.insert(id);
-      for( const auto& id : o.key_approvals_to_remove )
-         p.available_key_approvals.erase(id);
+	  //FC_ASSERT(p.required_account_approvals(););
+	  
+	   auto is_miner_or_guard = [&](const address& addr)->bool {
+		   return p.required_account_approvals.find(addr) != p.required_account_approvals.end();
+	   };
+
+	   for (const auto& addr : o.key_approvals_to_add)
+	   {
+		   if (!is_miner_or_guard(addr))
+			   continue;
+		   p.approved_key_approvals.insert(addr);
+	   }
+	   
+	   for( const auto& addr : o.key_approvals_to_remove )
+	   {
+		   if (!is_miner_or_guard(addr))
+			   continue;
+		   p.disapproved_key_approvals.insert(addr);
+	   }
+        
    });
 
    // If the proposal has a review period, don't bother attempting to authorize/execute it.

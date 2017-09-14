@@ -83,6 +83,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       // Accounts
       vector<optional<account_object>> get_accounts(const vector<account_id_type>& account_ids)const;
 	  vector<optional<account_object>> get_accounts(const vector<string>& account_names)const;
+	  vector<optional<account_object>> get_accounts(const vector<address>& account_addres)const;
       std::map<string,full_account> get_full_accounts( const vector<string>& names_or_ids, bool subscribe );
       optional<account_object> get_account_by_name( string name )const;
       vector<account_id_type> get_account_references( account_id_type account_id )const;
@@ -140,7 +141,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 
       // Proposed transactions
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
-
+	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
       // Blinded balances
       vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
 
@@ -577,6 +578,23 @@ vector<optional<account_object>> database_api::get_accounts(const vector<account
    return my->get_accounts( account_ids );
 }
 
+vector<optional<account_object>> database_api::get_accounts_addr(const vector<address>& account_addres)const
+{
+	return my->get_accounts(account_addres);
+}
+
+vector<optional<account_object>> database_api_impl::get_accounts(const vector<address>& account_addres)const
+{
+	const auto& accounts_by_addr = _db.get_index_type<account_index>().indices().get<by_address>();
+	vector<optional<account_object> > result;
+	result.reserve(account_addres.size());
+	std::transform(account_addres.begin(), account_addres.end(), std::back_inserter(result),
+		[&accounts_by_addr](const address& addr) -> optional<account_object> {
+		auto itr = accounts_by_addr.find(addr);
+		return itr == accounts_by_addr.end() ? optional<account_object>() : *itr;
+	});
+	return result;
+}
 
 vector<optional<account_object>> database_api_impl::get_accounts(const vector<account_id_type>& account_ids)const
 {
@@ -1354,7 +1372,7 @@ fc::optional<miner_object> database_api::get_miner_by_account(account_id_type ac
 
 fc::optional<miner_object> database_api_impl::get_miner_by_account(account_id_type account) const
 {
-   const auto& idx = _db.get_index_type<witness_index>().indices().get<by_account>();
+   const auto& idx = _db.get_index_type<miner_index>().indices().get<by_account>();
    auto itr = idx.find(account);
    if( itr != idx.end() )
       return *itr;
@@ -1369,10 +1387,10 @@ map<string, miner_id_type> database_api::lookup_miner_accounts(const string& low
 map<string, miner_id_type> database_api_impl::lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& witnesses_by_id = _db.get_index_type<witness_index>().indices().get<by_id>();
+   const auto& witnesses_by_id = _db.get_index_type<miner_index>().indices().get<by_id>();
 
    // we want to order witnesses by account name, but that name is in the account object
-   // so the witness_index doesn't have a quick way to access it.
+   // so the miner_index doesn't have a quick way to access it.
    // get all the names and look them all up, sort them, then figure out what
    // records to return.  This could be optimized, but we expect the
    // number of witnesses to be few and the frequency of calls to be rare
@@ -1396,7 +1414,7 @@ uint64_t database_api::get_miner_count()const
 
 uint64_t database_api_impl::get_miner_count()const
 {
-   return _db.get_index_type<witness_index>().indices().size();
+   return _db.get_index_type<miner_index>().indices().size();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1479,7 +1497,7 @@ vector<variant> database_api_impl::lookup_vote_ids( const vector<vote_id_type>& 
 {
    FC_ASSERT( votes.size() < 1000, "Only 1000 votes can be queried at a time" );
 
-   const auto& witness_idx = _db.get_index_type<witness_index>().indices().get<by_vote_id>();
+   const auto& witness_idx = _db.get_index_type<miner_index>().indices().get<by_vote_id>();
    const auto& committee_idx = _db.get_index_type<guard_member_index>().indices().get<by_vote_id>();
    const auto& for_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_for>();
    const auto& against_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_against>();
@@ -1773,6 +1791,26 @@ vector<proposal_object> database_api::get_proposed_transactions( account_id_type
 {
    return my->get_proposed_transactions( id );
 }
+
+vector<proposal_object> database_api::get_proposer_transactions(account_id_type id)const
+{
+	return my->get_proposer_transactions(id);
+}
+
+/** TODO: add secondary index that will accelerate this process */
+vector<proposal_object> database_api_impl::get_proposer_transactions(account_id_type id)const
+{
+	const auto& idx = _db.get_index_type<proposal_index>();
+	vector<proposal_object> result;
+
+	idx.inspect_all_objects([&](const object& obj) {
+		const proposal_object& p = static_cast<const proposal_object&>(obj);
+		if (p.proposer == id)
+			result.push_back(p);
+	});
+	return result;
+}
+
 
 /** TODO: add secondary index that will accelerate this process */
 vector<proposal_object> database_api_impl::get_proposed_transactions( account_id_type id )const

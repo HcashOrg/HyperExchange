@@ -31,6 +31,12 @@ void guard_member_create_operation::validate()const
    FC_ASSERT(url.size() < GRAPHENE_MAX_URL_LENGTH );
 }
 
+void guard_member_create_operation::get_required_authorities(vector<authority>& a) const
+{
+	// we need add all the living guard here
+	
+}
+
 void committee_member_update_operation::validate()const
 {
    FC_ASSERT( fee.amount >= 0 );

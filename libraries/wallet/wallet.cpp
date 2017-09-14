@@ -577,6 +577,16 @@ public:
       FC_ASSERT(rec);
       return *rec;
    }
+
+   account_object get_account(address addr) const
+   {
+	   if (_wallet.my_accounts.get<by_address>().count(addr))
+		   return *_wallet.my_accounts.get<by_address>().find(addr);
+	   auto rec = _remote_db->get_accounts_addr({addr}).front();
+	   FC_ASSERT(rec);
+	   return *rec;
+   }
+
    account_object get_account(string account_name_or_id) const
    {
       FC_ASSERT( account_name_or_id.size() > 0 );
@@ -704,7 +714,7 @@ public:
       graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 
       account_object account = get_account( account_name_or_id );
-
+	  string addr = account.addr.operator fc::string();
       // make a list of all current public keys for the named account
       flat_set<public_key_type> all_keys_for_account;
       std::vector<public_key_type> active_keys = account.active.get_keys();
@@ -914,7 +924,7 @@ public:
    {
       FC_ASSERT(_builder_transactions.count(handle));
       proposal_create_operation op;
-      op.fee_paying_account = get_account(account_name_or_id).get_id();
+      op.fee_paying_account = get_account(account_name_or_id).addr;
       op.expiration_time = expiration;
       signed_transaction& trx = _builder_transactions[handle];
       std::transform(trx.operations.begin(), trx.operations.end(), std::back_inserter(op.proposed_ops),
@@ -1474,23 +1484,34 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (authorizing_account)(account_to_list)(new_listing_status)(broadcast) ) }
 
-   signed_transaction create_guard_member(string owner_account, string url,
+   signed_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
                                       bool broadcast /* = false */)
    { try {
-
+	  //account should be register in the blockchian
+	  FC_ASSERT(!is_locked());
       guard_member_create_operation guard_member_create_op;
-      guard_member_create_op.guard_member_account = get_account_id(owner_account);
+	  auto guard_member_account = get_account_id(account);
+	  FC_ASSERT(account_object().get_id() != guard_member_account,"account is not registered to the chain.");
+	  guard_member_create_op.guard_member_account = guard_member_account;
       guard_member_create_op.url = url;
       if (_remote_db->get_guard_member_by_account(guard_member_create_op.guard_member_account))
-         FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", owner_account));
+         FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
 
       signed_transaction tx;
-	  tx.operations.push_back(guard_member_create_op);
-      set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+	  proposal_create_operation prop_op;
+	  prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time) ;
+	  prop_op.proposer = get_account(proposing_account).get_id();
+	  prop_op.fee_paying_account = get_account(proposing_account).addr;
+	  prop_op.proposed_ops.emplace_back(guard_member_create_op);
+	  const chain_parameters& current_params = get_global_properties().parameters;
+
+	  prop_op.review_period_seconds = current_params.committee_proposal_review_period;
+	  tx.operations.push_back(prop_op);
+      set_operation_fees( tx, current_params.current_fees);
       tx.validate();
 
       return sign_transaction( tx, broadcast );
-   } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
+   } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
 
    miner_object get_miner(string owner_account)
    {
@@ -1566,6 +1587,7 @@ public:
                                      string url,
                                      bool broadcast /* = false */)
    { try {
+	   FC_ASSERT(!is_locked());
       account_object miner_account = get_account(owner_account);
       fc::ecc::private_key active_private_key = get_private_key_for_account(miner_account);
       //int witness_key_index = find_first_unused_derived_key_index(active_private_key);
@@ -2018,7 +2040,8 @@ public:
          for( auto& addr :  approving_key_set)
          {
             auto it = _keys.find(addr);
-            if( it != _keys.end() )
+			FC_ASSERT(it != _keys.end(),"No private key in this wallet.");
+            //if( it != _keys.end() )
             {
                fc::optional<fc::ecc::private_key> privkey = wif_to_key( it->second );
                FC_ASSERT( privkey.valid(), "Malformed private key in _keys" );
@@ -2464,7 +2487,7 @@ public:
 
       prop_op.expiration_time = expiration_time;
       prop_op.review_period_seconds = current_params.committee_proposal_review_period;
-      prop_op.fee_paying_account = get_account(proposing_account).id;
+      prop_op.fee_paying_account = get_account(proposing_account).addr;
 
       prop_op.proposed_ops.emplace_back( update_op );
       current_params.current_fees->set_fee( prop_op.proposed_ops.back().op );
@@ -2546,7 +2569,7 @@ public:
 
       prop_op.expiration_time = expiration_time;
       prop_op.review_period_seconds = current_params.committee_proposal_review_period;
-      prop_op.fee_paying_account = get_account(proposing_account).id;
+      prop_op.fee_paying_account = get_account(proposing_account).addr;
 
       prop_op.proposed_ops.emplace_back( update_op );
       current_params.current_fees->set_fee( prop_op.proposed_ops.back().op );
@@ -2581,15 +2604,23 @@ public:
       for( const std::string& name : delta.owner_approvals_to_remove )
          update_op.owner_approvals_to_remove.insert( get_account( name ).id );
       for( const std::string& k : delta.key_approvals_to_add )
-         update_op.key_approvals_to_add.insert( public_key_type( k ) );
+         update_op.key_approvals_to_add.insert( address( k ) );
       for( const std::string& k : delta.key_approvals_to_remove )
-         update_op.key_approvals_to_remove.insert( public_key_type( k ) );
+         update_op.key_approvals_to_remove.insert( address( k ) );
 
       signed_transaction tx;
       tx.operations.push_back(update_op);
       set_operation_fees(tx, get_global_properties().parameters.current_fees);
       tx.validate();
       return sign_transaction(tx, broadcast);
+   }
+
+   vector<proposal_object>  get_proposal(const string& proposer)
+   {
+	   auto acc = get_account(proposer);
+	   FC_ASSERT(acc.get_id() != account_object().get_id(),"the propser doesnt exist in the chain.");
+
+	   return _remote_db->get_proposer_transactions(acc.get_id());
    }
 
    void dbg_make_uia(string creator, string symbol)
@@ -3507,10 +3538,11 @@ signed_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-signed_transaction wallet_api::create_guard_member(string owner_account, string url,
-                                               bool broadcast /* = false */)
+signed_transaction wallet_api::create_guard_member(string proposing_account, string account,string url,
+	                                               int64_t expiration_time,
+                                                   bool broadcast /* = false */)
 {
-   return my->create_guard_member(owner_account, url, broadcast);
+   return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
 }
 
 map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
@@ -3708,6 +3740,11 @@ signed_transaction wallet_api::approve_proposal(
    )
 {
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
+}
+
+vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
+{
+	return my->get_proposal(proposer);
 }
 
 global_property_object wallet_api::get_global_properties() const

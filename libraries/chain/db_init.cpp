@@ -187,7 +187,7 @@ void database::initialize_indexes()
    acnt_index->add_secondary_index<account_referrer_index>();
 
    add_index< primary_index<guard_member_index> >();
-   add_index< primary_index<witness_index> >();
+   add_index< primary_index<miner_index> >();
    add_index< primary_index<limit_order_index > >();
    add_index< primary_index<call_order_index > >();
 

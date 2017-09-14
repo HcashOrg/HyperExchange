@@ -140,6 +140,7 @@ struct sign_state
              (*provided_address_sigs)[ address(pts_address(item.first, false, 0) ) ] = item.first;
              (*provided_address_sigs)[ address(pts_address(item.first, true, 0) ) ] = item.first;
              (*provided_address_sigs)[ address(item.first) ] = item.first;
+			 auto str1 = string(address(item.first));
             }
          }
          auto itr = provided_address_sigs->find(a);

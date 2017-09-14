@@ -84,11 +84,11 @@ void proposal_update_operation::get_required_authorities( vector<authority>& o )
 {
    authority auth;
    for( const auto& k : key_approvals_to_add )
-      auth.key_auths[k] = 1;
+      auth.address_auths[k] = 1;
    for( const auto& k : key_approvals_to_remove )
-      auth.key_auths[k] = 1;
-   auth.weight_threshold = auth.key_auths.size();
-
+      auth.address_auths[k] = 1;
+   auth.weight_threshold = auth.address_auths.size();
+   
    o.emplace_back( std::move(auth) );
 }
 

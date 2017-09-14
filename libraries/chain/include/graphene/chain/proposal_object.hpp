@@ -41,7 +41,7 @@ class proposal_object : public abstract_object<proposal_object>
    public:
       static const uint8_t space_id = protocol_ids;
       static const uint8_t type_id = proposal_object_type;
-
+	  account_id_type               proposer;
       time_point_sec                expiration_time;
       optional<time_point_sec>      review_period_time;
       transaction                   proposed_transaction;
@@ -49,8 +49,11 @@ class proposal_object : public abstract_object<proposal_object>
       flat_set<account_id_type>     available_active_approvals;
       flat_set<account_id_type>     required_owner_approvals;
       flat_set<account_id_type>     available_owner_approvals;
-      flat_set<public_key_type>     available_key_approvals;
-
+	  flat_set<address>     available_key_approvals;
+	  flat_set<address>     approved_key_approvals;
+	  flat_set<address>     disapproved_key_approvals;
+	  flat_set<address>     required_account_approvals;
+	  vote_id_type::vote_type       type;
       bool is_authorized_to_execute(database& db)const;
 };
 
@@ -90,7 +93,7 @@ typedef generic_index<proposal_object, proposal_multi_index_container> proposal_
 
 } } // graphene::chain
 
-FC_REFLECT_DERIVED( graphene::chain::proposal_object, (graphene::chain::object),
+FC_REFLECT_DERIVED( graphene::chain::proposal_object, (graphene::chain::object),(proposer)
                     (expiration_time)(review_period_time)(proposed_transaction)(required_active_approvals)
                     (available_active_approvals)(required_owner_approvals)(available_owner_approvals)
-                    (available_key_approvals) )
+                    (available_key_approvals)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(type) )
