@@ -35,12 +35,12 @@ namespace graphene { namespace chain {
     *  @brief tracks information about a committee_member account.
     *  @ingroup object
     *
-    *  A committee_member is responsible for setting blockchain parameters and has
+    *  A guard is responsible for setting blockchain parameters and has
     *  dynamic multi-sig control over the committee account.  The current set of
-    *  active committee_members has control.
+    *  active guards has control.
     *
-    *  committee_members were separated into a separate object to make iterating over
-    *  the set of committee_member easy.
+    *  guards were separated into a separate object to make iterating over
+    *  the set of guard easy.
     */
    class guard_member_object : public abstract_object<guard_member_object>
    {

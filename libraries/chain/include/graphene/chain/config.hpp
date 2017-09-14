@@ -152,9 +152,9 @@
  *  Reserved Account IDs with special meaning
  */
 ///@{
-/// Represents the current committee members, two-week review period
-#define GRAPHENE_COMMITTEE_ACCOUNT (graphene::chain::account_id_type(0))
-/// Represents the current witnesses
+/// Represents the current guards, two-week review period
+#define GRAPHENE_GUARD_ACCOUNT (graphene::chain::account_id_type(0))
+/// Represents the current miners
 #define GRAPHENE_MINER_ACCOUNT (graphene::chain::account_id_type(1))
 /// Represents the current committee members
 #define GRAPHENE_RELAXED_COMMITTEE_ACCOUNT (graphene::chain::account_id_type(2))
