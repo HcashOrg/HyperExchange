@@ -166,18 +166,18 @@ void database::update_active_miners()
 
    share_type stake_tally = 0; 
 
-   size_t witness_count = 0;
+   size_t miner_count = 0;
    if( stake_target > 0 )
    {
-      while( (witness_count < _witness_count_histogram_buffer.size() - 1)
+      while( (miner_count < _witness_count_histogram_buffer.size() - 1)
              && (stake_tally <= stake_target) )
       {
-         stake_tally += _witness_count_histogram_buffer[++witness_count];
+         stake_tally += _witness_count_histogram_buffer[++miner_count];
       }
    }
 
    const chain_property_object& cpo = get_chain_properties();
-   auto wits = sort_votable_objects<miner_index>(std::max(witness_count*2+1, (size_t)cpo.immutable_parameters.min_witness_count));
+   auto miners = sort_votable_objects<miner_index>(std::max(miner_count*2+1, (size_t)cpo.immutable_parameters.min_miner_count));
 
    const global_property_object& gpo = get_global_properties();
 
@@ -191,7 +191,7 @@ void database::update_active_miners()
    }
 
    // Update witness authority
-   modify( get(GRAPHENE_WITNESS_ACCOUNT), [&]( account_object& a )
+   modify( get(GRAPHENE_MINER_ACCOUNT), [&]( account_object& a )
    {
       if( head_block_time() < HARDFORK_533_TIME )
       {
@@ -200,7 +200,7 @@ void database::update_active_miners()
          a.active.weight_threshold = 0;
          a.active.clear();
 
-         for( const miner_object& wit : wits )
+         for( const miner_object& wit : miners )
          {
             weights.emplace(wit.miner_account, _vote_tally_buffer[wit.vote_id]);
             total_votes += _vote_tally_buffer[wit.vote_id];
@@ -223,7 +223,7 @@ void database::update_active_miners()
       else
       {
          vote_counter vc;
-         for( const miner_object& wit : wits )
+         for( const miner_object& wit : miners )
             vc.add( wit.miner_account, _vote_tally_buffer[wit.vote_id] );
          vc.finish( a.active );
       }
@@ -231,8 +231,8 @@ void database::update_active_miners()
 
    modify(gpo, [&]( global_property_object& gp ){
       gp.active_witnesses.clear();
-      gp.active_witnesses.reserve(wits.size());
-      std::transform(wits.begin(), wits.end(),
+      gp.active_witnesses.reserve(miners.size());
+      std::transform(miners.begin(), miners.end(),
                      std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
                      [](const miner_object& w) {
          return w.id;
@@ -243,22 +243,22 @@ void database::update_active_miners()
 
 void database::update_active_committee_members()
 { try {
-   assert( _committee_count_histogram_buffer.size() > 0 );
+   assert( _guard_count_histogram_buffer.size() > 0 );
    share_type stake_target = (_total_voting_stake-_witness_count_histogram_buffer[0]) / 2;
 
    /// accounts that vote for 0 or 1 witness do not get to express an opinion on
    /// the number of witnesses to have (they abstain and are non-voting accounts)
-   uint64_t stake_tally = 0; // _committee_count_histogram_buffer[0];
-   size_t committee_member_count = 0;
+   uint64_t stake_tally = 0; // _guard_count_histogram_buffer[0];
+   size_t guard_count = 0;
    if( stake_target > 0 )
-      while( (committee_member_count < _committee_count_histogram_buffer.size() - 1)
+      while( (guard_count < _guard_count_histogram_buffer.size() - 1)
              && (stake_tally <= stake_target) )
-         stake_tally += _committee_count_histogram_buffer[++committee_member_count];
+         stake_tally += _guard_count_histogram_buffer[++guard_count];
 
    const chain_property_object& cpo = get_chain_properties();
-   auto committee_members = sort_votable_objects<guard_member_index>(std::max(committee_member_count*2+1, (size_t)cpo.immutable_parameters.min_committee_member_count));
+   auto guards = sort_votable_objects<guard_member_index>(std::max(guard_count*2+1, (size_t)cpo.immutable_parameters.min_guard_count));
 
-   for( const guard_member_object& del : committee_members )
+   for( const guard_member_object& del : guards )
    {
       modify( del, [&]( guard_member_object& obj ){
               obj.total_votes = _vote_tally_buffer[del.vote_id];
@@ -266,9 +266,9 @@ void database::update_active_committee_members()
    }
 
    // Update committee authorities
-   if( !committee_members.empty() )
+   if( !guards.empty() )
    {
-      modify(get(GRAPHENE_COMMITTEE_ACCOUNT), [&](account_object& a)
+      modify(get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& a)
       {
          if( head_block_time() < HARDFORK_533_TIME )
          {
@@ -277,7 +277,7 @@ void database::update_active_committee_members()
             a.active.weight_threshold = 0;
             a.active.clear();
 
-            for( const guard_member_object& del : committee_members )
+            for( const guard_member_object& del : guards )
             {
                weights.emplace(del.guard_member_account, _vote_tally_buffer[del.vote_id]);
                total_votes += _vote_tally_buffer[del.vote_id];
@@ -300,18 +300,18 @@ void database::update_active_committee_members()
          else
          {
             vote_counter vc;
-            for( const guard_member_object& cm : committee_members )
+            for( const guard_member_object& cm : guards )
                vc.add( cm.guard_member_account, _vote_tally_buffer[cm.vote_id] );
             vc.finish( a.active );
          }
       } );
       modify(get(GRAPHENE_RELAXED_COMMITTEE_ACCOUNT), [&](account_object& a) {
-         a.active = get(GRAPHENE_COMMITTEE_ACCOUNT).active;
+         a.active = get(GRAPHENE_GUARD_ACCOUNT).active;
       });
    }
    modify(get_global_properties(), [&](global_property_object& gp) {
       gp.active_committee_members.clear();
-      std::transform(committee_members.begin(), committee_members.end(),
+      std::transform(guards.begin(), guards.end(),
                      std::inserter(gp.active_committee_members, gp.active_committee_members.begin()),
                      [](const guard_member_object& d) { return d.id; });
    });
@@ -732,7 +732,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
       {
          d._vote_tally_buffer.resize(props.next_available_vote_id);
          d._witness_count_histogram_buffer.resize(props.parameters.maximum_witness_count / 2 + 1);
-         d._committee_count_histogram_buffer.resize(props.parameters.maximum_committee_count / 2 + 1);
+         d._guard_count_histogram_buffer.resize(props.parameters.maximum_committee_count / 2 + 1);
          d._total_voting_stake = 0;
       }
 
@@ -775,12 +775,12 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
             if( opinion_account.options.num_committee <= props.parameters.maximum_committee_count )
             {
                uint16_t offset = std::min(size_t(opinion_account.options.num_committee/2),
-                                          d._committee_count_histogram_buffer.size() - 1);
+                                          d._guard_count_histogram_buffer.size() - 1);
                // votes for a number greater than maximum_committee_count
                // are turned into votes for maximum_committee_count.
                //
                // same rationale as for witnesses
-               d._committee_count_histogram_buffer[offset] += voting_stake;
+               d._guard_count_histogram_buffer[offset] += voting_stake;
             }
 
             d._total_voting_stake += voting_stake;
@@ -811,7 +811,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
       vector<uint64_t>& target;
    };
    clear_canary a(_witness_count_histogram_buffer),
-                b(_committee_count_histogram_buffer),
+                b(_guard_count_histogram_buffer),
                 c(_vote_tally_buffer);
 
    update_top_n_authorities(*this);

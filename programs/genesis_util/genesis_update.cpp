@@ -152,13 +152,13 @@ int main( int argc, char** argv )
       for( size_t i=0; i<num_accounts; i++ )
          name2index[ genesis.initial_accounts[i].name ] = i;
 
-      for( uint32_t i=0; i<genesis.initial_active_witnesses; i++ )
+      for( uint32_t i=0; i<genesis.initial_active_miners; i++ )
       {
-         genesis_state_type::initial_witness_type& wit = genesis.initial_witness_candidates[ i ];
+         genesis_state_type::initial_miner_type& wit = genesis.initial_miner_candidates[ i ];
          genesis_state_type::initial_account_type& wit_acct = genesis.initial_accounts[ name2index[ wit.owner_name ] ];
          if( wit.owner_name.substr(0, 4) != "init" )
          {
-            std::cerr << "need " << genesis.initial_active_witnesses << " init accounts as first entries in initial_active_witnesses\n";
+            std::cerr << "need " << genesis.initial_active_miners << " init accounts as first entries in initial_active_witnesses\n";
             return 1;
          }
          wit.block_signing_key = get_dev_key( "wit-block-signing-", i );

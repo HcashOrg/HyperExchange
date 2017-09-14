@@ -223,9 +223,9 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    FC_ASSERT( genesis_state.initial_timestamp != time_point_sec(), "Must initialize genesis timestamp." );
    FC_ASSERT( genesis_state.initial_timestamp.sec_since_epoch() % GRAPHENE_DEFAULT_BLOCK_INTERVAL == 0,
               "Genesis timestamp must be divisible by GRAPHENE_DEFAULT_BLOCK_INTERVAL." );
-   FC_ASSERT(genesis_state.initial_witness_candidates.size() > 0,
+   FC_ASSERT(genesis_state.initial_miner_candidates.size() > 0,
              "Cannot start a chain with zero witnesses.");
-   FC_ASSERT(genesis_state.initial_active_witnesses <= genesis_state.initial_witness_candidates.size(),
+   FC_ASSERT(genesis_state.initial_active_miners <= genesis_state.initial_miner_candidates.size(),
              "initial_active_witnesses is larger than the number of candidate witnesses.");
 
    _undo_db.disable();
@@ -259,17 +259,17 @@ void database::init_genesis(const genesis_state_type& genesis_state)
          n.name = "committee-account";
          n.statistics = create<account_statistics_object>( [&](account_statistics_object& s){ s.owner = n.id; }).id;
       });
-   FC_ASSERT(committee_account.get_id() == GRAPHENE_COMMITTEE_ACCOUNT);
+   FC_ASSERT(committee_account.get_id() == GRAPHENE_GUARD_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
        a.name = "witness-account";
        a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
        a.owner.weight_threshold = 1;
        a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_WITNESS_ACCOUNT;
+       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_MINER_ACCOUNT;
        a.membership_expiration_date = time_point_sec::maximum();
        a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
        a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-   }).get_id() == GRAPHENE_WITNESS_ACCOUNT);
+   }).get_id() == GRAPHENE_MINER_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
        a.name = "relaxed-committee-account";
        a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
@@ -395,9 +395,6 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
-
-   FC_ASSERT( (genesis_state.immutable_parameters.min_witness_count & 1) == 1, "min_witness_count must be odd" );
-   FC_ASSERT( (genesis_state.immutable_parameters.min_committee_member_count & 1) == 1, "min_committee_member_count must be odd" );
 
    create<chain_property_object>([&](chain_property_object& p)
    {
@@ -564,7 +561,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    if( total_supplies[ asset_id_type(0) ] > 0 )
    {
-       adjust_balance(GRAPHENE_COMMITTEE_ACCOUNT, -get_balance(GRAPHENE_COMMITTEE_ACCOUNT,{}));
+       adjust_balance(GRAPHENE_GUARD_ACCOUNT, -get_balance(GRAPHENE_GUARD_ACCOUNT,{}));
    }
    else
    {
@@ -617,8 +614,8 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    remove(wit);
 
    // Create initial witnesses
-   std::for_each(genesis_state.initial_witness_candidates.begin(), genesis_state.initial_witness_candidates.end(),
-                 [&](const genesis_state_type::initial_witness_type& witness) {
+   std::for_each(genesis_state.initial_miner_candidates.begin(), genesis_state.initial_miner_candidates.end(),
+                 [&](const genesis_state_type::initial_miner_type& witness) {
       miner_create_operation op;
       op.miner_account = get_account_id(witness.owner_name);
       op.block_signing_key = witness.block_signing_key;
@@ -650,7 +647,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    // Set active witnesses
    modify(get_global_properties(), [&](global_property_object& p) {
-      for( uint32_t i = 1; i <= genesis_state.initial_active_witnesses; ++i )
+      for( uint32_t i = 1; i <= genesis_state.initial_active_miners; ++i )
       {
          p.active_witnesses.insert(miner_id_type(i));
       }

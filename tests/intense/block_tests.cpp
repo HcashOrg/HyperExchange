@@ -372,20 +372,20 @@ BOOST_FIXTURE_TEST_CASE(bulk_discount, database_fixture)
 { try {
    ACTOR(nathan);
    // Give nathan ALLLLLL the money!
-   transfer(GRAPHENE_COMMITTEE_ACCOUNT, nathan_id, db.get_balance(GRAPHENE_COMMITTEE_ACCOUNT, asset_id_type()));
+   transfer(GRAPHENE_GUARD_ACCOUNT, nathan_id, db.get_balance(GRAPHENE_GUARD_ACCOUNT, asset_id_type()));
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    upgrade_to_lifetime_member(nathan_id);
    share_type new_fees;
    while( nathan_id(db).statistics(db).lifetime_fees_paid + new_fees < GRAPHENE_DEFAULT_BULK_DISCOUNT_THRESHOLD_MIN )
    {
-      transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+      transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
       new_fees += db.current_fee_schedule().calculate_fee(transfer_operation()).amount;
    }
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    auto old_cashback = nathan_id(db).cashback_balance(db).balance;
 
-   transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+   transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
 
@@ -395,14 +395,14 @@ BOOST_FIXTURE_TEST_CASE(bulk_discount, database_fixture)
    new_fees = 0;
    while( nathan_id(db).statistics(db).lifetime_fees_paid + new_fees < GRAPHENE_DEFAULT_BULK_DISCOUNT_THRESHOLD_MAX )
    {
-      transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+      transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
       new_fees += db.current_fee_schedule().calculate_fee(transfer_operation()).amount;
    }
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    old_cashback = nathan_id(db).cashback_balance(db).balance;
 
-   transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+   transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
 
    BOOST_CHECK_EQUAL(nathan_id(db).cashback_balance(db).balance.amount.value,

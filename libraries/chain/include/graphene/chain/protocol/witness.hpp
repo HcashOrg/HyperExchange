@@ -27,18 +27,18 @@
 namespace graphene { namespace chain { 
 
   /**
-    * @brief Create a witness object, as a bid to hold a witness position on the network.
+    * @brief Create a miner object, as a bid to hold a miner position on the network.
     * @ingroup operations
     *
-    * Accounts which wish to become witnesses may use this operation to create a witness object which stakeholders may
-    * vote on to approve its position as a witness.
+    * Accounts which wish to become miner may use this operation to create a miner object which stakeholders may
+    * vote on to approve its position as a miner.
     */
    struct miner_create_operation : public base_operation
    {
       struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset             fee;
-      /// The account which owns the witness. This account pays the fee for this operation.
+      /// The account which owns the miner. This account pays the fee for this operation.
       account_id_type   miner_account;
       string            url;
       public_key_type   block_signing_key;

@@ -54,7 +54,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 
       FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
 
-      if( auths.find(GRAPHENE_COMMITTEE_ACCOUNT) != auths.end() )
+      if( auths.find(GRAPHENE_GUARD_ACCOUNT) != auths.end() )
       {
          GRAPHENE_ASSERT(
             o.review_period_seconds.valid(),
