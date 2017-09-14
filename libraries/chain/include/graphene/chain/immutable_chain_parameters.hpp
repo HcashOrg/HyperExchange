@@ -33,8 +33,8 @@ namespace graphene { namespace chain {
 
 struct immutable_chain_parameters
 {
-   uint16_t min_committee_member_count = GRAPHENE_DEFAULT_MIN_GUARD_COUNT;
-   uint16_t min_witness_count = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
+   uint16_t min_guard_count = GRAPHENE_DEFAULT_MIN_GUARD_COUNT;
+   uint16_t min_miner_count = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
    uint32_t num_special_accounts = 0;
    uint32_t num_special_assets = 0;
 };
@@ -42,8 +42,8 @@ struct immutable_chain_parameters
 } } // graphene::chain
 
 FC_REFLECT( graphene::chain::immutable_chain_parameters,
-   (min_committee_member_count)
-   (min_witness_count)
+   (min_guard_count)
+   (min_miner_count)
    (num_special_accounts)
    (num_special_assets)
 )

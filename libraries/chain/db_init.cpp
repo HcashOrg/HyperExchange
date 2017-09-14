@@ -259,7 +259,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
          n.name = "committee-account";
          n.statistics = create<account_statistics_object>( [&](account_statistics_object& s){ s.owner = n.id; }).id;
       });
-   FC_ASSERT(committee_account.get_id() == GRAPHENE_COMMITTEE_ACCOUNT);
+   FC_ASSERT(committee_account.get_id() == GRAPHENE_GUARD_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
        a.name = "witness-account";
        a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
@@ -395,9 +395,6 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
-
-   FC_ASSERT( (genesis_state.immutable_parameters.min_witness_count & 1) == 1, "min_witness_count must be odd" );
-   FC_ASSERT( (genesis_state.immutable_parameters.min_committee_member_count & 1) == 1, "min_committee_member_count must be odd" );
 
    create<chain_property_object>([&](chain_property_object& p)
    {
@@ -564,7 +561,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    if( total_supplies[ asset_id_type(0) ] > 0 )
    {
-       adjust_balance(GRAPHENE_COMMITTEE_ACCOUNT, -get_balance(GRAPHENE_COMMITTEE_ACCOUNT,{}));
+       adjust_balance(GRAPHENE_GUARD_ACCOUNT, -get_balance(GRAPHENE_GUARD_ACCOUNT,{}));
    }
    else
    {
