@@ -281,10 +281,10 @@ namespace graphene { namespace chain {
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
 		 //////////////////// db_lock_balance.cpp/////////////////
-		 asset get_lock_balance(string owner, asset_id_type asset_id)const;
+		 vector<lockbalance_object> get_lock_balance(account_id_type owner, asset_id_type asset_id)const;
 		 //asset get_lock_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;
-		 void adjust_lock_balance(account_id_type account, asset delta);
+		 void adjust_lock_balance(witness_id_type miner_account, account_id_type lock_account, asset delta);
          //////////////////// db_balance.cpp ////////////////////
 
          /**
