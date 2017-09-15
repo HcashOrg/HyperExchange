@@ -32,7 +32,7 @@ namespace graphene {
 			address contract_addr;
 
 			account_id_type lock_balance_account;
-			witness_id_type lockto_miner_account;
+			account_id_type lockto_miner_account;
 
 			address lock_balance_addr;
 			asset fee;

@@ -21,7 +21,7 @@ namespace graphene {
 			return result;
 		}
 
-		void database::adjust_lock_balance(witness_id_type miner_account, account_id_type lock_account,asset delta){
+		void database::adjust_lock_balance(account_id_type miner_account, account_id_type lock_account,asset delta){
 			try {
 				if (delta.amount == 0)
 					return;
