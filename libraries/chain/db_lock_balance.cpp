@@ -9,16 +9,14 @@
 namespace graphene {
 	namespace chain {
 
-		vector<lockbalance_object> database::get_lock_balance(account_id_type owner, asset_id_type asset_id) const{
-			auto& index = get_index_type<lockbalance_index>();
-			vector<lockbalance_object> result;
-			index.inspect_all_objects([&](const object& obj) {
-				const lockbalance_object& lbo = static_cast<const lockbalance_object&>(obj);
-				if ((lbo.lock_asset_id == asset_id) && (lbo.lock_balance_account) == owner) {
-					result.push_back(lbo);
-				}
-			});
-			return result;
+		asset database::get_lock_balance(account_id_type owner, account_id_type miner, asset_id_type asset_id) const{
+			auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+			auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
+			if (itr != index.end()){
+				return itr->get_lock_balance();
+			}
+						
+			return asset();
 		}
 
 		void database::adjust_lock_balance(account_id_type miner_account, account_id_type lock_account,asset delta){

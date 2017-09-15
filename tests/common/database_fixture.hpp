@@ -280,6 +280,7 @@ struct database_fixture {
    void print_joint_market( const string& syma, const string& symb )const;
    int64_t get_balance( account_id_type account, asset_id_type a )const;
    int64_t get_balance( const account_object& account, const asset_object& a )const;
+   asset get_lock_balance(account_id_type owner, account_id_type miner,asset_id_type asset_id)const;
    vector< operation_history_object > get_operation_history( account_id_type account_id )const;
 };
 

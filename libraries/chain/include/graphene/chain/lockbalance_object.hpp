@@ -8,19 +8,21 @@
 
 namespace graphene {
 	namespace chain {
-		//using namespace graphene::db;
+		using namespace graphene::db;
 		class lockbalance_object;
 		class lockbalance_object : public graphene::db::abstract_object<lockbalance_object>
 		{
 		public:
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = lockbalance_object_type;
+
 			account_id_type lockto_miner_account;
 			account_id_type lock_balance_account;
 			address lock_balance_contract_addr;
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 
+			lockbalance_object() {}
 			asset get_lock_balance() const{
 				return asset(lock_asset_amount, lock_asset_id);
 			}
