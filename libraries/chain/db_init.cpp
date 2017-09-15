@@ -414,11 +414,13 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       {
          cop.active = cop.owner;
          cop.options.memo_key = account.owner_key;
+		 cop.payer = address(account.owner_key);
       }
       else
       {
          cop.active = authority(1, account.active_key, 1);
          cop.options.memo_key = account.active_key;
+		 cop.payer = address(account.active_key);
       }
       account_id_type account_id(apply_operation(genesis_eval_state, cop).get<object_id_type>());
 

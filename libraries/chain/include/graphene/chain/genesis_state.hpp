@@ -46,7 +46,8 @@ struct genesis_state_type {
            owner_key(owner_key),
            active_key(active_key == public_key_type()? owner_key : active_key),
            is_lifetime_member(is_lifetime_member)
-      {}
+      {
+	  }
       string name;
       public_key_type owner_key;
       public_key_type active_key;
