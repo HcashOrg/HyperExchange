@@ -92,7 +92,7 @@ namespace detail {
                                                      nathan_key.get_public_key(),
                                                      nathan_key.get_public_key(),
                                                      true);
-         initial_state.initial_committee_candidates.push_back({name});
+         initial_state.initial_guard_candidates.push_back({name});
          initial_state.initial_miner_candidates.push_back({name, nathan_key.get_public_key()});
       }
 
@@ -314,7 +314,7 @@ namespace detail {
 
       void set_dbg_init_key( genesis_state_type& genesis, const std::string& init_key )
       {
-         flat_set< std::string > initial_witness_names;
+         flat_set< std::string > initial_miner_names;
          public_key_type init_pubkey( init_key );
          for( uint64_t i=0; i<genesis.initial_active_miners; i++ )
             genesis.initial_miner_candidates[i].block_signing_key = init_pubkey;
@@ -347,7 +347,7 @@ namespace detail {
                   FC_ASSERT( genesis.initial_miner_candidates.size() >= genesis.initial_active_miners );
                   set_dbg_init_key( genesis, init_key );
                   modified_genesis = true;
-                  std::cerr << "Set init witness key to " << init_key << "\n";
+                  std::cerr << "Set init miner key to " << init_key << "\n";
                }
                if( modified_genesis )
                {
@@ -527,14 +527,14 @@ namespace detail {
          auto latency = fc::time_point::now() - blk_msg.block.timestamp;
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
-            const auto& witness = blk_msg.block.witness(*_chain_db);
-            const auto& witness_account = witness.miner_account(*_chain_db);
+            const auto& miner = blk_msg.block.miner(*_chain_db);
+            const auto& miner_account = miner.miner_account(*_chain_db);
             auto last_irr = _chain_db->get_dynamic_global_properties().last_irreversible_block_num;
             ilog("Got block: #${n} time: ${t} latency: ${l} ms from: ${w}  irreversible: ${i} (-${d})",
                  ("t",blk_msg.block.timestamp)
                  ("n", blk_msg.block.block_num())
                  ("l", (latency.count()/1000))
-                 ("w",witness_account.name)
+                 ("w",miner_account.name)
                  ("i",last_irr)("d",blk_msg.block.block_num()-last_irr) );
          }
          FC_ASSERT( (latency.count()/1000) > -5000, "Rejecting block with timestamp in the future" );
@@ -967,7 +967,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("server-pem,p", bpo::value<string>()->implicit_value("server.pem"), "The TLS certificate file for this server")
          ("server-pem-password,P", bpo::value<string>()->implicit_value(""), "Password for this certificate")
          ("genesis-json", bpo::value<boost::filesystem::path>(), "File to read Genesis State from")
-         ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init witnesses, overrides genesis file")
+         ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
          ;
    command_line_options.add(configuration_file_options);

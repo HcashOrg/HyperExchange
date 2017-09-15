@@ -1277,7 +1277,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    auto last_witness_vbo_balance = [&]() -> share_type
    {
-      const miner_object& wit = db.fetch_block_by_number(db.head_block_num())->witness(db);
+      const miner_object& wit = db.fetch_block_by_number(db.head_block_num())->miner(db);
       if( !wit.pay_vb.valid() )
          return 0;
       return (*wit.pay_vb)(db).balance.amount;
@@ -1307,7 +1307,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    db.modify( db.get_global_properties(), [&]( global_property_object& _gpo )
    {
-      _gpo.parameters.witness_pay_per_block = witness_ppb;
+      _gpo.parameters.miner_pay_per_block = witness_ppb;
    } );
 
    BOOST_CHECK_EQUAL(core->dynamic_asset_data_id(db).accumulated_fees.value, 0);

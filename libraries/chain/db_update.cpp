@@ -50,9 +50,9 @@ void database::update_global_dynamic_data( const signed_block& b )
    missed_blocks--;
    for( uint32_t i = 0; i < missed_blocks; ++i ) {
       const auto& witness_missed = get_scheduled_miner( i+1 )(*this);
-      if(  witness_missed.id != b.witness ) {
+      if(  witness_missed.id != b.miner ) {
          /*
-         const auto& witness_account = witness_missed.witness_account(*this);
+         const auto& witness_account = witness_missed.miner_account(*this);
          if( (fc::time_point::now() - b.timestamp) < fc::seconds(30) )
             wlog( "Witness ${name} missed block ${n} around ${t}", ("name",witness_account.name)("n",b.block_num())("t",b.timestamp) );
             */
@@ -79,7 +79,7 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_number = b.block_num();
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
-      dgp.current_witness = b.witness;
+      dgp.current_witness = b.miner;
       dgp.recent_slots_filled = (
            (dgp.recent_slots_filled << 1)
            + 1) << missed_blocks;
@@ -105,7 +105,7 @@ void database::update_signing_miner(const miner_object& signing_witness, const s
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    uint64_t new_block_aslot = dpo.current_aslot + get_slot_at_time( new_block.timestamp );
 
-   share_type miner_pay = std::min( gpo.parameters.witness_pay_per_block, dpo.miner_budget );
+   share_type miner_pay = std::min( gpo.parameters.miner_pay_per_block, dpo.miner_budget );
 
    modify( dpo, [&]( dynamic_global_property_object& _dpo )
    {

@@ -148,7 +148,7 @@ int main( int argc, char** argv )
                break;
          }
          
-         miner_id_type prev_witness = b.witness;
+         miner_id_type prev_witness = b.miner;
          miner_id_type cur_witness = db.get_scheduled_miner(1);
          if( verbose )
          {

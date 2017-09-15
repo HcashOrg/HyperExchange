@@ -219,7 +219,7 @@ void database::deposit_miner_pay(const miner_object& wit, share_type amount)
    optional< vesting_balance_id_type > new_vbid = deposit_lazy_vesting(
       wit.pay_vb,
       amount,
-      get_global_properties().parameters.witness_pay_vesting_seconds,
+      get_global_properties().parameters.miner_pay_vesting_seconds,
       wit.miner_account,
       true );
 

@@ -400,7 +400,7 @@ void database::process_budget()
       initialize_budget_record( now, rec );
       share_type available_funds = rec.total_budget;
 
-      share_type miner_budget = gpo.parameters.witness_pay_per_block.value * blocks_to_maint;
+      share_type miner_budget = gpo.parameters.miner_pay_per_block.value * blocks_to_maint;
       rec.requested_miner_budget = miner_budget;
       miner_budget = std::min(miner_budget, available_funds);
       rec.miner_budget = miner_budget;

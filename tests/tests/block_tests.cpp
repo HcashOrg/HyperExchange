@@ -56,7 +56,7 @@ genesis_state_type make_genesis() {
                                                   init_account_priv_key.get_public_key(),
                                                   init_account_priv_key.get_public_key(),
                                                   true);
-      genesis_state.initial_committee_candidates.push_back({name});
+      genesis_state.initial_guard_candidates.push_back({name});
       genesis_state.initial_miner_candidates.push_back({name, init_account_priv_key.get_public_key()});
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
@@ -81,25 +81,25 @@ BOOST_AUTO_TEST_CASE( block_database_test )
       for( uint32_t i = 0; i < 5; ++i )
       {
          if( i > 0 ) b.previous = b.id();
-         b.witness = miner_id_type(i+1);
+         b.miner = miner_id_type(i+1);
          bdb.store( b.id(), b );
 
          auto fetch = bdb.fetch_by_number( b.block_num() );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->witness ==  b.witness );
+         FC_ASSERT( fetch->miner ==  b.miner );
          fetch = bdb.fetch_by_number( i+1 );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->witness ==  b.witness );
+         FC_ASSERT( fetch->miner ==  b.miner );
          fetch = bdb.fetch_optional( b.id() );
          FC_ASSERT( fetch.valid() );
-         FC_ASSERT( fetch->witness ==  b.witness );
+         FC_ASSERT( fetch->miner ==  b.miner );
       }
 
       for( uint32_t i = 1; i < 5; ++i )
       {
          auto blk = bdb.fetch_by_number( i );
          FC_ASSERT( blk.valid() );
-         FC_ASSERT( blk->witness == miner_id_type(blk->block_num()) );
+         FC_ASSERT( blk->miner == miner_id_type(blk->block_num()) );
       }
 
       auto last = bdb.last();
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE( block_database_test )
       {
          auto blk = bdb.fetch_by_number( i+1 );
          FC_ASSERT( blk.valid() );
-         FC_ASSERT( blk->witness == miner_id_type(blk->block_num()) );
+         FC_ASSERT( blk->miner == miner_id_type(blk->block_num()) );
       }
 
    } catch (fc::exception& e) {
@@ -145,11 +145,11 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
          for( uint32_t i = 1; ; ++i )
          {
             BOOST_CHECK( db.head_block_id() == b.id() );
-            //miner_id_type prev_witness = b.witness;
+            //miner_id_type prev_witness = b.miner;
             miner_id_type cur_witness = db.get_scheduled_miner(1);
             //BOOST_CHECK( cur_witness != prev_witness );
             b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
-            BOOST_CHECK( b.witness == cur_witness );
+            BOOST_CHECK( b.miner == cur_witness );
             uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
             if( cutoff_height >= 200 )
             {
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
          for( uint32_t i = 0; i < 200; ++i )
          {
             BOOST_CHECK( db.head_block_id() == b.id() );
-            //miner_id_type prev_witness = b.witness;
+            //miner_id_type prev_witness = b.miner;
             miner_id_type cur_witness = db.get_scheduled_miner(1);
             //BOOST_CHECK( cur_witness != prev_witness );
             b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
@@ -875,7 +875,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, database_fixture )
    try
    {
       uint32_t skip_flags = (
-           database::skip_witness_signature
+           database::skip_miner_signature
          | database::skip_transaction_signatures
          | database::skip_authority_check
          );
@@ -1064,7 +1064,7 @@ BOOST_FIXTURE_TEST_CASE( transaction_invalidated_in_cache, database_fixture )
       while( db2.head_block_num() < db.head_block_num() )
       {
          optional< signed_block > b = db.fetch_block_by_number( db2.head_block_num()+1 );
-         db2.push_block(*b, database::skip_witness_signature);
+         db2.push_block(*b, database::skip_miner_signature);
       }
       BOOST_CHECK( db2.get( alice_id ).name == "alice" );
       BOOST_CHECK( db2.get( bob_id ).name == "bob" );

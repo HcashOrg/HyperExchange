@@ -623,7 +623,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    });
 
    // Create initial committee members
-   std::for_each(genesis_state.initial_committee_candidates.begin(), genesis_state.initial_committee_candidates.end(),
+   std::for_each(genesis_state.initial_guard_candidates.begin(), genesis_state.initial_guard_candidates.end(),
                  [&](const genesis_state_type::initial_committee_member_type& member) {
       guard_member_create_operation op;
       op.guard_member_account = get_account_id(member.owner_name);

@@ -109,7 +109,7 @@ struct genesis_state_type {
    vector<initial_vesting_balance_type>     initial_vesting_balances;
    uint64_t                                 initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
    vector<initial_miner_type>               initial_miner_candidates;
-   vector<initial_committee_member_type>    initial_committee_candidates;
+   vector<initial_committee_member_type>    initial_guard_candidates;
    vector<initial_worker_type>              initial_worker_candidates;
 
    /**
@@ -150,6 +150,6 @@ FC_REFLECT(graphene::chain::genesis_state_type::initial_worker_type, (owner_name
 FC_REFLECT(graphene::chain::genesis_state_type,
            (initial_timestamp)(max_core_supply)(initial_parameters)(initial_accounts)(initial_assets)(initial_balances)
            (initial_vesting_balances)(initial_active_miners)(initial_miner_candidates)
-           (initial_committee_candidates)(initial_worker_candidates)
+           (initial_guard_candidates)(initial_worker_candidates)
            (initial_chain_id)
            (immutable_parameters))

@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE( update_account_keys, database_fixture )
       const asset_object& core = asset_id_type()(db);
       uint32_t skip_flags =
           database::skip_transaction_dupe_check
-        | database::skip_witness_signature
+        | database::skip_miner_signature
         | database::skip_transaction_signatures
         | database::skip_authority_check
         ;

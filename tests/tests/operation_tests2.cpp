@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE( witness_create )
    for( size_t i=0, n=witnesses.size()*2; i<n; i++ )
    {
       signed_block block = generate_block();
-      if( block.witness == nathan_witness_id )
+      if( block.miner == nathan_witness_id )
          produced++;
    }
    BOOST_CHECK_GE( produced, 1 );

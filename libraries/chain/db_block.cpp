@@ -313,7 +313,7 @@ signed_block database::_generate_block(
 
    const auto& witness_obj = witness_id(*this);
 
-   if( !(skip & skip_witness_signature) )
+   if( !(skip & skip_miner_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
@@ -384,9 +384,9 @@ signed_block database::_generate_block(
    pending_block.previous = head_block_id();
    pending_block.timestamp = when;
    pending_block.transaction_merkle_root = pending_block.calculate_merkle_root();
-   pending_block.witness = witness_id;
+   pending_block.miner = witness_id;
 
-   if( !(skip & skip_witness_signature) )
+   if( !(skip & skip_miner_signature) )
       pending_block.sign( block_signing_private_key );
 
    // TODO:  Move this to _push_block() so session is restored.
@@ -638,9 +638,9 @@ const miner_object& database::validate_block_header( uint32_t skip, const signed
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
-   const miner_object& witness = next_block.witness(*this);
+   const miner_object& witness = next_block.miner(*this);
 
-   if( !(skip&skip_witness_signature) ) 
+   if( !(skip&skip_miner_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
 
    if( !(skip&skip_witness_schedule_check) )
@@ -650,8 +650,8 @@ const miner_object& database::validate_block_header( uint32_t skip, const signed
 
       miner_id_type scheduled_miner = get_scheduled_miner( slot_num );
 
-      FC_ASSERT( next_block.witness == scheduled_miner, "Witness produced block at wrong time",
-                 ("block witness",next_block.witness)("scheduled",scheduled_miner)("slot_num",slot_num) );
+      FC_ASSERT( next_block.miner == scheduled_miner, "Witness produced block at wrong time",
+                 ("block witness",next_block.miner)("scheduled",scheduled_miner)("slot_num",slot_num) );
    }
 
    return witness;
