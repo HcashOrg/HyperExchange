@@ -571,7 +571,7 @@ class database_api
        */
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
 	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
-
+	  vector<proposal_object> get_voter_transactions_waiting(address add)const;  //waiting to be voted
       //////////////////////
       // Blinded balances //
       //////////////////////
@@ -684,6 +684,7 @@ FC_API(graphene::app::database_api,
 	// Proposed transactions
 	(get_proposed_transactions)
 	(get_proposer_transactions)
+	(get_voter_transactions_waiting)
 	// Blinded balances
 	(get_blinded_balances)
 );

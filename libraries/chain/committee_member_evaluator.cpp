@@ -23,14 +23,17 @@
  */
 #include <graphene/chain/committee_member_evaluator.hpp>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/protocol/vote.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
-
+#include <graphene/chain/proposal_object.hpp>
 #include <fc/smart_ref_impl.hpp>
 
+#define GUARD_VOTES_EXPIRATION_TIME 7*24*3600
+#define  MINER_VOTES_REVIWE_TIME  24 * 3600
 namespace graphene { namespace chain {
 
 void_result guard_member_create_evaluator::do_evaluate( const guard_member_create_operation& op )
@@ -45,11 +48,42 @@ object_id_type guard_member_create_evaluator::do_apply( const guard_member_creat
    db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
       vote_id = get_next_vote_id(p, vote_id_type::committee);
    });
-
+   auto& index = db().get_index_type<guard_member_index>().indices().get<by_account>();
+   auto iter = index.find(op.guard_member_account);
+   if (iter != index.end())
+   {
+	   db().modify(*iter, [](guard_member_object& obj) 
+	   {
+		   obj.formal = true;
+	   }
+	   );
+	   return iter->id;
+   }
    const auto& new_del_object = db().create<guard_member_object>( [&]( guard_member_object& obj ){
          obj.guard_member_account   = op.guard_member_account;
          obj.vote_id            = vote_id;
          obj.url                = op.url;
+   });
+   //add a new proposal for all miners to approve or disapprove
+   processed_transaction _proposed_trx;
+   guard_member_create_operation t_op(op);
+   
+   //db().get_global_properties()
+   //t_op.guard_member_account = op.guard_member_account;
+   const proposal_object& proposal = db().create<proposal_object>([&](proposal_object& proposal) {
+	   _proposed_trx.operations.emplace_back(t_op);
+	   proposal.proposed_transaction = _proposed_trx;
+	   proposal.expiration_time = db().head_block_time() + fc::seconds(GUARD_VOTES_EXPIRATION_TIME);
+	   proposal.type = vote_id_type::witness;
+	   
+	   //proposal should only be approved by guard or miners
+	   const auto& acc = db().get_index_type<account_index>().indices().get<by_id>();
+	   const auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
+	   std::for_each(iter.begin(), iter.end(), [&](const miner_object& a)
+	   {
+		   proposal.required_account_approvals.insert(acc.find(a.miner_account)->addr);
+	   });
+	   
    });
    return new_del_object.id;
 } FC_CAPTURE_AND_RETHROW( (op) ) }

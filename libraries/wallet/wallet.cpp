@@ -518,8 +518,8 @@ public:
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
-      result["active_witnesses"] = global_props.active_witnesses;
-      result["active_committee_members"] = global_props.active_committee_members;
+      result["active_miners"] = global_props.active_witnesses;
+      result["active_guard_members"] = global_props.active_committee_members;
       return result;
    }
 
@@ -1494,18 +1494,21 @@ public:
 	  FC_ASSERT(account_object().get_id() != guard_member_account,"account is not registered to the chain.");
 	  guard_member_create_op.guard_member_account = guard_member_account;
       guard_member_create_op.url = url;
+	  const chain_parameters& current_params = get_global_properties().parameters;
       if (_remote_db->get_guard_member_by_account(guard_member_create_op.guard_member_account))
          FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
+	  auto guard_create_op = operation(guard_member_create_op);
+	  current_params.current_fees->set_fee(guard_create_op);
 
       signed_transaction tx;
 	  proposal_create_operation prop_op;
 	  prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time) ;
 	  prop_op.proposer = get_account(proposing_account).get_id();
 	  prop_op.fee_paying_account = get_account(proposing_account).addr;
-	  prop_op.proposed_ops.emplace_back(guard_member_create_op);
-	  const chain_parameters& current_params = get_global_properties().parameters;
+	  prop_op.proposed_ops.emplace_back(guard_create_op);
+	  
 
-	  prop_op.review_period_seconds = current_params.committee_proposal_review_period;
+	  prop_op.review_period_seconds = 100;
 	  tx.operations.push_back(prop_op);
       set_operation_fees( tx, current_params.current_fees);
       tx.validate();
@@ -2621,6 +2624,14 @@ public:
 	   FC_ASSERT(acc.get_id() != account_object().get_id(),"the propser doesnt exist in the chain.");
 
 	   return _remote_db->get_proposer_transactions(acc.get_id());
+   }
+
+   vector<proposal_object>  get_proposal_for_voter(const string& voter )
+   {
+	   auto acc = get_account(voter);
+	   FC_ASSERT(acc.get_id() != account_object().get_id(), "the propser doesnt exist in the chain.");
+
+	   return _remote_db->get_voter_transactions_waiting(acc.addr);
    }
 
    void dbg_make_uia(string creator, string symbol)
@@ -3745,6 +3756,10 @@ signed_transaction wallet_api::approve_proposal(
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);
+}
+vector<proposal_object>  wallet_api::get_proposal_for_voter(const string& voter)
+{
+	return my->get_proposal_for_voter(voter);
 }
 
 global_property_object wallet_api::get_global_properties() const

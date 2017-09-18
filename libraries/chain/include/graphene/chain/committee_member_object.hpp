@@ -52,6 +52,7 @@ namespace graphene { namespace chain {
          vote_id_type     vote_id;
          uint64_t         total_votes = 0;
          string           url;
+		 bool             formal = false;
    };
 
    struct by_account;
@@ -74,4 +75,4 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::guard_member_object, (graphene::db::object),
-                    (guard_member_account)(vote_id)(total_votes)(url) )
+                    (guard_member_account)(vote_id)(total_votes)(url)(formal) )

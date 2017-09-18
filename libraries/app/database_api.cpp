@@ -142,6 +142,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       // Proposed transactions
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
 	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
+	  vector<proposal_object> get_voter_transactions_waiting(address addr)const;
       // Blinded balances
       vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
 
@@ -1795,6 +1796,25 @@ vector<proposal_object> database_api::get_proposed_transactions( account_id_type
 vector<proposal_object> database_api::get_proposer_transactions(account_id_type id)const
 {
 	return my->get_proposer_transactions(id);
+}
+
+vector<proposal_object> database_api::get_voter_transactions_waiting(address addr)const
+{
+	return my->get_voter_transactions_waiting(addr);
+}
+
+vector<proposal_object> database_api_impl::get_voter_transactions_waiting(address addr)const
+{
+	const auto& idx = _db.get_index_type<proposal_index>();
+	vector<proposal_object> result;
+
+	idx.inspect_all_objects([&](const object& obj) {
+		const proposal_object& p = static_cast<const proposal_object&>(obj);
+		auto accounts = p.required_account_approvals;
+		if (accounts.find(addr) != accounts.end())
+			result.push_back(p);
+	});
+	return result;
 }
 
 /** TODO: add secondary index that will accelerate this process */
