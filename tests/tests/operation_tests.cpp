@@ -591,25 +591,41 @@ BOOST_AUTO_TEST_CASE( transfer_core_asset )
 
 BOOST_AUTO_TEST_CASE( create_guard_member )
 {
-   try {
-      guard_member_create_operation op;
-      op.guard_member_account = account_id_type();
-      op.fee = asset();
-      trx.operations.push_back(op);
+    try {
+        guard_member_create_operation op;
+        op.guard_member_account = account_id_type();
+        op.fee = asset();
+        trx.operations.push_back(op);
 
-      REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(99999999));
-      REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
-      trx.operations.back() = op;
+        REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(99999999));
+        REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
+        trx.operations.back() = op;
 
-      guard_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<guard_member_object>>>().get_next_id();
-      PUSH_TX( db, trx, ~0 );
-      const guard_member_object& d = committee_member_id(db);
+        guard_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<guard_member_object>>>().get_next_id();
+        PUSH_TX(db, trx, ~0);
+        const guard_member_object& d = committee_member_id(db);
 
-      BOOST_CHECK(d.guard_member_account == account_id_type());
-   } catch (fc::exception& e) {
-      edump((e.to_detail_string()));
-      throw;
-   }
+        BOOST_CHECK(d.guard_member_account == account_id_type());
+
+        // No more than 15 guards can be created.
+        for (auto i = 0; i < 5; ++i) {
+            trx.clear();
+            auto acct = create_account(std::string("guardtest")+fc::to_string(i));
+            op.guard_member_account = account_id_type(acct.id);
+            op.fee = asset();
+            trx.operations.push_back(op);
+            if (i == 4) {
+                REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(acct.id));
+            } else {
+                PUSH_TX(db, trx, ~0);
+            }
+        }
+
+    }
+    catch (fc::exception& e) {
+        edump((e.to_detail_string()));
+        throw;
+    }
 }
 
 BOOST_AUTO_TEST_CASE( create_mia )
