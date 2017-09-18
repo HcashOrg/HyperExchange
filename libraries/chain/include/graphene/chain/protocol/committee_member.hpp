@@ -90,6 +90,15 @@ namespace graphene { namespace chain {
       account_id_type fee_payer()const { return account_id_type(); }
       void            validate()const;
    };
+   struct committee_member_execute_coin_destory_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = GRAPHENE_BLOCKCHAIN_PRECISION; };
+	   asset             fee;
+	   asset			 loss_asset;
+	   uint8_t			 commitee_member_handle_percent;
+	   account_id_type fee_payer()const { return account_id_type(); }
+	   void            validate()const;
+   };
 
    /// TODO: committee_member_resign_operation : public base_operation
 
@@ -98,9 +107,12 @@ FC_REFLECT( graphene::chain::committee_member_create_operation::fee_parameters_t
 FC_REFLECT( graphene::chain::committee_member_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation::fee_parameters_type, (fee) )
 
+FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
 
 FC_REFLECT( graphene::chain::committee_member_create_operation,
             (fee)(committee_member_account)(url) )
 FC_REFLECT( graphene::chain::committee_member_update_operation,
             (fee)(committee_member)(committee_member_account)(new_url) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );
+FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation, (fee)(loss_asset)(commitee_member_handle_percent));
+

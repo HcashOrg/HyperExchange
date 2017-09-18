@@ -80,6 +80,7 @@ void_result committee_member_update_global_parameters_evaluator::do_evaluate(con
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+
 void_result committee_member_update_global_parameters_evaluator::do_apply(const committee_member_update_global_parameters_operation& o)
 { try {
    db().modify(db().get_global_properties(), [&o](global_property_object& p) {
@@ -88,5 +89,23 @@ void_result committee_member_update_global_parameters_evaluator::do_apply(const 
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result committee_member_execute_coin_destory_operation_evaluator::do_evaluate(const committee_member_execute_coin_destory_operation& o)
+{
+	try {
+		FC_ASSERT(trx_state->_is_proposed_trx);
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(const committee_member_execute_coin_destory_operation& o)
+{
+	try {
+		//Ö´ÐÐÍË±ÒÁ÷³Ì
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
 
 } } // graphene::chain

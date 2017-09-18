@@ -44,4 +44,13 @@ void committee_member_update_global_parameters_operation::validate() const
    new_parameters.validate();
 }
 
+void committee_member_execute_coin_destory_operation::validate() const
+{
+	FC_ASSERT(fee.amount >= 0);
+	FC_ASSERT(commitee_member_handle_percent >= 0);
+	FC_ASSERT(commitee_member_handle_percent <= 100);
+
+}
+
+
 } } // graphene::chain

@@ -154,6 +154,7 @@ struct sign_state
                   return provided_signatures[aitr->second] = true;
                return false;
             }
+			return false;
          }
          return provided_signatures[itr->second] = true;
       }

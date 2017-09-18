@@ -1549,6 +1549,13 @@ class wallet_api
          const variant_object& changed_values,
          bool broadcast = false);
 
+
+
+	  signed_transaction propose_guard_pledge_change(
+		  const string& proposing_account,
+		  fc::time_point_sec expiration_time,
+		  const variant_object& changed_values,
+		  bool broadcast = false);
       /** Propose a fee change.
        * 
        * @param proposing_account The account paying the fee to propose the tx
@@ -1761,6 +1768,7 @@ FC_API( graphene::wallet::wallet_api,
         (serialize_transaction)
         (sign_transaction)
         (get_prototype_operation)
+		(propose_guard_pledge_change)
         (propose_parameter_change)
         (propose_fee_change)
         (approve_proposal)

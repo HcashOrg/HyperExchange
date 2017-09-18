@@ -136,6 +136,8 @@ struct get_impacted_account_visitor
    }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
 
+   void operator()(const committee_member_execute_coin_destory_operation& op) {}
+
    void operator()( const vesting_balance_create_operation& op )
    {
       _impacted.insert( op.owner );

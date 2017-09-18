@@ -222,7 +222,7 @@ processed_transaction database::push_transaction( const signed_transaction& trx,
    detail::with_skip_flags( *this, skip, [&]()
    {
       result = _push_transaction( trx );
-   } );
+   } ); 
    return result;
 } FC_CAPTURE_AND_RETHROW( (trx) ) }
 
