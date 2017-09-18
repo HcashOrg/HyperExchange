@@ -95,7 +95,7 @@ namespace graphene { namespace chain {
             asset_settle_cancel_operation,  // VIRTUAL
             asset_claim_fees_operation,
             fba_distribute_operation,        // VIRTUAL
-			committee_member_execute_coin_destory_operation
+			committee_member_execute_coin_destory_operation,
 		    graphene::chain::lockbalance_operation,
 		    graphene::chain::foreclose_balance_operation,
 			graphene::chain::guard_lock_balance_operation
