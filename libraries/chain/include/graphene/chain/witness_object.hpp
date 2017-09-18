@@ -25,7 +25,7 @@
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/db/object.hpp>
 #include <graphene/db/generic_index.hpp>
-
+#include <map>
 namespace graphene { namespace chain {
    using namespace graphene::db;
 
@@ -48,6 +48,8 @@ namespace graphene { namespace chain {
          int64_t          total_missed = 0;
 		 int64_t		  total_produced = 0;
          uint32_t         last_confirmed_block_num = 0;
+		 //std::map<string, vector<asset>> lockbalance;
+		 std::map<string,asset> lockbalance_total;
 		 uint64_t       pledge_weight = 100;
 		 uint8_t		  participation_rate = 100;
 
@@ -86,6 +88,7 @@ FC_REFLECT_DERIVED( graphene::chain::witness_object, (graphene::db::object),
                     (total_votes)
                     (url) 
                     (total_missed)
+					(lockbalance_total)
 					(total_produced)
                     (last_confirmed_block_num)
 					(pledge_weight)

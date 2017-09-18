@@ -23,6 +23,7 @@
  */
 #pragma once
 #include <graphene/chain/protocol/base.hpp>
+#include <graphene/chain/protocol/lockbalance.hpp>
 #include <graphene/chain/protocol/account.hpp>
 #include <graphene/chain/protocol/assert.hpp>
 #include <graphene/chain/protocol/asset_ops.hpp>
@@ -38,6 +39,8 @@
 #include <graphene/chain/protocol/withdraw_permission.hpp>
 #include <graphene/chain/protocol/witness.hpp>
 #include <graphene/chain/protocol/worker.hpp>
+#include <graphene/chain/protocol/guard_lock_balance.hpp>
+
 
 namespace graphene { namespace chain {
 
@@ -93,6 +96,9 @@ namespace graphene { namespace chain {
             asset_claim_fees_operation,
             fba_distribute_operation,        // VIRTUAL
 			committee_member_execute_coin_destory_operation
+		    graphene::chain::lockbalance_operation,
+		    graphene::chain::foreclose_balance_operation,
+			graphene::chain::guard_lock_balance_operation
          > operation;
 
    /// @} // operations group
