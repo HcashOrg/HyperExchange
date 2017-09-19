@@ -28,6 +28,7 @@
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/protocol/vote.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
+#include<graphene/chain/lockbalance_object.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 
@@ -102,7 +103,7 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 {
 	try {
 		//Ö´ÐÐÍË±ÒÁ÷³Ì
-		auto lock_balances = db().get_index_type<lockbalance_index>.indices();
+		//auto lock_balances = db().get_index_type<lockbalance_index>.indices();
 
 
 

@@ -21,7 +21,7 @@ namespace graphene {
 			
 		};
 		struct by_guard_lock;
-		typedef multi_index_container <
+		using guard_lock_balance_multi_index_type =  multi_index_container <
 			guard_lock_balance_object,
 			indexed_by <
 			ordered_unique< tag<by_id>,
@@ -40,8 +40,8 @@ namespace graphene {
 			>
 			>
 			>
-		> guard_lock_balance_multi_index_type;
-		typedef  generic_index<guard_lock_balance_object, guard_lock_balance_multi_index_type> guard_lock_balance_index;
+		> ;
+		using  guard_lock_balance_index =  generic_index<guard_lock_balance_object, guard_lock_balance_multi_index_type> ;
 	}
 }
 

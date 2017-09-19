@@ -6,11 +6,9 @@ namespace graphene {
 		void_result guard_lock_balance_evaluator::do_evaluate(const guard_lock_balance_operation& o) {
 			const database& d = db();
 			const asset_object&   asset_type = o.lock_asset_id(d);
-			auto & iter = d.get_index_type<committee_member_index>().indices().get<by_account>();
-			auto a = d.get_index_type<lockbalance_index>().indices();
-			
+			auto & iter = d.get_index_type<committee_member_index>().indices().get<by_account>();			
 			auto itr = iter.find(o.lock_balance_account);
-			FC_ASSERT(itr != iter.end(), "Dont have lock account");
+			FC_ASSERT(itr != iter.end(), "Dont have lock guard account");
 			// 					optional<witness_object> iter = d.get(o.lockto_miner_account);
 			// 					FC_ASSERT(iter.valid(),"Dont have lock account");
 			bool insufficient_balance = d.get_balance(o.lock_balance_account, asset_type.id).amount >= o.lock_asset_amount;
