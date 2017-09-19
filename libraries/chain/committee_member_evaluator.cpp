@@ -102,7 +102,11 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 {
 	try {
 		//执行退币流程
+		auto lock_balances = db().get_index_type<lockbalance_index>.indices();
 
+
+
+		//执行跨链修改代理流程
 		return void_result();
 	} FC_CAPTURE_AND_RETHROW((o))
 }
