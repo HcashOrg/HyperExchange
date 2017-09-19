@@ -20,5 +20,14 @@ namespace graphene {
 			}
 			
 		};
+		typedef multi_index_container <
+			guard_lock_balance_object,
+			indexed_by <
+			ordered_unique< tag<by_id>,
+			member<object, object_id_type, &object::id>
+			>
+			>
+		> guard_lock_balance_multi_index_type;
+		typedef  generic_index<guard_lock_balance_object, guard_lock_balance_multi_index_type> guard_lock_balance_index;
 	}
 }
