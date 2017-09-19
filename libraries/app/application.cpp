@@ -87,14 +87,29 @@ namespace detail {
             initial_state.initial_parameters.block_interval);
       for( uint64_t i = 0; i < initial_state.initial_active_miners; ++i )
       {
-         auto name = "init"+fc::to_string(i);
+         auto name = "miner"+fc::to_string(i);
+		 auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		 dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
          initial_state.initial_accounts.emplace_back(name,
-                                                     nathan_key.get_public_key(),
-                                                     nathan_key.get_public_key(),
+			                                         name_key.get_public_key(),
+			                                         name_key.get_public_key(),
                                                      true);
-         initial_state.initial_guard_candidates.push_back({name});
-         initial_state.initial_miner_candidates.push_back({name, nathan_key.get_public_key()});
+         
+         initial_state.initial_miner_candidates.push_back({name, name_key.get_public_key()});
       }
+
+	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARDS; i++)
+	  {
+		  auto name = "guard" + fc::to_string(i);
+		  auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		  dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
+		  initial_state.initial_accounts.emplace_back(name,
+			                                          name_key.get_public_key(),
+			                                          name_key.get_public_key(),
+			                                          true);
+		  initial_state.initial_guard_candidates.push_back({ name });
+
+	  }
 
       initial_state.initial_accounts.emplace_back("nathan", nathan_key.get_public_key());
       initial_state.initial_balances.push_back({nathan_key.get_public_key(),

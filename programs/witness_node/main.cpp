@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
                   out_cfg << od->long_name() << " = " << example << "\n";
                }
             }
+		
             out_cfg << "\n";
          }
          write_default_logging_config_to_stream(out_cfg);

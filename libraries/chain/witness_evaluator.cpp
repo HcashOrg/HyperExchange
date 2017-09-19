@@ -32,7 +32,9 @@ namespace graphene { namespace chain {
 
 void_result miner_create_evaluator::do_evaluate( const miner_create_operation& op )
 { try {
-   //FC_ASSERT(db().get(op.miner_account).is_lifetime_member());
+   //account cannot be a guard
+   auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
+   FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 

@@ -65,15 +65,35 @@ void miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& config_file_options)
 {
    auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("nathan")));
+
+   vector<std::pair<chain::public_key_type, string>> vec;
+   vec.push_back
+    (std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
+   {
+	   auto name = "miner" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   vec.push_back
+	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+   }
+
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARD_COUNT; i++)
+   {
+	   auto name = "guard" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   vec.push_back
+	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+   }
+
    string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
          ("miner-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
           ("ID of miner controlled by this node (e.g. " + miner_id_example + ", quotes are required, may specify multiple times)").c_str())
-         ("private-key", bpo::value<vector<string>>()->composing()->multitoken()->
-          DEFAULT_VALUE_VECTOR(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key))),
-          "Tuple of [PublicKey, WIF private key] (may specify multiple times)")
+         ("private-key", bpo::value<string>()->composing()->multitoken()->
+          DEFAULT_VALUE_VECTOR(vec),
+          "Tuple of [PublicKey, WIF private key] (just append)")
          ;
    config_file_options.add(command_line_options);
 }
@@ -91,10 +111,10 @@ void miner_plugin::plugin_initialize(const boost::program_options::variables_map
 
    if( options.count("private-key") )
    {
-      const std::vector<std::string> key_id_to_wif_pair_strings = options["private-key"].as<std::vector<std::string>>();
-      for (const std::string& key_id_to_wif_pair_string : key_id_to_wif_pair_strings)
+      const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
+	  auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
+      for (auto& key_id_to_wif_pair : key_id_to_wif_pairs)
       {
-         auto key_id_to_wif_pair = graphene::app::dejsonify<std::pair<chain::public_key_type, std::string> >(key_id_to_wif_pair_string);
          //idump((key_id_to_wif_pair));
          ilog("Public Key: ${public}", ("public", key_id_to_wif_pair.first));
          fc::optional<fc::ecc::private_key> private_key = graphene::utilities::wif_to_key(key_id_to_wif_pair.second);

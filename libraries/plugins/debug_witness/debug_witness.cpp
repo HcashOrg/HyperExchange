@@ -45,11 +45,29 @@ void debug_miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
-   auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("nathan")));
+	auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("nathan")));
+	vector<std::pair<chain::public_key_type, string>> vec;
+	vec.push_back
+	(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
+	for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
+	{
+		auto name = "miner" + fc::to_string(i);
+		auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		vec.push_back
+		(std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+	}
+
+	for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARD_COUNT; i++)
+	{
+		auto name = "guard" + fc::to_string(i);
+		auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		vec.push_back
+		(std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+	}
    command_line_options.add_options()
-         ("private-key", bpo::value<vector<string>>()->composing()->multitoken()->
-          DEFAULT_VALUE_VECTOR(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key))),
-          "Tuple of [PublicKey, WIF private key] (may specify multiple times)");
+         ("private-key", bpo::value<string>()->composing()->multitoken()->
+          DEFAULT_VALUE_VECTOR(vec),
+          "Tuple of [PublicKey, WIF private key] (just append)");
    config_file_options.add(command_line_options);
 }
 
@@ -65,27 +83,28 @@ void debug_miner_plugin::plugin_initialize(const boost::program_options::variabl
 
    if( options.count("private-key") )
    {
-      const std::vector<std::string> key_id_to_wif_pair_strings = options["private-key"].as<std::vector<std::string>>();
-      for (const std::string& key_id_to_wif_pair_string : key_id_to_wif_pair_strings)
-      {
-         auto key_id_to_wif_pair = graphene::app::dejsonify<std::pair<chain::public_key_type, std::string> >(key_id_to_wif_pair_string);
-         idump((key_id_to_wif_pair));
-         fc::optional<fc::ecc::private_key> private_key = graphene::utilities::wif_to_key(key_id_to_wif_pair.second);
-         if (!private_key)
-         {
-            // the key isn't in WIF format; see if they are still passing the old native private key format.  This is
-            // just here to ease the transition, can be removed soon
-            try
-            {
-               private_key = fc::variant(key_id_to_wif_pair.second).as<fc::ecc::private_key>();
-            }
-            catch (const fc::exception&)
-            {
-               FC_THROW("Invalid WIF-format private key ${key_string}", ("key_string", key_id_to_wif_pair.second));
-            }
-         }
-         _private_keys[key_id_to_wif_pair.first] = *private_key;
-      }
+	   const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
+	   auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
+	   for (auto& key_id_to_wif_pair : key_id_to_wif_pairs)
+	   {
+		   //idump((key_id_to_wif_pair));
+		   ilog("Public Key: ${public}", ("public", key_id_to_wif_pair.first));
+		   fc::optional<fc::ecc::private_key> private_key = graphene::utilities::wif_to_key(key_id_to_wif_pair.second);
+		   if (!private_key)
+		   {
+			   // the key isn't in WIF format; see if they are still passing the old native private key format.  This is
+			   // just here to ease the transition, can be removed soon
+			   try
+			   {
+				   private_key = fc::variant(key_id_to_wif_pair.second).as<fc::ecc::private_key>();
+			   }
+			   catch (const fc::exception&)
+			   {
+				   FC_THROW("Invalid WIF-format private key ${key_string}", ("key_string", key_id_to_wif_pair.second));
+			   }
+		   }
+		   _private_keys[key_id_to_wif_pair.first] = *private_key;
+	   }
    }
    ilog("debug_miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }

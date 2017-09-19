@@ -39,9 +39,13 @@ namespace graphene { namespace chain {
 void_result guard_member_create_evaluator::do_evaluate( const guard_member_create_operation& op )
 { try {
    //FC_ASSERT(db().get(op.guard_member_account).is_lifetime_member());
+	// account cannot be a miner
+	auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
+	FC_ASSERT(iter.find(op.guard_member_account) == iter.end() ,"account cannot be a miner.");
+
     auto guards = db().get_index_type<guard_member_index>().indices().size();
-    if (guards >= GRAPHENE_DEFAULT_MAX_GUARDS) throw fc::exception(0, "guard_limit", "No more than 15 guards can be created.");
-    else return void_result();
+    FC_ASSERT (guards <= GRAPHENE_DEFAULT_MAX_GUARDS, "No more than 15 guards can be created.");
+    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
 object_id_type guard_member_create_evaluator::do_apply( const guard_member_create_operation& op )
