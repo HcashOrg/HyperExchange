@@ -20,14 +20,32 @@ namespace graphene {
 			}
 			
 		};
+		struct by_guard_lock;
 		typedef multi_index_container <
 			guard_lock_balance_object,
 			indexed_by <
 			ordered_unique< tag<by_id>,
 			member<object, object_id_type, &object::id>
+			>,
+			ordered_unique<
+			tag<by_guard_lock>,
+			composite_key<
+			guard_lock_balance_object,
+			member<guard_lock_balance_object, account_id_type, &guard_lock_balance_object::lock_balance_account>,
+			member<guard_lock_balance_object, asset_id_type, &guard_lock_balance_object::lock_asset_id>
+			>,
+			composite_key_compare<
+			std::less< account_id_type >, 
+			std::less< asset_id_type >
+			>
 			>
 			>
 		> guard_lock_balance_multi_index_type;
 		typedef  generic_index<guard_lock_balance_object, guard_lock_balance_multi_index_type> guard_lock_balance_index;
 	}
 }
+
+FC_REFLECT_DERIVED(graphene::chain::guard_lock_balance_object, (graphene::db::object),
+					(lock_balance_account)
+					(lock_asset_id)
+					(lock_asset_amount))

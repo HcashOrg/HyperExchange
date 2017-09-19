@@ -29,7 +29,7 @@ namespace graphene {
 		};
 		//TODO: Add contract Handle
 		struct by_lock_miner_asset;
-		typedef multi_index_container <
+		using lockbalance_multi_index_type = multi_index_container <
 			lockbalance_object,
 			indexed_by <
 			ordered_unique< tag<by_id>,
@@ -50,8 +50,8 @@ namespace graphene {
 			>
 			>
 			>
-		> lockbalance_multi_index_type;
-		typedef  generic_index<lockbalance_object, lockbalance_multi_index_type> lockbalance_index;
+		> ;
+		using lockbalance_index = generic_index<lockbalance_object, lockbalance_multi_index_type> ;
 	}
 }
 

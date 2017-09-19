@@ -347,6 +347,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (worker_object_type)
                  (balance_object_type)
 				 (lockbalance_object_type)
+				 (guard_lock_balance_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -398,6 +399,7 @@ FC_REFLECT_TYPENAME( graphene::chain::budget_record_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::special_authority_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::buyback_id_type )
 FC_REFLECT_TYPENAME(graphene::chain::lockbalance_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::guard_lock_balance_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::fba_accumulator_id_type )
 
 FC_REFLECT( graphene::chain::void_t, )
