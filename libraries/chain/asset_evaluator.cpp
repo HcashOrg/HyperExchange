@@ -174,8 +174,11 @@ void_result asset_issue_evaluator::do_evaluate( const asset_issue_operation& o )
 
 void_result asset_issue_evaluator::do_apply( const asset_issue_operation& o )
 { try {
-   db().adjust_balance( o.issue_to_account, o.asset_to_issue );
+   //use this issue to generate new asset in balanceOject
+   auto& id_idx = db().get_index_type<account_index>().indices().get<by_id>();
+   auto acc = *id_idx.find(o.issue_to_account);
 
+   db().adjust_balance( acc.addr, o.asset_to_issue );
    db().modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data ){
         data.current_supply += o.asset_to_issue.amount;
    });
