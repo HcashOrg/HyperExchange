@@ -88,9 +88,9 @@ struct get_impacted_account_visitor
    void operator()(const lockbalance_operation& op) {}
    void operator()(const foreclose_balance_operation& op) {}
    void operator()(const guard_lock_balance_operation& op) {}
-   void operator()( const witness_create_operation& op )
+   void operator()( const miner_create_operation& op )
    {
-      _impacted.insert( op.witness_account );
+      _impacted.insert( op.miner_account );
    }
    void operator()( const witness_update_operation& op )
    {
@@ -129,13 +129,13 @@ struct get_impacted_account_visitor
       _impacted.insert( op.authorized_account );
    }
 
-   void operator()( const committee_member_create_operation& op )
+   void operator()( const guard_member_create_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
 
@@ -228,15 +228,15 @@ void get_relevant_accounts( const object* obj, flat_set<account_id_type>& accoun
            assert( aobj != nullptr );
            accounts.insert( aobj->owner );
            break;
-        } case committee_member_object_type:{
-           const auto& aobj = dynamic_cast<const committee_member_object*>(obj);
+        } case guard_member_object_type:{
+           const auto& aobj = dynamic_cast<const guard_member_object*>(obj);
            assert( aobj != nullptr );
-           accounts.insert( aobj->committee_member_account );
+           accounts.insert( aobj->guard_member_account );
            break;
-        } case witness_object_type:{
-           const auto& aobj = dynamic_cast<const witness_object*>(obj);
+        } case miner_object_type:{
+           const auto& aobj = dynamic_cast<const miner_object*>(obj);
            assert( aobj != nullptr );
-           accounts.insert( aobj->witness_account );
+           accounts.insert( aobj->miner_account );
            break;
         } case limit_order_object_type:{
            const auto& aobj = dynamic_cast<const limit_order_object*>(obj);

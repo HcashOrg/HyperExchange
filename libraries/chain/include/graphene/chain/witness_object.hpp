@@ -29,15 +29,15 @@
 namespace graphene { namespace chain {
    using namespace graphene::db;
 
-   class witness_object;
+   class miner_object;
 
-   class witness_object : public abstract_object<witness_object>
+   class miner_object : public abstract_object<miner_object>
    {
       public:
          static const uint8_t space_id = protocol_ids;
-         static const uint8_t type_id = witness_object_type;
+         static const uint8_t type_id = miner_object_type;
 
-         account_id_type  witness_account;
+         account_id_type  miner_account;
          uint64_t         last_aslot = 0;
          public_key_type  signing_key;
 		 uint32_t		  last_change_signing_key_block_num = 0;
@@ -55,31 +55,31 @@ namespace graphene { namespace chain {
 
 		 optional<SecretHashType>        next_secret_hash;
 
-         witness_object() : vote_id(vote_id_type::witness) {}
+		 miner_object() : vote_id(vote_id_type::witness) {}
    };
 
    struct by_account;
    struct by_vote_id;
    struct by_last_block;
-   using witness_multi_index_type = multi_index_container<
-      witness_object,
+   using miner_multi_index_type = multi_index_container<
+      miner_object,
       indexed_by<
          ordered_unique< tag<by_id>,
             member<object, object_id_type, &object::id>
          >,
          ordered_unique< tag<by_account>,
-            member<witness_object, account_id_type, &witness_object::witness_account>
+            member<miner_object, account_id_type, &miner_object::miner_account>
          >,
          ordered_unique< tag<by_vote_id>,
-            member<witness_object, vote_id_type, &witness_object::vote_id>
+            member<miner_object, vote_id_type, &miner_object::vote_id>
          >
       >
    >;
-   using witness_index = generic_index<witness_object, witness_multi_index_type>;
+   using miner_index = generic_index<miner_object, miner_multi_index_type>;
 } } // graphene::chain
 
-FC_REFLECT_DERIVED( graphene::chain::witness_object, (graphene::db::object),
-                    (witness_account)
+FC_REFLECT_DERIVED( graphene::chain::miner_object, (graphene::db::object),
+                    (miner_account)
                     (last_aslot)
                     (signing_key)
 					(last_change_signing_key_block_num)

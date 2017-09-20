@@ -11,7 +11,7 @@ namespace graphene {
 		public:
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = guard_lock_balance_object_type;
-			committee_member_id_type lock_balance_account;
+			guard_member_id_type lock_balance_account;
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 
@@ -31,11 +31,11 @@ namespace graphene {
 			tag<by_guard_lock>,
 			composite_key<
 			guard_lock_balance_object,
-			member<guard_lock_balance_object, committee_member_id_type, &guard_lock_balance_object::lock_balance_account>,
+			member<guard_lock_balance_object, guard_member_id_type, &guard_lock_balance_object::lock_balance_account>,
 			member<guard_lock_balance_object, asset_id_type, &guard_lock_balance_object::lock_asset_id>
 			>,
 			composite_key_compare<
-			std::less< committee_member_id_type >,
+			std::less< guard_member_id_type >,
 			std::less< asset_id_type >
 			>
 			>

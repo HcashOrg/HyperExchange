@@ -351,7 +351,7 @@ namespace graphene { namespace chain {
    typedef generic_index<account_balance_object, account_balance_object_multi_index_type> account_balance_index;
 
    struct by_name{};
-
+   struct by_address {};
    /**
     * @ingroup object_index
     */
@@ -359,7 +359,8 @@ namespace graphene { namespace chain {
       account_object,
       indexed_by<
 	   ordered_non_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-         ordered_unique< tag<by_name>, member<account_object, string, &account_object::name> >
+         ordered_unique< tag<by_name>, member<account_object, string, &account_object::name> >,
+	   ordered_non_unique< tag<by_address>, member<account_object, address, &account_object::addr> >
       >
    > account_multi_index_type;
 

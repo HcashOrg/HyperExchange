@@ -11,9 +11,9 @@ namespace graphene {
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 			asset fee;
-			committee_member_id_type lock_balance_account;
+			guard_member_id_type lock_balance_account;
 			account_id_type lock_balance_account_id;
-			//committee_member_id_type lock_balance_account;
+			//guard_member_id_type lock_balance_account;
 			account_id_type fee_payer()const {
 				return lock_balance_account_id;
 			}

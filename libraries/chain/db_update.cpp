@@ -49,15 +49,15 @@ void database::update_global_dynamic_data( const signed_block& b )
    assert( missed_blocks != 0 );
    missed_blocks--;
    for( uint32_t i = 0; i < missed_blocks; ++i ) {
-      const auto& witness_missed = get_scheduled_witness( i+1 )(*this);
-      if(  witness_missed.id != b.witness ) {
+      const auto& witness_missed = get_scheduled_miner( i+1 )(*this);
+      if(  witness_missed.id != b.miner ) {
          /*
-         const auto& witness_account = witness_missed.witness_account(*this);
+         const auto& witness_account = witness_missed.miner_account(*this);
          if( (fc::time_point::now() - b.timestamp) < fc::seconds(30) )
             wlog( "Witness ${name} missed block ${n} around ${t}", ("name",witness_account.name)("n",b.block_num())("t",b.timestamp) );
             */
 
-         modify( witness_missed, [&]( witness_object& w ) {
+         modify( witness_missed, [&]( miner_object& w ) {
            w.total_missed++;
          });
       } 
@@ -79,7 +79,7 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_number = b.block_num();
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
-      dgp.current_witness = b.witness;
+      dgp.current_witness = b.miner;
       dgp.recent_slots_filled = (
            (dgp.recent_slots_filled << 1)
            + 1) << missed_blocks;
@@ -99,22 +99,22 @@ void database::update_global_dynamic_data( const signed_block& b )
    _fork_db.set_max_size( _dgp.head_block_number - _dgp.last_irreversible_block_num + 1 );
 }
 
-void database::update_signing_witness(const witness_object& signing_witness, const signed_block& new_block)
+void database::update_signing_miner(const miner_object& signing_witness, const signed_block& new_block)
 {
    const global_property_object& gpo = get_global_properties();
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    uint64_t new_block_aslot = dpo.current_aslot + get_slot_at_time( new_block.timestamp );
 
-   share_type witness_pay = std::min( gpo.parameters.witness_pay_per_block, dpo.witness_budget );
+   share_type miner_pay = std::min( gpo.parameters.miner_pay_per_block, dpo.miner_budget );
 
    modify( dpo, [&]( dynamic_global_property_object& _dpo )
    {
-      _dpo.witness_budget -= witness_pay;
+      _dpo.miner_budget -= miner_pay;
    } );
 
-   deposit_witness_pay( signing_witness, witness_pay );
+   deposit_miner_pay( signing_witness, miner_pay );
 
-   modify( signing_witness, [&]( witness_object& _wit )
+   modify( signing_witness, [&]( miner_object& _wit )
    {
       _wit.last_aslot = new_block_aslot;
       _wit.last_confirmed_block_num = new_block.block_num();
@@ -128,9 +128,9 @@ void database::update_last_irreversible_block()
    const global_property_object& gpo = get_global_properties();
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
 
-   vector< const witness_object* > wit_objs;
+   vector< const miner_object* > wit_objs;
    wit_objs.reserve( gpo.active_witnesses.size() );
-   for( const witness_id_type& wid : gpo.active_witnesses )
+   for( const miner_id_type& wid : gpo.active_witnesses )
       wit_objs.push_back( &(wid(*this)) );
 
    static_assert( GRAPHENE_IRREVERSIBLE_THRESHOLD > 0, "irreversible threshold must be nonzero" );
@@ -142,7 +142,7 @@ void database::update_last_irreversible_block()
    size_t offset = ((GRAPHENE_100_PERCENT - GRAPHENE_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / GRAPHENE_100_PERCENT);
 
    std::nth_element( wit_objs.begin(), wit_objs.begin() + offset, wit_objs.end(),
-      []( const witness_object* a, const witness_object* b )
+      []( const miner_object* a, const miner_object* b )
       {
          return a->last_confirmed_block_num < b->last_confirmed_block_num;
       } );

@@ -97,8 +97,8 @@ const uint8_t block_summary_object::type_id;
 const uint8_t call_order_object::space_id;
 const uint8_t call_order_object::type_id;
 
-const uint8_t committee_member_object::space_id;
-const uint8_t committee_member_object::type_id;
+const uint8_t guard_member_object::space_id;
+const uint8_t guard_member_object::type_id;
 
 const uint8_t force_settlement_object::space_id;
 const uint8_t force_settlement_object::type_id;
@@ -124,8 +124,8 @@ const uint8_t vesting_balance_object::type_id;
 const uint8_t withdraw_permission_object::space_id;
 const uint8_t withdraw_permission_object::type_id;
 
-const uint8_t witness_object::space_id;
-const uint8_t witness_object::type_id;
+const uint8_t miner_object::space_id;
+const uint8_t miner_object::type_id;
 
 const uint8_t worker_object::space_id;
 const uint8_t worker_object::type_id;
@@ -146,7 +146,7 @@ void database::initialize_evaluators()
    register_evaluator<account_update_evaluator>();
    register_evaluator<account_upgrade_evaluator>();
    register_evaluator<account_whitelist_evaluator>();
-   register_evaluator<committee_member_create_evaluator>();
+   register_evaluator<guard_member_create_evaluator>();
    register_evaluator<committee_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
@@ -172,7 +172,7 @@ void database::initialize_evaluators()
    register_evaluator<proposal_delete_evaluator>();
    register_evaluator<vesting_balance_create_evaluator>();
    register_evaluator<vesting_balance_withdraw_evaluator>();
-   register_evaluator<witness_create_evaluator>();
+   register_evaluator<miner_create_evaluator>();
    register_evaluator<witness_update_evaluator>();
    register_evaluator<withdraw_permission_create_evaluator>();
    register_evaluator<withdraw_permission_claim_evaluator>();
@@ -201,8 +201,8 @@ void database::initialize_indexes()
    acnt_index->add_secondary_index<account_member_index>();
    acnt_index->add_secondary_index<account_referrer_index>();
 
-   add_index< primary_index<committee_member_index> >();
-   add_index< primary_index<witness_index> >();
+   add_index< primary_index<guard_member_index> >();
+   add_index< primary_index<miner_index> >();
    add_index< primary_index<limit_order_index > >();
    add_index< primary_index<call_order_index > >();
 
@@ -238,9 +238,9 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    FC_ASSERT( genesis_state.initial_timestamp != time_point_sec(), "Must initialize genesis timestamp." );
    FC_ASSERT( genesis_state.initial_timestamp.sec_since_epoch() % GRAPHENE_DEFAULT_BLOCK_INTERVAL == 0,
               "Genesis timestamp must be divisible by GRAPHENE_DEFAULT_BLOCK_INTERVAL." );
-   FC_ASSERT(genesis_state.initial_witness_candidates.size() > 0,
+   FC_ASSERT(genesis_state.initial_miner_candidates.size() > 0,
              "Cannot start a chain with zero witnesses.");
-   FC_ASSERT(genesis_state.initial_active_witnesses <= genesis_state.initial_witness_candidates.size(),
+   FC_ASSERT(genesis_state.initial_active_miners <= genesis_state.initial_miner_candidates.size(),
              "initial_active_witnesses is larger than the number of candidate witnesses.");
 
    _undo_db.disable();
@@ -274,17 +274,17 @@ void database::init_genesis(const genesis_state_type& genesis_state)
          n.name = "committee-account";
          n.statistics = create<account_statistics_object>( [&](account_statistics_object& s){ s.owner = n.id; }).id;
       });
-   FC_ASSERT(committee_account.get_id() == GRAPHENE_COMMITTEE_ACCOUNT);
+   FC_ASSERT(committee_account.get_id() == GRAPHENE_GUARD_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
        a.name = "witness-account";
        a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
        a.owner.weight_threshold = 1;
        a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_WITNESS_ACCOUNT;
+       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_MINER_ACCOUNT;
        a.membership_expiration_date = time_point_sec::maximum();
        a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
        a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-   }).get_id() == GRAPHENE_WITNESS_ACCOUNT);
+   }).get_id() == GRAPHENE_MINER_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
        a.name = "relaxed-committee-account";
        a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
@@ -407,12 +407,9 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    create<dynamic_global_property_object>([&](dynamic_global_property_object& p) {
       p.time = genesis_state.initial_timestamp;
       p.dynamic_flags = 0;
-      p.witness_budget = 0;
+      p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
-
-   FC_ASSERT( (genesis_state.immutable_parameters.min_witness_count & 1) == 1, "min_witness_count must be odd" );
-   FC_ASSERT( (genesis_state.immutable_parameters.min_committee_member_count & 1) == 1, "min_committee_member_count must be odd" );
 
    create<chain_property_object>([&](chain_property_object& p)
    {
@@ -432,11 +429,13 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       {
          cop.active = cop.owner;
          cop.options.memo_key = account.owner_key;
+		 cop.payer = address(account.owner_key);
       }
       else
       {
          cop.active = authority(1, account.active_key, 1);
          cop.options.memo_key = account.active_key;
+		 cop.payer = address(account.active_key);
       }
       account_id_type account_id(apply_operation(genesis_eval_state, cop).get<object_id_type>());
 
@@ -579,7 +578,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    if( total_supplies[ asset_id_type(0) ] > 0 )
    {
-       adjust_balance(GRAPHENE_COMMITTEE_ACCOUNT, -get_balance(GRAPHENE_COMMITTEE_ACCOUNT,{}));
+       adjust_balance(GRAPHENE_GUARD_ACCOUNT, -get_balance(GRAPHENE_GUARD_ACCOUNT,{}));
    }
    else
    {
@@ -627,24 +626,24 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    }
 
    // Create special witness account
-   const witness_object& wit = create<witness_object>([&](witness_object& w) {});
+   const miner_object& wit = create<miner_object>([&](miner_object& w) {});
    FC_ASSERT( wit.id == GRAPHENE_NULL_WITNESS );
    remove(wit);
 
    // Create initial witnesses
-   std::for_each(genesis_state.initial_witness_candidates.begin(), genesis_state.initial_witness_candidates.end(),
-                 [&](const genesis_state_type::initial_witness_type& witness) {
-      witness_create_operation op;
-      op.witness_account = get_account_id(witness.owner_name);
+   std::for_each(genesis_state.initial_miner_candidates.begin(), genesis_state.initial_miner_candidates.end(),
+                 [&](const genesis_state_type::initial_miner_type& witness) {
+      miner_create_operation op;
+      op.miner_account = get_account_id(witness.owner_name);
       op.block_signing_key = witness.block_signing_key;
       apply_operation(genesis_eval_state, op);
    });
 
    // Create initial committee members
-   std::for_each(genesis_state.initial_committee_candidates.begin(), genesis_state.initial_committee_candidates.end(),
+   std::for_each(genesis_state.initial_guard_candidates.begin(), genesis_state.initial_guard_candidates.end(),
                  [&](const genesis_state_type::initial_committee_member_type& member) {
-      committee_member_create_operation op;
-      op.committee_member_account = get_account_id(member.owner_name);
+      guard_member_create_operation op;
+      op.guard_member_account = get_account_id(member.owner_name);
       apply_operation(genesis_eval_state, op);
    });
 
@@ -665,9 +664,9 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    // Set active witnesses
    modify(get_global_properties(), [&](global_property_object& p) {
-      for( uint32_t i = 1; i <= genesis_state.initial_active_witnesses; ++i )
+      for( uint32_t i = 1; i <= genesis_state.initial_active_miners; ++i )
       {
-         p.active_witnesses.insert(witness_id_type(i));
+         p.active_witnesses.insert(miner_id_type(i));
       }
    });
 
@@ -679,8 +678,8 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create witness scheduler
    create<witness_schedule_object>([&]( witness_schedule_object& wso )
    {
-      for( const witness_id_type& wid : get_global_properties().active_witnesses )
-         wso.current_shuffled_witnesses.push_back( wid );
+      for( const miner_id_type& wid : get_global_properties().active_witnesses )
+         wso.current_shuffled_miners.push_back( wid );
    });
 
    // Create FBA counters

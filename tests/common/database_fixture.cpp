@@ -79,16 +79,16 @@ database_fixture::database_fixture()
 
    genesis_state.initial_timestamp = time_point_sec( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
 
-   genesis_state.initial_active_witnesses = 10;
-   for( int i = 0; i < genesis_state.initial_active_witnesses; ++i )
+   genesis_state.initial_active_miners = 10;
+   for( int i = 0; i < genesis_state.initial_active_miners; ++i )
    {
       auto name = "init"+fc::to_string(i);
       genesis_state.initial_accounts.emplace_back(name,
                                                   init_account_priv_key.get_public_key(),
                                                   init_account_priv_key.get_public_key(),
                                                   true);
-      genesis_state.initial_committee_candidates.push_back({name});
-      genesis_state.initial_witness_candidates.push_back({name, init_account_priv_key.get_public_key()});
+      genesis_state.initial_guard_candidates.push_back({name});
+      genesis_state.initial_miner_candidates.push_back({name, init_account_priv_key.get_public_key()});
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
    open_database();
@@ -199,7 +199,7 @@ void database_fixture::verify_asset_supplies( const database& db )
    for( const fba_accumulator_object& fba : db.get_index_type< simple_index< fba_accumulator_object > >() )
       total_balances[ asset_id_type() ] += fba.accumulated_fba_fees;
 
-   total_balances[asset_id_type()] += db.get_dynamic_global_properties().witness_budget;
+   total_balances[asset_id_type()] += db.get_dynamic_global_properties().miner_budget;
 
    for( const auto& item : total_delnk )
    {
@@ -312,7 +312,7 @@ signed_block database_fixture::generate_block(uint32_t skip, const fc::ecc::priv
    skip |= database::skip_undo_history_check;
    // skip == ~0 will skip checks specified in database::validation_steps
    auto block = db.generate_block(db.get_slot_time(miss_blocks + 1),
-                            db.get_scheduled_witness(miss_blocks + 1),
+                            db.get_scheduled_miner(miss_blocks + 1),
                             key, skip);
    db.clear_pending();
    return block;
@@ -393,7 +393,7 @@ account_create_operation database_fixture::make_account(
       create_account.options.memo_key = key;
       create_account.options.voting_account = GRAPHENE_PROXY_TO_SELF_ACCOUNT;
 
-      const vector<committee_member_id_type>& active_committee_members = db.get_global_properties().active_committee_members;
+      const vector<guard_member_id_type>& active_committee_members = db.get_global_properties().active_committee_members;
       if( active_committee_members.size() > 0 )
       {
          set<vote_id_type> votes;
@@ -430,7 +430,7 @@ const account_object& database_fixture::get_account( const string& name )const
 
 const asset_object& database_fixture::create_bitasset(
    const string& name,
-   account_id_type issuer /* = GRAPHENE_WITNESS_ACCOUNT */,
+   account_id_type issuer /* = GRAPHENE_MINER_ACCOUNT */,
    uint16_t market_fee_percent /* = 100 */ /* 1% */,
    uint16_t flags /* = charge_market_fee */
    )
@@ -442,7 +442,7 @@ const asset_object& database_fixture::create_bitasset(
    creator.common_options.max_supply = GRAPHENE_MAX_SHARE_SUPPLY;
    creator.precision = 2;
    creator.common_options.market_fee_percent = market_fee_percent;
-   if( issuer == GRAPHENE_WITNESS_ACCOUNT )
+   if( issuer == GRAPHENE_MINER_ACCOUNT )
       flags |= witness_fed_asset;
    creator.common_options.issuer_permissions = flags;
    creator.common_options.flags = flags & ~global_settle;
@@ -457,7 +457,7 @@ const asset_object& database_fixture::create_bitasset(
 
 const asset_object& database_fixture::create_prediction_market(
    const string& name,
-   account_id_type issuer /* = GRAPHENE_WITNESS_ACCOUNT */,
+   account_id_type issuer /* = GRAPHENE_MINER_ACCOUNT */,
    uint16_t market_fee_percent /* = 100 */ /* 1% */,
    uint16_t flags /* = charge_market_fee */
    )
@@ -471,7 +471,7 @@ const asset_object& database_fixture::create_prediction_market(
    creator.common_options.market_fee_percent = market_fee_percent;
    creator.common_options.issuer_permissions = flags | global_settle;
    creator.common_options.flags = flags & ~global_settle;
-   if( issuer == GRAPHENE_WITNESS_ACCOUNT )
+   if( issuer == GRAPHENE_MINER_ACCOUNT )
       creator.common_options.flags |= witness_fed_asset;
    creator.common_options.core_exchange_rate = price({asset(1,asset_id_type(1)),asset(1)});
    creator.bitasset_opts = bitasset_options();
@@ -637,33 +637,33 @@ const account_object& database_fixture::create_account(
    FC_CAPTURE_AND_RETHROW( (name)(registrar_id)(referrer_id) )
 }
 
-const committee_member_object& database_fixture::create_committee_member( const account_object& owner )
+const guard_member_object& database_fixture::create_guard_member( const account_object& owner )
 {
-   committee_member_create_operation op;
-   op.committee_member_account = owner.id;
+   guard_member_create_operation op;
+   op.guard_member_account = owner.id;
    trx.operations.push_back(op);
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.operations.clear();
-   return db.get<committee_member_object>(ptx.operation_results[0].get<object_id_type>());
+   return db.get<guard_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
-const witness_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)
+const miner_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)
 {
    return create_witness(owner(db), signing_private_key);
 }
 
-const witness_object& database_fixture::create_witness( const account_object& owner,
+const miner_object& database_fixture::create_witness( const account_object& owner,
                                                         const fc::ecc::private_key& signing_private_key )
 { try {
-   witness_create_operation op;
-   op.witness_account = owner.id;
+   miner_create_operation op;
+   op.miner_account = owner.id;
    op.block_signing_key = signing_private_key.get_public_key();
    trx.operations.push_back(op);
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.clear();
-   return db.get<witness_object>(ptx.operation_results[0].get<object_id_type>());
+   return db.get<miner_object>(ptx.operation_results[0].get<object_id_type>());
 } FC_CAPTURE_AND_RETHROW() }
 
 uint64_t database_fixture::fund(
@@ -1034,7 +1034,7 @@ int64_t database_fixture::get_balance( account_id_type account, asset_id_type a 
 {
   return db.get_balance(account, a).amount.value;
 }
-asset database_fixture::get_lock_balance(account_id_type owner, witness_id_type miner, asset_id_type asset_id)const {
+asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id)const {
 	return db.get_lock_balance(owner, miner,asset_id);
 }
 int64_t database_fixture::get_balance( const account_object& account, const asset_object& a )const

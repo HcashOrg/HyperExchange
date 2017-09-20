@@ -33,7 +33,7 @@
 
 #include <iostream>
 
-using namespace graphene::witness_plugin;
+using namespace graphene::miner_plugin;
 using std::string;
 using std::vector;
 
@@ -60,41 +60,61 @@ void new_chain_banner( const graphene::chain::database& db )
    return;
 }
 
-void witness_plugin::plugin_set_program_options(
+void miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
    auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("nathan")));
-   string witness_id_example = fc::json::to_string(chain::witness_id_type(5));
+
+   vector<std::pair<chain::public_key_type, string>> vec;
+   vec.push_back
+    (std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
+   {
+	   auto name = "miner" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   vec.push_back
+	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+   }
+
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARD_COUNT; i++)
+   {
+	   auto name = "guard" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   vec.push_back
+	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
+   }
+
+   string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
-         ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_witness_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of witnesses (0-99) that must be participating in order to produce blocks")
-         ("witness-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
-          ("ID of witness controlled by this node (e.g. " + witness_id_example + ", quotes are required, may specify multiple times)").c_str())
-         ("private-key", bpo::value<vector<string>>()->composing()->multitoken()->
-          DEFAULT_VALUE_VECTOR(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key))),
-          "Tuple of [PublicKey, WIF private key] (may specify multiple times)")
+         ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
+         ("miner-id,w", bpo::value<vector<string>>()->composing()->multitoken(),
+          ("ID of miner controlled by this node (e.g. " + miner_id_example + ", quotes are required, may specify multiple times)").c_str())
+         ("private-key", bpo::value<string>()->composing()->multitoken()->
+          DEFAULT_VALUE_VECTOR(vec),
+          "Tuple of [PublicKey, WIF private key] (just append)")
          ;
    config_file_options.add(command_line_options);
 }
 
-std::string witness_plugin::plugin_name()const
+std::string miner_plugin::plugin_name()const
 {
-   return "witness";
+   return "miner";
 }
 
-void witness_plugin::plugin_initialize(const boost::program_options::variables_map& options)
+void miner_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 { try {
-   ilog("witness plugin:  plugin_initialize() begin");
+   ilog("miner plugin:  plugin_initialize() begin");
    _options = &options;
-   LOAD_VALUE_SET(options, "witness-id", _witnesses, chain::witness_id_type)
+   LOAD_VALUE_SET(options, "miner-id", _miners, chain::miner_id_type)
 
    if( options.count("private-key") )
    {
-      const std::vector<std::string> key_id_to_wif_pair_strings = options["private-key"].as<std::vector<std::string>>();
-      for (const std::string& key_id_to_wif_pair_string : key_id_to_wif_pair_strings)
+      const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
+	  auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
+      for (auto& key_id_to_wif_pair : key_id_to_wif_pairs)
       {
-         auto key_id_to_wif_pair = graphene::app::dejsonify<std::pair<chain::public_key_type, std::string> >(key_id_to_wif_pair_string);
          //idump((key_id_to_wif_pair));
          ilog("Public Key: ${public}", ("public", key_id_to_wif_pair.first));
          fc::optional<fc::ecc::private_key> private_key = graphene::utilities::wif_to_key(key_id_to_wif_pair.second);
@@ -114,17 +134,17 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
          _private_keys[key_id_to_wif_pair.first] = *private_key;
       }
    }
-   ilog("witness plugin:  plugin_initialize() end");
+   ilog("miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 
-void witness_plugin::plugin_startup()
+void miner_plugin::plugin_startup()
 { try {
-   ilog("witness plugin:  plugin_startup() begin");
+   ilog("miner plugin:  plugin_startup() begin");
    chain::database& d = database();
 
-   if( !_witnesses.empty() )
+   if( !_miners.empty() )
    {
-      ilog("Launching block production for ${n} witnesses.", ("n", _witnesses.size()));
+      ilog("Launching block production for ${n} mining.", ("n", _miners.size()));
       app().set_block_production(true);
       if( _production_enabled )
       {
@@ -134,16 +154,16 @@ void witness_plugin::plugin_startup()
       }
       schedule_production_loop();
    } else
-      elog("No witnesses configured! Please add witness IDs and private keys to configuration.");
-   ilog("witness plugin:  plugin_startup() end");
+      elog("No miners configured! Please add miner IDs and private keys to configuration.");
+   ilog("miner plugin:  plugin_startup() end");
 } FC_CAPTURE_AND_RETHROW() }
 
-void witness_plugin::plugin_shutdown()
+void miner_plugin::plugin_shutdown()
 {
    return;
 }
 
-void witness_plugin::schedule_production_loop()
+void miner_plugin::schedule_production_loop()
 {
    //Schedule for the next second's tick regardless of chain state
    // If we would wait less than 50ms, wait for the whole second.
@@ -156,10 +176,10 @@ void witness_plugin::schedule_production_loop()
 
    //wdump( (now.time_since_epoch().count())(next_wakeup.time_since_epoch().count()) );
    _block_production_task = fc::schedule([this]{block_production_loop();},
-                                         next_wakeup, "Witness Block Production");
+                                         next_wakeup, "Miner Block Production");
 }
 
-block_production_condition::block_production_condition_enum witness_plugin::block_production_loop()
+block_production_condition::block_production_condition_enum miner_plugin::block_production_loop()
 {
    block_production_condition::block_production_condition_enum result;
    fc::mutable_variant_object capture;
@@ -196,13 +216,13 @@ block_production_condition::block_production_condition_enum witness_plugin::bloc
          ilog("Not producing block because I don't have the private key for ${scheduled_key}", (capture) );
          break;
       case block_production_condition::low_participation:
-         elog("Not producing block because node appears to be on a minority fork with only ${pct}% witness participation", (capture) );
+         elog("Not producing block because node appears to be on a minority fork with only ${pct}% miner participation", (capture) );
          break;
       case block_production_condition::lag:
          elog("Not producing block because node didn't wake up within 500ms of the slot time.");
          break;
       case block_production_condition::consecutive:
-         elog("Not producing block because the last block was generated by the same witness.\nThis node is probably disconnected from the network so block production has been disabled.\nDisable this check with --allow-consecutive option.");
+         elog("Not producing block because the last block was generated by the same miner.\nThis node is probably disconnected from the network so block production has been disabled.\nDisable this check with --allow-consecutive option.");
          break;
       case block_production_condition::exception_producing_block:
          elog( "exception prodcing block" );
@@ -213,7 +233,7 @@ block_production_condition::block_production_condition_enum witness_plugin::bloc
    return result;
 }
 
-block_production_condition::block_production_condition_enum witness_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
+block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
    chain::database& db = database();
    fc::time_point now_fine = fc::time_point::now();
@@ -246,16 +266,16 @@ block_production_condition::block_production_condition_enum witness_plugin::mayb
    //
    assert( now > db.head_block_time() );
 
-   graphene::chain::witness_id_type scheduled_witness = db.get_scheduled_witness( slot );
-   // we must control the witness scheduled to produce the next block.
-   if( _witnesses.find( scheduled_witness ) == _witnesses.end() )
+   graphene::chain::miner_id_type scheduled_miner = db.get_scheduled_miner( slot );
+   // we must control the miner scheduled to produce the next block.
+   if( _miners.find( scheduled_miner ) == _miners.end() )
    {
-      capture("scheduled_witness", scheduled_witness);
+      capture("scheduled_miner", scheduled_miner);
       return block_production_condition::not_my_turn;
    }
 
    fc::time_point_sec scheduled_time = db.get_slot_time( slot );
-   graphene::chain::public_key_type scheduled_key = scheduled_witness( db ).signing_key;
+   graphene::chain::public_key_type scheduled_key = scheduled_miner( db ).signing_key;
    auto private_key_itr = _private_keys.find( scheduled_key );
 
    if( private_key_itr == _private_keys.end() )
@@ -264,8 +284,8 @@ block_production_condition::block_production_condition_enum witness_plugin::mayb
       return block_production_condition::no_private_key;
    }
 
-   uint32_t prate = db.witness_participation_rate();
-   if( prate < _required_witness_participation )
+   uint32_t prate = db.miner_participation_rate();
+   if( prate < _required_miner_participation )
    {
       capture("pct", uint32_t(100*uint64_t(prate) / GRAPHENE_1_PERCENT));
       return block_production_condition::low_participation;
@@ -279,7 +299,7 @@ block_production_condition::block_production_condition_enum witness_plugin::mayb
 
    auto block = db.generate_block(
       scheduled_time,
-      scheduled_witness,
+	   scheduled_miner,
       private_key_itr->second,
       _production_skip_flags
       );

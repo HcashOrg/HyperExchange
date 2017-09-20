@@ -53,43 +53,9 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    auto asset_symbol_itr = asset_indx.find( op.symbol );
    FC_ASSERT( asset_symbol_itr == asset_indx.end() );
 
-   if( d.head_block_time() > HARDFORK_385_TIME )
-   {
-
-   if( d.head_block_time() <= HARDFORK_409_TIME )
-   {
-      auto dotpos = op.symbol.find( '.' );
-      if( dotpos != std::string::npos )
-      {
-         auto prefix = op.symbol.substr( 0, dotpos );
-         auto asset_symbol_itr = asset_indx.find( op.symbol );
-         FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
-                    ("s",op.symbol)("p",prefix) );
-         FC_ASSERT( asset_symbol_itr->issuer == op.issuer, "Asset ${s} may only be created by issuer of ${p}, ${i}",
-                    ("s",op.symbol)("p",prefix)("i", op.issuer(d).name) );
-      }
-   }
-   else
-   {
-      auto dotpos = op.symbol.rfind( '.' );
-      if( dotpos != std::string::npos )
-      {
-         auto prefix = op.symbol.substr( 0, dotpos );
-         auto asset_symbol_itr = asset_indx.find( prefix );
-         FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
-                    ("s",op.symbol)("p",prefix) );
-         FC_ASSERT( asset_symbol_itr->issuer == op.issuer, "Asset ${s} may only be created by issuer of ${p}, ${i}",
-                    ("s",op.symbol)("p",prefix)("i", op.issuer(d).name) );
-      }
-   }
-
-   }
-   else
-   {
-      auto dotpos = op.symbol.find( '.' );
-      if( dotpos != std::string::npos )
-          wlog( "Asset ${s} has a name which requires hardfork 385", ("s",op.symbol) );
-   }
+   auto dotpos = op.symbol.find( '.' );
+   if( dotpos != std::string::npos )
+	   wlog( "Asset ${s} has a name which requires hardfork 385", ("s",op.symbol) );
 
    core_fee_paid -= core_fee_paid.value/2;
 
@@ -102,10 +68,10 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
          const asset_object& backing_backing = backing_bitasset_data.options.short_backing_asset(d);
          FC_ASSERT( !backing_backing.is_market_issued(),
                     "May not create a bitasset backed by a bitasset backed by a bitasset." );
-         FC_ASSERT( op.issuer != GRAPHENE_COMMITTEE_ACCOUNT || backing_backing.get_id() == asset_id_type(),
+         FC_ASSERT( op.issuer != GRAPHENE_GUARD_ACCOUNT || backing_backing.get_id() == asset_id_type(),
                     "May not create a blockchain-controlled market asset which is not backed by CORE.");
       } else
-         FC_ASSERT( op.issuer != GRAPHENE_COMMITTEE_ACCOUNT || backing.get_id() == asset_id_type(),
+         FC_ASSERT( op.issuer != GRAPHENE_GUARD_ACCOUNT || backing.get_id() == asset_id_type(),
                     "May not create a blockchain-controlled market asset which is not backed by CORE.");
       FC_ASSERT( op.bitasset_opts->feed_lifetime_sec > chain_parameters.block_interval &&
                  op.bitasset_opts->force_settlement_delay_sec > chain_parameters.block_interval );
@@ -174,8 +140,11 @@ void_result asset_issue_evaluator::do_evaluate( const asset_issue_operation& o )
 
 void_result asset_issue_evaluator::do_apply( const asset_issue_operation& o )
 { try {
-   db().adjust_balance( o.issue_to_account, o.asset_to_issue );
+   //use this issue to generate new asset in balanceOject
+   auto& id_idx = db().get_index_type<account_index>().indices().get<by_id>();
+   auto acc = *id_idx.find(o.issue_to_account);
 
+   db().adjust_balance( acc.addr, o.asset_to_issue );
    db().modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data ){
         data.current_supply += o.asset_to_issue.amount;
    });
@@ -249,7 +218,7 @@ void_result asset_update_evaluator::do_evaluate(const asset_update_operation& o)
    if( o.new_issuer )
    {
       FC_ASSERT(d.find_object(*o.new_issuer));
-      if( a.is_market_issued() && *o.new_issuer == GRAPHENE_COMMITTEE_ACCOUNT )
+      if( a.is_market_issued() && *o.new_issuer == GRAPHENE_GUARD_ACCOUNT )
       {
          const asset_object& backing = a.bitasset_data(d).options.short_backing_asset(d);
          if( backing.is_market_issued() )
@@ -263,7 +232,7 @@ void_result asset_update_evaluator::do_evaluate(const asset_update_operation& o)
       }
    }
 
-   if( (d.head_block_time() < HARDFORK_572_TIME) || (a.dynamic_asset_data_id(d).current_supply != 0) )
+   if( a.dynamic_asset_data_id(d).current_supply != 0) 
    {
       // new issuer_permissions must be subset of old issuer permissions
       FC_ASSERT(!(o.new_options.issuer_permissions & ~a.options.issuer_permissions),
@@ -329,7 +298,7 @@ void_result asset_update_bitasset_evaluator::do_evaluate(const asset_update_bita
       FC_ASSERT(a.dynamic_asset_data_id(d).current_supply == 0);
       FC_ASSERT(d.find_object(o.new_options.short_backing_asset));
 
-      if( a.issuer == GRAPHENE_COMMITTEE_ACCOUNT )
+      if( a.issuer == GRAPHENE_GUARD_ACCOUNT )
       {
          const asset_object& backing = a.bitasset_data(d).options.short_backing_asset(d);
          if( backing.is_market_issued() )
@@ -519,11 +488,11 @@ void_result asset_publish_feeds_evaluator::do_evaluate(const asset_publish_feed_
    //Verify that the publisher is authoritative to publish a feed
    if( base.options.flags & witness_fed_asset )
    {
-      FC_ASSERT( d.get(GRAPHENE_WITNESS_ACCOUNT).active.account_auths.count(o.publisher) );
+      FC_ASSERT( d.get(GRAPHENE_MINER_ACCOUNT).active.account_auths.count(o.publisher) );
    }
    else if( base.options.flags & committee_fed_asset )
    {
-      FC_ASSERT( d.get(GRAPHENE_COMMITTEE_ACCOUNT).active.account_auths.count(o.publisher) );
+      FC_ASSERT( d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher) );
    }
    else
    {

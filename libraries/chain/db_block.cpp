@@ -274,18 +274,7 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
       remove(proposal);
       session.merge();
    } catch ( const fc::exception& e ) {
-      if( head_block_time() <= HARDFORK_483_TIME )
-      {
-         for( size_t i=old_applied_ops_size,n=_applied_ops.size(); i<n; i++ )
-         {
-            ilog( "removing failed operation from applied_ops: ${op}", ("op", *(_applied_ops[i])) );
-            _applied_ops[i].reset();
-         }
-      }
-      else
-      {
-         _applied_ops.resize( old_applied_ops_size );
-      }
+	  _applied_ops.resize(old_applied_ops_size);
       elog( "e", ("e",e.to_detail_string() ) );
       throw;
    }
@@ -296,7 +285,7 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
 signed_block database::generate_block(
    fc::time_point_sec when,
-   witness_id_type witness_id,
+   miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key,
    uint32_t skip /* = 0 */
    )
@@ -311,7 +300,7 @@ signed_block database::generate_block(
 
 signed_block database::_generate_block(
    fc::time_point_sec when,
-   witness_id_type witness_id,
+	miner_id_type witness_id,
    const fc::ecc::private_key& block_signing_private_key
    )
 {
@@ -319,13 +308,13 @@ signed_block database::_generate_block(
    uint32_t skip = get_node_properties().skip_flags;
    uint32_t slot_num = get_slot_at_time( when );
    FC_ASSERT( slot_num > 0 );
-   witness_id_type scheduled_witness = get_scheduled_witness( slot_num );
+   miner_id_type scheduled_witness = get_scheduled_miner( slot_num );
    FC_ASSERT( scheduled_witness == witness_id );
 
    const auto& witness_obj = witness_id(*this);
-   const auto& account_obj = witness_obj.witness_account(*this);
+   const auto& account_obj = witness_obj.miner_account(*this);
 
-   if( !(skip & skip_witness_signature) )
+   if( !(skip & skip_miner_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
@@ -396,7 +385,7 @@ signed_block database::_generate_block(
    pending_block.previous = head_block_id();
    pending_block.timestamp = when;
    pending_block.transaction_merkle_root = pending_block.calculate_merkle_root();
-   pending_block.witness = witness_id;
+   pending_block.miner = witness_id;
 
 
 
@@ -428,7 +417,7 @@ signed_block database::_generate_block(
 
 
 
-   if( !(skip & skip_witness_signature) )
+   if( !(skip & skip_miner_signature) )
       pending_block.sign( block_signing_private_key );
 
    // TODO:  Move this to _push_block() so session is restored.
@@ -543,7 +532,7 @@ void database::_apply_block( const signed_block& next_block )
 
    FC_ASSERT( (skip & skip_merkle_check) || next_block.transaction_merkle_root == next_block.calculate_merkle_root(), "", ("next_block.transaction_merkle_root",next_block.transaction_merkle_root)("calc",next_block.calculate_merkle_root())("next_block",next_block)("id",next_block.id()) );
 
-   const witness_object& signing_witness = validate_block_header(skip, next_block);
+   const miner_object& signing_witness = validate_block_header(skip, next_block);
    const auto& global_props = get_global_properties();
    const auto& dynamic_global_props = get<dynamic_global_property_object>(dynamic_global_property_id_type());
    bool maint_needed = (dynamic_global_props.next_maintenance_time <= next_block.timestamp);
@@ -564,7 +553,7 @@ void database::_apply_block( const signed_block& next_block )
    }
    
    update_global_dynamic_data(next_block);
-   update_signing_witness(signing_witness, next_block);
+   update_signing_miner(signing_witness, next_block);
    update_last_irreversible_block();
 
    // Are we at the maintenance interval?
@@ -585,7 +574,7 @@ void database::_apply_block( const signed_block& next_block )
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
    
-   update_witness_schedule();
+   update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
@@ -697,13 +686,13 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-const witness_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
+const miner_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
-   const witness_object& witness = next_block.witness(*this);
+   const miner_object& witness = next_block.miner(*this);
 
-   if( !(skip&skip_witness_signature) ) 
+   if( !(skip&skip_miner_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
 
    if( !(skip&skip_witness_schedule_check) )
@@ -711,10 +700,10 @@ const witness_object& database::validate_block_header( uint32_t skip, const sign
       uint32_t slot_num = get_slot_at_time( next_block.timestamp );
       FC_ASSERT( slot_num > 0 );
 
-      witness_id_type scheduled_witness = get_scheduled_witness( slot_num );
+      miner_id_type scheduled_miner = get_scheduled_miner( slot_num );
 
-      FC_ASSERT( next_block.witness == scheduled_witness, "Witness produced block at wrong time",
-                 ("block witness",next_block.witness)("scheduled",scheduled_witness)("slot_num",slot_num) );
+      FC_ASSERT( next_block.miner == scheduled_miner, "Witness produced block at wrong time",
+                 ("block witness",next_block.miner)("scheduled",scheduled_miner)("slot_num",slot_num) );
    }
 
    return witness;

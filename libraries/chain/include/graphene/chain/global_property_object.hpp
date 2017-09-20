@@ -49,9 +49,9 @@ namespace graphene { namespace chain {
          optional<chain_parameters> pending_parameters;
 
          uint32_t                           next_available_vote_id = 0;
-         vector<committee_member_id_type>   active_committee_members; // updated once per maintenance interval
-         flat_set<witness_id_type>          active_witnesses; // updated once per maintenance interval
-		 vector<committee_member_id_type> pledge_insufficient_committee_members; // updated once per maintenance interval 
+         vector<guard_member_id_type>   active_committee_members; // updated once per maintenance interval
+         flat_set<miner_id_type>          active_witnesses; // updated once per maintenance interval
+		 vector<guard_member_id_type> pledge_insufficient_committee_members; // updated once per maintenance interval 
 		 
          // n.b. witness scheduling is done by witness_schedule object
    };
@@ -74,10 +74,10 @@ namespace graphene { namespace chain {
          uint32_t          head_block_number = 0;
          block_id_type     head_block_id;
          time_point_sec    time;
-         witness_id_type   current_witness;
+         miner_id_type   current_witness;
          time_point_sec    next_maintenance_time;
          time_point_sec    last_budget_time;
-         share_type        witness_budget;
+         share_type        miner_budget;
          uint32_t          accounts_registered_this_interval = 0;
 		 optional<SecretHashType>      current_random_seed;
          /**
@@ -134,7 +134,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
                     (current_witness)
                     (next_maintenance_time)
                     (last_budget_time)
-                    (witness_budget)
+                    (miner_budget)
                     (accounts_registered_this_interval)
 					(current_random_seed)
                     (recently_missed_count)

@@ -89,12 +89,13 @@
 ///@}
 #define GRAPHENE_DEFAULT_MARGIN_PERIOD_SEC              (30*60*60*24)
 
-#define GRAPHENE_DEFAULT_MIN_WITNESS_COUNT                    (11)
-#define GRAPHENE_DEFAULT_MIN_COMMITTEE_MEMBER_COUNT           (11)
-#define GRAPHENE_DEFAULT_MAX_WITNESSES                        (1001) // SHOULD BE ODD
-#define GRAPHENE_DEFAULT_MAX_COMMITTEE                        (1001) // SHOULD BE ODD
+#define GRAPHENE_DEFAULT_MIN_MINER_COUNT                      (11)
+#define GRAPHENE_DEFAULT_MIN_GUARD_COUNT					  (7)
+#define GRAPHENE_DEFAULT_MAX_MINERS							  (1001) // SHOULD BE ODD
+#define GRAPHENE_DEFAULT_MIN_GUARDS							  (7)
+#define GRAPHENE_DEFAULT_MAX_GUARDS							  (15)
 #define GRAPHENE_DEFAULT_MAX_PROPOSAL_LIFETIME_SEC            (60*60*24*7*4) // Four weeks
-#define GRAPHENE_DEFAULT_COMMITTEE_PROPOSAL_REVIEW_PERIOD_SEC (60*60*24*7*2) // Two weeks
+#define GRAPHENE_DEFAULT_GUARD_PROPOSAL_REVIEW_PERIOD_SEC	  (60*60*24*7*2) // Two weeks
 #define GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE               (20*GRAPHENE_1_PERCENT)
 #define GRAPHENE_DEFAULT_LIFETIME_REFERRER_PERCENT_OF_FEE     (30*GRAPHENE_1_PERCENT)
 #define GRAPHENE_DEFAULT_MAX_BULK_DISCOUNT_PERCENT            (50*GRAPHENE_1_PERCENT)
@@ -135,7 +136,7 @@
 #define GRAPHENE_CORE_ASSET_CYCLE_RATE_BITS                   32
 
 #define GRAPHENE_DEFAULT_WITNESS_PAY_PER_BLOCK            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t( 10) )
-#define GRAPHENE_DEFAULT_WITNESS_PAY_VESTING_SECONDS      (60*60*24)
+#define GRAPHENE_DEFAULT_miner_pay_vesting_seconds      (60*60*24)
 #define GRAPHENE_DEFAULT_WORKER_BUDGET_PER_DAY            (GRAPHENE_BLOCKCHAIN_PRECISION * int64_t(500) * 1000 )
 
 #define GRAPHENE_DEFAULT_MINIMUM_FEEDS                       7
@@ -155,10 +156,10 @@
  *  Reserved Account IDs with special meaning
  */
 ///@{
-/// Represents the current committee members, two-week review period
-#define GRAPHENE_COMMITTEE_ACCOUNT (graphene::chain::account_id_type(0))
-/// Represents the current witnesses
-#define GRAPHENE_WITNESS_ACCOUNT (graphene::chain::account_id_type(1))
+/// Represents the current guards, two-week review period
+#define GRAPHENE_GUARD_ACCOUNT (graphene::chain::account_id_type(0))
+/// Represents the current miners
+#define GRAPHENE_MINER_ACCOUNT (graphene::chain::account_id_type(1))
 /// Represents the current committee members
 #define GRAPHENE_RELAXED_COMMITTEE_ACCOUNT (graphene::chain::account_id_type(2))
 /// Represents the canonical account with NO authority (nobody can access funds in null account)
@@ -168,7 +169,7 @@
 /// Represents the canonical account for specifying you will vote directly (as opposed to a proxy)
 #define GRAPHENE_PROXY_TO_SELF_ACCOUNT (graphene::chain::account_id_type(5))
 /// Sentinel value used in the scheduler.
-#define GRAPHENE_NULL_WITNESS (graphene::chain::witness_id_type(0))
+#define GRAPHENE_NULL_WITNESS (graphene::chain::miner_id_type(0))
 ///@}
 
 #define GRAPHENE_FBA_STEALTH_DESIGNATED_ASSET (asset_id_type(743))

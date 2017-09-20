@@ -32,14 +32,8 @@ bool proposal_object::is_authorized_to_execute(database& db) const
    transaction_evaluation_state dry_run_eval(&db);
 
    try {
-      verify_authority( proposed_transaction.operations, 
-                        available_key_approvals,
-                        [&]( account_id_type id ){ return &id(db).active; },
-                        [&]( account_id_type id ){ return &id(db).owner;  },
-                        db.get_global_properties().parameters.max_authority_depth,
-                        false, /* allow committeee */
-                        available_active_approvals,
-                        available_owner_approvals );
+	   return approved_key_approvals.size() == required_account_approvals.size();
+      
    } 
    catch ( const fc::exception& e )
    {

@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE( two_node_network )
 
       auto block_1 = db2->generate_block(
          db2->get_slot_time(1),
-         db2->get_scheduled_witness(1),
+         db2->get_scheduled_miner(1),
          committee_key,
          database::skip_nothing);
 

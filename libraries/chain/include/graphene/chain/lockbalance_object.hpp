@@ -16,7 +16,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = lockbalance_object_type;
 
-			witness_id_type lockto_miner_account;
+			miner_id_type lockto_miner_account;
 			account_id_type lock_balance_account;
 			address lock_balance_contract_addr;
 			asset_id_type lock_asset_id;
@@ -39,12 +39,12 @@ namespace graphene {
 			tag<by_lock_miner_asset>,
 			composite_key<
 			lockbalance_object,
-			member<lockbalance_object, witness_id_type, &lockbalance_object::lockto_miner_account>,
+			member<lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>,
 			member<lockbalance_object, account_id_type, &lockbalance_object::lock_balance_account>,			
 			member<lockbalance_object, asset_id_type, &lockbalance_object::lock_asset_id>
 			>,
 			composite_key_compare<
-			std::less< witness_id_type >,
+			std::less< miner_id_type >,
 			std::less< account_id_type >,
 			std::less< asset_id_type >
 			>

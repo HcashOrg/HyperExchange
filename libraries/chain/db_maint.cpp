@@ -193,15 +193,14 @@ void database::pay_workers( share_type& budget )
    }
 }
 
-
-void database::update_active_witnesses()
+void database::update_active_miners()
 { try {
 
 	const chain_property_object& cpo = get_chain_properties();
 
 	const global_property_object& gpo = get_global_properties();
 
-	auto wits = sort_pledge_objects<witness_index>(gpo.parameters.minimum_pledge_weight_line);
+	auto wits = sort_pledge_objects<miner_index>(gpo.parameters.minimum_pledge_weight_line);
 
 
 	printf("update_active_witness");
@@ -212,7 +211,7 @@ void database::update_active_witnesses()
 		gp.active_witnesses.reserve(wits.size());
 		std::transform(wits.begin(), wits.end(),
 			std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
-			[&](const witness_object& w) {
+			[&](const miner_object& w) {
 			return w.id;
 		});
 	});
@@ -226,18 +225,18 @@ void database::update_active_witnesses()
 
    share_type stake_tally = 0; 
 
-   size_t witness_count = 0;
+   size_t miner_count = 0;
    if( stake_target > 0 )
    {
-      while( (witness_count < _witness_count_histogram_buffer.size() - 1)
+      while( (miner_count < _witness_count_histogram_buffer.size() - 1)
              && (stake_tally <= stake_target) )
       {
-         stake_tally += _witness_count_histogram_buffer[++witness_count];
+         stake_tally += _witness_count_histogram_buffer[++miner_count];
       }
    }
 
    const chain_property_object& cpo = get_chain_properties();
-   auto wits = sort_votable_objects<witness_index>(std::max(witness_count*2+1, (size_t)cpo.immutable_parameters.min_witness_count));
+   auto miners = sort_votable_objects<miner_index>(std::max(miner_count*2+1, (size_t)cpo.immutable_parameters.min_miner_count));
 
    const global_property_object& gpo = get_global_properties();
 
@@ -252,7 +251,7 @@ void database::update_active_witnesses()
    //			a.active.weight_threshold = 0;
    //			a.active.clear();
    //
-   //			for (const witness_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //			{
    //				weights.emplace(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //				total_votes += _vote_tally_buffer[wit.vote_id];
@@ -275,14 +274,14 @@ void database::update_active_witnesses()
    //		else
    //		{
    //			vote_counter vc;
-   //			for (const witness_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //				vc.add(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //			vc.finish(a.active);
    //		}
    //	});
-   for (const witness_object& wit : all_witnesses)
+   for (const miner_object& wit : all_witnesses)
    {
-	   modify(wit, [&](witness_object& obj) {
+	   modify(wit, [&](miner_object& obj) {
 		   obj.total_votes = _vote_tally_buffer[wit.vote_id];
 	   });
    }*/
@@ -293,32 +292,32 @@ void database::update_active_witnesses()
 
 void database::update_active_committee_members()
 { try {
-   assert( _committee_count_histogram_buffer.size() > 0 );
+   assert( _guard_count_histogram_buffer.size() > 0 );
    share_type stake_target = (_total_voting_stake-_witness_count_histogram_buffer[0]) / 2;
 
    /// accounts that vote for 0 or 1 witness do not get to express an opinion on
    /// the number of witnesses to have (they abstain and are non-voting accounts)
-   uint64_t stake_tally = 0; // _committee_count_histogram_buffer[0];
-   size_t committee_member_count = 0;
+   uint64_t stake_tally = 0; // _guard_count_histogram_buffer[0];
+   size_t guard_count = 0;
    if( stake_target > 0 )
-      while( (committee_member_count < _committee_count_histogram_buffer.size() - 1)
+      while( (guard_count < _guard_count_histogram_buffer.size() - 1)
              && (stake_tally <= stake_target) )
-         stake_tally += _committee_count_histogram_buffer[++committee_member_count];
+         stake_tally += _guard_count_histogram_buffer[++guard_count];
 
    const chain_property_object& cpo = get_chain_properties();
-   auto committee_members = sort_votable_objects<committee_member_index>(std::max(committee_member_count*2+1, (size_t)cpo.immutable_parameters.min_committee_member_count));
+   auto guards = sort_votable_objects<guard_member_index>(std::max(guard_count*2+1, (size_t)cpo.immutable_parameters.min_guard_count));
 
-   for( const committee_member_object& del : committee_members )
+   for( const guard_member_object& del : guards )
    {
-      modify( del, [&]( committee_member_object& obj ){
+      modify( del, [&]( guard_member_object& obj ){
               obj.total_votes = _vote_tally_buffer[del.vote_id];
               });
    }
 
    // Update committee authorities
-   if( !committee_members.empty() )
+   if( !guards.empty() )
    {
-      modify(get(GRAPHENE_COMMITTEE_ACCOUNT), [&](account_object& a)
+      modify(get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& a)
       {
          if( head_block_time() < HARDFORK_533_TIME )
          {
@@ -327,9 +326,9 @@ void database::update_active_committee_members()
             a.active.weight_threshold = 0;
             a.active.clear();
 
-            for( const committee_member_object& del : committee_members )
+            for( const guard_member_object& del : guards )
             {
-               weights.emplace(del.committee_member_account, _vote_tally_buffer[del.vote_id]);
+               weights.emplace(del.guard_member_account, _vote_tally_buffer[del.vote_id]);
                total_votes += _vote_tally_buffer[del.vote_id];
             }
 
@@ -350,20 +349,20 @@ void database::update_active_committee_members()
          else
          {
             vote_counter vc;
-            for( const committee_member_object& cm : committee_members )
-               vc.add( cm.committee_member_account, _vote_tally_buffer[cm.vote_id] );
+            for( const guard_member_object& cm : guards )
+               vc.add( cm.guard_member_account, _vote_tally_buffer[cm.vote_id] );
             vc.finish( a.active );
          }
       } );
       modify(get(GRAPHENE_RELAXED_COMMITTEE_ACCOUNT), [&](account_object& a) {
-         a.active = get(GRAPHENE_COMMITTEE_ACCOUNT).active;
+         a.active = get(GRAPHENE_GUARD_ACCOUNT).active;
       });
    }
    modify(get_global_properties(), [&](global_property_object& gp) {
       gp.active_committee_members.clear();
-      std::transform(committee_members.begin(), committee_members.end(),
+      std::transform(guards.begin(), guards.end(),
                      std::inserter(gp.active_committee_members, gp.active_committee_members.begin()),
-                     [](const committee_member_object& d) { return d.id; });
+                     [](const guard_member_object& d) { return d.id; });
    });
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -375,7 +374,7 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
 
    rec.from_initial_reserve = core.reserved(*this);
    rec.from_accumulated_fees = core_dd.accumulated_fees;
-   rec.from_unused_witness_budget = dpo.witness_budget;
+   rec.from_unused_miner_budget = dpo.miner_budget;
 
    if(    (dpo.last_budget_time == fc::time_point_sec())
        || (now <= dpo.last_budget_time) )
@@ -396,7 +395,7 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
    share_type reserve = rec.from_initial_reserve + core_dd.accumulated_fees;
    // Similarly, we consider leftover witness_budget to be burned
    // at the BEGINNING of the maintenance interval.
-   reserve += dpo.witness_budget;
+   reserve += dpo.miner_budget;
 
    fc::uint128_t budget_u128 = reserve.value;
    budget_u128 *= uint64_t(dt);
@@ -450,11 +449,11 @@ void database::process_budget()
       initialize_budget_record( now, rec );
       share_type available_funds = rec.total_budget;
 
-      share_type witness_budget = gpo.parameters.witness_pay_per_block.value * blocks_to_maint;
-      rec.requested_witness_budget = witness_budget;
-      witness_budget = std::min(witness_budget, available_funds);
-      rec.witness_budget = witness_budget;
-      available_funds -= witness_budget;
+      share_type miner_budget = gpo.parameters.miner_pay_per_block.value * blocks_to_maint;
+      rec.requested_miner_budget = miner_budget;
+      miner_budget = std::min(miner_budget, available_funds);
+      rec.miner_budget = miner_budget;
+      available_funds -= miner_budget;
 
       fc::uint128_t worker_budget_u128 = gpo.parameters.worker_budget_per_day.value;
       worker_budget_u128 *= uint64_t(time_to_maint);
@@ -473,22 +472,22 @@ void database::process_budget()
       rec.leftover_worker_funds = leftover_worker_funds;
       available_funds += leftover_worker_funds;
 
-      rec.supply_delta = rec.witness_budget
+      rec.supply_delta = rec.miner_budget
          + rec.worker_budget
          - rec.leftover_worker_funds
          - rec.from_accumulated_fees
-         - rec.from_unused_witness_budget;
+         - rec.from_unused_miner_budget;
 
       modify(core, [&]( asset_dynamic_data_object& _core )
       {
          _core.current_supply = (_core.current_supply + rec.supply_delta );
 
          assert( rec.supply_delta ==
-                                   witness_budget
+                                   miner_budget
                                  + worker_budget
                                  - leftover_worker_funds
                                  - _core.accumulated_fees
-                                 - dpo.witness_budget
+                                 - dpo.miner_budget
                                 );
          _core.accumulated_fees = 0;
       });
@@ -498,7 +497,7 @@ void database::process_budget()
          // Since initial witness_budget was rolled into
          // available_funds, we replace it with witness_budget
          // instead of adding it.
-         _dpo.witness_budget = witness_budget;
+         _dpo.miner_budget = miner_budget;
          _dpo.last_budget_time = now;
       });
 
@@ -782,7 +781,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
       {
          d._vote_tally_buffer.resize(props.next_available_vote_id);
          d._witness_count_histogram_buffer.resize(props.parameters.maximum_witness_count / 2 + 1);
-         d._committee_count_histogram_buffer.resize(props.parameters.maximum_committee_count / 2 + 1);
+         d._guard_count_histogram_buffer.resize(props.parameters.maximum_committee_count / 2 + 1);
          d._total_voting_stake = 0;
       }
 
@@ -825,12 +824,12 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
             if( opinion_account.options.num_committee <= props.parameters.maximum_committee_count )
             {
                uint16_t offset = std::min(size_t(opinion_account.options.num_committee/2),
-                                          d._committee_count_histogram_buffer.size() - 1);
+                                          d._guard_count_histogram_buffer.size() - 1);
                // votes for a number greater than maximum_committee_count
                // are turned into votes for maximum_committee_count.
                //
                // same rationale as for witnesses
-               d._committee_count_histogram_buffer[offset] += voting_stake;
+               d._guard_count_histogram_buffer[offset] += voting_stake;
             }
 
             d._total_voting_stake += voting_stake;
@@ -861,11 +860,11 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
       vector<uint64_t>& target;
    };
    clear_canary a(_witness_count_histogram_buffer),
-                b(_committee_count_histogram_buffer),
+                b(_guard_count_histogram_buffer),
                 c(_vote_tally_buffer);
 
    update_top_n_authorities(*this);
-   update_active_witnesses();
+   update_active_miners();
    update_active_committee_members();
    update_worker_votes();
 

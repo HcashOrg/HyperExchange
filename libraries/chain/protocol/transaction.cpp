@@ -140,6 +140,7 @@ struct sign_state
              (*provided_address_sigs)[ address(pts_address(item.first, false, 0) ) ] = item.first;
              (*provided_address_sigs)[ address(pts_address(item.first, true, 0) ) ] = item.first;
              (*provided_address_sigs)[ address(item.first) ] = item.first;
+			 auto str1 = string(address(item.first));
             }
          }
          auto itr = provided_address_sigs->find(a);
@@ -262,7 +263,7 @@ void verify_authority( const vector<operation>& ops, const flat_set<public_key_t
       operation_get_required_authorities( op, required_active, required_owner, other );
 
 #if 0
-      GRAPHENE_ASSERT( required_active.find(GRAPHENE_COMMITTEE_ACCOUNT) == required_active.end(),
+      GRAPHENE_ASSERT( required_active.find(GRAPHENE_GUARD_ACCOUNT) == required_active.end(),
                        invalid_committee_approval, "Committee account may only propose transactions" );
 #endif
 

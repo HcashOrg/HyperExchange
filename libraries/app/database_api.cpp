@@ -83,6 +83,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       // Accounts
       vector<optional<account_object>> get_accounts(const vector<account_id_type>& account_ids)const;
 	  vector<optional<account_object>> get_accounts(const vector<string>& account_names)const;
+	  vector<optional<account_object>> get_accounts(const vector<address>& account_addres)const;
       std::map<string,full_account> get_full_accounts( const vector<string>& names_or_ids, bool subscribe );
       optional<account_object> get_account_by_name( string name )const;
       vector<account_id_type> get_account_references( account_id_type account_id )const;
@@ -115,15 +116,15 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<market_trade>               get_trade_history( const string& base, const string& quote, fc::time_point_sec start, fc::time_point_sec stop, unsigned limit = 100 )const;
 
       // Witnesses
-      vector<optional<witness_object>> get_witnesses(const vector<witness_id_type>& witness_ids)const;
-      fc::optional<witness_object> get_witness_by_account(account_id_type account)const;
-      map<string, witness_id_type> lookup_witness_accounts(const string& lower_bound_name, uint32_t limit)const;
-      uint64_t get_witness_count()const;
+      vector<optional<miner_object>> get_miners(const vector<miner_id_type>& witness_ids)const;
+      fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
+      map<string, miner_id_type> lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const;
+      uint64_t get_miner_count()const;
 
       // Committee members
-      vector<optional<committee_member_object>> get_committee_members(const vector<committee_member_id_type>& committee_member_ids)const;
-      fc::optional<committee_member_object> get_committee_member_by_account(account_id_type account)const;
-      map<string, committee_member_id_type> lookup_committee_member_accounts(const string& lower_bound_name, uint32_t limit)const;
+      vector<optional<guard_member_object>> get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const;
+      fc::optional<guard_member_object> get_guard_member_by_account(account_id_type account)const;
+      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const;
 
       // Votes
       vector<variant> lookup_vote_ids( const vector<vote_id_type>& votes )const;
@@ -140,7 +141,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 
       // Proposed transactions
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
-
+	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
+	  vector<proposal_object> get_voter_transactions_waiting(address addr)const;
       // Blinded balances
       vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
 
@@ -577,6 +579,23 @@ vector<optional<account_object>> database_api::get_accounts(const vector<account
    return my->get_accounts( account_ids );
 }
 
+vector<optional<account_object>> database_api::get_accounts_addr(const vector<address>& account_addres)const
+{
+	return my->get_accounts(account_addres);
+}
+
+vector<optional<account_object>> database_api_impl::get_accounts(const vector<address>& account_addres)const
+{
+	const auto& accounts_by_addr = _db.get_index_type<account_index>().indices().get<by_address>();
+	vector<optional<account_object> > result;
+	result.reserve(account_addres.size());
+	std::transform(account_addres.begin(), account_addres.end(), std::back_inserter(result),
+		[&accounts_by_addr](const address& addr) -> optional<account_object> {
+		auto itr = accounts_by_addr.find(addr);
+		return itr == accounts_by_addr.end() ? optional<account_object>() : *itr;
+	});
+	return result;
+}
 
 vector<optional<account_object>> database_api_impl::get_accounts(const vector<account_id_type>& account_ids)const
 {
@@ -1314,9 +1333,9 @@ vector<market_trade> database_api_impl::get_trade_history( const string& base,
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
 
-vector<optional<witness_object>> database_api::get_witnesses(const vector<witness_id_type>& witness_ids)const
+vector<optional<miner_object>> database_api::get_miners(const vector<miner_id_type>& witness_ids)const
 {
-   return my->get_witnesses( witness_ids );
+   return my->get_miners( witness_ids );
 }
 
 vector<worker_object> database_api::get_workers_by_account(account_id_type account)const
@@ -1335,11 +1354,11 @@ vector<worker_object> database_api::get_workers_by_account(account_id_type accou
 }
 
 
-vector<optional<witness_object>> database_api_impl::get_witnesses(const vector<witness_id_type>& witness_ids)const
+vector<optional<miner_object>> database_api_impl::get_miners(const vector<miner_id_type>& witness_ids)const
 {
-   vector<optional<witness_object>> result; result.reserve(witness_ids.size());
+   vector<optional<miner_object>> result; result.reserve(witness_ids.size());
    std::transform(witness_ids.begin(), witness_ids.end(), std::back_inserter(result),
-                  [this](witness_id_type id) -> optional<witness_object> {
+                  [this](miner_id_type id) -> optional<miner_object> {
       if(auto o = _db.find(id))
          return *o;
       return {};
@@ -1347,56 +1366,56 @@ vector<optional<witness_object>> database_api_impl::get_witnesses(const vector<w
    return result;
 }
 
-fc::optional<witness_object> database_api::get_witness_by_account(account_id_type account)const
+fc::optional<miner_object> database_api::get_miner_by_account(account_id_type account)const
 {
-   return my->get_witness_by_account( account );
+   return my->get_miner_by_account( account );
 }
 
-fc::optional<witness_object> database_api_impl::get_witness_by_account(account_id_type account) const
+fc::optional<miner_object> database_api_impl::get_miner_by_account(account_id_type account) const
 {
-   const auto& idx = _db.get_index_type<witness_index>().indices().get<by_account>();
+   const auto& idx = _db.get_index_type<miner_index>().indices().get<by_account>();
    auto itr = idx.find(account);
    if( itr != idx.end() )
       return *itr;
    return {};
 }
 
-map<string, witness_id_type> database_api::lookup_witness_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, miner_id_type> database_api::lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const
 {
-   return my->lookup_witness_accounts( lower_bound_name, limit );
+   return my->lookup_miner_accounts( lower_bound_name, limit );
 }
 
-map<string, witness_id_type> database_api_impl::lookup_witness_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, miner_id_type> database_api_impl::lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& witnesses_by_id = _db.get_index_type<witness_index>().indices().get<by_id>();
+   const auto& witnesses_by_id = _db.get_index_type<miner_index>().indices().get<by_id>();
 
    // we want to order witnesses by account name, but that name is in the account object
-   // so the witness_index doesn't have a quick way to access it.
+   // so the miner_index doesn't have a quick way to access it.
    // get all the names and look them all up, sort them, then figure out what
    // records to return.  This could be optimized, but we expect the
    // number of witnesses to be few and the frequency of calls to be rare
-   std::map<std::string, witness_id_type> witnesses_by_account_name;
-   for (const witness_object& witness : witnesses_by_id)
-       if (auto account_iter = _db.find(witness.witness_account))
+   std::map<std::string, miner_id_type> miners_by_account_name;
+   for (const miner_object& miner : witnesses_by_id)
+       if (auto account_iter = _db.find(miner.miner_account))
            if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
-               witnesses_by_account_name.insert(std::make_pair(account_iter->name, witness.id));
+               miners_by_account_name.insert(std::make_pair(account_iter->name, miner.id));
 
-   auto end_iter = witnesses_by_account_name.begin();
-   while (end_iter != witnesses_by_account_name.end() && limit--)
+   auto end_iter = miners_by_account_name.begin();
+   while (end_iter != miners_by_account_name.end() && limit--)
        ++end_iter;
-   witnesses_by_account_name.erase(end_iter, witnesses_by_account_name.end());
-   return witnesses_by_account_name;
+   miners_by_account_name.erase(end_iter, miners_by_account_name.end());
+   return miners_by_account_name;
 }
 
-uint64_t database_api::get_witness_count()const
+uint64_t database_api::get_miner_count()const
 {
-   return my->get_witness_count();
+   return my->get_miner_count();
 }
 
-uint64_t database_api_impl::get_witness_count()const
+uint64_t database_api_impl::get_miner_count()const
 {
-   return _db.get_index_type<witness_index>().indices().size();
+   return _db.get_index_type<miner_index>().indices().size();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1405,16 +1424,16 @@ uint64_t database_api_impl::get_witness_count()const
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
 
-vector<optional<committee_member_object>> database_api::get_committee_members(const vector<committee_member_id_type>& committee_member_ids)const
+vector<optional<guard_member_object>> database_api::get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const
 {
-   return my->get_committee_members( committee_member_ids );
+   return my->get_guard_members( committee_member_ids );
 }
 
-vector<optional<committee_member_object>> database_api_impl::get_committee_members(const vector<committee_member_id_type>& committee_member_ids)const
+vector<optional<guard_member_object>> database_api_impl::get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const
 {
-   vector<optional<committee_member_object>> result; result.reserve(committee_member_ids.size());
+   vector<optional<guard_member_object>> result; result.reserve(committee_member_ids.size());
    std::transform(committee_member_ids.begin(), committee_member_ids.end(), std::back_inserter(result),
-                  [this](committee_member_id_type id) -> optional<committee_member_object> {
+                  [this](guard_member_id_type id) -> optional<guard_member_object> {
       if(auto o = _db.find(id))
          return *o;
       return {};
@@ -1422,38 +1441,38 @@ vector<optional<committee_member_object>> database_api_impl::get_committee_membe
    return result;
 }
 
-fc::optional<committee_member_object> database_api::get_committee_member_by_account(account_id_type account)const
+fc::optional<guard_member_object> database_api::get_guard_member_by_account(account_id_type account)const
 {
-   return my->get_committee_member_by_account( account );
+   return my->get_guard_member_by_account( account );
 }
 
-fc::optional<committee_member_object> database_api_impl::get_committee_member_by_account(account_id_type account) const
+fc::optional<guard_member_object> database_api_impl::get_guard_member_by_account(account_id_type account) const
 {
-   const auto& idx = _db.get_index_type<committee_member_index>().indices().get<by_account>();
+   const auto& idx = _db.get_index_type<guard_member_index>().indices().get<by_account>();
    auto itr = idx.find(account);
    if( itr != idx.end() )
       return *itr;
    return {};
 }
 
-map<string, committee_member_id_type> database_api::lookup_committee_member_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const
 {
-   return my->lookup_committee_member_accounts( lower_bound_name, limit );
+   return my->lookup_guard_member_accounts( lower_bound_name, limit );
 }
 
-map<string, committee_member_id_type> database_api_impl::lookup_committee_member_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, guard_member_id_type> database_api_impl::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& committee_members_by_id = _db.get_index_type<committee_member_index>().indices().get<by_id>();
+   const auto& committee_members_by_id = _db.get_index_type<guard_member_index>().indices().get<by_id>();
 
    // we want to order committee_members by account name, but that name is in the account object
-   // so the committee_member_index doesn't have a quick way to access it.
+   // so the guard_member_index doesn't have a quick way to access it.
    // get all the names and look them all up, sort them, then figure out what
    // records to return.  This could be optimized, but we expect the
    // number of committee_members to be few and the frequency of calls to be rare
-   std::map<std::string, committee_member_id_type> committee_members_by_account_name;
-   for (const committee_member_object& committee_member : committee_members_by_id)
-       if (auto account_iter = _db.find(committee_member.committee_member_account))
+   std::map<std::string, guard_member_id_type> committee_members_by_account_name;
+   for (const guard_member_object& committee_member : committee_members_by_id)
+       if (auto account_iter = _db.find(committee_member.guard_member_account))
            if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
                committee_members_by_account_name.insert(std::make_pair(account_iter->name, committee_member.id));
 
@@ -1479,8 +1498,8 @@ vector<variant> database_api_impl::lookup_vote_ids( const vector<vote_id_type>& 
 {
    FC_ASSERT( votes.size() < 1000, "Only 1000 votes can be queried at a time" );
 
-   const auto& witness_idx = _db.get_index_type<witness_index>().indices().get<by_vote_id>();
-   const auto& committee_idx = _db.get_index_type<committee_member_index>().indices().get<by_vote_id>();
+   const auto& witness_idx = _db.get_index_type<miner_index>().indices().get<by_vote_id>();
+   const auto& committee_idx = _db.get_index_type<guard_member_index>().indices().get<by_vote_id>();
    const auto& for_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_for>();
    const auto& against_worker_idx = _db.get_index_type<worker_index>().indices().get<by_vote_against>();
 
@@ -1773,6 +1792,45 @@ vector<proposal_object> database_api::get_proposed_transactions( account_id_type
 {
    return my->get_proposed_transactions( id );
 }
+
+vector<proposal_object> database_api::get_proposer_transactions(account_id_type id)const
+{
+	return my->get_proposer_transactions(id);
+}
+
+vector<proposal_object> database_api::get_voter_transactions_waiting(address addr)const
+{
+	return my->get_voter_transactions_waiting(addr);
+}
+
+vector<proposal_object> database_api_impl::get_voter_transactions_waiting(address addr)const
+{
+	const auto& idx = _db.get_index_type<proposal_index>();
+	vector<proposal_object> result;
+
+	idx.inspect_all_objects([&](const object& obj) {
+		const proposal_object& p = static_cast<const proposal_object&>(obj);
+		auto accounts = p.required_account_approvals;
+		if (accounts.find(addr) != accounts.end())
+			result.push_back(p);
+	});
+	return result;
+}
+
+/** TODO: add secondary index that will accelerate this process */
+vector<proposal_object> database_api_impl::get_proposer_transactions(account_id_type id)const
+{
+	const auto& idx = _db.get_index_type<proposal_index>();
+	vector<proposal_object> result;
+
+	idx.inspect_all_objects([&](const object& obj) {
+		const proposal_object& p = static_cast<const proposal_object&>(obj);
+		if (p.proposer == id)
+			result.push_back(p);
+	});
+	return result;
+}
+
 
 /** TODO: add secondary index that will accelerate this process */
 vector<proposal_object> database_api_impl::get_proposed_transactions( account_id_type id )const

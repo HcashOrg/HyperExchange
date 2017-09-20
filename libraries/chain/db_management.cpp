@@ -87,7 +87,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
          wlog( "Dropped ${n} blocks from after the gap", ("n", dropped_count) );
          break;
       }
-      apply_block(*block, skip_witness_signature |
+      apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |
                           skip_transaction_dupe_check |
                           skip_tapos_check |

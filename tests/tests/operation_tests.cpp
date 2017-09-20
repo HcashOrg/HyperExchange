@@ -590,27 +590,43 @@ BOOST_AUTO_TEST_CASE( transfer_core_asset )
    }
 }
 
-BOOST_AUTO_TEST_CASE( create_committee_member )
+BOOST_AUTO_TEST_CASE( create_guard_member )
 {
-   try {
-      committee_member_create_operation op;
-      op.committee_member_account = account_id_type();
-      op.fee = asset();
-      trx.operations.push_back(op);
+    try {
+        guard_member_create_operation op;
+        op.guard_member_account = account_id_type();
+        op.fee = asset();
+        trx.operations.push_back(op);
 
-      REQUIRE_THROW_WITH_VALUE(op, committee_member_account, account_id_type(99999999));
-      REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
-      trx.operations.back() = op;
+        REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(99999999));
+        REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
+        trx.operations.back() = op;
 
-      committee_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<committee_member_object>>>().get_next_id();
-      PUSH_TX( db, trx, ~0 );
-      const committee_member_object& d = committee_member_id(db);
+        guard_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<guard_member_object>>>().get_next_id();
+        PUSH_TX(db, trx, ~0);
+        const guard_member_object& d = committee_member_id(db);
 
-      BOOST_CHECK(d.committee_member_account == account_id_type());
-   } catch (fc::exception& e) {
-      edump((e.to_detail_string()));
-      throw;
-   }
+        BOOST_CHECK(d.guard_member_account == account_id_type());
+
+        // No more than 15 guards can be created.
+        for (auto i = 0; i < 5; ++i) {
+            trx.clear();
+            auto acct = create_account(std::string("guardtest")+fc::to_string(i));
+            op.guard_member_account = account_id_type(acct.id);
+            op.fee = asset();
+            trx.operations.push_back(op);
+            if (i == 4) {
+                REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(acct.id));
+            } else {
+                PUSH_TX(db, trx, ~0);
+            }
+        }
+
+    }
+    catch (fc::exception& e) {
+        edump((e.to_detail_string()));
+        throw;
+    }
 }
 
 BOOST_AUTO_TEST_CASE( create_mia )
@@ -1178,8 +1194,8 @@ BOOST_AUTO_TEST_CASE( witness_feeds )
       const asset_object& bit_usd = get_asset("USDBIT");
       auto& global_props = db.get_global_properties();
       vector<account_id_type> active_witnesses;
-      for( const witness_id_type& wit_id : global_props.active_witnesses )
-         active_witnesses.push_back( wit_id(db).witness_account );
+      for( const miner_id_type& wit_id : global_props.active_witnesses )
+         active_witnesses.push_back( wit_id(db).miner_account );
       BOOST_REQUIRE_EQUAL(active_witnesses.size(), 10);
 
       asset_publish_feed_operation op;
@@ -1302,7 +1318,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    auto last_witness_vbo_balance = [&]() -> share_type
    {
-      const witness_object& wit = db.fetch_block_by_number(db.head_block_num())->witness(db);
+      const miner_object& wit = db.fetch_block_by_number(db.head_block_num())->miner(db);
       if( !wit.pay_vb.valid() )
          return 0;
       return (*wit.pay_vb)(db).balance.amount;
@@ -1332,7 +1348,7 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
 
    db.modify( db.get_global_properties(), [&]( global_property_object& _gpo )
    {
-      _gpo.parameters.witness_pay_per_block = witness_ppb;
+      _gpo.parameters.miner_pay_per_block = witness_ppb;
    } );
 
    BOOST_CHECK_EQUAL(core->dynamic_asset_data_id(db).accumulated_fees.value, 0);
@@ -1378,26 +1394,26 @@ BOOST_AUTO_TEST_CASE( witness_pay_test )
    BOOST_CHECK( core->reserved(db).value == 8000*prec );
    generate_block();
    BOOST_CHECK_EQUAL( core->reserved(db).value, 999999406 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget );
    // first witness paid from old budget (so no pay)
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
    // second witness finally gets paid!
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget - witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - witness_ppb );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, ref_budget - 2 * witness_ppb );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, ref_budget - 2 * witness_ppb );
 
    generate_block();
    BOOST_CHECK_LT( last_witness_vbo_balance().value, witness_ppb );
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, ref_budget - 2 * witness_ppb );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
 
    generate_block();
    BOOST_CHECK_EQUAL( last_witness_vbo_balance().value, 0 );
-   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().witness_budget.value, 0 );
+   BOOST_CHECK_EQUAL( db.get_dynamic_global_properties().miner_budget.value, 0 );
    BOOST_CHECK_EQUAL(core->reserved(db).value, 999999406 );
 
 } FC_LOG_AND_RETHROW() }

@@ -13,7 +13,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS ORminer_create_operation
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -27,23 +27,23 @@
 namespace graphene { namespace chain { 
 
   /**
-    * @brief Create a witness object, as a bid to hold a witness position on the network.
+    * @brief Create a miner object, as a bid to hold a miner position on the network.
     * @ingroup operations
     *
-    * Accounts which wish to become witnesses may use this operation to create a witness object which stakeholders may
-    * vote on to approve its position as a witness.
+    * Accounts which wish to become miner may use this operation to create a miner object which stakeholders may
+    * vote on to approve its position as a miner.
     */
-   struct witness_create_operation : public base_operation
+   struct miner_create_operation : public base_operation
    {
       struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset             fee;
-      /// The account which owns the witness. This account pays the fee for this operation.
-      account_id_type   witness_account;
+      /// The account which owns the miner. This account pays the fee for this operation.
+      account_id_type   miner_account;
       string            url;
       public_key_type   block_signing_key;
 
-      account_id_type fee_payer()const { return witness_account; }
+      account_id_type fee_payer()const { return miner_account; }
       void            validate()const;
    };
 
@@ -60,7 +60,7 @@ namespace graphene { namespace chain {
 
       asset             fee;
       /// The witness object to update.
-      witness_id_type   witness;
+      miner_id_type   witness;
       /// The account which owns the witness. This account pays the fee for this operation.
       account_id_type   witness_account;
       /// The new URL.
@@ -76,8 +76,8 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 
-FC_REFLECT( graphene::chain::witness_create_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::witness_create_operation, (fee)(witness_account)(url)(block_signing_key) )
+FC_REFLECT( graphene::chain::miner_create_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::miner_create_operation, (fee)(miner_account)(url)(block_signing_key) )
 
 FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
