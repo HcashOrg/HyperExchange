@@ -11,16 +11,17 @@ namespace graphene {
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 			asset fee;
-			account_id_type lock_balance_account;
+			committee_member_id_type lock_balance_account;
+			account_id_type lock_balance_account_id;
 			//committee_member_id_type lock_balance_account;
 			account_id_type fee_payer()const {
-				return lock_balance_account;
+				return lock_balance_account_id;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 			void get_required_authorities(vector<authority>& a)const {
 				authority x;
-				x.add_authority(lock_balance_account, 1);
+				x.add_authority(lock_balance_account_id, 1);
 				a.push_back(x);
 			}
 		};
