@@ -71,6 +71,11 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
          );
       }
    }
+   //proposer has to be a formal guard
+   auto  proposer = o.proposer;
+   auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
+   auto iter = guard_index.find(proposer);
+   FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be formal guard.");
 
    for( const op_wrapper& op : o.proposed_ops )
       _proposed_trx.operations.push_back(op.op);

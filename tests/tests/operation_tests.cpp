@@ -594,7 +594,8 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
     try {
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
 		auto guard_account =create_account("guardtest",private_key.get_public_key());
-		create_guard_member(guard_account);
+		auto obj = create_guard_member(guard_account);
+	
 		guard_member_create_operation op;
         // No more than 15 guards can be created.
         for (auto i = 0; i <= 7; ++i) {
