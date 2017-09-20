@@ -2164,11 +2164,11 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(lock_account) != iter.end(), "Could not find account name ${account}", ("account", lock_account));
-		   fc::optional<witness_object> witness_obj = get_witness(miner_account);
+		   fc::optional<miner_object> witness_obj = get_miner(miner_account);
 		   FC_ASSERT(witness_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 		   lockbalance_operation lb_op;
 		   lb_op.lock_asset_id = asset_obj->get_id();
-		   lb_op.lock_asset_amount = asset_obj->amount_from_string(amount);
+		   lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   lb_op.lock_balance_account = iter.find(lock_account)->get_id();
 		   lb_op.lock_balance_addr = iter.find(lock_account)->addr;
 		   lb_op.lockto_miner_account = witness_obj->id;
@@ -2191,12 +2191,12 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(guard_account) != iter.end(), "Could not find account name ${account}", ("account", guard_account));
-		   fc::optional<committee_member_object> commit_obj = get_committee_member(guard_account);
+		   fc::optional<guard_member_object> commit_obj = get_guard_member(guard_account);
 		   FC_ASSERT(commit_obj, "Could not find miner matching ${guard}", ("guard", guard_account));
 		   guard_lock_balance_operation guard_lb_op;
 		   //lockbalance_operation lb_op;
 		   guard_lb_op.lock_asset_id = asset_obj->get_id();
-		   guard_lb_op.lock_asset_amount = asset_obj->amount_from_string(amount);
+		   guard_lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   guard_lb_op.lock_balance_account = commit_obj->id;
 		   guard_lb_op.lock_balance_account_id = iter.find(guard_account)->get_id();
 		   signed_transaction tx;
