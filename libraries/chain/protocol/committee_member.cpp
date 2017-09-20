@@ -58,5 +58,10 @@ void committee_member_execute_coin_destory_operation::validate() const
 
 }
 
+void chain::guard_member_resign_operation::validate() const
+{
+    FC_ASSERT(fee.amount >= 0);
+}
 
 } } // graphene::chain
+

@@ -28,11 +28,11 @@
 namespace graphene { namespace chain { 
 
    /**
-    * @brief Create a committee_member object, as a bid to hold a committee_member seat on the network.
+    * @brief Create a guard_member object, as a bid to hold a guard_member seat on the network.
     * @ingroup operations
     *
-    * Accounts which wish to become committee_members may use this operation to create a committee_member object which stakeholders may
-    * vote on to approve its position as a committee_member.
+    * Accounts which wish to become guard_members may use this operation to create a guard_member object which stakeholders may
+    * vote on to approve its position as a guard_member.
     */
    struct guard_member_create_operation : public base_operation
    {
@@ -72,7 +72,7 @@ namespace graphene { namespace chain {
    };
 
    /**
-    * @brief Used by committee_members to update the global parameters of the blockchain.
+    * @brief Used by guard_members to update the global parameters of the blockchain.
     * @ingroup operations
     *
     * This operation allows the committee_members to update the global parameters on the blockchain. These control various
@@ -102,19 +102,37 @@ namespace graphene { namespace chain {
 	   void            validate()const;
    };
 
-   /// TODO: committee_member_resign_operation : public base_operation
+   /**
+   * @brief Used by guard_members to resign from guard_memeber role.
+   * @ingroup operations
+   *
+   * This operation allows the guard_members to resign or be resigned from guard_member role.
+   *
+   * This operation may only be used in a proposed transaction, and a proposed transaction which contains this
+   * operation must have a review period specified in the current global parameters before it may be accepted.
+   */
+   struct guard_member_resign_operation : public base_operation
+   {
+       struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+       asset                                 fee;
+       account_id_type                       guard_member_account;  //!< guard memeber to resign
+       proposal_id_type                      pid;                   //!< proposal to resign this guard member
+
+       account_id_type fee_payer()const { return guard_member_account; }
+       void            validate()const;
+   };
 
 } } // graphene::chain
 FC_REFLECT( graphene::chain::guard_member_create_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::guard_member_resign_operation::fee_parameters_type, (fee) )
 
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
 
-FC_REFLECT( graphene::chain::guard_member_create_operation,
-            (fee)(guard_member_account)(url) )
-FC_REFLECT( graphene::chain::committee_member_update_operation,
-            (fee)(committee_member)(guard_member_account)(new_url) )
+FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_account)(url) )
+FC_REFLECT( graphene::chain::committee_member_update_operation, (fee)(committee_member)(guard_member_account)(new_url) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation, (fee)(loss_asset)(commitee_member_handle_percent));
-
+FC_REFLECT( graphene::chain::guard_member_resign_operation, (fee)(guard_member_account)(pid) )
