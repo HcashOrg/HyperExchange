@@ -157,6 +157,8 @@ namespace graphene { namespace chain {
 
          void pop_block();
          void clear_pending();
+		 SecretHashType get_secret(uint32_t block_num,
+			 const fc::ecc::private_key& block_signing_private_key);
 
          /**
           *  This method is used to track appied operations during the evaluation of a block, these
@@ -246,6 +248,8 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
+		 void database::update_witness_random_seed(const SecretHashType& new_secret);
+
          //////////////////// db_getter.cpp ////////////////////
 
          const chain_id_type&                   get_chain_id()const;
@@ -280,7 +284,12 @@ namespace graphene { namespace chain {
             _operation_evaluators[
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
-
+		 //////////////////// db_lock_balance.cpp/////////////////
+		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
+		 //asset get_lock_balance(const account_object& owner, const asset_object& asset_obj)const;
+		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;
+		 void adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account, asset delta);
+		 void adjust_guard_lock_balance(guard_member_id_type guard_account,asset delta);
          //////////////////// db_balance.cpp ////////////////////
 
          /**
@@ -417,6 +426,8 @@ namespace graphene { namespace chain {
 
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
+		 template<class Index>
+		 vector<std::reference_wrapper<const typename Index::object_type>> sort_pledge_objects(uint64_t min_pledge) const;
 
          //////////////////// db_block.cpp ////////////////////
 

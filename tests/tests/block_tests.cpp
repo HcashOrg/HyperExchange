@@ -38,6 +38,7 @@
 #include <fc/crypto/digest.hpp>
 
 #include "../common/database_fixture.hpp"
+#include <graphene/chain/witness_object.hpp>
 
 using namespace graphene::chain;
 using namespace graphene::chain::test;
@@ -61,6 +62,27 @@ genesis_state_type make_genesis() {
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
    return genesis_state;
+}
+
+genesis_state_type make_genesis_30() {
+	genesis_state_type genesis_state;
+
+	genesis_state.initial_timestamp = time_point_sec(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
+
+	auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+	genesis_state.initial_active_miners = 30;
+	for (int i = 0; i < genesis_state.initial_active_miners; ++i)
+	{
+		auto name = "init" + fc::to_string(i);
+		genesis_state.initial_accounts.emplace_back(name,
+			init_account_priv_key.get_public_key(),
+			init_account_priv_key.get_public_key(),
+			true);
+		genesis_state.initial_guard_candidates.push_back({ name });
+		genesis_state.initial_miner_candidates.push_back({ name, init_account_priv_key.get_public_key() });
+	}
+	genesis_state.initial_parameters.current_fees->zero_all_fees();
+	return genesis_state;
 }
 
 BOOST_AUTO_TEST_SUITE(block_tests)
@@ -125,19 +147,161 @@ BOOST_AUTO_TEST_CASE( block_database_test )
    }
 }
 
-BOOST_AUTO_TEST_CASE( generate_empty_blocks )
+BOOST_AUTO_TEST_CASE(update_witness_schedule) 
+{
+	database db;
+	fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
+	db.open(data_dir.path(), make_genesis);
+
+	vector< miner_id_type > current_shuffled_miners;
+	current_shuffled_miners.clear();
+	const global_property_object& gpo = db.get_global_properties();
+	const auto& dgp = db.get_dynamic_global_properties();
+	int test_count = 10;
+	current_shuffled_miners.reserve(test_count);
+	vector< uint64_t > temp_witnesses_weight;
+	vector<miner_id_type> temp_active_witnesses;
+	uint64_t total_weight = 0;
+	auto caluate_slot = [&](vector<uint64_t> vec, int count, uint64_t value) {
+		uint64_t init = 0;
+		for (int i = 0; i < count; ++i)
+		{
+			init = init + vec[i];  // or: init=binary_op(init,*first) for the binary_op version
+			if (value < init)
+				return i;
+		}
+		return count - 1;
+
+	};
+	for (const miner_id_type& w : gpo.active_witnesses)
+	{
+		const auto& witness_obj = w(db);
+		total_weight += witness_obj.pledge_weight * witness_obj.participation_rate / 100;
+		temp_witnesses_weight.push_back(witness_obj.pledge_weight * witness_obj.participation_rate / 100);
+		temp_active_witnesses.push_back(w);
+	}
+	fc::sha256 rand_seed;
+	if (dgp.current_random_seed.valid())
+		rand_seed = fc::sha256::hash(*dgp.current_random_seed);
+	else 
+	{
+
+		rand_seed = fc::sha256::hash(SecretHashType());
+	}
+		
+
+	for (uint32_t i = 0, x = 0; i < test_count; ++i)
+	{
+		uint64_t r = rand_seed._hash[x];
+		uint64_t j = (r % total_weight);
+		int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
+		current_shuffled_miners.push_back(temp_active_witnesses[slot]);
+		total_weight -= temp_witnesses_weight[slot];
+		std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1-i]);
+		std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1-i]);
+
+		x = (x + 1) & 3;
+		if (x == 0)
+			rand_seed = fc::sha256::hash(rand_seed);
+	}
+	vector<string> result_vec = { "init0","init5", "init2", "init3", "init1", "init7", "init9", "init4" , "init8" , "init6" };
+	int j = 0;
+	for (auto w : current_shuffled_miners)
+	{
+		const auto& account_obj = w(db).miner_account(db);
+		printf("witness_name:%s\n", account_obj.name.c_str());
+		BOOST_CHECK(account_obj.name == result_vec[j++]);
+	}
+
+	db.close();
+	
+}
+
+
+
+BOOST_AUTO_TEST_CASE(generate_empty_blocks_random_test_diff_weight)
+{
+	try {
+		fc::time_point_sec now(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
+		fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
+		signed_block b;
+		std::map<miner_id_type, int> details;
+		// TODO:  Don't generate this here
+		auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+		signed_block cutoff_block;
+		{
+			database db;
+			db.open(data_dir.path(), make_genesis_30);
+			auto gpo = db.get_global_properties();
+			auto& all_miner_object = db.get_index_type<miner_index>().indices();
+			int step = 0;
+			for (const miner_object& wit : all_miner_object)
+			{
+				++step;
+				db.modify(wit, [&](miner_object& obj) {
+					obj.pledge_weight = obj.pledge_weight * step;
+				});
+			}
+				
+			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+
+			// TODO:  Change this test when we correct #406
+			// n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
+			for (uint32_t i = 1; ; ++i)
+			{
+				BOOST_CHECK(db.head_block_id() == b.id());
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
+				if (details.count(cur_witness) == 0)
+				{
+					details[cur_witness] = 1;
+				}
+				else
+				{
+					details[cur_witness] += 1;
+				}
+				//BOOST_CHECK( cur_witness != prev_witness );
+				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+				BOOST_CHECK(b.miner == cur_witness);
+				uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
+				if (cutoff_height >= 2000)
+				{
+					cutoff_block = *(db.fetch_block_by_number(cutoff_height));
+					break;
+				}
+			}
+
+			for (auto iter = details.begin(); iter != details.end(); ++iter)
+			{
+				const auto& account_obj = iter->first(db).miner_account(db);
+				printf("witness_name:%s,appear count:%d\n", account_obj.name.c_str(), iter->second);
+			}
+
+			db.close();
+		}
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+
+
+BOOST_AUTO_TEST_CASE( generate_empty_blocks_random_test )
 {
    try {
       fc::time_point_sec now( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
       fc::temp_directory data_dir( graphene::utilities::temp_directory_path() );
       signed_block b;
-
+	  std::map<miner_id_type, int> details;
       // TODO:  Don't generate this here
       auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")) );
       signed_block cutoff_block;
       {
          database db;
-         db.open(data_dir.path(), make_genesis );
+         db.open(data_dir.path(), make_genesis_30);
+		 int count = db.get_global_properties().active_witnesses.size();
          b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
 
          // TODO:  Change this test when we correct #406
@@ -145,40 +309,103 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
          for( uint32_t i = 1; ; ++i )
          {
             BOOST_CHECK( db.head_block_id() == b.id() );
-            //miner_id_type prev_witness = b.miner;
+            //miner_id_type prev_witness = b.witness;
             miner_id_type cur_witness = db.get_scheduled_miner(1);
+			if (details.count(cur_witness) == 0)
+			{
+				details[cur_witness] = 1;
+			}
+			else
+			{
+				details[cur_witness] += 1;
+			}
             //BOOST_CHECK( cur_witness != prev_witness );
             b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
             BOOST_CHECK( b.miner == cur_witness );
             uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
-            if( cutoff_height >= 200 )
+            if( cutoff_height >= 2000 )
             {
                cutoff_block = *(db.fetch_block_by_number( cutoff_height ));
                break;
             }
          }
-         db.close();
-      }
-      {
-         database db;
-         db.open(data_dir.path(), []{return genesis_state_type();});
-         BOOST_CHECK_EQUAL( db.head_block_num(), cutoff_block.block_num() );
-         b = cutoff_block;
-         for( uint32_t i = 0; i < 200; ++i )
-         {
-            BOOST_CHECK( db.head_block_id() == b.id() );
-            //miner_id_type prev_witness = b.miner;
-            miner_id_type cur_witness = db.get_scheduled_miner(1);
-            //BOOST_CHECK( cur_witness != prev_witness );
-            b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
-         }
-         BOOST_CHECK_EQUAL( db.head_block_num(), cutoff_block.block_num()+200 );
+         
+		 for (auto iter = details.begin();iter!=details.end();++iter)
+		 {
+			 const auto& account_obj = iter->first(db).miner_account(db);
+			 printf("witness_name:%s,appear count:%d\n", account_obj.name.c_str(), iter->second);
+		 }
+
+		db.close();
       }
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
    }
 }
+
+
+
+BOOST_AUTO_TEST_CASE(generate_empty_blocks)
+{
+	try {
+		fc::time_point_sec now(GRAPHENE_TESTING_GENESIS_TIMESTAMP);
+		fc::temp_directory data_dir(graphene::utilities::temp_directory_path());
+		signed_block b;
+
+		// TODO:  Don't generate this here
+		auto init_account_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+		signed_block cutoff_block;
+		{
+			database db;
+			db.open(data_dir.path(), make_genesis);
+			b = db.generate_block(db.get_slot_time(1), db.get_scheduled_miner(1), init_account_priv_key, database::skip_nothing);
+
+			// TODO:  Change this test when we correct #406
+			// n.b. we generate GRAPHENE_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
+			for (uint32_t i = 1; ; ++i)
+			{
+				BOOST_CHECK(db.head_block_id() == b.id());
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
+				//printf("witness_name:%s\n", cur_witness(db).witness_account(db).name.c_str());
+				//BOOST_CHECK( cur_witness != prev_witness );
+				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+				BOOST_CHECK(b.miner == cur_witness);
+				uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
+				if (cutoff_height >= 200)
+				{
+					cutoff_block = *(db.fetch_block_by_number(cutoff_height));
+					break;
+				}
+			}
+			db.close();
+		}
+		{
+			database db;
+			db.open(data_dir.path(), [] {return genesis_state_type(); });
+			BOOST_CHECK_EQUAL(db.head_block_num(), cutoff_block.block_num());
+			b = cutoff_block;
+			for (uint32_t i = 0; i < 200; ++i)
+			{
+				BOOST_CHECK(db.head_block_id() == b.id());
+				//miner_id_type prev_witness = b.witness;
+				miner_id_type cur_witness = db.get_scheduled_miner(1);
+				//BOOST_CHECK( cur_witness != prev_witness );
+				b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+			}
+			BOOST_CHECK_EQUAL(db.head_block_num(), cutoff_block.block_num() + 200);
+		}
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+
+
+
 
 BOOST_AUTO_TEST_CASE( undo_block )
 {

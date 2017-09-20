@@ -20,6 +20,7 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
         db_market.cpp
         db_update.cpp
         db_witness_schedule.cpp
+		db_lock_balance.cpp
       )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
@@ -34,7 +35,8 @@ add_library( graphene_chain
              # As database takes the longest to compile, start it first
              ${GRAPHENE_DB_FILES}
              fork_database.cpp
-
+			 protocol/lockbalance.cpp
+			 protocol/guard_lock_balance.cpp
              protocol/types.cpp
              protocol/address.cpp
              protocol/authority.cpp
@@ -79,7 +81,8 @@ add_library( graphene_chain
              confidential_evaluator.cpp
              special_authority.cpp
              buyback.cpp
-
+			 guard_lock_balance_evaluator.cpp
+			 lockbalance_evaluator.cpp
              account_object.cpp
              asset_object.cpp
              fba_object.cpp

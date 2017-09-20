@@ -52,6 +52,7 @@ namespace graphene { namespace chain {
          vote_id_type     vote_id;
          uint64_t         total_votes = 0;
          string           url;
+		 map<string, asset> guard_lock_balance;
 		 bool             formal = false;
    };
 

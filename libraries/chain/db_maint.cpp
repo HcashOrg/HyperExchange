@@ -48,6 +48,43 @@
 
 namespace graphene { namespace chain {
 
+
+
+template<class Index>
+vector<std::reference_wrapper<const typename Index::object_type>> database::sort_pledge_objects(uint64_t min_pledge) const
+{
+	using ObjectType = typename Index::object_type;
+	const auto& all_objects = get_index_type<Index>().indices();
+	min_pledge = std::max(min_pledge, uint64_t(GRAPHENE_MIN_PLEDGE_WEIGHT_LINE));
+	
+	vector<std::reference_wrapper<const ObjectType>> refs;
+	refs.reserve(all_objects.size());
+	std::transform(all_objects.begin(), all_objects.end(),
+
+		std::back_inserter(refs),
+		[](const ObjectType& o) { return std::cref(o); });
+	std::sort(refs.begin(), refs.end(),
+		[this](const ObjectType& a, const ObjectType& b)->bool {
+		uint64_t oa_pledge = a.pledge_weight;
+		share_type ob_pledge = _vote_tally_buffer[b.vote_id];
+		if (a.pledge_weight != b.pledge_weight)
+			return a.pledge_weight > b.pledge_weight;
+		return a.pledge_weight < b.pledge_weight;
+	});
+	int count = 0;
+	for (ObjectType tmp_obj : refs)
+	{
+		count++;
+		if (tmp_obj.pledge_weight < min_pledge)
+			break;
+		
+
+	}
+	count = std::max(count,GRAPHENE_PRODUCT_PER_ROUND);
+	refs.resize(count, refs.front());
+	return refs;
+}
+
 template<class Index>
 vector<std::reference_wrapper<const typename Index::object_type>> database::sort_votable_objects(size_t count) const
 {
@@ -158,6 +195,28 @@ void database::pay_workers( share_type& budget )
 
 void database::update_active_miners()
 { try {
+
+	const chain_property_object& cpo = get_chain_properties();
+
+	const global_property_object& gpo = get_global_properties();
+
+	auto wits = sort_pledge_objects<miner_index>(gpo.parameters.minimum_pledge_weight_line);
+
+
+	printf("update_active_witness");
+	
+
+	modify(gpo, [&](global_property_object& gp) {
+		gp.active_witnesses.clear();
+		gp.active_witnesses.reserve(wits.size());
+		std::transform(wits.begin(), wits.end(),
+			std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
+			[&](const miner_object& w) {
+			return w.id;
+		});
+	});
+
+/*
    assert( _witness_count_histogram_buffer.size() > 0 );
    share_type stake_target = (_total_voting_stake-_witness_count_histogram_buffer[0]) / 2;
 
@@ -181,63 +240,53 @@ void database::update_active_miners()
 
    const global_property_object& gpo = get_global_properties();
 
-   const auto& all_witnesses = get_index_type<miner_index>().indices();
-
-   for( const miner_object& wit : all_witnesses )
+   const auto& all_witnesses = get_index_type<witness_index>().indices();
+   //Update witness authority
+   //	modify(get(GRAPHENE_WITNESS_ACCOUNT), [&](account_object& a)
+   //	{
+   //		if (head_block_time() < HARDFORK_533_TIME)
+   //		{
+   //			uint64_t total_votes = 0;
+   //			map<account_id_type, uint64_t> weights;
+   //			a.active.weight_threshold = 0;
+   //			a.active.clear();
+   //
+   //			for (const miner_object& wit : wits)
+   //			{
+   //				weights.emplace(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
+   //				total_votes += _vote_tally_buffer[wit.vote_id];
+   //			}
+   //
+   //			// total_votes is 64 bits. Subtract the number of leading low bits from 64 to get the number of useful bits,
+   //			// then I want to keep the most significant 16 bits of what's left.
+   //			int8_t bits_to_drop = std::max(int(boost::multiprecision::detail::find_msb(total_votes)) - 15, 0);
+   //			for (const auto& weight : weights)
+   //			{
+   //				// Ensure that everyone has at least one vote. Zero weights aren't allowed.
+   //				uint16_t votes = std::max((weight.second >> bits_to_drop), uint64_t(1));
+   //				a.active.account_auths[weight.first] += votes;
+   //				a.active.weight_threshold += votes;
+   //			}
+   //
+   //			a.active.weight_threshold /= 2;
+   //			a.active.weight_threshold += 1;
+   //		}
+   //		else
+   //		{
+   //			vote_counter vc;
+   //			for (const miner_object& wit : wits)
+   //				vc.add(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
+   //			vc.finish(a.active);
+   //		}
+   //	});
+   for (const miner_object& wit : all_witnesses)
    {
-      modify( wit, [&]( miner_object& obj ){
-              obj.total_votes = _vote_tally_buffer[wit.vote_id];
-              });
-   }
+	   modify(wit, [&](miner_object& obj) {
+		   obj.total_votes = _vote_tally_buffer[wit.vote_id];
+	   });
+   }*/
 
-   // Update witness authority
-   modify( get(GRAPHENE_MINER_ACCOUNT), [&]( account_object& a )
-   {
-      if( head_block_time() < HARDFORK_533_TIME )
-      {
-         uint64_t total_votes = 0;
-         map<account_id_type, uint64_t> weights;
-         a.active.weight_threshold = 0;
-         a.active.clear();
-
-         for( const miner_object& wit : miners )
-         {
-            weights.emplace(wit.miner_account, _vote_tally_buffer[wit.vote_id]);
-            total_votes += _vote_tally_buffer[wit.vote_id];
-         }
-
-         // total_votes is 64 bits. Subtract the number of leading low bits from 64 to get the number of useful bits,
-         // then I want to keep the most significant 16 bits of what's left.
-         int8_t bits_to_drop = std::max(int(boost::multiprecision::detail::find_msb(total_votes)) - 15, 0);
-         for( const auto& weight : weights )
-         {
-            // Ensure that everyone has at least one vote. Zero weights aren't allowed.
-            uint16_t votes = std::max((weight.second >> bits_to_drop), uint64_t(1) );
-            a.active.account_auths[weight.first] += votes;
-            a.active.weight_threshold += votes;
-         }
-
-         a.active.weight_threshold /= 2;
-         a.active.weight_threshold += 1;
-      }
-      else
-      {
-         vote_counter vc;
-         for( const miner_object& wit : miners )
-            vc.add( wit.miner_account, _vote_tally_buffer[wit.vote_id] );
-         vc.finish( a.active );
-      }
-   } );
-
-   modify(gpo, [&]( global_property_object& gp ){
-      gp.active_witnesses.clear();
-      gp.active_witnesses.reserve(miners.size());
-      std::transform(miners.begin(), miners.end(),
-                     std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
-                     [](const miner_object& w) {
-         return w.id;
-      });
-   });
+   
 
 } FC_CAPTURE_AND_RETHROW() }
 

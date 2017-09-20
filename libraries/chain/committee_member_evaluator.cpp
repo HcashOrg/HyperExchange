@@ -30,6 +30,10 @@
 #include <graphene/chain/protocol/vote.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/witness_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
+
 #include <fc/smart_ref_impl.hpp>
 
 #define GUARD_VOTES_EXPIRATION_TIME 7*24*3600
@@ -120,6 +124,7 @@ void_result committee_member_update_global_parameters_evaluator::do_evaluate(con
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+
 void_result committee_member_update_global_parameters_evaluator::do_apply(const committee_member_update_global_parameters_operation& o)
 { try {
    db().modify(db().get_global_properties(), [&o](global_property_object& p) {
@@ -128,5 +133,112 @@ void_result committee_member_update_global_parameters_evaluator::do_apply(const 
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result committee_member_execute_coin_destory_operation_evaluator::do_evaluate(const committee_member_execute_coin_destory_operation& o)
+{
+	try {
+		FC_ASSERT(trx_state->_is_proposed_trx);
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(const committee_member_execute_coin_destory_operation& o)
+{
+	try {
+		//执行退币流程
+		database& _db = db();
+		//执行miner质押退币流程
+		const auto lock_balances = _db.get_index_type<lockbalance_index>().indices();
+		const auto guard_lock_balances = _db.get_index_type<guard_lock_balance_index>().indices();
+		const auto all_guard = _db.get_index_type<guard_member_index>().indices();
+		const auto all_miner = _db.get_index_type<miner_index>().indices();
+		share_type loss_money = o.loss_asset.amount;
+		share_type miner_need_pay_money = loss_money * o.commitee_member_handle_percent / 100;
+		share_type guard_need_pay_money = 0;
+		share_type Total_money = 0;
+		share_type Total_pay = 0;
+		auto asset_obj = _db.get(o.loss_asset.asset_id);
+		auto asset_symbol = asset_obj.symbol;
+		if (o.commitee_member_handle_percent != 100)
+		{
+			
+			for (auto& one_balance : lock_balances)
+			{
+				if (one_balance.lock_asset_id == o.loss_asset.asset_id)
+				{
+					Total_money += one_balance.lock_asset_amount;
+					//按比例扣除
+				}
+			}
+			double percent = (double)miner_need_pay_money.value / (double)Total_money.value;
+			for (auto& one_balance : lock_balances)
+			{
+				if (one_balance.lock_asset_id == o.loss_asset.asset_id)
+				{
+					share_type pay_amount  = (uint64_t)(one_balance.lock_asset_amount.value*percent);
+					_db.modify(one_balance, [&](lockbalance_object& obj) {
+						obj.lock_asset_amount -= pay_amount;
+					});
+					_db.modify(_db.get(one_balance.lockto_miner_account), [&](miner_object& obj) {
+						
+						if (obj.lockbalance_total.count(asset_symbol))
+						{
+							obj.lockbalance_total[asset_symbol] -= pay_amount;
+						}
+						
+					});
+					Total_pay += pay_amount;
+					//按比例扣除
+				}
+			}
+		}
+
+		if (o.commitee_member_handle_percent != 0)
+		{
+			guard_need_pay_money = loss_money - Total_pay;
+			int count = all_guard.size();
+			share_type one_guard_pay_money = guard_need_pay_money.value / count;
+			share_type remaining_amount = guard_need_pay_money - one_guard_pay_money* count;
+			bool first_flag = true;
+			for (auto& temp_lock_balance :guard_lock_balances)
+			{
+				
+				if (temp_lock_balance.lock_asset_id == o.loss_asset.asset_id)
+				{
+					share_type pay_amount;
+					if (first_flag)
+					{
+						pay_amount = one_guard_pay_money + remaining_amount;
+						first_flag = false;
+					}
+					else
+					{
+						pay_amount = one_guard_pay_money;
+					}
+
+					_db.modify(temp_lock_balance, [&](guard_lock_balance_object& obj) {
+						obj.lock_asset_amount -= pay_amount;
+						
+					});
+
+					_db.modify(_db.get(temp_lock_balance.lock_balance_account), [&](guard_member_object& obj) {
+							
+							obj.guard_lock_balance[asset_symbol] -= pay_amount;
+
+					});
+
+					Total_pay += pay_amount;
+					//按比例扣除
+				}
+			}
+			
+		}
+		FC_ASSERT(Total_pay == o.loss_asset.amount);
+
+		//执行跨链修改代理流程
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
 
 } } // graphene::chain

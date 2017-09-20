@@ -46,6 +46,8 @@
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/witness_schedule_object.hpp>
 #include <graphene/chain/worker_object.hpp>
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
 
 #include <graphene/chain/account_evaluator.hpp>
 #include <graphene/chain/asset_evaluator.hpp>
@@ -61,6 +63,8 @@
 #include <graphene/chain/withdraw_permission_evaluator.hpp>
 #include <graphene/chain/witness_evaluator.hpp>
 #include <graphene/chain/worker_evaluator.hpp>
+#include <graphene/chain/lockbalance_evaluator.hpp>
+#include <graphene/chain/guard_lock_balance_evaluator.hpp>
 
 #include <graphene/chain/protocol/fee_schedule.hpp>
 
@@ -126,10 +130,18 @@ const uint8_t miner_object::type_id;
 const uint8_t worker_object::space_id;
 const uint8_t worker_object::type_id;
 
+const uint8_t lockbalance_object::space_id;
+const uint8_t lockbalance_object::type_id;
+
+const uint8_t guard_lock_balance_object::space_id;
+const uint8_t guard_lock_balance_object::type_id;
+
 
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
+   register_evaluator<lockbalance_evaluator>();
+   register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
    register_evaluator<account_update_evaluator>();
    register_evaluator<account_upgrade_evaluator>();
@@ -137,6 +149,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_member_create_evaluator>();
    register_evaluator<committee_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
+   register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
    register_evaluator<custom_evaluator>();
    register_evaluator<asset_create_evaluator>();
    register_evaluator<asset_issue_evaluator>();
@@ -181,6 +194,8 @@ void database::initialize_indexes()
    //Protocol object indexes
    add_index< primary_index<asset_index> >();
    add_index< primary_index<force_settlement_index> >();
+   add_index<primary_index<lockbalance_index>>();
+   add_index<primary_index<guard_lock_balance_index>>();
 
    auto acnt_index = add_index< primary_index<account_index> >();
    acnt_index->add_secondary_index<account_member_index>();

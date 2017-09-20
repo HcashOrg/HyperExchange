@@ -25,7 +25,7 @@
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/db/object.hpp>
 #include <graphene/db/generic_index.hpp>
-
+#include <map>
 namespace graphene { namespace chain {
    using namespace graphene::db;
 
@@ -40,12 +40,20 @@ namespace graphene { namespace chain {
          account_id_type  miner_account;
          uint64_t         last_aslot = 0;
          public_key_type  signing_key;
+		 uint32_t		  last_change_signing_key_block_num = 0;
          optional< vesting_balance_id_type > pay_vb;
          vote_id_type     vote_id;
          uint64_t         total_votes = 0;
          string           url;
          int64_t          total_missed = 0;
+		 int64_t		  total_produced = 0;
          uint32_t         last_confirmed_block_num = 0;
+		 //std::map<string, vector<asset>> lockbalance;
+		 std::map<string,asset> lockbalance_total;
+		 uint64_t       pledge_weight = 100;
+		 uint8_t		  participation_rate = 100;
+
+		 optional<SecretHashType>        next_secret_hash;
 
 		 miner_object() : vote_id(vote_id_type::witness) {}
    };
@@ -74,10 +82,16 @@ FC_REFLECT_DERIVED( graphene::chain::miner_object, (graphene::db::object),
                     (miner_account)
                     (last_aslot)
                     (signing_key)
+					(last_change_signing_key_block_num)
                     (pay_vb)
                     (vote_id)
                     (total_votes)
                     (url) 
                     (total_missed)
+					(lockbalance_total)
+					(total_produced)
                     (last_confirmed_block_num)
+					(pledge_weight)
+					(participation_rate)
+					(next_secret_hash)
                   )

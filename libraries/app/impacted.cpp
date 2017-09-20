@@ -152,6 +152,7 @@ struct get_impacted_account_visitor
       _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
+   void operator()(const committee_member_execute_coin_destory_operation& op) {}
 
    void operator()( const vesting_balance_create_operation& op )
    {
@@ -162,6 +163,9 @@ struct get_impacted_account_visitor
    void operator()( const worker_create_operation& op ) {}
    void operator()( const custom_operation& op ) {}
    void operator()( const assert_operation& op ) {}
+   void operator()(const lockbalance_operation& op) {}
+   void operator()(const foreclose_balance_operation& op) {}
+   void operator()(const guard_lock_balance_operation& op) {}
    void operator()( const balance_claim_operation& op ) {}
 
    void operator()( const override_transfer_operation& op )
