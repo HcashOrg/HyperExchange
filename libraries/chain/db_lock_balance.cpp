@@ -10,7 +10,7 @@
 namespace graphene {
 	namespace chain {
 
-		asset database::get_lock_balance(account_id_type owner, account_id_type miner, asset_id_type asset_id) const{
+		asset database::get_lock_balance(account_id_type owner, witness_id_type miner, asset_id_type asset_id) const{
 			auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 			auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
 			if (itr != index.end()){
@@ -19,7 +19,7 @@ namespace graphene {
 						
 			return asset();
 		}
-		void database::adjust_guard_lock_balance(account_id_type guard_account, asset delta) {
+		void database::adjust_guard_lock_balance(committee_member_id_type guard_account, asset delta) {
 			try {
 				if (delta.amount == 0){
 					return;
@@ -44,7 +44,7 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_RETHROW((guard_account)(delta))
 		}
-		void database::adjust_lock_balance(account_id_type miner_account, account_id_type lock_account,asset delta){
+		void database::adjust_lock_balance(witness_id_type miner_account, account_id_type lock_account,asset delta){
 			try {
 				if (delta.amount == 0) {
 					return;
