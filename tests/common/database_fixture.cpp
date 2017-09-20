@@ -80,15 +80,30 @@ database_fixture::database_fixture()
    genesis_state.initial_timestamp = time_point_sec( GRAPHENE_TESTING_GENESIS_TIMESTAMP );
 
    genesis_state.initial_active_miners = 10;
-   for( int i = 0; i < genesis_state.initial_active_miners; ++i )
+   for (uint64_t i = 0; i < genesis_state.initial_active_miners; ++i)
    {
-      auto name = "init"+fc::to_string(i);
-      genesis_state.initial_accounts.emplace_back(name,
-                                                  init_account_priv_key.get_public_key(),
-                                                  init_account_priv_key.get_public_key(),
-                                                  true);
-      genesis_state.initial_guard_candidates.push_back({name});
-      genesis_state.initial_miner_candidates.push_back({name, init_account_priv_key.get_public_key()});
+	   auto name = "miner" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   
+	   genesis_state.initial_accounts.emplace_back(name,
+		   name_key.get_public_key(),
+		   name_key.get_public_key(),
+		   true);
+
+	   genesis_state.initial_miner_candidates.push_back({ name, name_key.get_public_key() });
+   }
+
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARDS; i++)
+   {
+	   auto name = "guard" + fc::to_string(i);
+	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+	   
+	   genesis_state.initial_accounts.emplace_back(name,
+		   name_key.get_public_key(),
+		   name_key.get_public_key(),
+		   true);
+	   genesis_state.initial_guard_candidates.push_back({ name });
+
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
    open_database();

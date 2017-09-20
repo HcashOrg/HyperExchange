@@ -589,36 +589,27 @@ BOOST_AUTO_TEST_CASE( transfer_core_asset )
    }
 }
 
-BOOST_AUTO_TEST_CASE( create_guard_member )
+BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 {
     try {
-        guard_member_create_operation op;
-        op.guard_member_account = account_id_type();
-        op.fee = asset();
-        trx.operations.push_back(op);
-
-        REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(99999999));
-        REQUIRE_THROW_WITH_VALUE(op, fee, asset(-600));
-        trx.operations.back() = op;
-
-        guard_member_id_type committee_member_id = db.get_index_type<primary_index<simple_index<guard_member_object>>>().get_next_id();
-        PUSH_TX(db, trx, ~0);
-        const guard_member_object& d = committee_member_id(db);
-
-        BOOST_CHECK(d.guard_member_account == account_id_type());
-
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+		auto guard_account =create_account("guardtest",private_key.get_public_key());
+		create_guard_member(guard_account);
+		guard_member_create_operation op;
         // No more than 15 guards can be created.
         for (auto i = 0; i < 5; ++i) {
             trx.clear();
             auto acct = create_account(std::string("guardtest")+fc::to_string(i));
             op.guard_member_account = account_id_type(acct.id);
-            op.fee = asset();
-            trx.operations.push_back(op);
-            if (i == 4) {
-                REQUIRE_THROW_WITH_VALUE(op, guard_member_account, account_id_type(acct.id));
-            } else {
-                PUSH_TX(db, trx, ~0);
-            }
+			auto fee = db.get_global_properties().parameters.current_fees;
+			auto guard_op = operation(op);
+			fee->set_fee(guard_op);
+            trx.operations.push_back(guard_op);
+			sign(trx, private_key);
+			PUSH_TX(db,trx,~0);
+			auto& iter = db.get_index_type<guard_member_index>().indices().get<by_account>();
+			BOOST_CHECK(iter.find(acct.get_id()) != iter.end());
+			BOOST_CHECK(iter.find(acct.get_id())->formal == false);
         }
 
     }
@@ -1834,3 +1825,4 @@ BOOST_AUTO_TEST_CASE( vesting_balance_withdraw_test )
 // TODO:  Write linear VBO tests
 
 BOOST_AUTO_TEST_SUITE_END()
+
