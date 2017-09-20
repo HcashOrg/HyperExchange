@@ -53,43 +53,9 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    auto asset_symbol_itr = asset_indx.find( op.symbol );
    FC_ASSERT( asset_symbol_itr == asset_indx.end() );
 
-   if( d.head_block_time() > HARDFORK_385_TIME )
-   {
-
-   if( d.head_block_time() <= HARDFORK_409_TIME )
-   {
-      auto dotpos = op.symbol.find( '.' );
-      if( dotpos != std::string::npos )
-      {
-         auto prefix = op.symbol.substr( 0, dotpos );
-         auto asset_symbol_itr = asset_indx.find( op.symbol );
-         FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
-                    ("s",op.symbol)("p",prefix) );
-         FC_ASSERT( asset_symbol_itr->issuer == op.issuer, "Asset ${s} may only be created by issuer of ${p}, ${i}",
-                    ("s",op.symbol)("p",prefix)("i", op.issuer(d).name) );
-      }
-   }
-   else
-   {
-      auto dotpos = op.symbol.rfind( '.' );
-      if( dotpos != std::string::npos )
-      {
-         auto prefix = op.symbol.substr( 0, dotpos );
-         auto asset_symbol_itr = asset_indx.find( prefix );
-         FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
-                    ("s",op.symbol)("p",prefix) );
-         FC_ASSERT( asset_symbol_itr->issuer == op.issuer, "Asset ${s} may only be created by issuer of ${p}, ${i}",
-                    ("s",op.symbol)("p",prefix)("i", op.issuer(d).name) );
-      }
-   }
-
-   }
-   else
-   {
-      auto dotpos = op.symbol.find( '.' );
-      if( dotpos != std::string::npos )
-          wlog( "Asset ${s} has a name which requires hardfork 385", ("s",op.symbol) );
-   }
+   auto dotpos = op.symbol.find( '.' );
+   if( dotpos != std::string::npos )
+	   wlog( "Asset ${s} has a name which requires hardfork 385", ("s",op.symbol) );
 
    core_fee_paid -= core_fee_paid.value/2;
 
@@ -266,7 +232,7 @@ void_result asset_update_evaluator::do_evaluate(const asset_update_operation& o)
       }
    }
 
-   if( (d.head_block_time() < HARDFORK_572_TIME) || (a.dynamic_asset_data_id(d).current_supply != 0) )
+   if( a.dynamic_asset_data_id(d).current_supply != 0) 
    {
       // new issuer_permissions must be subset of old issuer permissions
       FC_ASSERT(!(o.new_options.issuer_permissions & ~a.options.issuer_permissions),
