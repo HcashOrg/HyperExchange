@@ -597,7 +597,7 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 		create_guard_member(guard_account);
 		guard_member_create_operation op;
         // No more than 15 guards can be created.
-        for (auto i = 0; i < 5; ++i) {
+        for (auto i = 0; i <= 7; ++i) {
             trx.clear();
             auto acct = create_account(std::string("guardtest")+fc::to_string(i));
             op.guard_member_account = account_id_type(acct.id);
@@ -610,6 +610,9 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 			auto& iter = db.get_index_type<guard_member_index>().indices().get<by_account>();
 			BOOST_CHECK(iter.find(acct.get_id()) != iter.end());
 			BOOST_CHECK(iter.find(acct.get_id())->formal == false);
+			if (i==7)
+				GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
+
         }
 
     }
