@@ -150,8 +150,8 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 		//执行miner质押退币流程
 		const auto lock_balances = _db.get_index_type<lockbalance_index>().indices();
 		const auto guard_lock_balances = _db.get_index_type<guard_lock_balance_index>().indices();
-		const auto all_guard = _db.get_index_type<committee_member_index>().indices();
-		const auto all_miner = _db.get_index_type<witness_index>().indices();
+		const auto all_guard = _db.get_index_type<guard_member_index>().indices();
+		const auto all_miner = _db.get_index_type<miner_index>().indices();
 		share_type loss_money = o.loss_asset.amount;
 		share_type miner_need_pay_money = loss_money * o.commitee_member_handle_percent / 100;
 		share_type guard_need_pay_money = 0;
@@ -179,7 +179,7 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 					_db.modify(one_balance, [&](lockbalance_object& obj) {
 						obj.lock_asset_amount -= pay_amount;
 					});
-					_db.modify(_db.get(one_balance.lockto_miner_account), [&](witness_object& obj) {
+					_db.modify(_db.get(one_balance.lockto_miner_account), [&](miner_object& obj) {
 						
 						if (obj.lockbalance_total.count(asset_symbol))
 						{
@@ -200,10 +200,10 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 			share_type one_guard_pay_money = guard_need_pay_money.value / count;
 			share_type remaining_amount = guard_need_pay_money - one_guard_pay_money* count;
 			bool first_flag = true;
-			for (auto& lock_balance :guard_lock_balances)
+			for (auto& temp_lock_balance :guard_lock_balances)
 			{
 				
-				if (lock_balance.lock_asset_id == o.loss_asset.asset_id)
+				if (temp_lock_balance.lock_asset_id == o.loss_asset.asset_id)
 				{
 					share_type pay_amount;
 					if (first_flag)
@@ -216,12 +216,12 @@ void_result committee_member_execute_coin_destory_operation_evaluator::do_apply(
 						pay_amount = one_guard_pay_money;
 					}
 
-					_db.modify(lock_balance, [&](lockbalance_object& obj) {
+					_db.modify(temp_lock_balance, [&](guard_lock_balance_object& obj) {
 						obj.lock_asset_amount -= pay_amount;
 						
 					});
 
-					_db.modify(_db.get(lock_balance.lock_balance_account), [&](committee_member_object& obj) {
+					_db.modify(_db.get(temp_lock_balance.lock_balance_account), [&](guard_member_object& obj) {
 							
 							obj.guard_lock_balance[asset_symbol] -= pay_amount;
 

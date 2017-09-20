@@ -1034,7 +1034,7 @@ int64_t database_fixture::get_balance( account_id_type account, asset_id_type a 
 {
   return db.get_balance(account, a).amount.value;
 }
-asset database_fixture::get_lock_balance(account_id_type owner, witness_id_type miner, asset_id_type asset_id)const {
+asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id)const {
 	return db.get_lock_balance(owner, miner,asset_id);
 }
 int64_t database_fixture::get_balance( const account_object& account, const asset_object& a )const

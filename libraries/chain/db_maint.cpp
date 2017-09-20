@@ -200,7 +200,7 @@ void database::update_active_miners()
 
 	const global_property_object& gpo = get_global_properties();
 
-	auto wits = sort_pledge_objects<witness_index>(gpo.parameters.minimum_pledge_weight_line);
+	auto wits = sort_pledge_objects<miner_index>(gpo.parameters.minimum_pledge_weight_line);
 
 
 	printf("update_active_witness");
@@ -211,7 +211,7 @@ void database::update_active_miners()
 		gp.active_witnesses.reserve(wits.size());
 		std::transform(wits.begin(), wits.end(),
 			std::inserter(gp.active_witnesses, gp.active_witnesses.end()),
-			[&](const witness_object& w) {
+			[&](const miner_object& w) {
 			return w.id;
 		});
 	});
@@ -251,7 +251,7 @@ void database::update_active_miners()
    //			a.active.weight_threshold = 0;
    //			a.active.clear();
    //
-   //			for (const witness_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //			{
    //				weights.emplace(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //				total_votes += _vote_tally_buffer[wit.vote_id];
@@ -274,14 +274,14 @@ void database::update_active_miners()
    //		else
    //		{
    //			vote_counter vc;
-   //			for (const witness_object& wit : wits)
+   //			for (const miner_object& wit : wits)
    //				vc.add(wit.witness_account, _vote_tally_buffer[wit.vote_id]);
    //			vc.finish(a.active);
    //		}
    //	});
-   for (const witness_object& wit : all_witnesses)
+   for (const miner_object& wit : all_witnesses)
    {
-	   modify(wit, [&](witness_object& obj) {
+	   modify(wit, [&](miner_object& obj) {
 		   obj.total_votes = _vote_tally_buffer[wit.vote_id];
 	   });
    }*/

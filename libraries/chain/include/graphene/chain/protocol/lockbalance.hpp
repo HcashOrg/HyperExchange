@@ -13,7 +13,7 @@ namespace graphene {
 			share_type foreclose_asset_amount;
 			address foreclose_contract_addr;
 			account_id_type foreclose_account;
-			witness_id_type foreclose_miner_account;
+			miner_id_type foreclose_miner_account;
 
 			address foreclose_addr;
 			account_id_type fee_payer()const { return foreclose_account; }
@@ -32,7 +32,7 @@ namespace graphene {
 			address contract_addr;
 
 			account_id_type lock_balance_account;
-			witness_id_type lockto_miner_account;
+			miner_id_type lockto_miner_account;
 
 			address lock_balance_addr;
 			asset fee;

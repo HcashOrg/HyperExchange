@@ -132,12 +132,12 @@ void database::update_miner_schedule()
 		{
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
-				_wso.current_shuffled_witnesses.clear();
-				_wso.current_shuffled_witnesses.reserve(GRAPHENE_PRODUCT_PER_ROUND);
+				_wso.current_shuffled_miners.clear();
+				_wso.current_shuffled_miners.reserve(GRAPHENE_PRODUCT_PER_ROUND);
 				vector< uint64_t > temp_witnesses_weight;
-				vector<witness_id_type> temp_active_witnesses;
+				vector<miner_id_type> temp_active_witnesses;
 				uint64_t total_weight = 0;
-				for (const witness_id_type& w : gpo.active_witnesses)
+				for (const miner_id_type& w : gpo.active_witnesses)
 				{
 					const auto& witness_obj = w(*this);
 					total_weight += witness_obj.pledge_weight * witness_obj.participation_rate / 100;
@@ -154,7 +154,7 @@ void database::update_miner_schedule()
 					uint64_t r = rand_seed._hash[x];
 					uint64_t j = (r % total_weight);
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
-					_wso.current_shuffled_witnesses.push_back(temp_active_witnesses[slot]);
+					_wso.current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
 					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i ]);
 					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1 - i]);
