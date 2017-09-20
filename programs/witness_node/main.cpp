@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
       bpo::variables_map options;
 
-      auto witness_plug = node->register_plugin<witness_plugin::witness_plugin>();
+      auto witness_plug = node->register_plugin<miner_plugin::miner_plugin>();
       auto history_plug = node->register_plugin<account_history::account_history_plugin>();
       auto market_history_plug = node->register_plugin<market_history::market_history_plugin>();
 
@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
                   out_cfg << od->long_name() << " = " << example << "\n";
                }
             }
+		
             out_cfg << "\n";
          }
          write_default_logging_config_to_stream(out_cfg);

@@ -30,33 +30,33 @@
 
 namespace graphene { namespace chain {
 
-void_result witness_create_evaluator::do_evaluate( const witness_create_operation& op )
+void_result miner_create_evaluator::do_evaluate( const miner_create_operation& op )
 { try {
-   FC_ASSERT(db().get(op.witness_account).is_lifetime_member());
+   //account cannot be a guard
+   auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
+   FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
-object_id_type witness_create_evaluator::
-
-do_apply( const witness_create_operation& op )
+object_id_type miner_create_evaluator::do_apply( const miner_create_operation& op )
 { try {
    vote_id_type vote_id;
    db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
       vote_id = get_next_vote_id(p, vote_id_type::witness);
    });
 
-   const auto& new_witness_object = db().create<witness_object>( [&]( witness_object& obj ){
-         obj.witness_account  = op.witness_account;
+   const auto& new_miner_object = db().create<miner_object>( [&]( miner_object& obj ){
+         obj.miner_account  = op.miner_account;
          obj.signing_key      = op.block_signing_key;
          obj.vote_id          = vote_id;
          obj.url              = op.url;
    });
-   return new_witness_object.id;
+   return new_miner_object.id;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
 void_result witness_update_evaluator::do_evaluate( const witness_update_operation& op )
 { try {
-   FC_ASSERT(db().get(op.witness).witness_account == op.witness_account);
+   FC_ASSERT(db().get(op.witness).miner_account == op.witness_account);
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
@@ -65,7 +65,7 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
    database& _db = db();
    _db.modify(
       _db.get(op.witness),
-      [&]( witness_object& wit )
+      [&]( miner_object& wit )
       {
          if( op.new_url.valid() )
             wit.url = *op.new_url;

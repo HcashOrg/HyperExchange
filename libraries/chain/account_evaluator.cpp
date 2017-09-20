@@ -138,7 +138,7 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
          obj.owner            = o.owner;
          obj.active           = o.active;
          obj.options          = o.options;
-		 obj.addr             = o.payer;
+		 obj.addr             = o.owner.get_keys().front();
          obj.statistics = db().create<account_statistics_object>([&](account_statistics_object& s){s.owner = obj.id;}).id;
 
          if( o.extensions.value.owner_special_authority.valid() )

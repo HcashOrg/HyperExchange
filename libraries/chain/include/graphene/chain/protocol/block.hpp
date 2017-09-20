@@ -32,7 +32,7 @@ namespace graphene { namespace chain {
       block_id_type                 previous;
       uint32_t                      block_num()const { return num_from_id(previous) + 1; }
       fc::time_point_sec            timestamp;
-      witness_id_type               witness;
+      miner_id_type               miner;
       checksum_type                 transaction_merkle_root;
       extensions_type               extensions;
 	  SecretHashType				next_secret_hash;
@@ -49,7 +49,7 @@ namespace graphene { namespace chain {
       void                       sign( const fc::ecc::private_key& signer );
       bool                       validate_signee( const fc::ecc::public_key& expected_signee )const;
 
-      signature_type             witness_signature;
+      signature_type             miner_signature;
    };
 
    struct signed_block : public signed_block_header
@@ -60,6 +60,6 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 
-FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(witness)(transaction_merkle_root)(extensions) )
-FC_REFLECT_DERIVED( graphene::chain::signed_block_header, (graphene::chain::block_header), (witness_signature) )
+FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(miner)(transaction_merkle_root)(extensions) )
+FC_REFLECT_DERIVED( graphene::chain::signed_block_header, (graphene::chain::block_header), (miner_signature) )
 FC_REFLECT_DERIVED( graphene::chain::signed_block, (graphene::chain::signed_block_header), (transactions) )

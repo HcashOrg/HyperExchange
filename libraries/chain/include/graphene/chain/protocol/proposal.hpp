@@ -74,12 +74,13 @@ namespace graphene { namespace chain {
        };
 
        asset              fee;
-       account_id_type    fee_paying_account;
+	   account_id_type    proposer;
+       address            fee_paying_account;
        vector<op_wrapper> proposed_ops;
        time_point_sec     expiration_time;
        optional<uint32_t> review_period_seconds;
        extensions_type    extensions;
-
+	   vote_id_type::vote_type  type = vote_id_type::committee;
        /**
         * Constructs a proposal_create_operation suitable for committee
         * proposals, with expiration time and review period set
@@ -92,9 +93,13 @@ namespace graphene { namespace chain {
         */
        static proposal_create_operation committee_proposal(const chain_parameters& param, fc::time_point_sec head_block_time );
 
-       account_id_type fee_payer()const { return fee_paying_account; }
+       address fee_payer()const { return fee_paying_account; }
        void            validate()const;
        share_type      calculate_fee(const fee_parameters_type& k)const;
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, fee_payer(), 1));
+	   }
    };
 
    /**
@@ -129,8 +134,8 @@ namespace graphene { namespace chain {
       flat_set<account_id_type>  active_approvals_to_remove;
       flat_set<account_id_type>  owner_approvals_to_add;
       flat_set<account_id_type>  owner_approvals_to_remove;
-      flat_set<public_key_type>  key_approvals_to_add;
-      flat_set<public_key_type>  key_approvals_to_remove;
+      flat_set<address>  key_approvals_to_add;
+      flat_set<address>  key_approvals_to_remove;
       extensions_type            extensions;
 
       account_id_type fee_payer()const { return fee_paying_account; }
@@ -173,7 +178,7 @@ FC_REFLECT( graphene::chain::proposal_create_operation::fee_parameters_type, (fe
 FC_REFLECT( graphene::chain::proposal_update_operation::fee_parameters_type, (fee)(price_per_kbyte) )
 FC_REFLECT( graphene::chain::proposal_delete_operation::fee_parameters_type, (fee) )
 
-FC_REFLECT( graphene::chain::proposal_create_operation, (fee)(fee_paying_account)(expiration_time)
+FC_REFLECT( graphene::chain::proposal_create_operation, (fee)(proposer)(fee_paying_account)(expiration_time)
             (proposed_ops)(review_period_seconds)(extensions) )
 FC_REFLECT( graphene::chain::proposal_update_operation, (fee)(fee_paying_account)(proposal)
             (active_approvals_to_add)(active_approvals_to_remove)(owner_approvals_to_add)(owner_approvals_to_remove)

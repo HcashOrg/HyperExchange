@@ -28,7 +28,7 @@
 
 #include <fc/thread/future.hpp>
 
-namespace graphene { namespace witness_plugin {
+namespace graphene { namespace miner_plugin {
 
 namespace block_production_condition
 {
@@ -46,9 +46,9 @@ namespace block_production_condition
    };
 }
 
-class witness_plugin : public graphene::app::plugin {
+class miner_plugin :public graphene::app::plugin {
 public:
-   ~witness_plugin() {
+   ~miner_plugin() {
       try {
          if( _block_production_task.valid() )
             _block_production_task.cancel_and_wait(__FUNCTION__);
@@ -80,12 +80,12 @@ private:
    boost::program_options::variables_map _options;
    bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
-   uint32_t _required_witness_participation = 33 * GRAPHENE_1_PERCENT;
+   uint32_t _required_miner_participation = 33 * GRAPHENE_1_PERCENT;
    uint32_t _production_skip_flags = graphene::chain::database::skip_nothing;
 
    std::map<chain::public_key_type, fc::ecc::private_key> _private_keys;
-   std::set<chain::witness_id_type> _witnesses;
+   std::set<chain::miner_id_type> _miners;
    fc::future<void> _block_production_task;
 };
 
-} } //graphene::witness_plugin
+} } //graphene::miner_plugin

@@ -182,7 +182,7 @@ void database::deposit_cashback(const account_object& acct, share_type amount, b
    if( amount == 0 )
       return;
 
-   if( acct.get_id() == GRAPHENE_COMMITTEE_ACCOUNT || acct.get_id() == GRAPHENE_WITNESS_ACCOUNT ||
+   if( acct.get_id() == GRAPHENE_GUARD_ACCOUNT || acct.get_id() == GRAPHENE_MINER_ACCOUNT ||
        acct.get_id() == GRAPHENE_RELAXED_COMMITTEE_ACCOUNT || acct.get_id() == GRAPHENE_NULL_ACCOUNT ||
        acct.get_id() == GRAPHENE_TEMP_ACCOUNT )
    {
@@ -211,7 +211,7 @@ void database::deposit_cashback(const account_object& acct, share_type amount, b
    return;
 }
 
-void database::deposit_witness_pay(const witness_object& wit, share_type amount)
+void database::deposit_miner_pay(const miner_object& wit, share_type amount)
 {
    if( amount == 0 )
       return;
@@ -219,13 +219,13 @@ void database::deposit_witness_pay(const witness_object& wit, share_type amount)
    optional< vesting_balance_id_type > new_vbid = deposit_lazy_vesting(
       wit.pay_vb,
       amount,
-      get_global_properties().parameters.witness_pay_vesting_seconds,
-      wit.witness_account,
+      get_global_properties().parameters.miner_pay_vesting_seconds,
+      wit.miner_account,
       true );
 
    if( new_vbid.valid() )
    {
-      modify( wit, [&]( witness_object& _wit )
+      modify( wit, [&](miner_object& _wit )
       {
          _wit.pay_vb = *new_vbid;
       } );

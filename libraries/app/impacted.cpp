@@ -102,9 +102,9 @@ struct get_impacted_account_visitor
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
    void operator()( const asset_publish_feed_operation& op ) {}
-   void operator()( const witness_create_operation& op )
+   void operator()( const miner_create_operation& op )
    {
-      _impacted.insert( op.witness_account );
+      _impacted.insert( op.miner_account );
    }
    void operator()( const witness_update_operation& op )
    {
@@ -143,13 +143,13 @@ struct get_impacted_account_visitor
       _impacted.insert( op.authorized_account );
    }
 
-   void operator()( const committee_member_create_operation& op )
+   void operator()( const guard_member_create_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_operation& op )
    {
-      _impacted.insert( op.committee_member_account );
+      _impacted.insert( op.guard_member_account );
    }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
    void operator()(const committee_member_execute_coin_destory_operation& op) {}

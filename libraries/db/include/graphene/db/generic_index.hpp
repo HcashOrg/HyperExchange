@@ -108,7 +108,6 @@ namespace graphene { namespace chain {
          }
 
       private:
-         fc::uint128 _current_hash;
          index_type  _indices;
    };
 

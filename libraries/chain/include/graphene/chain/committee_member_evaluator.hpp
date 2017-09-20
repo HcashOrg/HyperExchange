@@ -27,13 +27,13 @@
 
 namespace graphene { namespace chain {
 
-   class committee_member_create_evaluator : public evaluator<committee_member_create_evaluator>
+   class guard_member_create_evaluator : public evaluator<guard_member_create_evaluator>
    {
       public:
-         typedef committee_member_create_operation operation_type;
+         typedef guard_member_create_operation operation_type;
 
-         void_result do_evaluate( const committee_member_create_operation& o );
-         object_id_type do_apply( const committee_member_create_operation& o );
+         void_result do_evaluate( const guard_member_create_operation& o );
+         object_id_type do_apply( const guard_member_create_operation& o );
    };
 
    class committee_member_update_evaluator : public evaluator<committee_member_update_evaluator>

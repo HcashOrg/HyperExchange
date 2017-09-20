@@ -35,16 +35,16 @@ struct budget_record
    // sources of budget
    share_type from_initial_reserve = 0;
    share_type from_accumulated_fees = 0;
-   share_type from_unused_witness_budget = 0;
+   share_type from_unused_miner_budget = 0;
 
    // witness budget requested by the committee
-   share_type requested_witness_budget = 0;
+   share_type requested_miner_budget = 0;
 
    // funds that can be released from reserve at maximum rate
    share_type total_budget = 0;
 
    // sinks of budget, should sum up to total_budget
-   share_type witness_budget = 0;
+   share_type miner_budget = 0;
    share_type worker_budget = 0;
 
    // unused budget
@@ -73,10 +73,10 @@ FC_REFLECT(
    (time_since_last_budget)
    (from_initial_reserve)
    (from_accumulated_fees)
-   (from_unused_witness_budget)
-   (requested_witness_budget)
+   (from_unused_miner_budget)
+   (requested_miner_budget)
    (total_budget)
-   (witness_budget)
+   (miner_budget)
    (worker_budget)
    (leftover_worker_funds)
    (supply_delta)

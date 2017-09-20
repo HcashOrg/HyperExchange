@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE( update_account_keys, database_fixture )
       const asset_object& core = asset_id_type()(db);
       uint32_t skip_flags =
           database::skip_transaction_dupe_check
-        | database::skip_witness_signature
+        | database::skip_miner_signature
         | database::skip_transaction_signatures
         | database::skip_authority_check
         ;
@@ -263,8 +263,8 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
       size_t num_witnesses = db.get_global_properties().active_witnesses.size();
       size_t dmin = num_witnesses >> 1;
 
-      vector< witness_id_type > cur_round;
-      vector< witness_id_type > full_schedule;
+      vector< miner_id_type > cur_round;
+      vector< miner_id_type > full_schedule;
       // if we make the maximum witness count testable,
       // we'll need to enlarge this.
       std::bitset< 0x40 > witness_seen;
@@ -284,7 +284,7 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
          {
              wdump( (db.head_block_num()) );
          }
-         witness_id_type wid = db.get_scheduled_witness( 1 );
+         miner_id_type wid = db.get_scheduled_miner( 1 );
          full_schedule.push_back( wid );
          cur_round.push_back( wid );
          if( cur_round.size() == num_witnesses )
@@ -292,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE( witness_order_mc_test, database_fixture )
             // check that the current round contains exactly 1 copy
             // of each witness
             witness_seen.reset();
-            for( const witness_id_type& w : cur_round )
+            for( const miner_id_type& w : cur_round )
             {
                uint64_t inst = w.instance.value;
                BOOST_CHECK( !witness_seen.test( inst ) );
@@ -372,20 +372,20 @@ BOOST_FIXTURE_TEST_CASE(bulk_discount, database_fixture)
 { try {
    ACTOR(nathan);
    // Give nathan ALLLLLL the money!
-   transfer(GRAPHENE_COMMITTEE_ACCOUNT, nathan_id, db.get_balance(GRAPHENE_COMMITTEE_ACCOUNT, asset_id_type()));
+   transfer(GRAPHENE_GUARD_ACCOUNT, nathan_id, db.get_balance(GRAPHENE_GUARD_ACCOUNT, asset_id_type()));
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    upgrade_to_lifetime_member(nathan_id);
    share_type new_fees;
    while( nathan_id(db).statistics(db).lifetime_fees_paid + new_fees < GRAPHENE_DEFAULT_BULK_DISCOUNT_THRESHOLD_MIN )
    {
-      transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+      transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
       new_fees += db.current_fee_schedule().calculate_fee(transfer_operation()).amount;
    }
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    auto old_cashback = nathan_id(db).cashback_balance(db).balance;
 
-   transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+   transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
 
@@ -395,14 +395,14 @@ BOOST_FIXTURE_TEST_CASE(bulk_discount, database_fixture)
    new_fees = 0;
    while( nathan_id(db).statistics(db).lifetime_fees_paid + new_fees < GRAPHENE_DEFAULT_BULK_DISCOUNT_THRESHOLD_MAX )
    {
-      transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+      transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
       new_fees += db.current_fee_schedule().calculate_fee(transfer_operation()).amount;
    }
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
    enable_fees();//GRAPHENE_BLOCKCHAIN_PRECISION*10);
    old_cashback = nathan_id(db).cashback_balance(db).balance;
 
-   transfer(nathan_id, GRAPHENE_COMMITTEE_ACCOUNT, asset(1));
+   transfer(nathan_id, GRAPHENE_GUARD_ACCOUNT, asset(1));
    generate_blocks(db.get_dynamic_global_properties().next_maintenance_time);
 
    BOOST_CHECK_EQUAL(nathan_id(db).cashback_balance(db).balance.amount.value,

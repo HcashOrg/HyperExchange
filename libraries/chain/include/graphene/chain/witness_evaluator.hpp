@@ -27,13 +27,13 @@
 
 namespace graphene { namespace chain {
 
-   class witness_create_evaluator : public evaluator<witness_create_evaluator>
+   class miner_create_evaluator : public evaluator<miner_create_evaluator>
    {
       public:
-         typedef witness_create_operation operation_type;
+         typedef miner_create_operation operation_type;
 
-         void_result do_evaluate( const witness_create_operation& o );
-         object_id_type do_apply( const witness_create_operation& o );
+         void_result do_evaluate( const miner_create_operation& o );
+         object_id_type do_apply( const miner_create_operation& o );
    };
 
    class witness_update_evaluator : public evaluator<witness_update_evaluator>

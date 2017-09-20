@@ -218,11 +218,11 @@ struct database_fixture {
    const asset_object& get_asset( const string& symbol )const;
    const account_object& get_account( const string& name )const;
    const asset_object& create_bitasset(const string& name,
-                                       account_id_type issuer = GRAPHENE_WITNESS_ACCOUNT,
+                                       account_id_type issuer = GRAPHENE_MINER_ACCOUNT,
                                        uint16_t market_fee_percent = 100 /*1%*/,
                                        uint16_t flags = charge_market_fee);
    const asset_object& create_prediction_market(const string& name,
-                                       account_id_type issuer = GRAPHENE_WITNESS_ACCOUNT,
+                                       account_id_type issuer = GRAPHENE_MINER_ACCOUNT,
                                        uint16_t market_fee_percent = 100 /*1%*/,
                                        uint16_t flags = charge_market_fee);
    const asset_object& create_user_issued_asset( const string& name );
@@ -253,10 +253,10 @@ struct database_fixture {
       uint8_t referrer_percent = 100
       );
 
-   const committee_member_object& create_committee_member( const account_object& owner );
-   const witness_object& create_witness(account_id_type owner,
+   const guard_member_object& create_guard_member( const account_object& owner );
+   const miner_object& create_witness(account_id_type owner,
                                         const fc::ecc::private_key& signing_private_key = generate_private_key("null_key"));
-   const witness_object& create_witness(const account_object& owner,
+   const miner_object& create_witness(const account_object& owner,
                                         const fc::ecc::private_key& signing_private_key = generate_private_key("null_key"));
    uint64_t fund( const account_object& account, const asset& amount = asset(500000) );
    digest_type digest( const transaction& tx );

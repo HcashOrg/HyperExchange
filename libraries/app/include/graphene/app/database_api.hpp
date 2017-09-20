@@ -241,6 +241,14 @@ class database_api
        * This function has semantics identical to @ref get_objects
        */
       vector<optional<account_object>> get_accounts(const vector<account_id_type>& account_ids)const;
+	  /**
+	  * @brief Get a list of accounts by address
+	  * @param addresses of the accounts to retrieve
+	  * @return The accounts corresponding to the provided addresses
+	  *
+	  * This function has semantics identical to @ref get_objects
+	  */
+	  vector<optional<account_object>> get_accounts_addr(const vector<address>& account_ids)const;
 
       /**
        * @brief Fetch all objects relevant to the specified accounts and subscribe to updates
@@ -439,14 +447,14 @@ class database_api
        *
        * This function has semantics identical to @ref get_objects
        */
-      vector<optional<witness_object>> get_witnesses(const vector<witness_id_type>& witness_ids)const;
+      vector<optional<miner_object>> get_miners(const vector<miner_id_type>& witness_ids)const;
 
       /**
        * @brief Get the witness owned by a given account
        * @param account The ID of the account whose witness should be retrieved
        * @return The witness object, or null if the account does not have a witness
        */
-      fc::optional<witness_object> get_witness_by_account(account_id_type account)const;
+      fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
 
       /**
        * @brief Get names and IDs for registered witnesses
@@ -454,12 +462,12 @@ class database_api
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of witness names to corresponding IDs
        */
-      map<string, witness_id_type> lookup_witness_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, miner_id_type> lookup_miner_accounts(const string& lower_bound_name, uint32_t limit)const;
 
       /**
        * @brief Get the total number of witnesses registered with the blockchain
        */
-      uint64_t get_witness_count()const;
+      uint64_t get_miner_count()const;
 
       ///////////////////////
       // Committee members //
@@ -472,14 +480,14 @@ class database_api
        *
        * This function has semantics identical to @ref get_objects
        */
-      vector<optional<committee_member_object>> get_committee_members(const vector<committee_member_id_type>& committee_member_ids)const;
+      vector<optional<guard_member_object>> get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const;
 
       /**
        * @brief Get the committee_member owned by a given account
        * @param account The ID of the account whose committee_member should be retrieved
        * @return The committee_member object, or null if the account does not have a committee_member
        */
-      fc::optional<committee_member_object> get_committee_member_by_account(account_id_type account)const;
+      fc::optional<guard_member_object> get_guard_member_by_account(account_id_type account)const;
 
       /**
        * @brief Get names and IDs for registered committee_members
@@ -487,7 +495,7 @@ class database_api
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of committee_member names to corresponding IDs
        */
-      map<string, committee_member_id_type> lookup_committee_member_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const;
 
 
       /// WORKERS
@@ -505,7 +513,7 @@ class database_api
       /**
        *  @brief Given a set of votes, return the objects they are voting for.
        *
-       *  This will be a mixture of committee_member_object, witness_objects, and worker_objects
+       *  This will be a mixture of guard_member_object, miner_objects, and worker_objects
        *
        *  The results will be in the same order as the votes.  Null will be returned for
        *  any vote ids that are not found.
@@ -562,7 +570,8 @@ class database_api
        *  @return the set of proposed transactions relevant to the specified account id.
        */
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
-
+	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
+	  vector<proposal_object> get_voter_transactions_waiting(address add)const;  //waiting to be voted
       //////////////////////
       // Blinded balances //
       //////////////////////
@@ -620,6 +629,7 @@ FC_API(graphene::app::database_api,
 	(lookup_account_names)
 	(lookup_accounts)
 	(get_account_count)
+	(get_accounts_addr)
 
 	// Balances
 	(get_account_balances)
@@ -646,15 +656,15 @@ FC_API(graphene::app::database_api,
 	(get_trade_history)
 
 	// Witnesses
-	(get_witnesses)
-	(get_witness_by_account)
-	(lookup_witness_accounts)
-	(get_witness_count)
+	(get_miners)
+	(get_miner_by_account)
+	(lookup_miner_accounts)
+	(get_miner_count)
 
 	// Committee members
-	(get_committee_members)
-	(get_committee_member_by_account)
-	(lookup_committee_member_accounts)
+	(get_guard_members)
+	(get_guard_member_by_account)
+	(lookup_guard_member_accounts)
 
 	// workers
 	(get_workers_by_account)
@@ -673,7 +683,8 @@ FC_API(graphene::app::database_api,
 
 	// Proposed transactions
 	(get_proposed_transactions)
-
+	(get_proposer_transactions)
+	(get_voter_transactions_waiting)
 	// Blinded balances
 	(get_blinded_balances)
 );

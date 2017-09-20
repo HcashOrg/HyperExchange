@@ -187,7 +187,7 @@ struct wallet_data
    // map of account_name -> base58_private_key for
    //    incomplete account regs
    map<string, address > pending_account_registrations;
-   map<string, string> pending_witness_registrations;
+   map<string, string> pending_miner_registrations;
 
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
@@ -1282,9 +1282,9 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a committee_member
        */
-      signed_transaction create_committee_member(string owner_account,
-                                         string url, 
-                                         bool broadcast = false);
+      signed_transaction create_guard_member(string proposing_account, string account, string url,
+		                                     int64_t expiration_time,
+                                             bool broadcast = false);
 
       /** Lists all witnesses registered in the blockchain.
        * This returns a list of all account names that own witnesses, and the associated witness id,
@@ -1299,7 +1299,7 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      map<string,witness_id_type>       list_witnesses(const string& lowerbound, uint32_t limit);
+      map<string,miner_id_type>       list_miners(const string& lowerbound, uint32_t limit);
 
       /** Lists all committee_members registered in the blockchain.
        * This returns a list of all account names that own committee_members, and the associated committee_member id,
@@ -1307,38 +1307,38 @@ class wallet_api
        *
        * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all committee_members,
        * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-       * the last committee_member name returned as the \c lowerbound for the next \c list_committee_members() call.
+       * the last committee_member name returned as the \c lowerbound for the next \c list_guard_members() call.
        *
        * @param lowerbound the name of the first committee_member to return.  If the named committee_member does not exist, 
        *                   the list will start at the committee_member that comes after \c lowerbound
        * @param limit the maximum number of committee_members to return (max: 1000)
        * @returns a list of committee_members mapping committee_member names to committee_member ids
        */
-      map<string, committee_member_id_type>       list_committee_members(const string& lowerbound, uint32_t limit);
+      map<string, guard_member_id_type>       list_guard_members(const string& lowerbound, uint32_t limit);
 
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
-      witness_object get_witness(string owner_account);
+      miner_object get_miner(string owner_account);
 
       /** Returns information about the given committee_member.
        * @param owner_account the name or id of the committee_member account owner, or the id of the committee_member
        * @returns the information about the committee_member stored in the block chain
        */
-      committee_member_object get_committee_member(string owner_account);
+      guard_member_object get_guard_member(string owner_account);
 
-      /** Creates a witness object owned by the given account.
+      /** Creates a miner object owned by the given account.
        *
        * An account can have at most one witness object.
        *
        * @param owner_account the name or id of the account which is creating the witness
-       * @param url a URL to include in the witness record in the blockchain.  Clients may
-       *            display this when showing a list of witnesses.  May be blank.
+       * @param url a URL to include in the miner record in the blockchain.  Clients may
+       *            display this when showing a list of miner.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a witness
        */
-      signed_transaction create_witness(string owner_account,
+      signed_transaction create_miner(string owner_account,
                                         string url,
                                         bool broadcast = false);
 
@@ -1499,7 +1499,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      signed_transaction set_desired_witness_and_committee_member_count(string account_to_modify,
+      signed_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
@@ -1585,7 +1585,9 @@ class wallet_api
          const approval_delta& delta,
          bool broadcast /* = false */
          );
-         
+	  //get current proposal proposed by proposer
+	  vector<proposal_object>  get_proposal(const string& proposer) ;
+	  vector<proposal_object>  get_proposal_for_voter(const string& voter);
       order_book get_order_book( const string& base, const string& quote, unsigned limit = 50);
 
       void dbg_make_uia(string creator, string symbol);
@@ -1632,7 +1634,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_accounts)
             (cipher_keys)
             (extra_keys)
-            (pending_account_registrations)(pending_witness_registrations)
+            (pending_account_registrations)(pending_miner_registrations)
             (labeled_keys)
             (blind_receipts)
             (ws_server)
@@ -1732,12 +1734,12 @@ FC_API( graphene::wallet::wallet_api,
         (global_settle_asset)
         (settle_asset)
         (whitelist_account)
-        (create_committee_member)
-        (get_witness)
-        (get_committee_member)
-        (list_witnesses)
-        (list_committee_members)
-        (create_witness)
+        (create_guard_member)
+        (get_miner)
+        (get_guard_member)
+        (list_miners)
+        (list_guard_members)
+        (create_miner)
         (update_witness)
         (create_worker)
         (update_worker_votes)
@@ -1746,7 +1748,7 @@ FC_API( graphene::wallet::wallet_api,
         (vote_for_committee_member)
         (vote_for_witness)
         (set_voting_proxy)
-        (set_desired_witness_and_committee_member_count)
+        (set_desired_miner_and_guard_member_count)
         (get_account)
         (get_account_id)
         (get_block)
@@ -1796,4 +1798,6 @@ FC_API( graphene::wallet::wallet_api,
         (receive_blind_transfer)
         (get_order_book)
 		(get_account_addr)
+		(get_proposal)
+		(get_proposal_for_voter)
       )

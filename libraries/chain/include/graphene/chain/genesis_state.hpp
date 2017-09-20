@@ -46,7 +46,8 @@ struct genesis_state_type {
            owner_key(owner_key),
            active_key(active_key == public_key_type()? owner_key : active_key),
            is_lifetime_member(is_lifetime_member)
-      {}
+      {
+	  }
       string name;
       public_key_type owner_key;
       public_key_type active_key;
@@ -84,7 +85,7 @@ struct genesis_state_type {
       uint32_t vesting_duration_seconds = 0;
       share_type begin_balance;
    };
-   struct initial_witness_type {
+   struct initial_miner_type {
       /// Must correspond to one of the initial accounts
       string owner_name;
       public_key_type block_signing_key;
@@ -107,9 +108,9 @@ struct genesis_state_type {
    vector<initial_asset_type>               initial_assets;
    vector<initial_balance_type>             initial_balances;
    vector<initial_vesting_balance_type>     initial_vesting_balances;
-   uint64_t                                 initial_active_witnesses = GRAPHENE_DEFAULT_MIN_WITNESS_COUNT;
-   vector<initial_witness_type>             initial_witness_candidates;
-   vector<initial_committee_member_type>    initial_committee_candidates;
+   uint64_t                                 initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
+   vector<initial_miner_type>               initial_miner_candidates;
+   vector<initial_committee_member_type>    initial_guard_candidates;
    vector<initial_worker_type>              initial_worker_candidates;
 
    /**
@@ -141,7 +142,7 @@ FC_REFLECT(graphene::chain::genesis_state_type::initial_balance_type,
 FC_REFLECT(graphene::chain::genesis_state_type::initial_vesting_balance_type,
            (owner)(asset_symbol)(amount)(begin_timestamp)(vesting_duration_seconds)(begin_balance))
 
-FC_REFLECT(graphene::chain::genesis_state_type::initial_witness_type, (owner_name)(block_signing_key))
+FC_REFLECT(graphene::chain::genesis_state_type::initial_miner_type, (owner_name)(block_signing_key))
 
 FC_REFLECT(graphene::chain::genesis_state_type::initial_committee_member_type, (owner_name))
 
@@ -149,7 +150,7 @@ FC_REFLECT(graphene::chain::genesis_state_type::initial_worker_type, (owner_name
 
 FC_REFLECT(graphene::chain::genesis_state_type,
            (initial_timestamp)(max_core_supply)(initial_parameters)(initial_accounts)(initial_assets)(initial_balances)
-           (initial_vesting_balances)(initial_active_witnesses)(initial_witness_candidates)
-           (initial_committee_candidates)(initial_worker_candidates)
+           (initial_vesting_balances)(initial_active_miners)(initial_miner_candidates)
+           (initial_guard_candidates)(initial_worker_candidates)
            (initial_chain_id)
            (immutable_parameters))

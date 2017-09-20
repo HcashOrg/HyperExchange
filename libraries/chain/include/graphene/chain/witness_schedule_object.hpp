@@ -36,7 +36,7 @@ class witness_schedule_object : public graphene::db::abstract_object<witness_sch
       static const uint8_t space_id = implementation_ids;
       static const uint8_t type_id = impl_witness_schedule_object_type;
 
-      vector< witness_id_type > current_shuffled_witnesses;
+      vector< miner_id_type > current_shuffled_miners;
 };
 
 } }
@@ -44,5 +44,5 @@ class witness_schedule_object : public graphene::db::abstract_object<witness_sch
 FC_REFLECT_DERIVED(
    graphene::chain::witness_schedule_object,
    (graphene::db::object),
-   (current_shuffled_witnesses)
+   (current_shuffled_miners)
 )
