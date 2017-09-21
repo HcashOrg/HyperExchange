@@ -24,7 +24,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
-
+#include <graphene/chain/witness_object.hpp>
 namespace graphene { namespace chain {
 
 bool proposal_object::is_authorized_to_execute(database& db) const
@@ -32,8 +32,25 @@ bool proposal_object::is_authorized_to_execute(database& db) const
    transaction_evaluation_state dry_run_eval(&db);
 
    try {
-	   return approved_key_approvals.size() == required_account_approvals.size();
-      
+	   if (type == vote_id_type::committee)
+		   return approved_key_approvals.size() >= size_t(std::ceil(double(required_account_approvals.size())*2/3));
+	   auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
+	   auto& account_idx = db.get_index_type<account_index>().indices().get<by_address>();
+	   uint64_t total_weights = 0;
+	   uint64_t approved_key_weights = 0;
+	   for (auto acc : required_account_approvals)
+	   {
+		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
+		   total_weights += iter->pledge_weight;
+	   }
+	   
+	   for (auto acc : approved_key_approvals)
+	   {
+		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
+		   approved_key_weights += iter->pledge_weight;
+	   }
+
+	   return approved_key_weights >= uint64_t(std::ceil(double(total_weights) * 2 / 3));
    } 
    catch ( const fc::exception& e )
    {
