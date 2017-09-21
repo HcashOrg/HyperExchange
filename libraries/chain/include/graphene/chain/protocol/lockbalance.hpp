@@ -16,7 +16,7 @@ namespace graphene {
 			miner_id_type foreclose_miner_account;
 
 			address foreclose_addr;
-			account_id_type fee_payer()const { return foreclose_account; }
+			address fee_payer()const { return foreclose_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 
@@ -38,8 +38,8 @@ namespace graphene {
 			address lock_balance_addr;
 			asset fee;
 
-			account_id_type fee_payer()const { 
-				return lock_balance_account; 
+			address fee_payer()const {
+				return lock_balance_addr;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
