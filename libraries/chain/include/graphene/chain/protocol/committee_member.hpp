@@ -45,8 +45,6 @@ namespace graphene { namespace chain {
 
       account_id_type fee_payer()const { return guard_member_account; }
       void            validate()const;
-
-	  void get_required_authorities(vector<authority>& a) const;
    };
 
    /**

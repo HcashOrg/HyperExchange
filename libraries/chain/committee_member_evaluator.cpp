@@ -49,8 +49,14 @@ namespace graphene {
                 auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
                 FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");
 
-                auto guards = db().get_index_type<guard_member_index>().indices().size();
-                FC_ASSERT(guards <= GRAPHENE_DEFAULT_MAX_GUARDS, "No more than 15 guards can be created.");
+                auto guards = db().get_index_type<guard_member_index>().indices();
+                auto num = 0;
+                std::for_each(guards.begin(), guards.end(), [&num](const guard_member_object &g) {
+                    if (g.formal) {
+                        ++num;
+                    }
+                });
+                FC_ASSERT(num < db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -246,11 +252,14 @@ namespace graphene {
 
         void_result chain::guard_member_resign_evaluator::do_evaluate(const guard_member_resign_operation & o)
         {
-            auto &guards = db().get_index_type<guard_member_index>().indices().get<by_id>();
-            FC_ASSERT(guards.find(o.guard_member_account) == guards.end(), "No referred guard is found, must be invalid resign operation.");
-            auto &proposals = db().get_index_type<proposal_index>().indices().get<by_id>();
-            FC_ASSERT(proposals.find(o.pid) == proposals.end(), "No referred proposal is found, must be invalid resign operation.");
-            return void_result();
+            try {
+                auto &guards = db().get_index_type<guard_member_index>().indices().get<by_id>();
+                FC_ASSERT(guards.find(o.guard_member_account) == guards.end(), "No referred guard is found, must be invalid resign operation.");
+                FC_ASSERT(guards.size() <= db().get_global_properties().parameters.minimum_guard_count, "No enough guards.");
+                auto &proposals = db().get_index_type<proposal_index>().indices().get<by_id>();
+                FC_ASSERT(proposals.find(o.pid) == proposals.end(), "No referred proposal is found, must be invalid resign operation.");
+                return void_result();
+            } FC_CAPTURE_AND_RETHROW((o))
         }
 
         object_id_type chain::guard_member_resign_evaluator::do_apply(const guard_member_resign_operation & o)

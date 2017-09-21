@@ -1472,10 +1472,13 @@ map<string, guard_member_id_type> database_api_impl::lookup_guard_member_account
    // number of committee_members to be few and the frequency of calls to be rare
    std::map<std::string, guard_member_id_type> committee_members_by_account_name;
    for (const guard_member_object& committee_member : committee_members_by_id)
-       if (auto account_iter = _db.find(committee_member.guard_member_account))
-           if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
-               committee_members_by_account_name.insert(std::make_pair(account_iter->name, committee_member.id));
-
+   {
+	   if (!committee_member.formal)
+		   continue;
+	   if (auto account_iter = _db.find(committee_member.guard_member_account))
+		   if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
+			   committee_members_by_account_name.insert(std::make_pair(account_iter->name, committee_member.id));
+   }
    auto end_iter = committee_members_by_account_name.begin();
    while (end_iter != committee_members_by_account_name.end() && limit--)
        ++end_iter;

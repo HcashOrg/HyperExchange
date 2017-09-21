@@ -111,7 +111,8 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)
 
 		  {
-			  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
+			  if (a.formal)  //only formal guard can vote
+				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
 		  });
 	  }
 	  else
@@ -186,6 +187,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 		   if (!is_miner_or_guard(addr))
 			   continue;
 		   p.approved_key_approvals.insert(addr);
+		   p.disapproved_key_approvals.erase(addr);
 	   }
 	   
 	   for( const auto& addr : o.key_approvals_to_remove )
@@ -193,6 +195,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 		   if (!is_miner_or_guard(addr))
 			   continue;
 		   p.disapproved_key_approvals.insert(addr);
+		   p.approved_key_approvals.erase(addr);
 	   }
         
    });

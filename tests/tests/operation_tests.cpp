@@ -612,10 +612,12 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 			auto& iter = db.get_index_type<guard_member_index>().indices().get<by_account>();
 			BOOST_CHECK(iter.find(acct.get_id()) != iter.end());
 			BOOST_CHECK(iter.find(acct.get_id())->formal == false);
-			if (i==7)
-				GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
+            db.modify(*(iter.find(acct.get_id())), [](guard_member_object &g) {
+                g.formal = true;
+            });
 
         }
+        GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
 
     }
     catch (fc::exception& e) {
