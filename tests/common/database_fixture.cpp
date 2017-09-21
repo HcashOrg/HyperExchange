@@ -36,7 +36,6 @@
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
-
 #include <graphene/utilities/tempdir.hpp>
 
 #include <fc/crypto/digest.hpp>
@@ -106,6 +105,7 @@ database_fixture::database_fixture()
 
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
+
    open_database();
 
    // app.initialize();
@@ -760,6 +760,8 @@ void database_fixture::transfer(
       transfer_operation trans;
       trans.from = from.id;
       trans.to   = to.id;
+	  trans.from_addr = from.addr;
+	  trans.to_addr = to.addr;
       trans.amount = amount;
       trx.operations.push_back(trans);
 
