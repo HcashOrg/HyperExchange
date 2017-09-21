@@ -1557,7 +1557,11 @@ class wallet_api
          const variant_object& changed_values,
          bool broadcast = false);
 
-
+	  signed_transaction propose_coin_destory(
+		  const string& proposing_account,
+		  fc::time_point_sec expiration_time,
+		  const variant_object& destory_values,
+		  bool broadcast = false);
 
 	  signed_transaction propose_guard_pledge_change(
 		  const string& proposing_account,
@@ -1780,6 +1784,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_prototype_operation)
 		(propose_guard_pledge_change)
         (propose_parameter_change)
+		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
         (dbg_make_uia)
