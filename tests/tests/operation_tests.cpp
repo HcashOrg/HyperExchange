@@ -632,6 +632,27 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
     }
 }
 
+BOOST_AUTO_TEST_CASE(resign_guard_member)
+{
+    try {
+        auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+        auto guard_account = create_account("guardtest", private_key.get_public_key());
+        auto &obj = create_guard_member(guard_account);
+
+        guard_member_resign_operation op;
+        op.guard_member_account = obj.id;
+        trx.operations.push_back(op);
+        GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
+
+        trx.operations.push_back(op);
+        PUSH_TX(db, trx, ~0);
+    }
+    catch (fc::exception& e) {
+        edump((e.to_detail_string()));
+        throw;
+    }
+}
+
 BOOST_AUTO_TEST_CASE( create_mia )
 {
    try {
