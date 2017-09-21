@@ -420,14 +420,15 @@ BOOST_AUTO_TEST_CASE( feed_limit_test )
    BOOST_CHECK(!bitasset.current_feed.settlement_price.is_null());
 } FC_LOG_AND_RETHROW() }
 
-BOOST_AUTO_TEST_CASE( witness_create )
+BOOST_AUTO_TEST_CASE( miner_create )
 { try {
    ACTOR(nathan);
    upgrade_to_lifetime_member(nathan_id);
    trx.clear();
-   miner_id_type nathan_witness_id = create_witness(nathan_id, nathan_private_key).id;
+   miner_id_type nathan_witness_id = create_miner(nathan_id, nathan_private_key).id;
    // Give nathan some voting stake
    transfer(committee_account, nathan_id, asset(10000000));
+   auto ba = get_balance(nathan,asset_object());
    generate_block();
    set_expiration( db, trx );
 
@@ -441,7 +442,7 @@ BOOST_AUTO_TEST_CASE( witness_create )
       op.new_options->num_committee = std::count_if(op.new_options->votes.begin(), op.new_options->votes.end(),
                                                     [](vote_id_type id) { return id.type() == vote_id_type::committee; });
       trx.operations.push_back(op);
-      sign( trx, nathan_private_key );
+      //sign( trx, nathan_private_key );
       PUSH_TX( db, trx );
       trx.clear();
    }

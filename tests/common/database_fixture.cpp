@@ -30,6 +30,7 @@
 #include <graphene/db/simple_index.hpp>
 
 #include <graphene/chain/account_object.hpp>
+#include <graphene/chain/balance_object.hpp>
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/fba_object.hpp>
@@ -167,15 +168,15 @@ void database_fixture::verify_asset_supplies( const database& db )
    BOOST_CHECK(core_asset_data.fee_pool == 0);
 
    const simple_index<account_statistics_object>& statistics_index = db.get_index_type<simple_index<account_statistics_object>>();
-   const auto& balance_index = db.get_index_type<account_balance_index>().indices();
+   const auto& bal_idx = db.get_index_type<balance_index>().indices();
    const auto& settle_index = db.get_index_type<force_settlement_index>().indices();
    map<asset_id_type,share_type> total_balances;
    map<asset_id_type,share_type> total_delnk;
    share_type core_in_orders;
    share_type reported_core_in_orders;
 
-   for( const account_balance_object& b : balance_index )
-      total_balances[b.asset_type] += b.balance;
+   for( const balance_object& b : bal_idx)
+      total_balances[b.asset_type()] += b.balance.amount;
    for( const force_settlement_object& s : settle_index )
       total_balances[s.balance.asset_id] += s.balance.amount;
    for( const account_statistics_object& a : statistics_index )
@@ -669,12 +670,12 @@ const guard_member_object& database_fixture::create_guard_member( const account_
    return db.get<guard_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
-const miner_object&database_fixture::create_witness(account_id_type owner, const fc::ecc::private_key& signing_private_key)
+const miner_object&database_fixture::create_miner(account_id_type owner, const fc::ecc::private_key& signing_private_key)
 {
-   return create_witness(owner(db), signing_private_key);
+   return create_miner(owner(db), signing_private_key);
 }
 
-const miner_object& database_fixture::create_witness( const account_object& owner,
+const miner_object& database_fixture::create_miner( const account_object& owner,
                                                         const fc::ecc::private_key& signing_private_key )
 { try {
    miner_create_operation op;
@@ -1062,7 +1063,7 @@ asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type mi
 }
 int64_t database_fixture::get_balance( const account_object& account, const asset_object& a )const
 {
-  return db.get_balance(account.get_id(), a.get_id()).amount.value;
+  return db.get_balance(account.addr, a.get_id()).amount.value;
 }
 
 vector< operation_history_object > database_fixture::get_operation_history( account_id_type account_id )const
