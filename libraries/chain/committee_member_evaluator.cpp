@@ -56,7 +56,7 @@ namespace graphene {
                         ++num;
                     }
                 });
-                FC_ASSERT(num < db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
+                FC_ASSERT(num <= db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }

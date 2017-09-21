@@ -5,6 +5,7 @@ namespace graphene {
 		void foreclose_balance_operation::validate() const{
 			FC_ASSERT(fee.amount >= 0);
 			FC_ASSERT(foreclose_asset_amount > 0);
+			
 		}
 		share_type foreclose_balance_operation::calculate_fee(const fee_parameters_type& k)const{
 			return share_type(0);

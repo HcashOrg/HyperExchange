@@ -99,7 +99,8 @@ namespace graphene { namespace chain {
 			committee_member_execute_coin_destory_operation,
 		    graphene::chain::lockbalance_operation,
 		    graphene::chain::foreclose_balance_operation,
-			graphene::chain::guard_lock_balance_operation
+			graphene::chain::guard_lock_balance_operation,
+			graphene::chain::guard_foreclose_balance_operation
          > operation;
 
    /// @} // operations group
