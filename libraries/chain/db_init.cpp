@@ -630,7 +630,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    FC_ASSERT( wit.id == GRAPHENE_NULL_WITNESS );
    remove(wit);
 
-   // Create initial witnesses
+   // Create initial miners
    std::for_each(genesis_state.initial_miner_candidates.begin(), genesis_state.initial_miner_candidates.end(),
                  [&](const genesis_state_type::initial_miner_type& witness) {
       miner_create_operation op;
@@ -639,7 +639,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       apply_operation(genesis_eval_state, op);
    });
 
-   // Create initial committee members
+   // Create initial guard members
    std::for_each(genesis_state.initial_guard_candidates.begin(), genesis_state.initial_guard_candidates.end(),
                  [&](const genesis_state_type::initial_committee_member_type& member) {
       guard_member_create_operation op;

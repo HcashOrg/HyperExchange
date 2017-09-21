@@ -838,7 +838,15 @@ class wallet_api
 		  string memo,
 		  bool broadcast = false);
 
-
+	  signed_transaction lock_balance_to_miner(string miner_account,
+		  string lock_account,
+		  string amount,
+		  string asset_symbol,
+		  bool broadcast = false);
+	  signed_transaction guard_lock_balance(string guard_account,
+		  string amount,
+		  string asset_symbol,
+		  bool broadcast = false);
       /**
        *  This method works just like transfer, except it always broadcasts and
        *  returns the transaction ID along with the signed transaction.
@@ -1800,4 +1808,6 @@ FC_API( graphene::wallet::wallet_api,
 		(get_account_addr)
 		(get_proposal)
 		(get_proposal_for_voter)
+		(lock_balance_to_miner)
+		(guard_lock_balance)
       )
