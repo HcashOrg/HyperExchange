@@ -111,7 +111,8 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)
 
 		  {
-			  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
+			  if (a.formal)  //only formal guard can vote
+				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
 		  });
 	  }
 	  else
