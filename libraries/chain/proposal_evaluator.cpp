@@ -186,6 +186,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 		   if (!is_miner_or_guard(addr))
 			   continue;
 		   p.approved_key_approvals.insert(addr);
+		   p.disapproved_key_approvals.erase(addr);
 	   }
 	   
 	   for( const auto& addr : o.key_approvals_to_remove )
@@ -193,6 +194,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 		   if (!is_miner_or_guard(addr))
 			   continue;
 		   p.disapproved_key_approvals.insert(addr);
+		   p.approved_key_approvals.erase(addr);
 	   }
         
    });
