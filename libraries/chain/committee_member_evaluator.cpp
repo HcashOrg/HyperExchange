@@ -49,8 +49,14 @@ namespace graphene {
                 auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
                 FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");
 
-                auto guards = db().get_index_type<guard_member_index>().indices().size();
-                FC_ASSERT(guards <= db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
+                auto guards = db().get_index_type<guard_member_index>().indices();
+                auto num = 0;
+                std::for_each(guards.begin(), guards.end(), [&num](const guard_member_object &g) {
+                    if (g.formal) {
+                        ++num;
+                    }
+                });
+                FC_ASSERT(num < db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
