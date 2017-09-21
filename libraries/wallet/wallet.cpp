@@ -2596,6 +2596,48 @@ public:
       return sign_transaction(tx, broadcast);
    }
 
+
+
+   signed_transaction propose_coin_destory(
+	   const string& proposing_account,
+	   fc::time_point_sec expiration_time,
+	   const variant_object& destory_values,
+	   bool broadcast = false)
+   {
+	   FC_ASSERT(destory_values.contains("loss_asset"));
+	   FC_ASSERT(destory_values.contains("loss_asset_symbol"));
+	   FC_ASSERT(destory_values.contains("commitee_member_handle_percent"));
+	   
+
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   asset loss_asset;
+	   asset_id_type asset_id = get_asset_id(destory_values.find("loss_asset_symbol")->value().as_string());
+	   
+
+	   loss_asset.asset_id = asset_id;
+	   loss_asset.amount = destory_values.find("loss_asset")->value().as_uint64();
+	   committee_member_execute_coin_destory_operation update_op;
+	   update_op.loss_asset = loss_asset;
+	   update_op.commitee_member_handle_percent = destory_values.find("commitee_member_handle_percent")->value().as_int64();
+
+	   proposal_create_operation prop_op;
+
+	   prop_op.expiration_time = expiration_time;
+	   prop_op.review_period_seconds = current_params.committee_proposal_review_period;
+	   prop_op.fee_paying_account = get_account(proposing_account).addr;
+
+	   prop_op.proposed_ops.emplace_back(update_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+
+	   signed_transaction tx;
+	   tx.operations.push_back(prop_op);
+	   set_operation_fees(tx, current_params.current_fees);
+	   tx.validate();
+
+	   return sign_transaction(tx, broadcast);
+   }
+
+
    signed_transaction propose_fee_change(
       const string& proposing_account,
       fc::time_point_sec expiration_time,
@@ -3838,6 +3880,16 @@ signed_transaction wallet_api::propose_parameter_change(
 {
    return my->propose_parameter_change( proposing_account, expiration_time, changed_values, broadcast );
 }
+
+signed_transaction wallet_api::propose_coin_destory(
+	const string& proposing_account,
+	fc::time_point_sec expiration_time,
+	const variant_object& destory_values,
+	bool broadcast)
+{
+	return my->propose_coin_destory(proposing_account, expiration_time, destory_values, broadcast);
+}
+
 signed_transaction wallet_api::propose_guard_pledge_change(
 	const string& proposing_account,
 	fc::time_point_sec expiration_time,
