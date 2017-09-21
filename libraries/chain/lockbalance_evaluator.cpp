@@ -7,11 +7,14 @@ namespace graphene{
 				const database& d = db();
 				if (o.contract_addr == address()) {
 					const asset_object&   asset_type = o.lock_asset_id(d);
+				
 // 					auto & iter = d.get_index_type<miner_index>().indices().get<by_account>();
 // 					auto itr = iter.find(o.lockto_miner_account);
 // 					FC_ASSERT(itr != iter.end(), "Dont have lock account");
 					optional<miner_object> iter = d.get(o.lockto_miner_account);
 					FC_ASSERT(iter.valid(),"Dont have lock account");
+					optional<account_object> account_iter = d.get(iter->miner_account);
+					FC_ASSERT(account_iter.valid() && account_iter->addr == o.lock_balance_addr, "Address is wrong");
 					bool insufficient_balance = d.get_balance(o.lock_balance_account, asset_type.id).amount >= o.lock_asset_amount;
 					FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough");
 				}
@@ -52,7 +55,10 @@ namespace graphene{
 					const asset_object&   asset_type = o.foreclose_asset_id(d);
 					optional<miner_object> iter = d.get(o.foreclose_miner_account);
 					FC_ASSERT(iter.valid(), "Dont have lock account");
-					//TODO Add lock balance db get function
+					optional<account_object> account_iter = d.get(iter->miner_account);
+					FC_ASSERT(account_iter.valid() && account_iter->addr == o.foreclose_addr, "Address is wrong");
+					bool insufficient_balance = d.get_lock_balance(o.foreclose_account, o.foreclose_miner_account, asset_type.id).amount >= o.foreclose_asset_amount;
+					FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough");
 				}
 				else {
 					//TODO : ADD Handle Contact lock balance
@@ -61,7 +67,30 @@ namespace graphene{
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		void_result foreclose_balance_evaluator::do_apply(const foreclose_balance_operation& o) {
+			try {
+			database& d = db();
+			if (o.foreclose_contract_addr == address()) {
+				const asset_object&   asset_type = o.foreclose_asset_id(d);
+				d.adjust_lock_balance(o.foreclose_miner_account, o.foreclose_account, -o.foreclose_asset_amount);
+				d.adjust_balance(o.foreclose_account, o.foreclose_asset_amount);
+
+				optional<miner_object> itr = d.get(o.foreclose_miner_account);
+				d.modify(*itr, [o, asset_type](miner_object& b) {
+					auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+					if (map_lockbalance_total != b.lockbalance_total.end()) {
+						map_lockbalance_total->second -= o.foreclose_asset_amount;
+					}
+					else {
+						b.lockbalance_total[asset_type.symbol] = o.foreclose_asset_amount;
+					}
+				});
+			}
+			else {
+				// TODO : ADD Handle Contact lock balance
+			}
+			
 			return void_result();
+			} FC_CAPTURE_AND_RETHROW((o))
 		}
 	}
 }

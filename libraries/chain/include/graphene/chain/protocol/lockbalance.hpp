@@ -19,6 +19,7 @@ namespace graphene {
 			account_id_type fee_payer()const { return foreclose_account; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
+
 			void get_required_authorities(vector<authority>& a)const{
 				a.push_back(authority(1, foreclose_addr, 1));
 			}

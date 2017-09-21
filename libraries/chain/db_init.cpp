@@ -141,7 +141,9 @@ void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
    register_evaluator<lockbalance_evaluator>();
+   register_evaluator<foreclose_balance_evaluator>();
    register_evaluator<guard_lock_balance_evaluator>();
+   register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
    register_evaluator<account_update_evaluator>();
    register_evaluator<account_upgrade_evaluator>();
@@ -150,6 +152,7 @@ void database::initialize_evaluators()
    register_evaluator<committee_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
+   register_evaluator<guard_member_resign_evaluator>();
    register_evaluator<custom_evaluator>();
    register_evaluator<asset_create_evaluator>();
    register_evaluator<asset_issue_evaluator>();
