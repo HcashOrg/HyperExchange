@@ -645,6 +645,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       guard_member_create_operation op;
       op.guard_member_account = get_account_id(member.owner_name);
       apply_operation(genesis_eval_state, op);
+	  apply_operation(genesis_eval_state, op);
    });
 
    // Create initial workers
