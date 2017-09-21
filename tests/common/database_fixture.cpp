@@ -660,6 +660,12 @@ const guard_member_object& database_fixture::create_guard_member( const account_
    trx.validate();
    processed_transaction ptx = db.push_transaction(trx, ~0);
    trx.operations.clear();
+   auto& iter = db.get_index_type<guard_member_index>().indices().get<by_account>();
+   auto guard = iter.find(op.guard_member_account);
+   db.modify(*guard, [](guard_member_object& a) {
+	   a.formal = true;
+
+   });
    return db.get<guard_member_object>(ptx.operation_results[0].get<object_id_type>());
 }
 
