@@ -12,5 +12,11 @@ namespace graphene {
 			void_result do_evaluate(const guard_lock_balance_operation& o);
 			void_result do_apply(const guard_lock_balance_operation& o);
 		};
+		class guard_foreclose_balance_evaluator :public evaluator <guard_foreclose_balance_evaluator> {
+		public :
+			typedef guard_foreclose_balance_operation operation_type;
+			void_result do_evaluate(const guard_foreclose_balance_operation& o);
+			void_result do_apply(const guard_foreclose_balance_operation& o);
+		};
 	}
 }

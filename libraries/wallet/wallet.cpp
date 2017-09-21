@@ -2164,14 +2164,14 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(lock_account) != iter.end(), "Could not find account name ${account}", ("account", lock_account));
-		   fc::optional<miner_object> witness_obj = get_miner(miner_account);
-		   FC_ASSERT(witness_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
+		   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+		   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
 		   lockbalance_operation lb_op;
 		   lb_op.lock_asset_id = asset_obj->get_id();
 		   lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   lb_op.lock_balance_account = iter.find(lock_account)->get_id();
 		   lb_op.lock_balance_addr = iter.find(lock_account)->addr;
-		   lb_op.lockto_miner_account = witness_obj->id;
+		   lb_op.lockto_miner_account = miner_obj->id;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(lb_op);
@@ -2191,17 +2191,74 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(guard_account) != iter.end(), "Could not find account name ${account}", ("account", guard_account));
-		   fc::optional<guard_member_object> commit_obj = get_guard_member(guard_account);
-		   FC_ASSERT(commit_obj, "Could not find miner matching ${guard}", ("guard", guard_account));
+		   fc::optional<guard_member_object> guard_obj = get_guard_member(guard_account);
+		   FC_ASSERT(guard_obj, "Could not find miner matching ${guard}", ("guard", guard_account));
 		   guard_lock_balance_operation guard_lb_op;
 		   //lockbalance_operation lb_op;
 		   guard_lb_op.lock_asset_id = asset_obj->get_id();
 		   guard_lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
-		   guard_lb_op.lock_balance_account = commit_obj->id;
+		   guard_lb_op.lock_balance_account = guard_obj->id;
 		   guard_lb_op.lock_balance_account_id = iter.find(guard_account)->get_id();
+		   guard_lb_op.lock_address = iter.find(guard_account)->addr;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(guard_lb_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
+   }
+   signed_transaction foreclose_balance_from_miner(string miner_account,
+	   string foreclose_account,
+	   string amount,
+	   string asset_symbol,
+	   bool broadcast = false) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   auto& iter = _wallet.my_accounts.get<by_name>();
+		   FC_ASSERT(iter.find(foreclose_account) != iter.end(), "Could not find account name ${account}", ("account", foreclose_account));
+		   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+		   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
+		   foreclose_balance_operation fcb_op;
+		   fcb_op.foreclose_asset_id = asset_obj->get_id();
+		   fcb_op.foreclose_asset_amount = asset_obj->amount_from_string(amount).amount;
+		   fcb_op.foreclose_account = iter.find(foreclose_account)->get_id();
+		   fcb_op.foreclose_addr = iter.find(foreclose_account)->addr;
+		   fcb_op.foreclose_miner_account = miner_obj->id;
+		   signed_transaction tx;
+
+		   tx.operations.push_back(fcb_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((miner_account)(foreclose_account)(amount)(asset_symbol)(broadcast))
+   }
+   signed_transaction guard_foreclose_balance(string guard_account,
+	   string amount,
+	   string asset_symbol,
+	   bool broadcast = false) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   auto& iter = _wallet.my_accounts.get<by_name>();
+		   FC_ASSERT(iter.find(guard_account) != iter.end(), "Could not find account name ${account}", ("account", guard_account));
+		   fc::optional<guard_member_object> guard_obj = get_guard_member(guard_account);
+		   FC_ASSERT(guard_obj, "Could not find miner matching ${guard}", ("guard", guard_account));
+		   guard_foreclose_balance_operation guard_fcb_op;
+		   //lockbalance_operation lb_op;
+		   guard_fcb_op.foreclose_asset_id = asset_obj->get_id();
+		   guard_fcb_op.foreclose_asset_amount = asset_obj->amount_from_string(amount).amount;
+		   guard_fcb_op.foreclose_balance_account = guard_obj->id;
+		   guard_fcb_op.foreclose_balance_account_id = iter.find(guard_account)->get_id();
+		   guard_fcb_op.foreclose_address = iter.find(guard_account)->addr;
+		   signed_transaction tx;
+
+		   tx.operations.push_back(guard_fcb_op);
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 		   tx.validate();
 
@@ -3573,6 +3630,19 @@ signed_transaction wallet_api::guard_lock_balance(string guard_account,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->guard_lock_balance(guard_account, amount, asset_symbol, broadcast);
+}
+signed_transaction wallet_api::foreclose_balance_from_miner(string miner_account,
+	string foreclose_account,
+	string amount,
+	string asset_symbol,
+	bool broadcast/* = false*/) {
+	return my->foreclose_balance_from_miner(miner_account, foreclose_account, amount, asset_symbol, broadcast);
+}
+signed_transaction wallet_api::guard_foreclose_balance(string guard_account,
+	string amount,
+	string asset_symbol,
+	bool broadcast/* = false*/) {
+	return my->guard_foreclose_balance(guard_account, amount, asset_symbol, broadcast);
 }
 
 signed_transaction wallet_api::create_asset(string issuer,

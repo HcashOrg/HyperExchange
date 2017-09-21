@@ -141,7 +141,9 @@ void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
    register_evaluator<lockbalance_evaluator>();
+   register_evaluator<foreclose_balance_evaluator>();
    register_evaluator<guard_lock_balance_evaluator>();
+   register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
    register_evaluator<account_update_evaluator>();
    register_evaluator<account_upgrade_evaluator>();
