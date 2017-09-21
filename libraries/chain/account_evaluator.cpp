@@ -64,10 +64,10 @@ void verify_account_votes( const database& db, const account_options& options )
    const auto& gpo = db.get_global_properties();
    const auto& chain_params = gpo.parameters;
 
-   FC_ASSERT( options.num_witness <= chain_params.maximum_witness_count,
-              "Voted for more witnesses than currently allowed (${c})", ("c", chain_params.maximum_witness_count) );
-   FC_ASSERT( options.num_committee <= chain_params.maximum_committee_count,
-              "Voted for more committee members than currently allowed (${c})", ("c", chain_params.maximum_committee_count) );
+   FC_ASSERT( options.num_witness <= chain_params.maximum_miner_count,
+              "Voted for more witnesses than currently allowed (${c})", ("c", chain_params.maximum_miner_count) );
+   FC_ASSERT( options.num_committee <= chain_params.maximum_guard_count,
+              "Voted for more committee members than currently allowed (${c})", ("c", chain_params.maximum_guard_count) );
 
    uint32_t max_vote_id = gpo.next_available_vote_id;
    bool has_worker_votes = false;

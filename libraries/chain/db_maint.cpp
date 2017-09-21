@@ -780,8 +780,8 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
          : d(d), props(gpo)
       {
          d._vote_tally_buffer.resize(props.next_available_vote_id);
-         d._witness_count_histogram_buffer.resize(props.parameters.maximum_witness_count / 2 + 1);
-         d._guard_count_histogram_buffer.resize(props.parameters.maximum_committee_count / 2 + 1);
+         d._witness_count_histogram_buffer.resize(props.parameters.maximum_miner_count / 2 + 1);
+         d._guard_count_histogram_buffer.resize(props.parameters.maximum_guard_count / 2 + 1);
          d._total_voting_stake = 0;
       }
 
@@ -809,24 +809,24 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
                   d._vote_tally_buffer[offset] += voting_stake;
             }
 
-            if( opinion_account.options.num_witness <= props.parameters.maximum_witness_count )
+            if( opinion_account.options.num_witness <= props.parameters.maximum_miner_count )
             {
                uint16_t offset = std::min(size_t(opinion_account.options.num_witness/2),
                                           d._witness_count_histogram_buffer.size() - 1);
-               // votes for a number greater than maximum_witness_count
-               // are turned into votes for maximum_witness_count.
+               // votes for a number greater than maximum_miner_count
+               // are turned into votes for maximum_miner_count.
                //
                // in particular, this takes care of the case where a
                // member was voting for a high number, then the
                // parameter was lowered.
                d._witness_count_histogram_buffer[offset] += voting_stake;
             }
-            if( opinion_account.options.num_committee <= props.parameters.maximum_committee_count )
+            if( opinion_account.options.num_committee <= props.parameters.maximum_guard_count )
             {
                uint16_t offset = std::min(size_t(opinion_account.options.num_committee/2),
                                           d._guard_count_histogram_buffer.size() - 1);
-               // votes for a number greater than maximum_committee_count
-               // are turned into votes for maximum_committee_count.
+               // votes for a number greater than maximum_guard_count
+               // are turned into votes for maximum_guard_count.
                //
                // same rationale as for witnesses
                d._guard_count_histogram_buffer[offset] += voting_stake;

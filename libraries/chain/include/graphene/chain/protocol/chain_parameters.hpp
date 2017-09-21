@@ -51,8 +51,9 @@ namespace graphene { namespace chain {
       uint32_t                maximum_proposal_lifetime           = GRAPHENE_DEFAULT_MAX_PROPOSAL_LIFETIME_SEC; ///< maximum lifetime in seconds for proposed transactions to be kept, before expiring
       uint8_t                 maximum_asset_whitelist_authorities = GRAPHENE_DEFAULT_MAX_ASSET_WHITELIST_AUTHORITIES; ///< maximum number of accounts which an asset may list as authorities for its whitelist OR blacklist
       uint8_t                 maximum_asset_feed_publishers       = GRAPHENE_DEFAULT_MAX_ASSET_FEED_PUBLISHERS; ///< the maximum number of feed publishers for a given asset
-      uint16_t                maximum_witness_count               = GRAPHENE_DEFAULT_MAX_MINERS; ///< maximum number of active witnesses
-      uint16_t                maximum_committee_count             = GRAPHENE_DEFAULT_MAX_GUARDS; ///< maximum number of active committee_members
+      uint16_t                maximum_miner_count                 = GRAPHENE_DEFAULT_MAX_MINERS; ///< maximum number of active miners
+      uint16_t                maximum_guard_count                 = GRAPHENE_DEFAULT_MAX_GUARDS; ///< maximum number of active guard_members
+      uint16_t                minimum_guard_count                 = GRAPHENE_DEFAULT_MIN_GUARDS; ///< minimum number of active guard_members
       uint16_t                maximum_authority_membership        = GRAPHENE_DEFAULT_MAX_AUTHORITY_MEMBERSHIP; ///< largest number of keys/accounts an authority can have
       uint16_t                reserve_percent_of_fee              = GRAPHENE_DEFAULT_BURN_PERCENT_OF_FEE; ///< the percentage of the network's allocation of a fee that is taken out of circulation
       uint16_t                network_percent_of_fee              = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE; ///< percent of transaction fees paid to network
@@ -91,8 +92,9 @@ FC_REFLECT( graphene::chain::chain_parameters,
             (maximum_proposal_lifetime)
             (maximum_asset_whitelist_authorities)
             (maximum_asset_feed_publishers)
-            (maximum_witness_count)
-            (maximum_committee_count)
+            (maximum_miner_count)
+            (maximum_guard_count)
+            (minimum_guard_count)
             (maximum_authority_membership)
             (reserve_percent_of_fee)
             (network_percent_of_fee)
