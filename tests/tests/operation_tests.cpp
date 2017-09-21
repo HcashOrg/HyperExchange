@@ -596,10 +596,10 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
 		auto guard_account =create_account("guardtest",private_key.get_public_key());
 		auto obj = create_guard_member(guard_account);
-	
+		int num = db.get_index_type<guard_member_index>().indices().size();
 		guard_member_create_operation op;
         // No more than 15 guards can be created.
-        for (auto i = 0; i <= 7; ++i) {
+        for (auto i = 0; i <= 16-num; ++i) {
             trx.clear();
             auto acct = create_account(std::string("guardtest")+fc::to_string(i));
             op.guard_member_account = account_id_type(acct.id);
@@ -608,6 +608,12 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 			fee->set_fee(guard_op);
             trx.operations.push_back(guard_op);
 			sign(trx, private_key);
+			if (i == 16 - num)
+			{
+				GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
+				break;
+			}
+				
 			PUSH_TX(db,trx,~0);
 			auto& iter = db.get_index_type<guard_member_index>().indices().get<by_account>();
 			BOOST_CHECK(iter.find(acct.get_id()) != iter.end());
@@ -617,8 +623,29 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
             });
 
         }
+        
+
+    }
+    catch (fc::exception& e) {
+        edump((e.to_detail_string()));
+        throw;
+    }
+}
+
+BOOST_AUTO_TEST_CASE(resign_guard_member)
+{
+    try {
+        auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+        auto guard_account = create_account("guardtest", private_key.get_public_key());
+        auto &obj = create_guard_member(guard_account);
+
+        guard_member_resign_operation op;
+        op.guard_member_account = obj.id;
+        trx.operations.push_back(op);
         GRAPHENE_REQUIRE_THROW(PUSH_TX(db, trx, ~0), fc::exception);
 
+        trx.operations.push_back(op);
+        PUSH_TX(db, trx, ~0);
     }
     catch (fc::exception& e) {
         edump((e.to_detail_string()));

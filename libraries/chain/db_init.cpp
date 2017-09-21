@@ -152,6 +152,7 @@ void database::initialize_evaluators()
    register_evaluator<committee_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
+   register_evaluator<guard_member_resign_evaluator>();
    register_evaluator<custom_evaluator>();
    register_evaluator<asset_create_evaluator>();
    register_evaluator<asset_issue_evaluator>();
@@ -263,8 +264,8 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    // Create blockchain accounts
    fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   create<account_balance_object>([](account_balance_object& b) {
-      b.balance = GRAPHENE_MAX_SHARE_SUPPLY;
+   create<balance_object>([](balance_object& b) {
+      b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
    });
    const account_object& committee_account =
       create<account_object>( [&](account_object& n) {
@@ -368,7 +369,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
          a.dynamic_asset_data_id = dyn_asset.id;
       });
    assert( asset_id_type(core_asset.id) == asset().asset_id );
-   assert( get_balance(account_id_type(), asset_id_type()) == asset(dyn_asset.current_supply) );
+   assert( get_balance(address(), asset_id_type()) == asset(dyn_asset.current_supply) );
    // Create more special assets
    while( true )
    {

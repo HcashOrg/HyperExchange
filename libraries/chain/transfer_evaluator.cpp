@@ -72,7 +72,9 @@ void_result transfer_evaluator::do_evaluate( const transfer_operation& op )
 
       return void_result();
 	  */
-	   bool insufficient_balance = d.get_balance(op.from_addr, asset_type.id).amount >= op.amount.amount;
+	 
+	   bool insufficient_balance =  d.get_balance(op.from_addr, asset_type.id).amount >= op.amount.amount;
+
 	   FC_ASSERT(insufficient_balance,
 		   "Insufficient Balance: ${balance}, unable to transfer '${total_transfer}' from addr '${a}' to '${t}'",
 		   ("a", op.from_addr)("t", op.to_addr)("total_transfer", d.to_pretty_string(op.amount))("balance", d.to_pretty_string(d.get_balance(op.from_addr, asset_type.id))));

@@ -389,6 +389,9 @@ BOOST_AUTO_TEST_CASE( proposed_single_account )
    }
 }
 
+
+
+
 /// Verify that committee authority cannot be invoked in a normal transaction
 BOOST_AUTO_TEST_CASE( committee_authority )
 { try {
