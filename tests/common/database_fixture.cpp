@@ -35,6 +35,7 @@
 #include <graphene/chain/fba_object.hpp>
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
+#include <graphene/chain/balance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/utilities/tempdir.hpp>
 
@@ -167,15 +168,18 @@ void database_fixture::verify_asset_supplies( const database& db )
    BOOST_CHECK(core_asset_data.fee_pool == 0);
 
    const simple_index<account_statistics_object>& statistics_index = db.get_index_type<simple_index<account_statistics_object>>();
-   const auto& balance_index = db.get_index_type<account_balance_index>().indices();
+   const auto& temp_account_balance_index = db.get_index_type<account_balance_index>().indices();
+   const auto& temp_balance_index = db.get_index_type<balance_index>().indices();
    const auto& settle_index = db.get_index_type<force_settlement_index>().indices();
    map<asset_id_type,share_type> total_balances;
    map<asset_id_type,share_type> total_delnk;
    share_type core_in_orders;
    share_type reported_core_in_orders;
 
-   for( const account_balance_object& b : balance_index )
+   for( const account_balance_object& b : temp_account_balance_index)
       total_balances[b.asset_type] += b.balance;
+   for (const balance_object& b : temp_balance_index)
+	   total_balances[b.balance.asset_id] += b.balance.amount;
    for( const force_settlement_object& s : settle_index )
       total_balances[s.balance.asset_id] += s.balance.amount;
    for( const account_statistics_object& a : statistics_index )
@@ -1062,7 +1066,7 @@ asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type mi
 }
 int64_t database_fixture::get_balance( const account_object& account, const asset_object& a )const
 {
-  return db.get_balance(account.get_id(), a.get_id()).amount.value;
+  return db.get_balance(account.addr, a.get_id()).amount.value;
 }
 
 vector< operation_history_object > database_fixture::get_operation_history( account_id_type account_id )const

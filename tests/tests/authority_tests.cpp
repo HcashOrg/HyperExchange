@@ -653,9 +653,12 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
 { try {
    generate_block();
 
-   auto nathan_key = generate_private_key("nathan");
+   auto nathan_key = generate_private_key("guard0");
    auto dan_key = generate_private_key("dan");
-   const account_object& nathan = create_account("nathan", nathan_key.get_public_key() );
+   const account_object& nathan = get_account("guard0");
+	   
+	   
+	//   create_account("guard0", nathan_key.get_public_key() );
    const account_object& dan = create_account("dan", dan_key.get_public_key() );
 
    transfer(account_id_type()(db), nathan, asset(100000));
@@ -665,24 +668,29 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
       transfer_operation top;
       top.from = dan.get_id();
       top.to = nathan.get_id();
+	  top.from_addr = dan.addr;
+	  top.to_addr = nathan.addr;
       top.amount = asset(500);
 
       proposal_create_operation pop;
       pop.proposed_ops.emplace_back(top);
       std::swap(top.from, top.to);
+	  std::swap(top.from_addr, top.to_addr);
       top.amount = asset(6000);
       pop.proposed_ops.emplace_back(top);
 
       pop.fee_paying_account = nathan.addr;
       pop.expiration_time = db.head_block_time() + fc::days(1);
+	  pop.proposer = nathan.get_id();
       trx.operations.push_back(pop);
       sign( trx, nathan_key );
       PUSH_TX( db, trx );
       trx.clear();
    }
 
-   const proposal_object& prop = *db.get_index_type<proposal_index>().indices().begin();
-   BOOST_CHECK(prop.required_active_approvals.size() == 2);
+   const proposal_object& prop = *db.get_index_type<proposal_index>().indices().rbegin();
+   int x = db.get_index_type<proposal_index>().indices().size();
+   BOOST_CHECK(prop.required_account_approvals.size() == 7);
    BOOST_CHECK(prop.required_owner_approvals.size() == 0);
    BOOST_CHECK(!prop.is_authorized_to_execute(db));
 
@@ -690,27 +698,29 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
       proposal_update_operation uop;
       uop.fee_paying_account = nathan.get_id();
       uop.proposal = prop.id;
-      uop.active_approvals_to_add.insert(nathan.get_id());
+      //uop.active_approvals_to_add.insert(nathan.get_id());
+	  uop.key_approvals_to_add.insert(nathan.addr);
       trx.operations.push_back(uop);
       sign( trx, nathan_key );
       PUSH_TX( db, trx );
       trx.clear();
       BOOST_CHECK(!prop.is_authorized_to_execute(db));
-      BOOST_CHECK_EQUAL(prop.available_active_approvals.size(), 1);
+      BOOST_CHECK_EQUAL(prop.approved_key_approvals.size(), 1);
 
       std::swap(uop.active_approvals_to_add, uop.active_approvals_to_remove);
+	  std::swap(uop.key_approvals_to_add, uop.key_approvals_to_remove);
       trx.operations.push_back(uop);
       sign( trx, nathan_key );
       PUSH_TX( db, trx );
       trx.clear();
       BOOST_CHECK(!prop.is_authorized_to_execute(db));
-      BOOST_CHECK_EQUAL(prop.available_active_approvals.size(), 0);
+      BOOST_CHECK_EQUAL(prop.approved_key_approvals.size(), 0);
    }
 
    {
       proposal_id_type pid = prop.id;
       proposal_delete_operation dop;
-      dop.fee_paying_account = nathan.get_id();
+      dop.fee_paying_account = nathan.addr;
       dop.proposal = pid;
       trx.operations.push_back(dop);
       sign( trx, nathan_key );
@@ -786,7 +796,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_owner_authority_delete, database_fixture )
    {
       proposal_id_type pid = prop.id;
       proposal_delete_operation dop;
-      dop.fee_paying_account = nathan.get_id();
+      dop.fee_paying_account = nathan.addr;
       dop.proposal = pid;
       dop.using_owner_authority = true;
       trx.operations.push_back(dop);
