@@ -15,8 +15,8 @@ namespace graphene {
 			account_id_type lock_balance_account_id;
 			address lock_address;
 			//guard_member_id_type lock_balance_account;
-			account_id_type fee_payer()const {
-				return lock_balance_account_id;
+			address fee_payer()const {
+				return lock_address;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
@@ -38,8 +38,8 @@ namespace graphene {
 			account_id_type foreclose_balance_account_id;
 			address foreclose_address;
 			//guard_member_id_type lock_balance_account;
-			account_id_type fee_payer()const {
-				return foreclose_balance_account_id;
+			address fee_payer()const {
+				return foreclose_address;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;

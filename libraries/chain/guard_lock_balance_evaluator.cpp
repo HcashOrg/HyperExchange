@@ -26,7 +26,7 @@ namespace graphene {
 			try {
 				database& d = db();
 				const asset_object&   asset_type = o.lock_asset_id(d);
-				d.adjust_balance(o.lock_balance_account_id, -o.lock_asset_amount);
+				d.adjust_balance(o.lock_address, -o.lock_asset_amount);
 				//d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account, o.lock_asset_amount);
 				// 			auto & iter = d.get_index_type<guard_member_index>().indices().get<by_account>();
 				// 			auto itr = iter.find(o.lock_balance_account);
@@ -62,7 +62,7 @@ namespace graphene {
 			try {
 				database& d = db();
 				const asset_object&   asset_type = o.foreclose_asset_id(d);
-				d.adjust_balance(o.foreclose_balance_account_id, o.foreclose_asset_amount);
+				d.adjust_balance(o.foreclose_address, o.foreclose_asset_amount);
 				//d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account, o.lock_asset_amount);
 				// 			auto & iter = d.get_index_type<guard_member_index>().indices().get<by_account>();
 				// 			auto itr = iter.find(o.lock_balance_account);
