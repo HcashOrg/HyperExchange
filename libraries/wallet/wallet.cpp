@@ -1506,9 +1506,6 @@ public:
 	  prop_op.proposer = get_account(proposing_account).get_id();
 	  prop_op.fee_paying_account = get_account(proposing_account).addr;
 	  prop_op.proposed_ops.emplace_back(guard_create_op);
-	  
-
-	  prop_op.review_period_seconds = 100;
 	  tx.operations.push_back(prop_op);
       set_operation_fees( tx, current_params.current_fees);
       tx.validate();
@@ -1538,7 +1535,7 @@ public:
            prop_op.proposer = get_account(proposing_account).get_id();
            prop_op.fee_paying_account = get_account(proposing_account).addr;
            prop_op.proposed_ops.emplace_back(guard_create_op);
-           prop_op.review_period_seconds = 100;
+           //prop_op.review_period_seconds = 100;
            tx.operations.push_back(prop_op);
            set_operation_fees(tx, current_params.current_fees);
            tx.validate();
@@ -1555,7 +1552,7 @@ public:
 		   guard_member_update_operation op;
 		   auto guard_member_account = get_guard_member(proposing_account);
 		   const chain_parameters& current_params = get_global_properties().parameters;
-		   FC_ASSERT(guard_member_account.formal == false,"this guard has been formal one.");
+		   FC_ASSERT(guard_member_account.formal == formal,"this guard no need to change.");
 		   op.formal = formal;
 		   auto guard_update_op = operation(op);
 		   current_params.current_fees->set_fee(guard_update_op);
@@ -1567,7 +1564,7 @@ public:
 		   prop_op.fee_paying_account = get_account(proposing_account).addr;
 		   prop_op.proposed_ops.emplace_back(guard_update_op);
 		   prop_op.type = vote_id_type::witness;
-		   prop_op.review_period_seconds = 100;
+		   prop_op.review_period_seconds = 0;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
