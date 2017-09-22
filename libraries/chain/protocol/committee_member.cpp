@@ -31,7 +31,7 @@ void guard_member_create_operation::validate()const
    FC_ASSERT(url.size() < GRAPHENE_MAX_URL_LENGTH );
 }
 
-void committee_member_update_operation::validate()const
+void guard_member_update_operation::validate()const
 {
    FC_ASSERT( fee.amount >= 0 );
    if( new_url.valid() )
