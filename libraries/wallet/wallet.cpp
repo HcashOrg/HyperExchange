@@ -1516,6 +1516,37 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
 
+   signed_transaction update_guard_formal(string proposing_account, bool formal ,int64_t expiration_time,
+	   bool broadcast /* = false */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   guard_member_update_operation op;
+		   auto guard_member_account = get_guard_member(proposing_account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   FC_ASSERT(guard_member_account.formal == false,"this guard has been formal one.");
+		   op.formal = formal;
+		   auto guard_update_op = operation(op);
+		   current_params.current_fees->set_fee(guard_update_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposing_account).get_id();
+		   prop_op.fee_paying_account = get_account(proposing_account).addr;
+		   prop_op.proposed_ops.emplace_back(guard_update_op);
+
+		   prop_op.review_period_seconds = 100;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+		   
+
+	   } FC_CAPTURE_AND_RETHROW((proposing_account)(expiration_time)(broadcast))
+   }
+
    miner_object get_miner(string owner_account)
    {
       try
@@ -3772,6 +3803,13 @@ signed_transaction wallet_api::create_guard_member(string proposing_account, str
                                                    bool broadcast /* = false */)
 {
    return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
+}
+
+signed_transaction wallet_api::update_guard_formal(string proposing_account, bool formal,
+	int64_t expiration_time,
+	bool broadcast /* = false */)
+{
+	return my->update_guard_formal(proposing_account,formal, expiration_time, broadcast);
 }
 
 map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)

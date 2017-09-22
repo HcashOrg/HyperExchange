@@ -149,7 +149,7 @@ void database::initialize_evaluators()
    register_evaluator<account_upgrade_evaluator>();
    register_evaluator<account_whitelist_evaluator>();
    register_evaluator<guard_member_create_evaluator>();
-   register_evaluator<committee_member_update_evaluator>();
+   register_evaluator<guard_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
    register_evaluator<guard_member_resign_evaluator>();
@@ -460,6 +460,13 @@ void database::init_genesis(const genesis_state_type& genesis_state)
                 ("acct", name));
       return itr->get_id();
    };
+   auto get_account_address = [&accounts_by_name](const string& name) {
+	   auto itr = accounts_by_name.find(name);
+	   FC_ASSERT(itr != accounts_by_name.end(),
+		   "Unable to find account '${acct}'. Did you forget to add a record for it to initial_accounts?",
+		   ("acct", name));
+	   return itr->addr;
+   };
 
    // Helper function to get asset ID by symbol
    const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_symbol>();
@@ -648,7 +655,11 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       guard_member_create_operation op;
       op.guard_member_account = get_account_id(member.owner_name);
       apply_operation(genesis_eval_state, op);
-	  apply_operation(genesis_eval_state, op);
+	  guard_member_update_operation uop;
+	  uop.guard_member_account = op.guard_member_account;
+	  uop.owner_addr = get_account_address(member.owner_name);
+	  uop.formal = true;
+	  apply_operation(genesis_eval_state, uop);
    });
 
    // Create initial workers

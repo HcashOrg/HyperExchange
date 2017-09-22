@@ -68,65 +68,40 @@ namespace graphene {
                 db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
                     vote_id = get_next_vote_id(p, vote_id_type::committee);
                 });
-                auto& index = db().get_index_type<guard_member_index>().indices().get<by_account>();
-                auto iter = index.find(op.guard_member_account);
-                if (iter != index.end())
-                {
-                    db().modify(*iter, [](guard_member_object& obj)
-                    {
-                        obj.formal = true;
-                    }
-                    );
-                    return iter->id;
-                }
                 const auto& new_del_object = db().create<guard_member_object>([&](guard_member_object& obj) {
                     obj.guard_member_account = op.guard_member_account;
                     obj.vote_id = vote_id;
                     obj.url = op.url;
-                });
-                //add a new proposal for all miners to approve or disapprove
-                processed_transaction _proposed_trx;
-                guard_member_create_operation t_op(op);
-
-                //db().get_global_properties()
-                //t_op.guard_member_account = op.guard_member_account;
-                const proposal_object& proposal = db().create<proposal_object>([&](proposal_object& proposal) {
-                    _proposed_trx.operations.emplace_back(t_op);
-                    proposal.proposed_transaction = _proposed_trx;
-                    proposal.expiration_time = db().head_block_time() + fc::seconds(GUARD_VOTES_EXPIRATION_TIME);
-                    proposal.type = vote_id_type::witness;
-
-                    //proposal should only be approved by guard or miners
-                    const auto& acc = db().get_index_type<account_index>().indices().get<by_id>();
-                    const auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
-                    std::for_each(iter.begin(), iter.end(), [&](const miner_object& a)
-                    {
-                        proposal.required_account_approvals.insert(acc.find(a.miner_account)->addr);
-                    });
-
+					obj.formal = false;
                 });
                 return new_del_object.id;
             } FC_CAPTURE_AND_RETHROW((op))
         }
 
-        void_result committee_member_update_evaluator::do_evaluate(const committee_member_update_operation& op)
+        void_result guard_member_update_evaluator::do_evaluate(const guard_member_update_operation& op)
         {
             try {
-                FC_ASSERT(db().get(op.committee_member).guard_member_account == op.guard_member_account);
+				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
+				auto guard_iter = guard_idx.find(op.guard_member_account);
+                FC_ASSERT(guard_iter != guard_idx.end());
+				FC_ASSERT(db().get(op.guard_member_account).addr == op.owner_addr);
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
 
-        void_result committee_member_update_evaluator::do_apply(const committee_member_update_operation& op)
+        void_result guard_member_update_evaluator::do_apply(const guard_member_update_operation& op)
         {
             try {
                 database& _db = db();
-                _db.modify(
-                    _db.get(op.committee_member),
+				_db.modify(
+					*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account),
+                    //_db.get(op.guard_member_account),
                     [&](guard_member_object& com)
                 {
                     if (op.new_url.valid())
                         com.url = *op.new_url;
+					if (op.formal.valid())
+						com.formal = *op.formal;
                 });
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
