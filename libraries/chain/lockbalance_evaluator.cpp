@@ -15,7 +15,7 @@ namespace graphene{
 					FC_ASSERT(iter.valid(),"Dont have lock account");
 					optional<account_object> account_iter = d.get(iter->miner_account);
 					FC_ASSERT(account_iter.valid() && account_iter->addr == o.lock_balance_addr, "Address is wrong");
-					bool insufficient_balance = d.get_balance(o.lock_balance_account, asset_type.id).amount >= o.lock_asset_amount;
+					bool insufficient_balance = d.get_balance(o.lock_balance_addr, asset_type.id).amount >= o.lock_asset_amount;
 					FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough");
 				}
 				else {
@@ -30,9 +30,9 @@ namespace graphene{
 					database& d = db();
 					const asset_object&   asset_type = o.lock_asset_id(d);
 					d.adjust_balance(o.lock_balance_addr, -o.lock_asset_amount);
-					d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account,o.lock_asset_amount);
-					optional<miner_object> itr = d.get(o.lockto_miner_account);
-					d.modify(*itr, [o,asset_type](miner_object& b) {
+					d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account,asset(o.lock_asset_amount,o.lock_asset_id));
+					//optional<miner_object> itr = d.get(o.lockto_miner_account);
+					d.modify(d.get(o.lockto_miner_account), [o, asset_type](miner_object& b) {
 						auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 						if (map_lockbalance_total != b.lockbalance_total.end())	{
 							map_lockbalance_total->second += o.lock_asset_amount;

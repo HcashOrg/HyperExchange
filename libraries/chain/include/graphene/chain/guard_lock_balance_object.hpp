@@ -15,7 +15,7 @@ namespace graphene {
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 
-			asset get_lock_balance() const {
+			asset get_guard_lock_balance() const {
 				return asset(lock_asset_amount, lock_asset_id);
 			}
 			
