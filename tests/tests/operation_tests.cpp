@@ -951,6 +951,32 @@ BOOST_FIXTURE_TEST_CASE(lock_balance, database_fixture)
 		throw;
 	}
 }
+BOOST_FIXTURE_TEST_CASE(foreclose_balance, database_fixture)
+{
+	try {
+		INVOKE(lock_balance);
+		foreclose_balance_operation op;
+		const account_object& nathan = get_account("miner6");
+		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
+		const miner_object& miner = *db.get_index_type<miner_index>().indices().get<by_account>().find(nathan.get_id());
+		op.foreclose_account = nathan.get_id();
+		op.foreclose_addr = nathan.addr;
+		op.foreclose_asset_amount = 10;
+		op.foreclose_asset_id = uia.get_id();
+		op.foreclose_miner_account = miner.id;
+		trx.operations.push_back(op);
+		BOOST_TEST_MESSAGE("foreclose balance to nathan");
+		PUSH_TX(db, trx, ~0);
+		generate_block();
+		auto amcc = get_lock_balance(nathan.get_id(), miner.id, uia.get_id()).amount;
+		BOOST_CHECK_EQUAL(amcc.value, 0);
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
 BOOST_AUTO_TEST_CASE( transfer_uia )
 {
    try {

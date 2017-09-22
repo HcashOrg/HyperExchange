@@ -71,11 +71,11 @@ namespace graphene{
 			database& d = db();
 			if (o.foreclose_contract_addr == address()) {
 				const asset_object&   asset_type = o.foreclose_asset_id(d);
-				d.adjust_lock_balance(o.foreclose_miner_account, o.foreclose_account, -o.foreclose_asset_amount);
+				d.adjust_lock_balance(o.foreclose_miner_account, o.foreclose_account, asset(-o.foreclose_asset_amount,o.foreclose_asset_id));
 				d.adjust_balance(o.foreclose_addr, o.foreclose_asset_amount);
 
-				optional<miner_object> itr = d.get(o.foreclose_miner_account);
-				d.modify(*itr, [o, asset_type](miner_object& b) {
+				//optional<miner_object> itr = d.get(o.foreclose_miner_account);
+				d.modify(d.get(o.foreclose_miner_account), [o, asset_type](miner_object& b) {
 					auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 					if (map_lockbalance_total != b.lockbalance_total.end()) {
 						map_lockbalance_total->second -= o.foreclose_asset_amount;
