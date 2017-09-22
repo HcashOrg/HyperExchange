@@ -890,13 +890,48 @@ BOOST_AUTO_TEST_CASE( issue_uia )
       throw;
    }
 }
-BOOST_AUTO_TEST_CASE(lock_balance)
+BOOST_FIXTURE_TEST_CASE(guard_lock_balance, database_fixture)
 {
 	try {
+		generate_block();
+		const account_object& nathan = get_account("guard6");
+		transfer(account_id_type()(db), nathan, asset(100000));
+		generate_block();
+		guard_lock_balance_operation op;
+		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
+		//const account_object& nathan = *db.get_index_type<account_index>().indices().get<by_name>().find("nathan");
+		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
+		op.lock_asset_id = uia.get_id();
+		op.lock_balance_account = guard.id;
+		op.lock_balance_account_id = nathan.get_id();
+		op.lock_asset_amount = 10;
+		op.lock_address = nathan.addr;
+		trx.operations.push_back(op);
+		BOOST_TEST_MESSAGE("Lock balance to nathan");
+		PUSH_TX(db, trx, ~0);
+		generate_block();
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000 - 10);
+		auto amcc = get_guard_lock_balance(guard.id, uia.get_id()).amount;
+		BOOST_CHECK_EQUAL(amcc.value, 10);
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+BOOST_FIXTURE_TEST_CASE(lock_balance, database_fixture)
+{
+	try {
+		generate_block();
+		const account_object& nathan = get_account("miner6");
+		transfer(account_id_type()(db), nathan, asset(100000));
+		generate_block();
 		lockbalance_operation op;
 		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
-		const account_object& nathan = *db.get_index_type<account_index>().indices().get<by_name>().find("nathan");
+		//const account_object& nathan = *db.get_index_type<account_index>().indices().get<by_name>().find("nathan");
 		const miner_object& miner = *db.get_index_type<miner_index>().indices().get<by_account>().find(nathan.get_id());
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
 		op.lock_asset_id = uia.get_id();
 		op.lock_balance_account = nathan.get_id();
 		op.lockto_miner_account = miner.id;
@@ -905,8 +940,11 @@ BOOST_AUTO_TEST_CASE(lock_balance)
 		trx.operations.push_back(op);
 		BOOST_TEST_MESSAGE("Lock balance to nathan");
 		PUSH_TX(db, trx, ~0);
-		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 10000000 - 10);
-		BOOST_CHECK_EQUAL(get_lock_balance(nathan.get_id(), miner.id, uia.get_id()).amount.value, 10);
+		generate_block();
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000 - 10);
+		auto amcc = get_lock_balance(nathan.get_id(), miner.id, uia.get_id()).amount;
+		
+		BOOST_CHECK_EQUAL(amcc.value, 10);
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));

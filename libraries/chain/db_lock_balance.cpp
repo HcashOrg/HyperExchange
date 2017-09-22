@@ -11,13 +11,24 @@ namespace graphene {
 	namespace chain {
 
 		asset database::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id) const{
-			auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
-			auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
-			if (itr != index.end()){
-				return itr->get_lock_balance();
-			}
-						
-			return asset();
+			try {
+				auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+				auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
+				if (itr != index.end()) {
+					return itr->get_lock_balance();
+				}
+				return asset();
+			}FC_CAPTURE_AND_RETHROW((owner)(miner)(asset_id))
+		}
+		asset database::get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id) const {
+			try {
+				auto& index = get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
+				auto itr = index.find(boost::make_tuple(guard, asset_id));
+				if (itr != index.end()) {
+					return itr->get_guard_lock_balance();
+				}
+				return asset();
+			}FC_CAPTURE_AND_RETHROW((guard)(asset_id))
 		}
 		void database::adjust_guard_lock_balance(guard_member_id_type guard_account, asset delta) {
 			try {

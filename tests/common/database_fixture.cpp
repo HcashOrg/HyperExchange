@@ -39,7 +39,8 @@
 #include <graphene/chain/balance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/utilities/tempdir.hpp>
-
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
 #include <fc/crypto/digest.hpp>
 #include <fc/smart_ref_impl.hpp>
 
@@ -171,6 +172,8 @@ void database_fixture::verify_asset_supplies( const database& db )
    const simple_index<account_statistics_object>& statistics_index = db.get_index_type<simple_index<account_statistics_object>>();
    const auto& bal_idx = db.get_index_type<balance_index>().indices();
    const auto& settle_index = db.get_index_type<force_settlement_index>().indices();
+   const auto& lock_bal_idx = db.get_index_type<lockbalance_index>().indices();
+   const auto& guard_bal_idx = db.get_index_type<guard_lock_balance_index>().indices();
    map<asset_id_type,share_type> total_balances;
    map<asset_id_type,share_type> total_delnk;
    share_type core_in_orders;
@@ -178,6 +181,12 @@ void database_fixture::verify_asset_supplies( const database& db )
 
    for( const balance_object& b : bal_idx)
       total_balances[b.asset_type()] += b.balance.amount;
+   for (const lockbalance_object& lb_o:lock_bal_idx){
+	   total_balances[lb_o.lock_asset_id] += lb_o.lock_asset_amount;
+   }
+   for (const guard_lock_balance_object& glb_o : guard_bal_idx) {
+	   total_balances[glb_o.lock_asset_id] += glb_o.lock_asset_amount;
+   }
    for( const force_settlement_object& s : settle_index )
       total_balances[s.balance.asset_id] += s.balance.amount;
    for( const account_statistics_object& a : statistics_index )
@@ -1061,6 +1070,9 @@ int64_t database_fixture::get_balance( account_id_type account, asset_id_type a 
 }
 asset database_fixture::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id)const {
 	return db.get_lock_balance(owner, miner,asset_id);
+}
+asset database_fixture::get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id)const {
+	return db.get_guard_lock_balance(guard, asset_id);
 }
 int64_t database_fixture::get_balance( const account_object& account, const asset_object& a )const
 {
