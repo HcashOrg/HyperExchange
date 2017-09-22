@@ -32,11 +32,14 @@
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
 
 #include <graphene/db/simple_index.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include "../common/database_fixture.hpp"
+#include <graphene/chain/witness_object.hpp>
 
 using namespace graphene::chain;
 using namespace graphene::chain::test;
@@ -652,6 +655,121 @@ BOOST_FIXTURE_TEST_CASE( proposal_two_accounts, database_fixture )
 
 BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 {
+	generate_block();
+	std::vector<fc::ecc::private_key> guard_key;
+	std::vector<account_object> guard;
+	for (int i = 0; i < 6; i++)
+	{
+		guard_key.push_back(generate_private_key("guard" + fc::to_string(i)));
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		guard.push_back(get_account("guard" + fc::to_string(i)));
+	}
+	const auto& miners = db.get_index_type<miner_index>().indices();
+	const auto& guards = db.get_index_type<guard_member_index>().indices();
+
+
+	for (auto one_miner : miners)
+	{
+		miner_id_type temp = one_miner.id;
+		db.modify(db.get(temp), [&](miner_object& obj) {
+			
+			obj.lockbalance_total["LNK"] = asset(100);
+
+		});
+		db.adjust_lock_balance(one_miner.id, one_miner.miner_account,asset(100));
+
+	}
+	for (auto one_guard : guards)
+	{
+		guard_member_id_type temp = one_guard.id;
+		db.modify(db.get(temp), [&](guard_member_object& obj) {
+
+			obj.guard_lock_balance["LNK"] = asset(100);
+
+		});
+		db.adjust_guard_lock_balance(one_guard.id, asset(100));
+		
+	}
+
+
+
+	{
+
+		committee_member_execute_coin_destory_operation destory_op;
+		destory_op.commitee_member_handle_percent = 50;
+		destory_op.loss_asset = asset(500);
+		proposal_create_operation pop;
+
+		pop.fee_paying_account = guard[0].addr;
+		pop.expiration_time = db.head_block_time() + fc::days(1);
+		pop.proposer = guard[0].get_id();
+		pop.proposed_ops.emplace_back(destory_op);
+		trx.operations.push_back(pop);
+		sign(trx, guard_key[0]);
+		PUSH_TX(db, trx);
+		trx.clear();
+
+	}
+	const proposal_object& prop = *db.get_index_type<proposal_index>().indices().rbegin();
+	BOOST_CHECK(prop.required_account_approvals.size() == 7);
+	BOOST_CHECK(prop.required_owner_approvals.size() == 0);
+	BOOST_CHECK(!prop.is_authorized_to_execute(db));
+
+	{
+
+		proposal_update_operation uop;
+		uop.fee_paying_account = guard[0].get_id();
+		uop.proposal = prop.id;
+		//uop.active_approvals_to_add.insert(nathan.get_id());
+		for (int i = 0; i < 6; i++)
+		{
+			uop.key_approvals_to_add.insert(guard[i].addr);
+		}
+		
+		trx.operations.push_back(uop);
+		for (int i = 0; i < 6; i++)
+		{
+			sign(trx, guard_key[i]);
+		}
+		PUSH_TX(db, trx);
+		trx.clear();
+
+	}
+
+	generate_block();
+	const auto& new_miners = db.get_index_type<miner_index>().indices();
+	const auto& new_guards = db.get_index_type<guard_member_index>().indices();
+	uint64_t total_use = 0;
+	for (auto one_miner : new_miners)
+	{
+		printf("miner balance:%d\n", one_miner.lockbalance_total["LNK"].amount.value);
+		total_use += 100-one_miner.lockbalance_total["LNK"].amount.value;
+
+	}
+	for (auto one_guard : new_guards)
+	{
+		printf("guard balance:%d\n", one_guard.guard_lock_balance["LNK"].amount.value);
+		total_use += 100-one_guard.guard_lock_balance["LNK"].amount.value;
+	}
+	BOOST_CHECK(total_use == 500);
+	total_use = 0;
+	const auto& lock_balances = db.get_index_type<lockbalance_index>().indices();
+	const auto& guard_lock_balances = db.get_index_type<guard_lock_balance_index>().indices();
+	for (auto one_balance : lock_balances)
+	{
+		printf("balance:%d\n", one_balance.lock_asset_amount.value);
+		total_use += 100 - one_balance.lock_asset_amount.value;
+	}
+
+	for (auto one_balance : guard_lock_balances)
+	{
+		printf("balance:%d\n", one_balance.lock_asset_amount.value);
+		total_use += 100 - one_balance.lock_asset_amount.value;
+	}
+
+	BOOST_CHECK(total_use == 500);
 
 }
 
