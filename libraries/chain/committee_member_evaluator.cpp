@@ -141,10 +141,10 @@ namespace graphene {
                 //执行退币流程
                 database& _db = db();
                 //执行miner质押退币流程
-                const auto lock_balances = _db.get_index_type<lockbalance_index>().indices();
-                const auto guard_lock_balances = _db.get_index_type<guard_lock_balance_index>().indices();
-                const auto all_guard = _db.get_index_type<guard_member_index>().indices();
-                const auto all_miner = _db.get_index_type<miner_index>().indices();
+                const auto& lock_balances = _db.get_index_type<lockbalance_index>().indices();
+                const auto& guard_lock_balances = _db.get_index_type<guard_lock_balance_index>().indices();
+                const auto& all_guard = _db.get_index_type<guard_member_index>().indices();
+                const auto& all_miner = _db.get_index_type<miner_index>().indices();
                 share_type loss_money = o.loss_asset.amount;
                 share_type miner_need_pay_money = loss_money * o.commitee_member_handle_percent / 100;
                 share_type guard_need_pay_money = 0;
