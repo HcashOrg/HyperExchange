@@ -54,18 +54,18 @@ namespace graphene { namespace chain {
     * Currently the only field which can be updated is the `url`
     * field.
     */
-   struct committee_member_update_operation : public base_operation
+   struct guard_member_update_operation : public base_operation
    {
       struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset                                 fee;
       /// The committee member to update.
-      guard_member_id_type              committee_member;
-      /// The account which owns the committee_member. This account pays the fee for this operation.
-      account_id_type                       guard_member_account;
+      account_id_type              guard_member_account;
+      /// The account which owns the guard_member. This account pays the fee for this operation.
+	  address                       owner_addr;
       optional< string >                    new_url;
-
-      account_id_type fee_payer()const { return guard_member_account; }
+	  optional<bool >                       formal;
+      address fee_payer()const { return owner_addr; }
       void            validate()const;
    };
 
@@ -115,7 +115,6 @@ namespace graphene { namespace chain {
 
        asset                                 fee;
        account_id_type                       guard_member_account;  //!< guard memeber to resign
-       proposal_id_type                      pid;                   //!< proposal to resign this guard member
 
        account_id_type fee_payer()const { return guard_member_account; }
        void            validate()const;
@@ -123,14 +122,14 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 FC_REFLECT( graphene::chain::guard_member_create_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::committee_member_update_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::guard_member_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::guard_member_resign_operation::fee_parameters_type, (fee) )
 
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
 
 FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_account)(url) )
-FC_REFLECT( graphene::chain::committee_member_update_operation, (fee)(committee_member)(guard_member_account)(new_url) )
+FC_REFLECT( graphene::chain::guard_member_update_operation, (fee)(guard_member_account)(owner_addr)(new_url)(formal) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation, (fee)(loss_asset)(commitee_member_handle_percent));
-FC_REFLECT( graphene::chain::guard_member_resign_operation, (fee)(guard_member_account)(pid) )
+FC_REFLECT( graphene::chain::guard_member_resign_operation, (fee)(guard_member_account) )

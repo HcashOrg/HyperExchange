@@ -1289,19 +1289,42 @@ class wallet_api
                                            account_whitelist_operation::account_listing new_listing_status,
                                            bool broadcast = false);
 
-      /** Creates a committee_member object owned by the given account.
+      /** Creates a guard_member object owned by the given account.
        *
-       * An account can have at most one committee_member object.
+       * An account can have at most one guard_member object.
        *
-       * @param owner_account the name or id of the account which is creating the committee_member
-       * @param url a URL to include in the committee_member record in the blockchain.  Clients may
-       *            display this when showing a list of committee_members.  May be blank.
+       * @param owner_account the name or id of the account which is creating the guard_member
+       * @param url a URL to include in the guard_member record in the blockchain.  Clients may
+       *            display this when showing a list of guard_members.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
-       * @returns the signed transaction registering a committee_member
+       * @returns the signed transaction registering a guard_member
        */
       signed_transaction create_guard_member(string proposing_account, string account, string url,
 		                                     int64_t expiration_time,
                                              bool broadcast = false);
+
+	  /** Creates a committee_member object owned by the given account.
+	  *
+	  * An account can have at most one committee_member object.
+	  *
+	  * @param proposing the name or id of the account which is updating the guard_member
+	  * @param broadcast true to broadcast the transaction on the network
+	  * @returns the signed transaction registering a committee_member
+	  */
+	  signed_transaction update_guard_formal(string proposing_account, bool formal,
+		  int64_t expiration_time,
+		  bool broadcast = false);
+
+      /** Resigns a guard_member object owned by the given account.
+      *
+      * An account can have at most one guard_member object.
+      *
+      * @param owner_account the name or id of the account which is resigning the guard_member
+      * @param broadcast true to broadcast the transaction on the network
+      * @returns the signed transaction registering a guard_member
+      */
+      signed_transaction resign_guard_member(string proposing_account, string account,
+          int64_t expiration_time, bool broadcast /* = false */);
 
       /** Lists all witnesses registered in the blockchain.
        * This returns a list of all account names that own witnesses, and the associated witness id,
@@ -1756,6 +1779,7 @@ FC_API( graphene::wallet::wallet_api,
         (settle_asset)
         (whitelist_account)
         (create_guard_member)
+        (resign_guard_member)
         (get_miner)
         (get_guard_member)
         (list_miners)
@@ -1826,5 +1850,5 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_lock_balance)
 		(foreclose_balance_from_miner)
 		(guard_foreclose_balance)
-
+	    (update_guard_formal)
       )
