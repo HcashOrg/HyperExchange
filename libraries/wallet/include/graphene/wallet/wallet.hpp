@@ -1303,6 +1303,18 @@ class wallet_api
 		                                     int64_t expiration_time,
                                              bool broadcast = false);
 
+	  /** Creates a committee_member object owned by the given account.
+	  *
+	  * An account can have at most one committee_member object.
+	  *
+	  * @param proposing the name or id of the account which is updating the guard_member
+	  * @param broadcast true to broadcast the transaction on the network
+	  * @returns the signed transaction registering a committee_member
+	  */
+	  signed_transaction update_guard_formal(string proposing_account, bool formal,
+		  int64_t expiration_time,
+		  bool broadcast = false);
+
       /** Resigns a guard_member object owned by the given account.
       *
       * An account can have at most one guard_member object.
@@ -1838,5 +1850,5 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_lock_balance)
 		(foreclose_balance_from_miner)
 		(guard_foreclose_balance)
-
+	    (update_guard_formal)
       )

@@ -3803,6 +3803,13 @@ signed_transaction wallet_api::create_guard_member(string proposing_account, str
    return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
 }
 
+
+signed_transaction wallet_api::update_guard_formal(string proposing_account, bool formal,
+	int64_t expiration_time,
+	bool broadcast /* = false */)
+{
+	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
+}
 signed_transaction wallet_api::resign_guard_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
 {
