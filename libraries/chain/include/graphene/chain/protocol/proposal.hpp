@@ -141,7 +141,8 @@ namespace graphene { namespace chain {
       account_id_type fee_payer()const { return fee_paying_account; }
       void            validate()const;
       share_type      calculate_fee(const fee_parameters_type& k)const;
-      void get_required_authorities( vector<authority>& )const;
+	  void get_required_authorities(vector<authority>& a)const;
+	  
       void get_required_active_authorities( flat_set<account_id_type>& )const;
       void get_required_owner_authorities( flat_set<account_id_type>& )const;
    };
@@ -161,13 +162,17 @@ namespace graphene { namespace chain {
    {
       struct fee_parameters_type { uint64_t fee =  GRAPHENE_BLOCKCHAIN_PRECISION; };
 
-      account_id_type   fee_paying_account;
+      address   fee_paying_account;
       bool              using_owner_authority = false;
       asset             fee;
       proposal_id_type  proposal;
       extensions_type   extensions;
 
-      account_id_type fee_payer()const { return fee_paying_account; }
+      address fee_payer()const { return fee_paying_account; }
+	  void get_required_authorities(vector<authority>& a)const
+	  {
+		  a.push_back(authority(1, fee_payer(), 1));
+	  }
       void       validate()const;
    };
    ///@}

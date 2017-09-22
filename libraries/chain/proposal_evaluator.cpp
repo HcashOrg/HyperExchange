@@ -52,7 +52,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
          operation_get_required_authorities(op.op, auths, auths, other);
       }
 
-      FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
+      //FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
 
       if( auths.find(GRAPHENE_GUARD_ACCOUNT) != auths.end() )
       {
@@ -227,8 +227,7 @@ void_result proposal_delete_evaluator::do_evaluate(const proposal_delete_operati
 
    _proposal = &o.proposal(d);
 
-   auto required_approvals = o.using_owner_authority? &_proposal->required_owner_approvals
-                                                    : &_proposal->required_active_approvals;
+   auto required_approvals = &_proposal->required_account_approvals;
    FC_ASSERT( required_approvals->find(o.fee_paying_account) != required_approvals->end(),
               "Provided authority is not authoritative for this proposal.",
               ("provided", o.fee_paying_account)("required", *required_approvals));
