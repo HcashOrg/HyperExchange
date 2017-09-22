@@ -1566,7 +1566,7 @@ public:
 		   prop_op.proposer = get_account(proposing_account).get_id();
 		   prop_op.fee_paying_account = get_account(proposing_account).addr;
 		   prop_op.proposed_ops.emplace_back(guard_update_op);
-
+		   prop_op.type = vote_id_type::witness;
 		   prop_op.review_period_seconds = 100;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -1575,7 +1575,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 		   
 
-	   } FC_CAPTURE_AND_RETHROW((proposing_account)(expiration_time)(broadcast))
+	   } FC_CAPTURE_AND_RETHROW((proposing_account)(formal)(expiration_time)(broadcast))
    }
 
    miner_object get_miner(string owner_account)
@@ -3841,7 +3841,7 @@ signed_transaction wallet_api::update_guard_formal(string proposing_account, boo
 	int64_t expiration_time,
 	bool broadcast /* = false */)
 {
-	return my->update_guard_formal(proposing_account, formal, expiration_time, broadcast);
+	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
 }
 signed_transaction wallet_api::resign_guard_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
