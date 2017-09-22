@@ -1516,6 +1516,37 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
 
+   signed_transaction resign_guard_member(string proposing_account, string account, int64_t expiration_time, bool broadcast)
+   {
+       try {
+           //account should be register in the blockchian
+           FC_ASSERT(!is_locked());
+           guard_member_resign_operation op;
+           auto guard_member_account = get_account_id(account);
+           FC_ASSERT(account_object().get_id() != guard_member_account, "account is not registered to the chain.");
+           op.guard_member_account = guard_member_account;
+
+           const chain_parameters& current_params = get_global_properties().parameters;
+           if (_remote_db->get_guard_member_by_account(op.guard_member_account))
+               FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
+           auto guard_create_op = operation(op);
+           current_params.current_fees->set_fee(guard_create_op);
+
+           signed_transaction tx;
+           proposal_create_operation prop_op;
+           prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+           prop_op.proposer = get_account(proposing_account).get_id();
+           prop_op.fee_paying_account = get_account(proposing_account).addr;
+           prop_op.proposed_ops.emplace_back(guard_create_op);
+           prop_op.review_period_seconds = 100;
+           tx.operations.push_back(prop_op);
+           set_operation_fees(tx, current_params.current_fees);
+           tx.validate();
+
+           return sign_transaction(tx, broadcast);
+       } FC_CAPTURE_AND_RETHROW((proposing_account)(account)(expiration_time)(broadcast))
+   }
+
    miner_object get_miner(string owner_account)
    {
       try
@@ -3772,6 +3803,12 @@ signed_transaction wallet_api::create_guard_member(string proposing_account, str
                                                    bool broadcast /* = false */)
 {
    return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
+}
+
+signed_transaction wallet_api::resign_guard_member(string proposing_account, string account,
+    int64_t expiration_time, bool broadcast)
+{
+    return my->resign_guard_member(proposing_account, account, expiration_time, broadcast);
 }
 
 map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
