@@ -977,6 +977,33 @@ BOOST_FIXTURE_TEST_CASE(foreclose_balance, database_fixture)
 		throw;
 	}
 }
+BOOST_FIXTURE_TEST_CASE(guard_foreclose_balance, database_fixture)
+{
+	try {
+		INVOKE(guard_lock_balance);
+		const account_object& nathan = get_account("guard6");
+		const asset_object& uia = *db.get_index_type<asset_index>().indices().get<by_symbol>().find("LNK");
+		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
+		//BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000-10);
+		guard_foreclose_balance_operation op;
+		op.foreclose_asset_id = uia.get_id();
+		op.foreclose_balance_account = guard.id;
+		op.foreclose_balance_account_id = nathan.get_id();
+		op.foreclose_asset_amount = 10;
+		op.foreclose_address = nathan.addr;
+		trx.operations.push_back(op);
+		BOOST_TEST_MESSAGE("guard foreclose balance to nathan");
+		PUSH_TX(db, trx, ~0);
+		generate_block();
+		BOOST_CHECK_EQUAL(get_balance(nathan, uia), 100000);
+		auto amcc = get_guard_lock_balance(guard.id, uia.get_id()).amount;
+		BOOST_CHECK_EQUAL(amcc.value, 0);
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
 BOOST_AUTO_TEST_CASE( transfer_uia )
 {
    try {
