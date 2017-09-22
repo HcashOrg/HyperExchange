@@ -71,7 +71,7 @@ namespace graphene { namespace chain {
       uint8_t                 account_fee_scale_bitshifts         = GRAPHENE_DEFAULT_ACCOUNT_FEE_SCALE_BITSHIFTS; ///< number of times to left bitshift account registration fee at each scaling
       uint8_t                 max_authority_depth                 = GRAPHENE_MAX_SIG_CHECK_DEPTH;
 	  uint64_t				  minimum_pledge_weight_line		  = GRAPHENE_MIN_PLEDGE_WEIGHT_LINE;
-	  std::set<asset>         minimum_guard_pledge_line			  ;
+	  flat_map<string,asset>         minimum_guard_pledge_line			  ;
       extensions_type         extensions;
 
       /** defined in fee_schedule.cpp */
