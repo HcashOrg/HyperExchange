@@ -1575,6 +1575,7 @@ public:
 	   } FC_CAPTURE_AND_RETHROW((proposing_account)(formal)(expiration_time)(broadcast))
    }
 
+
    miner_object get_miner(string owner_account)
    {
       try
