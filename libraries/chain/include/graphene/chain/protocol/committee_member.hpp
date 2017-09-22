@@ -115,7 +115,6 @@ namespace graphene { namespace chain {
 
        asset                                 fee;
        account_id_type                       guard_member_account;  //!< guard memeber to resign
-       proposal_id_type                      pid;                   //!< proposal to resign this guard member
 
        account_id_type fee_payer()const { return guard_member_account; }
        void            validate()const;
@@ -133,4 +132,4 @@ FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_a
 FC_REFLECT( graphene::chain::committee_member_update_operation, (fee)(committee_member)(guard_member_account)(new_url) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation, (fee)(loss_asset)(commitee_member_handle_percent));
-FC_REFLECT( graphene::chain::guard_member_resign_operation, (fee)(guard_member_account)(pid) )
+FC_REFLECT( graphene::chain::guard_member_resign_operation, (fee)(guard_member_account) )

@@ -262,8 +262,6 @@ namespace graphene {
                     }
                 });
                 FC_ASSERT(num > db().get_global_properties().parameters.minimum_guard_count, "No enough guards.");
-                auto &proposals = db().get_index_type<proposal_index>().indices().get<by_id>();
-                FC_ASSERT(proposals.find(o.pid) == proposals.end(), "No referred proposal is found, must be invalid resign operation.");
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((o))
         }
