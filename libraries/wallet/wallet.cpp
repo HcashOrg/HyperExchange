@@ -1524,8 +1524,6 @@ public:
            op.guard_member_account = guard_member_account;
 
            const chain_parameters& current_params = get_global_properties().parameters;
-           if (_remote_db->get_guard_member_by_account(op.guard_member_account))
-               FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
            auto guard_create_op = operation(op);
            current_params.current_fees->set_fee(guard_create_op);
 
