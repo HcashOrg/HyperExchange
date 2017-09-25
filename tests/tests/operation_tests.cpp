@@ -632,6 +632,24 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
     }
 }
 
+BOOST_AUTO_TEST_CASE(create_guard_member_true_test)
+{
+	try {
+		//INVOKE(create_guard_member_false_test);
+		vector<fc::ecc::private_key> pri_vec;
+		
+
+
+
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+
+
 BOOST_AUTO_TEST_CASE(resign_guard_member)
 {
     try {

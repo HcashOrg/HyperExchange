@@ -1552,7 +1552,9 @@ public:
 		   guard_member_update_operation op;
 		   auto guard_member_account = get_guard_member(proposing_account);
 		   const chain_parameters& current_params = get_global_properties().parameters;
-		   FC_ASSERT(guard_member_account.formal == formal,"this guard no need to change.");
+		   FC_ASSERT(guard_member_account.formal != formal,"this guard no need to change.");
+		   op.guard_member_account = guard_member_account.guard_member_account;
+		   op.owner_addr = get_account_addr(proposing_account);
 		   op.formal = formal;
 		   auto guard_update_op = operation(op);
 		   current_params.current_fees->set_fee(guard_update_op);

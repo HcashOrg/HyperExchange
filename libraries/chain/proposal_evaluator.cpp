@@ -75,7 +75,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto  proposer = o.proposer;
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
-   FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be formal guard.");
+   FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
 
    for( const op_wrapper& op : o.proposed_ops )
       _proposed_trx.operations.push_back(op.op);
@@ -94,7 +94,7 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
       proposal.expiration_time = o.expiration_time;
       if( o.review_period_seconds.valid() )
          proposal.review_period_time = o.expiration_time - *o.review_period_seconds;
-	  proposal.type = o.type;
+	  proposal.type = static_cast<vote_id_type::vote_type>(o.type);
       //Populate the required approval sets
       flat_set<account_id_type> required_active;
       vector<authority> other;
