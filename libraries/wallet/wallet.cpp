@@ -1524,8 +1524,6 @@ public:
            op.guard_member_account = guard_member_account;
 
            const chain_parameters& current_params = get_global_properties().parameters;
-           if (_remote_db->get_guard_member_by_account(op.guard_member_account))
-               FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
            auto guard_create_op = operation(op);
            current_params.current_fees->set_fee(guard_create_op);
 
@@ -2652,11 +2650,15 @@ public:
 	{
 	  FC_ASSERT(!changed_values.contains("minimum_guard_pledge_line"));
 	
+
+	  flat_map<string, uint64_t>  temp_asset_set1 = changed_values.find("minimum_guard_pledge_line")->value().as<flat_map<string, uint64_t>>();
 	  const chain_parameters& current_params = get_global_properties().parameters;
 	  chain_parameters new_params = current_params;
-	  fc::reflector<chain_parameters>::visit(
-		  fc::from_variant_visitor<chain_parameters>(changed_values, new_params)
-	  );
+
+	  for (auto iter = temp_asset_set1.begin(); iter != temp_asset_set1.end(); ++iter)
+	  {
+			  new_params.minimum_guard_pledge_line[iter->first] = asset(iter->second, get_asset_id(iter->first));
+	  }
 	
 	  committee_member_update_global_parameters_operation update_op;
 	  update_op.new_parameters = new_params;

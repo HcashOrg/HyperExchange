@@ -32,11 +32,14 @@
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
 
 #include <graphene/db/simple_index.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include "../common/database_fixture.hpp"
+#include <graphene/chain/witness_object.hpp>
 
 using namespace graphene::chain;
 using namespace graphene::chain::test;
@@ -649,6 +652,221 @@ BOOST_FIXTURE_TEST_CASE( proposal_two_accounts, database_fixture )
    }
 } FC_LOG_AND_RETHROW() }
 
+
+BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
+{
+	generate_block();
+	std::vector<fc::ecc::private_key> guard_key;
+	std::vector<account_object> guard;
+	for (int i = 0; i < 6; i++)
+	{
+		guard_key.push_back(generate_private_key("guard" + fc::to_string(i)));
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		guard.push_back(get_account("guard" + fc::to_string(i)));
+	}
+	const auto& miners = db.get_index_type<miner_index>().indices();
+	const auto& guards = db.get_index_type<guard_member_index>().indices();
+
+
+	for (auto one_miner : miners)
+	{
+		miner_id_type temp = one_miner.id;
+		db.modify(db.get(temp), [&](miner_object& obj) {
+			
+			obj.lockbalance_total["LNK"] = asset(100);
+
+		});
+		db.adjust_lock_balance(one_miner.id, one_miner.miner_account,asset(100));
+
+	}
+	for (auto one_guard : guards)
+	{
+		guard_member_id_type temp = one_guard.id;
+		db.modify(db.get(temp), [&](guard_member_object& obj) {
+
+			obj.guard_lock_balance["LNK"] = asset(100);
+
+		});
+		db.adjust_guard_lock_balance(one_guard.id, asset(100));
+		
+	}
+
+
+
+	{
+
+		committee_member_execute_coin_destory_operation destory_op;
+		destory_op.commitee_member_handle_percent = 50;
+		destory_op.loss_asset = asset(500);
+		proposal_create_operation pop;
+
+		pop.fee_paying_account = guard[0].addr;
+		pop.expiration_time = db.head_block_time() + fc::days(1);
+		pop.proposer = guard[0].get_id();
+		pop.proposed_ops.emplace_back(destory_op);
+		trx.operations.push_back(pop);
+		sign(trx, guard_key[0]);
+		PUSH_TX(db, trx);
+		trx.clear();
+
+	}
+	const proposal_object& prop = *db.get_index_type<proposal_index>().indices().rbegin();
+	BOOST_CHECK(prop.required_account_approvals.size() == 7);
+	BOOST_CHECK(prop.required_owner_approvals.size() == 0);
+	BOOST_CHECK(!prop.is_authorized_to_execute(db));
+
+	{
+
+		proposal_update_operation uop;
+		uop.fee_paying_account = guard[0].get_id();
+		uop.proposal = prop.id;
+		//uop.active_approvals_to_add.insert(nathan.get_id());
+		for (int i = 0; i < 6; i++)
+		{
+			uop.key_approvals_to_add.insert(guard[i].addr);
+		}
+		
+		trx.operations.push_back(uop);
+		for (int i = 0; i < 6; i++)
+		{
+			sign(trx, guard_key[i]);
+		}
+		PUSH_TX(db, trx);
+		trx.clear();
+
+	}
+
+	generate_block();
+	const auto& new_miners = db.get_index_type<miner_index>().indices();
+	const auto& new_guards = db.get_index_type<guard_member_index>().indices();
+	uint64_t total_use = 0;
+	for (auto one_miner : new_miners)
+	{
+		printf("miner balance:%d\n", one_miner.lockbalance_total["LNK"].amount.value);
+		total_use += 100-one_miner.lockbalance_total["LNK"].amount.value;
+
+	}
+	for (auto one_guard : new_guards)
+	{
+		printf("guard balance:%d\n", one_guard.guard_lock_balance["LNK"].amount.value);
+		total_use += 100-one_guard.guard_lock_balance["LNK"].amount.value;
+	}
+	BOOST_CHECK(total_use == 500);
+	total_use = 0;
+	const auto& lock_balances = db.get_index_type<lockbalance_index>().indices();
+	const auto& guard_lock_balances = db.get_index_type<guard_lock_balance_index>().indices();
+	for (auto one_balance : lock_balances)
+	{
+		printf("balance:%d\n", one_balance.lock_asset_amount.value);
+		total_use += 100 - one_balance.lock_asset_amount.value;
+	}
+
+	for (auto one_balance : guard_lock_balances)
+	{
+		printf("balance:%d\n", one_balance.lock_asset_amount.value);
+		total_use += 100 - one_balance.lock_asset_amount.value;
+	}
+
+	BOOST_CHECK(total_use == 500);
+
+}
+
+BOOST_FIXTURE_TEST_CASE(proposal_change_guard_pledge_line, database_fixture)
+{
+	//generate_block();
+
+	auto guard0_key = generate_private_key("guard0");
+
+	auto guard1_key = generate_private_key("guard1");
+	auto guard2_key = generate_private_key("guard2");
+	auto guard3_key = generate_private_key("guard3");
+	auto guard4_key = generate_private_key("guard4");
+	auto guard5_key = generate_private_key("guard5");
+
+	const account_object& guard0 = get_account("guard0");
+	const account_object& guard1 = get_account("guard1");
+	const account_object& guard2 = get_account("guard2");
+	const account_object& guard3 = get_account("guard3");
+	const account_object& guard4 = get_account("guard4");
+	const account_object& guard5 = get_account("guard5");
+	const auto& current_params = db.get_global_properties().parameters;
+	flat_map<string, uint64_t> temp_asset_set;
+	temp_asset_set["LNK"] = 100;
+	variant_object temp_values("minimum_guard_pledge_line", temp_asset_set);
+	BOOST_CHECK(current_params.minimum_guard_pledge_line.size() == 0);
+
+	flat_map<string, uint64_t>  temp_asset_set1 = temp_values.find("minimum_guard_pledge_line")->value().as<flat_map<string, uint64_t>>();
+	BOOST_CHECK(temp_asset_set1["LNK"] == temp_asset_set["LNK"]);
+
+	chain_parameters new_params = current_params;
+
+	for (auto iter = temp_asset_set1.begin(); iter != temp_asset_set1.end(); ++iter)
+	{
+		auto opt_asset = db.get_index_type<asset_index>().indices();
+		for (auto one_asset : opt_asset)
+		{
+			if (one_asset.symbol == iter->first)
+			{
+				new_params.minimum_guard_pledge_line[iter->first] = asset(iter->second, one_asset.id);
+			}
+		}
+		
+		
+	}
+	
+	{
+	committee_member_update_global_parameters_operation update_op;
+	update_op.new_parameters = new_params;
+	proposal_create_operation pop;
+
+	pop.fee_paying_account = guard0.addr;
+	pop.expiration_time = db.head_block_time() + fc::days(1);
+	pop.proposer = guard0.get_id();
+	pop.proposed_ops.emplace_back(update_op);
+	trx.operations.push_back(pop);
+	sign(trx, guard0_key);
+	PUSH_TX(db, trx);
+	trx.clear();
+	}
+	const proposal_object& prop = *db.get_index_type<proposal_index>().indices().rbegin();
+	BOOST_CHECK(prop.required_account_approvals.size() == 7);
+	BOOST_CHECK(prop.required_owner_approvals.size() == 0);
+	BOOST_CHECK(!prop.is_authorized_to_execute(db));
+
+	{
+
+		proposal_update_operation uop;
+		uop.fee_paying_account = guard0.get_id();
+		uop.proposal = prop.id;
+		//uop.active_approvals_to_add.insert(nathan.get_id());
+		uop.key_approvals_to_add.insert(guard0.addr);
+		uop.key_approvals_to_add.insert(guard1.addr);
+		uop.key_approvals_to_add.insert(guard2.addr);
+		uop.key_approvals_to_add.insert(guard3.addr);
+		uop.key_approvals_to_add.insert(guard4.addr);
+		uop.key_approvals_to_add.insert(guard5.addr);
+		trx.operations.push_back(uop);
+		sign(trx, guard0_key);
+		sign(trx, guard1_key);
+		sign(trx, guard2_key);
+		sign(trx, guard3_key);
+		sign(trx, guard4_key);
+		sign(trx, guard5_key);
+		PUSH_TX(db, trx);
+		trx.clear();
+
+	}
+
+	for(int i =0;i<10000;i++)
+		generate_block();
+	
+	const auto& modified_params = db.get_global_properties().parameters;
+	BOOST_CHECK(modified_params.minimum_guard_pledge_line.size() == 1);
+}
+
+
 BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
 { try {
    generate_block();
@@ -689,7 +907,6 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
    }
 
    const proposal_object& prop = *db.get_index_type<proposal_index>().indices().rbegin();
-   int x = db.get_index_type<proposal_index>().indices().size();
    BOOST_CHECK(prop.required_account_approvals.size() == 7);
    BOOST_CHECK(prop.required_owner_approvals.size() == 0);
    BOOST_CHECK(!prop.is_authorized_to_execute(db));
