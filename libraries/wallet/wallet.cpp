@@ -29,7 +29,6 @@
 #include <sstream>
 #include <string>
 #include <list>
-
 #include <boost/version.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -2646,18 +2645,13 @@ public:
 	  const variant_object& changed_values,
 	  bool broadcast = false)
 	{
-	  FC_ASSERT(!changed_values.contains("minimum_guard_pledge_line"));
-	
-
-	  flat_map<string, uint64_t>  temp_asset_set1 = changed_values.find("minimum_guard_pledge_line")->value().as<flat_map<string, uint64_t>>();
+	  FC_ASSERT(changed_values.contains("minimum_guard_pledge_line"));
+	  variant_object temp_asset_set1 = changed_values.find("minimum_guard_pledge_line")->value().get_object();
 	  const chain_parameters& current_params = get_global_properties().parameters;
 	  chain_parameters new_params = current_params;
-
-	  for (auto iter = temp_asset_set1.begin(); iter != temp_asset_set1.end(); ++iter)
-	  {
-			  new_params.minimum_guard_pledge_line[iter->first] = asset(iter->second, get_asset_id(iter->first));
+	  for (const auto& item : temp_asset_set1) {
+		  new_params.minimum_guard_pledge_line[item.key()] = asset(item.value().as_uint64(), get_asset_id(item.key()));
 	  }
-	
 	  committee_member_update_global_parameters_operation update_op;
 	  update_op.new_parameters = new_params;
 	
