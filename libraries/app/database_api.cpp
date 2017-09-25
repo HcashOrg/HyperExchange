@@ -124,7 +124,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       // Committee members
       vector<optional<guard_member_object>> get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const;
       fc::optional<guard_member_object> get_guard_member_by_account(account_id_type account)const;
-      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal=true)const;
 
       // Votes
       vector<variant> lookup_vote_ids( const vector<vote_id_type>& votes )const;
@@ -1455,12 +1455,12 @@ fc::optional<guard_member_object> database_api_impl::get_guard_member_by_account
    return {};
 }
 
-map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
-   return my->lookup_guard_member_accounts( lower_bound_name, limit );
+   return my->lookup_guard_member_accounts( lower_bound_name, limit ,formal);
 }
 
-map<string, guard_member_id_type> database_api_impl::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const
+map<string, guard_member_id_type> database_api_impl::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
    FC_ASSERT( limit <= 1000 );
    const auto& committee_members_by_id = _db.get_index_type<guard_member_index>().indices().get<by_id>();
@@ -1473,8 +1473,12 @@ map<string, guard_member_id_type> database_api_impl::lookup_guard_member_account
    std::map<std::string, guard_member_id_type> committee_members_by_account_name;
    for (const guard_member_object& committee_member : committee_members_by_id)
    {
-	   if (!committee_member.formal)
-		   continue;
+	   if (formal == false)
+	   {
+		   if (!committee_member.formal)
+			   continue;
+	   }
+	   
 	   if (auto account_iter = _db.find(committee_member.guard_member_account))
 		   if (account_iter->name >= lower_bound_name) // we can ignore anything below lower_bound_name
 			   committee_members_by_account_name.insert(std::make_pair(account_iter->name, committee_member.id));

@@ -50,7 +50,7 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::guard_lock_balance_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_lock_balance_operation,(lock_asset_id)(lock_asset_amount)(lock_address)(fee)(lock_balance_account))
+FC_REFLECT(graphene::chain::guard_lock_balance_operation,(lock_asset_id)(lock_asset_amount)(lock_address)(fee)(lock_balance_account)(lock_balance_account_id))
 
 FC_REFLECT(graphene::chain::guard_foreclose_balance_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::guard_foreclose_balance_operation,(foreclose_asset_id)(foreclose_asset_amount)(fee)(foreclose_address)(foreclose_balance_account)(foreclose_balance_account_id))

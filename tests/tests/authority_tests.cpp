@@ -795,6 +795,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_change_guard_pledge_line, database_fixture)
 	flat_map<string, uint64_t> temp_asset_set;
 	temp_asset_set["LNK"] = 100;
 	variant_object temp_values("minimum_guard_pledge_line", temp_asset_set);
+
 	BOOST_CHECK(current_params.minimum_guard_pledge_line.size() == 0);
 
 	flat_map<string, uint64_t>  temp_asset_set1 = temp_values.find("minimum_guard_pledge_line")->value().as<flat_map<string, uint64_t>>();

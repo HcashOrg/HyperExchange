@@ -495,7 +495,7 @@ class database_api
        * @param limit Maximum number of results to return -- must not exceed 1000
        * @return Map of committee_member names to corresponding IDs
        */
-      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit)const;
+      map<string, guard_member_id_type> lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal=false)const;
 
 
       /// WORKERS
