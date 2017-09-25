@@ -3295,6 +3295,7 @@ vector<asset> wallet_api::get_account_balances(const string& account)
 {
 	auto acc = get_account(account);
 	auto add = acc.addr;
+	FC_ASSERT(address() != acc.addr, "account is not in the chain.");
 	vector<address> vec;
 	vec.push_back(add);
 	auto vec_balance = my->_remote_db->get_balance_objects(vec);
