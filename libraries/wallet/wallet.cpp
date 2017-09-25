@@ -2256,7 +2256,7 @@ public:
 		   guard_lb_op.lock_asset_id = asset_obj->get_id();
 		   guard_lb_op.lock_asset_amount = asset_obj->amount_from_string(amount).amount;
 		   guard_lb_op.lock_balance_account = guard_obj->id;
-		   guard_lb_op.lock_balance_account_id = iter.find(guard_account)->get_id();
+		   guard_lb_op.lock_balance_account_id = guard_obj->guard_member_account;
 		   guard_lb_op.lock_address = iter.find(guard_account)->addr;
 		   signed_transaction tx;
 
