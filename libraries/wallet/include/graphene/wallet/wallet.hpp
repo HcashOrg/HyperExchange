@@ -342,6 +342,16 @@ class wallet_api
 	  * @returns a list of the given account's balances
 	  */
 	  vector<asset>                     get_addr_balances(const string& addr);
+
+	  /** List the balances of an account.
+	  * Each account can have multiple balances, one for each type of asset owned by that
+	  * account.  The returned list will only contain assets for which the account has a
+	  * nonzero balance
+	  * @param id the name or id of the account whose balances you want
+	  * @returns a list of the given account's balances
+	  */
+	  vector<asset>                     get_account_balances(const string& account);
+
       /** Lists all assets registered on the blockchain.
        * 
        * To list all assets, pass the empty string \c "" for the lowerbound to start
@@ -832,6 +842,25 @@ class wallet_api
 	  * @returns the signed transaction transferring funds
 	  */
 	  signed_transaction transfer_to_address(string from,
+		  string to,
+		  string amount,
+		  string asset_symbol,
+		  string memo,
+		  bool broadcast = false);
+
+	  /** Transfer an amount from one address to another.
+	  * @param from the name or id of the account sending the funds
+	  * @param to the name or id of the account receiving the funds
+	  * @param amount the amount to send (in nominal units -- to send half of a BIT, specify 0.5)
+	  * @param asset_symbol the symbol or id of the asset to send
+	  * @param memo a memo to attach to the transaction.  The memo will be encrypted in the
+	  *             transaction and readable for the receiver.  There is no length limit
+	  *             other than the limit imposed by maximum transaction size, but transaction
+	  *             increase with transaction size
+	  * @param broadcast true to broadcast the transaction on the network
+	  * @returns the signed transaction transferring funds
+	  */
+	  signed_transaction transfer_to_account(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
@@ -1356,6 +1385,22 @@ class wallet_api
        */
       map<string, guard_member_id_type>       list_guard_members(const string& lowerbound, uint32_t limit);
 
+	  /** Lists all committee_members registered in the blockchain.
+	  * This returns a list of all account names that own committee_members, and the associated committee_member id,
+	  * sorted by name.  This lists committee_members whether they are currently voted in or not.
+	  *
+	  * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all committee_members,
+	  * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
+	  * the last committee_member name returned as the \c lowerbound for the next \c list_guard_members() call.
+	  *
+	  * @param lowerbound the name of the first committee_member to return.  If the named committee_member does not exist,
+	  *                   the list will start at the committee_member that comes after \c lowerbound
+	  * @param limit the maximum number of committee_members to return (max: 1000)
+	  * @returns a list of committee_members mapping committee_member names to committee_member ids
+	  */
+	  map<string, guard_member_id_type>       list_all_guards(const string& lowerbound, uint32_t limit);
+
+
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
@@ -1746,6 +1791,7 @@ FC_API( graphene::wallet::wallet_api,
         (list_accounts)
         (list_account_balances)
 	    (get_addr_balances)
+	    (get_account_balances)
         (list_assets)
         (import_key)
         (import_accounts)
@@ -1784,6 +1830,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_guard_member)
         (list_miners)
         (list_guard_members)
+	    (list_all_guards)
         (create_miner)
         (update_witness)
         (create_worker)
@@ -1839,6 +1886,7 @@ FC_API( graphene::wallet::wallet_api,
         (transfer_to_blind)
         (transfer_from_blind)
 		(transfer_to_address)
+	    (transfer_to_account)
         (blind_transfer)
         (blind_history)
         (receive_blind_transfer)

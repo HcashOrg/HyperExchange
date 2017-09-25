@@ -1551,6 +1551,8 @@ public:
 		   auto guard_member_account = get_guard_member(proposing_account);
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   FC_ASSERT(guard_member_account.formal != formal,"this guard no need to change.");
+		   op.guard_member_account = guard_member_account.guard_member_account;
+		   op.owner_addr = get_account_addr(proposing_account);
 		   op.formal = formal;
 		   auto guard_update_op = operation(op);
 		   current_params.current_fees->set_fee(guard_update_op);
@@ -3289,6 +3291,23 @@ vector<asset> wallet_api::get_addr_balances(const string& addr)
 
 }
 
+vector<asset> wallet_api::get_account_balances(const string& account)
+{
+	auto acc = get_account(account);
+	auto add = acc.addr;
+	FC_ASSERT(address() != acc.addr, "account is not in the chain.");
+	vector<address> vec;
+	vec.push_back(add);
+	auto vec_balance = my->_remote_db->get_balance_objects(vec);
+	vector<asset> ret;
+	for (auto balance : vec_balance)
+	{
+		ret.push_back(balance.balance);
+	}
+
+	return ret;
+}
+
 vector<asset_object> wallet_api::list_assets(const string& lowerbound, uint32_t limit)const
 {
    return my->_remote_db->list_assets( lowerbound, limit );
@@ -3722,6 +3741,16 @@ signed_transaction wallet_api::transfer_to_address(string from, string to, strin
 {
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
+
+signed_transaction wallet_api::transfer_to_account(string from, string to, string amount,
+	string asset_symbol, string memo, bool broadcast /* = false */)
+{
+	const auto acc = get_account(to);
+	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
+	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
+}
+
+
 signed_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string lock_account,
 	string amount,
@@ -3856,8 +3885,14 @@ map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint
 
 map<string,guard_member_id_type> wallet_api::list_guard_members(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit);
+   return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,false);
 }
+
+map<string, guard_member_id_type> wallet_api::list_all_guards(const string& lowerbound, uint32_t limit)
+{
+	return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,true);
+}
+
 
 miner_object wallet_api::get_miner(string owner_account)
 {
