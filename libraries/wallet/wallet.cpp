@@ -3884,8 +3884,14 @@ map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint
 
 map<string,guard_member_id_type> wallet_api::list_guard_members(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit);
+   return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,false);
 }
+
+map<string, guard_member_id_type> wallet_api::list_all_guards(const string& lowerbound, uint32_t limit)
+{
+	return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,true);
+}
+
 
 miner_object wallet_api::get_miner(string owner_account)
 {
