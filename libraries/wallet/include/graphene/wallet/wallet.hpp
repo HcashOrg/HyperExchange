@@ -342,6 +342,16 @@ class wallet_api
 	  * @returns a list of the given account's balances
 	  */
 	  vector<asset>                     get_addr_balances(const string& addr);
+
+	  /** List the balances of an account.
+	  * Each account can have multiple balances, one for each type of asset owned by that
+	  * account.  The returned list will only contain assets for which the account has a
+	  * nonzero balance
+	  * @param id the name or id of the account whose balances you want
+	  * @returns a list of the given account's balances
+	  */
+	  vector<asset>                     get_account_balances(const string& account);
+
       /** Lists all assets registered on the blockchain.
        * 
        * To list all assets, pass the empty string \c "" for the lowerbound to start
@@ -832,6 +842,25 @@ class wallet_api
 	  * @returns the signed transaction transferring funds
 	  */
 	  signed_transaction transfer_to_address(string from,
+		  string to,
+		  string amount,
+		  string asset_symbol,
+		  string memo,
+		  bool broadcast = false);
+
+	  /** Transfer an amount from one address to another.
+	  * @param from the name or id of the account sending the funds
+	  * @param to the name or id of the account receiving the funds
+	  * @param amount the amount to send (in nominal units -- to send half of a BIT, specify 0.5)
+	  * @param asset_symbol the symbol or id of the asset to send
+	  * @param memo a memo to attach to the transaction.  The memo will be encrypted in the
+	  *             transaction and readable for the receiver.  There is no length limit
+	  *             other than the limit imposed by maximum transaction size, but transaction
+	  *             increase with transaction size
+	  * @param broadcast true to broadcast the transaction on the network
+	  * @returns the signed transaction transferring funds
+	  */
+	  signed_transaction transfer_to_account(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
@@ -1746,6 +1775,7 @@ FC_API( graphene::wallet::wallet_api,
         (list_accounts)
         (list_account_balances)
 	    (get_addr_balances)
+	    (get_account_balances)
         (list_assets)
         (import_key)
         (import_accounts)
@@ -1839,6 +1869,7 @@ FC_API( graphene::wallet::wallet_api,
         (transfer_to_blind)
         (transfer_from_blind)
 		(transfer_to_address)
+	    (transfer_to_account)
         (blind_transfer)
         (blind_history)
         (receive_blind_transfer)

@@ -3291,6 +3291,22 @@ vector<asset> wallet_api::get_addr_balances(const string& addr)
 
 }
 
+vector<asset> wallet_api::get_account_balances(const string& account)
+{
+	auto acc = get_account(account);
+	auto add = acc.addr;
+	vector<address> vec;
+	vec.push_back(add);
+	auto vec_balance = my->_remote_db->get_balance_objects(vec);
+	vector<asset> ret;
+	for (auto balance : vec_balance)
+	{
+		ret.push_back(balance.balance);
+	}
+
+	return ret;
+}
+
 vector<asset_object> wallet_api::list_assets(const string& lowerbound, uint32_t limit)const
 {
    return my->_remote_db->list_assets( lowerbound, limit );
@@ -3724,6 +3740,16 @@ signed_transaction wallet_api::transfer_to_address(string from, string to, strin
 {
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
+
+signed_transaction wallet_api::transfer_to_account(string from, string to, string amount,
+	string asset_symbol, string memo, bool broadcast /* = false */)
+{
+	const auto acc = get_account(to);
+	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
+	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
+}
+
+
 signed_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string lock_account,
 	string amount,
