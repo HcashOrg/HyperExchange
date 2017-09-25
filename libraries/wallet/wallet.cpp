@@ -2658,7 +2658,7 @@ public:
 	  update_op.new_parameters = new_params;
 	
 	  proposal_create_operation prop_op;
-	
+	  prop_op.proposer = get_account(proposing_account).get_id();
 	  prop_op.expiration_time = expiration_time;
 
 	  prop_op.fee_paying_account = get_account(proposing_account).addr;
