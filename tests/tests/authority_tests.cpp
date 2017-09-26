@@ -34,6 +34,7 @@
 #include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
+#include <graphene/chain/balance_object.hpp>
 
 #include <graphene/db/simple_index.hpp>
 
@@ -668,8 +669,10 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 	}
 	const auto& miners = db.get_index_type<miner_index>().indices();
 	const auto& guards = db.get_index_type<guard_member_index>().indices();
-
-
+	auto& bal_idx = db.get_index_type<balance_index>();
+	const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+	//subscribe_to_item(addr);
+	auto& itr = by_owner_idx.find(boost::make_tuple(account_id_type()(db).addr, asset_id_type()));
 	for (auto one_miner : miners)
 	{
 		miner_id_type temp = one_miner.id;
@@ -678,7 +681,11 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 			obj.lockbalance_total["LNK"] = asset(100);
 
 		});
+
 		db.adjust_lock_balance(one_miner.id, one_miner.miner_account,asset(100));
+		db.modify(*itr, [&](balance_object& obj) {
+			obj.adjust_balance(asset(-100), db.head_block_time());
+		});
 
 	}
 	for (auto one_guard : guards)
@@ -688,6 +695,9 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 
 			obj.guard_lock_balance["LNK"] = asset(100);
 
+		});
+		db.modify(*itr, [&](balance_object& obj) {
+			obj.adjust_balance(asset(-100), db.head_block_time());
 		});
 		db.adjust_guard_lock_balance(one_guard.id, asset(100));
 		
@@ -733,12 +743,15 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 		{
 			sign(trx, guard_key[i]);
 		}
+		db.modify(*itr, [&](balance_object& obj) {
+			obj.adjust_balance(asset(500), db.head_block_time());
+		});
 		PUSH_TX(db, trx);
 		trx.clear();
 
 	}
-
-	generate_block();
+	
+	//generate_block();
 	const auto& new_miners = db.get_index_type<miner_index>().indices();
 	const auto& new_guards = db.get_index_type<guard_member_index>().indices();
 	uint64_t total_use = 0;
@@ -754,23 +767,8 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 		total_use += 100-one_guard.guard_lock_balance["LNK"].amount.value;
 	}
 	BOOST_CHECK(total_use == 500);
-	total_use = 0;
-	const auto& lock_balances = db.get_index_type<lockbalance_index>().indices();
-	const auto& guard_lock_balances = db.get_index_type<guard_lock_balance_index>().indices();
-	for (auto one_balance : lock_balances)
-	{
-		printf("balance:%d\n", one_balance.lock_asset_amount.value);
-		total_use += 100 - one_balance.lock_asset_amount.value;
-	}
-
-	for (auto one_balance : guard_lock_balances)
-	{
-		printf("balance:%d\n", one_balance.lock_asset_amount.value);
-		total_use += 100 - one_balance.lock_asset_amount.value;
-	}
-
-	BOOST_CHECK(total_use == 500);
-
+	
+	
 }
 
 BOOST_FIXTURE_TEST_CASE(proposal_change_guard_pledge_line, database_fixture)

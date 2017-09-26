@@ -1796,7 +1796,6 @@ FC_API( graphene::wallet::wallet_api,
         (import_key)
         (import_accounts)
         (import_account_keys)
-        (import_balance)
         (suggest_brain_key)
         (derive_owner_keys_from_brain_key)
         (register_account)
