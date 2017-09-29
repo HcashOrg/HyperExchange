@@ -145,7 +145,13 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<proposal_object> get_voter_transactions_waiting(address addr)const;
       // Blinded balances
       vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
+	  //Lock balance
+	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
+	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
+	  vector<lockbalance_object> get_miner_lock_balance(const miner_id_type& miner) const;
 
+	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
+	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -1882,6 +1888,76 @@ vector<blinded_balance_object> database_api_impl::get_blinded_balances( const fl
    return result;
 }
 
+vector<lockbalance_object> database_api::get_account_lock_balance(const account_id_type& id)const {
+	return my->get_account_lock_balance(id);
+}
+vector<lockbalance_object> database_api::get_asset_lock_balance(const asset_id_type& asset) const {
+	return my->get_asset_lock_balance(asset);
+}
+vector<lockbalance_object> database_api::get_miner_lock_balance(const miner_id_type& miner) const {
+	return my->get_miner_lock_balance(miner);
+}
+vector<lockbalance_object> database_api_impl::get_account_lock_balance(const account_id_type& id)const{
+	const auto& lb_index = _db.get_index_type<lockbalance_index>();
+	vector<lockbalance_object> result;
+	lb_index.inspect_all_objects([&](const object& obj) {
+		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
+		if (p.lock_balance_account == id) {
+			result.emplace_back(p);
+		}
+	});
+	return result;
+}
+vector<lockbalance_object> database_api_impl::get_asset_lock_balance(const asset_id_type& asset) const {
+	const auto& lb_index = _db.get_index_type<lockbalance_index>();
+	vector<lockbalance_object> result;
+	lb_index.inspect_all_objects([&](const object& obj) {
+		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
+		if (p.lock_asset_id == asset) {
+			result.emplace_back(p);
+		}
+	});
+	return result;
+}
+vector<lockbalance_object> database_api_impl::get_miner_lock_balance(const miner_id_type& miner) const{
+	const auto& lb_index = _db.get_index_type<lockbalance_index>();
+	vector<lockbalance_object> result;
+	lb_index.inspect_all_objects([&](const object& obj) {
+		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
+		if (p.lockto_miner_account == miner) {
+			result.emplace_back(p);
+		}
+	});
+	return result;
+}
+vector<guard_lock_balance_object> database_api::get_guard_lock_balance(const guard_member_id_type& id)const {
+	return my->get_guard_lock_balance(id);
+}
+vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
+	return my->get_guard_asset_lock_balance(id);
+}
+vector<guard_lock_balance_object> database_api_impl::get_guard_lock_balance(const guard_member_id_type& id)const {
+	const auto& glb_index = _db.get_index_type<guard_lock_balance_index>();
+	vector<guard_lock_balance_object> result;
+	glb_index.inspect_all_objects([&](const object& obj) {
+		const guard_lock_balance_object& p = static_cast<const guard_lock_balance_object&>(obj);
+		if (p.lock_balance_account == id) {
+			result.emplace_back(p);
+		}
+	});
+	return result;
+}
+vector<guard_lock_balance_object> database_api_impl::get_guard_asset_lock_balance(const asset_id_type& id)const {
+	const auto& glb_index = _db.get_index_type<guard_lock_balance_index>();
+	vector<guard_lock_balance_object> result;
+	glb_index.inspect_all_objects([&](const object& obj) {
+		const guard_lock_balance_object& p = static_cast<const guard_lock_balance_object&>(obj);
+		if (p.lock_asset_id == id) {
+			result.emplace_back(p);
+		}
+	});
+	return result;
+}
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
 // Private methods                                                  //

@@ -2195,7 +2195,18 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
-
+   std::vector<lockbalance_object> get_account_lock_balance(const string& account)const {
+	   FC_ASSERT(account.size() != 0, "Param without account name");
+	   const auto& account_obj = get_account(account);
+	   return _remote_db->get_account_lock_balance(account_obj.get_id());
+   }
+   std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner) const{
+	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
+	   const account_object & account_obj = get_account(miner);
+	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+	   FC_ASSERT(guard_obj.valid(), "Guard is not exist");
+	   return _remote_db->get_guard_lock_balance(guard_obj->id);
+   }
    signed_transaction cancel_order(object_id_type order_id, bool broadcast = false)
    { try {
          FC_ASSERT(!is_locked());
@@ -3265,6 +3276,9 @@ vector<asset> wallet_api::list_account_balances(const string& id)
    return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
 }
 
+std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const string& miner)const {
+	return my->get_guard_lock_balance(miner);
+}
 vector<asset> wallet_api::get_addr_balances(const string& addr)
 {
 	if (address::is_valid(addr) == false)
@@ -3744,7 +3758,9 @@ signed_transaction wallet_api::transfer_to_account(string from, string to, strin
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
 
-
+std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
+	return my->get_account_lock_balance(account);
+}
 signed_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string lock_account,
 	string amount,

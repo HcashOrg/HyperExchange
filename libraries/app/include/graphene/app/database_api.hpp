@@ -40,7 +40,8 @@
 #include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/witness_object.hpp>
-
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
 
 #include <fc/api.hpp>
@@ -580,7 +581,13 @@ class database_api
        *  @return the set of blinded balance objects by commitment ID
        */
       vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
+	  //Lock balance
+	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
+	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
+	  vector<lockbalance_object> get_miner_lock_balance(const miner_id_type& miner) const;
 
+	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
+	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -687,4 +694,11 @@ FC_API(graphene::app::database_api,
 	(get_voter_transactions_waiting)
 	// Blinded balances
 	(get_blinded_balances)
+	// Lock balance
+	(get_account_lock_balance)
+	(get_asset_lock_balance)
+	(get_miner_lock_balance)
+
+	(get_guard_lock_balance)
+	(get_guard_asset_lock_balance)
 );

@@ -1659,7 +1659,9 @@ class wallet_api
          fc::time_point_sec expiration_time,
          const variant_object& changed_values,
          bool broadcast = false);
+	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
+	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1898,4 +1900,6 @@ FC_API( graphene::wallet::wallet_api,
 		(foreclose_balance_from_miner)
 		(guard_foreclose_balance)
 	    (update_guard_formal)
+		(get_account_lock_balance)
+		(get_guard_lock_balance)
       )
