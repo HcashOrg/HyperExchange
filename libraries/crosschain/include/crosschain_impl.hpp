@@ -24,42 +24,38 @@
 
 #pragma once
 
-#include <graphene/app/application.hpp>
-
-#include <boost/program_options.hpp>
-#include <fc/io/json.hpp>
-#include <graphene/app/plugin.hpp>
-#include <graphene/chain/protocol/types.hpp>
+#include <string>
+#include <vector>
 #include <fc/variant_object.hpp>
 namespace graphene {
-	namespace app {
+	namespace crosschain {
 
-		class abstract_cross_chain_plugin :public abstract_plugin
+		class abstract_cross_chain_interface
 		{
 		public:
-			virtual ~abstract_cross_chain_plugin() {}
+			virtual ~abstract_cross_chain_interface() {}
 
 			virtual void initialize_config(fc::variant_object json_config) = 0;
-			virtual void create_wallet(string wallet_name, string wallet_passprase) =0;
-			virtual bool unlock_wallet(string wallet_name, string wallet_passprase,uint32_t duration) = 0;
+			virtual void create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
+			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase,uint32_t duration) = 0;
 			virtual void close_wallet() = 0;
 			virtual void wallet_list() = 0;
-			virtual std::string create_normal_account(string account_name) =0;
+			virtual std::string create_normal_account(std::string account_name) =0;
 			virtual std::string create_multi_sig_account(std::vector<std::string> addresses) = 0;
-			virtual std::vector<fc::variant_object> deposit_transaction_query(string user_account,uint32_t from_block,uint32_t limit)=0;
-			virtual fc::variant_object transaction_query(string trx_id) = 0;
-			virtual fc::variant_object transfer(string from_account, string to_account, string amount, string symbol, string memo,bool broadcast=true) = 0;
-			virtual fc::variant_object create_multisig_transaction(string from_account, string to_account, string amount, string symbol, string memo, bool broadcast = true) = 0;
-			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, string sign_account,bool broadcast=true) = 0;
+			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
+			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
+			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures) = 0;
 			virtual bool validate_transaction(fc::variant_object trx) = 0;
 			virtual void broadcast_transaction(fc::variant_object trx) = 0;
-			virtual std::vector<fc::variant_object> query_account_balance(string account) = 0;
-			virtual std::vector<fc::variant_object> transaction_history(string user_account, uint32_t start_block, uint32_t limit) = 0;
-			virtual std::string export_private_key(string account,string encrypt_passprase) = 0;
-			virtual std::string import_private_key(string account, string encrypt_passprase) = 0;
-			virtual std::string backup_wallet(string wallet_name, string encrypt_passprase) = 0;
-			virtual std::string recover_wallet(string wallet_name, string encrypt_passprase) = 0;
+			virtual std::vector<fc::variant_object> query_account_balance(std::string &account) = 0;
+			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit) = 0;
+			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) = 0;
+			virtual std::string import_private_key(std::string &account, std::string &encrypt_passprase) = 0;
+			virtual std::string backup_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
+			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
 
 
 		};
