@@ -11,6 +11,7 @@ file(GLOB HEADERS "include/*.hpp")
 
 set(sources
    crosschain.cpp
+   crosschain_interface_emu.cpp
    ${HEADERS})
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
@@ -19,7 +20,7 @@ list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 add_library( crosschain
              ${sources}
              ${HEADERS} )
-# target_link_libraries( crosschain fc )
+target_link_libraries( crosschain fc )
 target_include_directories( crosschain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 if (USE_PCH)
