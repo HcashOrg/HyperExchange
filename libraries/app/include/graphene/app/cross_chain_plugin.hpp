@@ -40,12 +40,12 @@ namespace graphene {
 			virtual ~abstract_cross_chain_plugin() {}
 
 			virtual void initialize_config(fc::variant_object json_config) = 0;
-			virtual void create_wallet(string wallet_name, string wallet_passprase) =0;
+			virtual bool create_wallet(string wallet_name, string wallet_passprase) =0;
 			virtual bool unlock_wallet(string wallet_name, string wallet_passprase,uint32_t duration) = 0;
-			virtual void close_wallet() = 0;
+			virtual vector<string>  close_wallet() = 0;
 			virtual void wallet_list() = 0;
 			virtual std::string create_normal_account(string account_name) =0;
-			virtual std::string create_multi_sig_account(std::vector<std::string> addresses) = 0;
+			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses) = 0;
 			virtual std::vector<fc::variant_object> deposit_transaction_query(string user_account,uint32_t from_block,uint32_t limit)=0;
 			virtual fc::variant_object transaction_query(string trx_id) = 0;
 			virtual fc::variant_object transfer(string from_account, string to_account, string amount, string symbol, string memo,bool broadcast=true) = 0;
