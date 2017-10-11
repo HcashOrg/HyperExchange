@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <fc/variant_object.hpp>
+
 namespace graphene {
 	namespace crosschain {
 
