@@ -1,3 +1,4 @@
+#include <vector>
 #include "crosschain_impl.hpp"
 
 namespace graphene {
@@ -29,6 +30,12 @@ namespace graphene {
 			virtual std::string import_private_key(std::string &account, std::string &encrypt_passprase);
 			virtual std::string backup_wallet(std::string &wallet_name, std::string &encrypt_passprase);
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase);
+
+		private:
+			fc::variant_object config;
+			std::vector<std::string> wallets;
+			fc::variant_object transactions;
+			std::set<std::string> trx_ids;
 		};
 	}
 }

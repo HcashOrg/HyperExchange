@@ -50,21 +50,53 @@ namespace graphene {
 
 			// List existed local wallets by name.
 			virtual std::vector<std::string> wallet_list() = 0;
+
+			// Create a new address.
 			virtual std::string create_normal_account(std::string account_name) =0;
+
+			// Create a multi-signed account.
 			virtual std::string create_multi_sig_account(std::vector<std::string> addresses) = 0;
+
+			// Query transactions to given address.
 			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
+
+			// Query transaction details by transaction id.
 			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
+
+			// Transfer asset.
 			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+
+			// Create transaction from multi-signed account.
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+
+			// Get signature for a given transaction.
 			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
+
+			// Merge all signatures into on transaction.
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures) = 0;
+
+			// Validate transaction.
 			virtual bool validate_transaction(fc::variant_object trx) = 0;
+
+			// Broadcast transaction.
 			virtual void broadcast_transaction(fc::variant_object trx) = 0;
+
+			// Query account balance.
 			virtual std::vector<fc::variant_object> query_account_balance(std::string &account) = 0;
+
+			// Query transactions of given account.
 			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit) = 0;
+
+			// Export private key.
 			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) = 0;
+
+			// Import private key.
 			virtual std::string import_private_key(std::string &account, std::string &encrypt_passprase) = 0;
+
+			// Backup wallet (include all privte keys).
 			virtual std::string backup_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
+
+			// Recover wallet.
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
 
 

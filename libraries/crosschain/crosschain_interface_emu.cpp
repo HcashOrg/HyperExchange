@@ -7,7 +7,7 @@ namespace graphene {
 
 		void crosschain_interface_emu::initialize_config(fc::variant_object &json_config)
 		{
-
+			config = json_config;
 		}
 
 		void crosschain_interface_emu::create_wallet(std::string wallet_name, std::string wallet_passprase) {}
@@ -71,7 +71,10 @@ namespace graphene {
 
 		void crosschain_interface_emu::broadcast_transaction(fc::variant_object trx)
 		{
-
+			if (trx_ids.find(trx["trx_id"].as_string()) != trx_ids.end())
+			{
+				trx_ids.insert(trx["trx_id"].as_string());
+			}
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(std::string &account)
