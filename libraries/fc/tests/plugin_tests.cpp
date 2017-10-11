@@ -87,7 +87,9 @@ BOOST_AUTO_TEST_CASE(transfer_multi)
 BOOST_AUTO_TEST_CASE(transfer_history)
 {
 	//get history of transactions
-
+	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
+	hdl->transaction_history(std::string("test_account"), 0, 10);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
