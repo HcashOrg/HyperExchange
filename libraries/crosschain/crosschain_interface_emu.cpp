@@ -5,7 +5,10 @@ namespace graphene {
 	namespace crosschain {
 
 
-		void crosschain_interface_emu::initialize_config(fc::variant_object json_config) {}
+		void crosschain_interface_emu::initialize_config(fc::variant_object &json_config)
+		{
+
+		}
 
 		void crosschain_interface_emu::create_wallet(std::string wallet_name, std::string wallet_passprase) {}
 
@@ -16,7 +19,10 @@ namespace graphene {
 
 		void crosschain_interface_emu::close_wallet() {}
 
-		void crosschain_interface_emu::wallet_list() {}
+		std::vector<std::string> crosschain_interface_emu::wallet_list()
+		{
+			return std::vector<std::string>();
+		}
 
 		std::string crosschain_interface_emu::create_normal_account(std::string account_name)
 		{

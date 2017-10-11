@@ -36,11 +36,20 @@ namespace graphene {
 		public:
 			virtual ~abstract_crosschain_interface() {}
 
-			virtual void initialize_config(fc::variant_object json_config) = 0;
+			// Initialize with a JSON object.
+			virtual void initialize_config(fc::variant_object &json_config) = 0;
+
+			// Create a wallet with given name and optional protect-password.
 			virtual void create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
+
+			// Unlock wallet before operating it.
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase,uint32_t duration) = 0;
+
+			// Close wallet.
 			virtual void close_wallet() = 0;
-			virtual void wallet_list() = 0;
+
+			// List existed local wallets by name.
+			virtual std::vector<std::string> wallet_list() = 0;
 			virtual std::string create_normal_account(std::string account_name) =0;
 			virtual std::string create_multi_sig_account(std::vector<std::string> addresses) = 0;
 			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;

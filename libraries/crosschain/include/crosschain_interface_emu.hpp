@@ -8,11 +8,11 @@ namespace graphene {
 		public:
 			virtual ~crosschain_interface_emu() {}
 
-			virtual void initialize_config(fc::variant_object json_config);
+			virtual void initialize_config(fc::variant_object &json_config);
 			virtual void create_wallet(std::string wallet_name, std::string wallet_passprase);
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration);
 			virtual void close_wallet();
-			virtual void wallet_list();
+			virtual std::vector<std::string> wallet_list();
 			virtual std::string create_normal_account(std::string account_name);
 			virtual std::string create_multi_sig_account(std::vector<std::string> addresses);
 			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit);
