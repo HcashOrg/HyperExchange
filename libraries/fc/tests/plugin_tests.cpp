@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(create_multi_account)
 	std::vector<std::string> vec{"str1","str2"};
 
 
-    auto addr = hdl->create_multi_sig_account(vec); //n/m 
+    auto addr = hdl->create_multi_sig_account("multi_sig_account",vec); //n/m 
 	plugin_data.multi_sig_address = addr;
 
 }
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(transfer_multi)
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 
-	auto trx = hdl->create_multisig_transaction(std::string("fromaccount"),std::string("toaccount"),std::string("10"),std::string("mBTC"),std::string(""),true);
+	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),std::string("10"),std::string("mBTC"),std::string(""),true);
 	//sign
 	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),true);
 	
