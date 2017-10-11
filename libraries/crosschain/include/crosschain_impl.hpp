@@ -31,10 +31,10 @@
 namespace graphene {
 	namespace crosschain {
 
-		class abstract_cross_chain_interface
+		class abstract_crosschain_interface
 		{
 		public:
-			virtual ~abstract_cross_chain_interface() {}
+			virtual ~abstract_crosschain_interface() {}
 
 			virtual void initialize_config(fc::variant_object json_config) = 0;
 			virtual void create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
