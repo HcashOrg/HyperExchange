@@ -71,15 +71,15 @@ namespace graphene {
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase);
 
 
-			bool load_wallet_file(string wallet_filename = "");
+			bool load_wallet_file(std::string wallet_filename = "");
 			void lock();
 			bool is_locked();
-			void save_wallet_file(string wallet_filename = "");
+			void save_wallet_file(std::string wallet_filename = "");
 			void encrypt_keys();
 			void enable_umask_protection();
 			void disable_umask_protection();
 			fc::ecc::private_key derive_private_key(const std::string& prefix_string,
-				int sequence_number)
+				int sequence_number);
 
 
 
@@ -99,4 +99,4 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::crosschain::transaction_emu, (trx_id)(ref_block_prefix)(expiration)(operations)(extensions))
+FC_REFLECT(graphene::crosschain::transaction_emu, (trx_id)(from_addr)(to_addr)(block_num)(amount))

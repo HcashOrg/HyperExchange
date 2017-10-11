@@ -1,7 +1,7 @@
 #include <mutex>
 #include "graphene/crosschain/crosschain.hpp"
 #include "graphene/crosschain/crosschain_impl.hpp"
-#include "crosschain_interface_emu.hpp"
+#include "graphene/crosschain/crosschain_interface_emu.hpp"
 
 namespace graphene {
 	namespace crosschain {
