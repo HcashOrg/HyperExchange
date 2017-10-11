@@ -71,9 +71,10 @@ namespace graphene {
 
 		void crosschain_interface_emu::broadcast_transaction(fc::variant_object trx)
 		{
-			if (trx_ids.find(trx["trx_id"].as_string()) != trx_ids.end())
+			auto &idx_by_id = transactions.get<1>();
+			if (idx_by_id.find(trx["trx_id"].as_string()) == idx_by_id.end())
 			{
-				trx_ids.insert(trx["trx_id"].as_string());
+				transactions.insert(transaction_emu{ trx["trx_id"].as_string(), trx["from_addr"].as_string(), trx["to_addr"].as_string(), trx["block_num"].as_int64(), trx["amount"].as_int64() });
 			}
 		}
 
