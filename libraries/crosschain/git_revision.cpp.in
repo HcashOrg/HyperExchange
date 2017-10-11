@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <git_revision.hpp>
+#include "graphene/crosschain/git_revision.hpp"
 
 #define GRAPHENE_GIT_REVISION_SHA "@GRAPHENE_GIT_REVISION_SHA@"
 #define GRAPHENE_GIT_REVISION_UNIX_TIMESTAMP @GRAPHENE_GIT_REVISION_UNIX_TIMESTAMP@

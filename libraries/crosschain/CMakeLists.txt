@@ -7,7 +7,7 @@ if(NOT GRAPHENE_GIT_REVISION_DESCRIPTION)
     set(GRAPHENE_GIT_REVISION_DESCRIPTION "unknown")
 endif(NOT GRAPHENE_GIT_REVISION_DESCRIPTION)
 
-file(GLOB HEADERS "include/*.hpp")
+file(GLOB HEADERS "include/graphene/crosschain/*.hpp")
 
 set(sources
    crosschain.cpp
@@ -20,7 +20,7 @@ list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 add_library( crosschain
              ${sources}
              ${HEADERS} )
-target_link_libraries( crosschain fc )
+target_link_libraries( crosschain fc graphene_chain )
 target_include_directories( crosschain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 if (USE_PCH)

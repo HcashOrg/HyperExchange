@@ -2,7 +2,8 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include "crosschain_impl.hpp"
+#include <graphene/chain/protocol/types.hpp>
+#include "graphene/crosschain/crosschain_impl.hpp"
 
 
 using boost::multi_index_container;
@@ -72,3 +73,5 @@ namespace graphene {
 		};
 	}
 }
+
+FC_REFLECT(graphene::crosschain::transaction_emu, (trx_id)(ref_block_prefix)(expiration)(operations)(extensions))
