@@ -33,6 +33,12 @@ namespace graphene {
 			return true;
 		}
 
+		bool crosschain_interface_emu::open_wallet(string wallet_name)
+		{
+			load_wallet_file(_plugin_wallet_filepath + wallet_name);
+		}
+
+
 		void crosschain_interface_emu::close_wallet() {
 			if (!is_locked())
 			{
@@ -83,7 +89,7 @@ namespace graphene {
 			return string(new_account.addr);
 		}
 
-		std::string crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses)
+		std::string crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses,uint32_t nrequired)
 		{
 			fc::sha256::encoder endcoder;
 			for (int i = 0; i < addresses.size(); ++i)
