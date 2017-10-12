@@ -36,6 +36,7 @@ namespace graphene {
 		bool crosschain_interface_emu::open_wallet(string wallet_name)
 		{
 			load_wallet_file(_plugin_wallet_filepath + wallet_name);
+			return true;
 		}
 
 

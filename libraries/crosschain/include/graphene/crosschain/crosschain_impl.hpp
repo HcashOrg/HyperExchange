@@ -43,7 +43,7 @@ namespace graphene {
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
 
 			//´ò¿ªÇ®°ü
-			virtual bool open_wallet(string wallet_name) = 0;
+			virtual bool open_wallet(std::string wallet_name) = 0;
 
 			// Unlock wallet before operating it.
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase,uint32_t duration) = 0;
