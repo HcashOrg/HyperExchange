@@ -148,11 +148,28 @@ namespace graphene {
 
 		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(std::string &account)
 		{
-			return std::vector<fc::variant_object>();
+			std::vector<fc::variant_object> ret;
+			if (!account.empty())
+			{
+				for (auto &b : _balances)
+				{
+					ret.push_back(variant(b.second).get_object());
+				}
+			}
+			else
+			{
+				auto b = _balances.find(address(account));
+				if (b != _balances.end())
+				{
+					ret.push_back(variant(b->second).get_object());
+				}
+			}
+			return ret;
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit)
 		{
+
 			return std::vector<fc::variant_object>();
 		}
 

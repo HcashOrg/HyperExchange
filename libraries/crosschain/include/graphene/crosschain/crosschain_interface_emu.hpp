@@ -86,7 +86,6 @@ namespace graphene {
 
 		private:
 			fc::variant_object config;
-			std::vector<std::string> wallets;
 			transaction_emu_db transactions;
 			std::set<std::string> trx_ids;
 			std::string _plugin_wallet_filepath;
@@ -95,6 +94,7 @@ namespace graphene {
 			chain_id_type           _chain_id;
 			fc::sha512              _checksum;
 			map<address, std::string> _keys;
+			map<address, std::string> _balances;
 		};
 	}
 }
