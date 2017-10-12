@@ -30,7 +30,16 @@
 
 namespace graphene {
 	namespace crosschain {
-
+		typedef struct handle_history_trx {
+			std::string trx_id;
+			std::vector<std::string> from_account;
+			std::vector<std::string> to_account;
+			std::string amount;
+			std::string fee;
+			std::string memo;
+			std::string asset_sympol;
+			int64_t block_num;
+		}hd_trx;
 		class abstract_crosschain_interface
 		{
 		public:
@@ -41,6 +50,9 @@ namespace graphene {
 
 			// Create a wallet with given name and optional protect-password.
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
+
+			//´ò¿ªÇ®°ü
+			virtual bool open_wallet(std::string wallet_name) = 0;
 
 			// Unlock wallet before operating it.
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase,uint32_t duration) = 0;
@@ -55,7 +67,7 @@ namespace graphene {
 			virtual std::string create_normal_account(std::string account_name) =0;
 
 			// Create a multi-signed account.
-			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses) = 0;
+			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
 
 			// Query transactions to given address.
 			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
@@ -103,3 +115,4 @@ namespace graphene {
 		};
 	}
 }
+FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(fee)(memo)(asset_sympol)(block_num))

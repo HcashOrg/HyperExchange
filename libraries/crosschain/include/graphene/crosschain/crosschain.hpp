@@ -2,7 +2,7 @@
 
 #include <map>
 #include <string>
-
+#include <mutex>
 namespace graphene {
 	namespace crosschain {
 		class abstract_crosschain_interface;
@@ -25,13 +25,6 @@ namespace graphene {
 			std::map<std::string, abstract_crosschain_interface *> crosschain_handles;
 		};
 
-		crosschain_manager::crosschain_manager()
-		{
-		}
-
-		crosschain_manager::~crosschain_manager()
-		{
-		}
 	}
 }
 void stub(void);

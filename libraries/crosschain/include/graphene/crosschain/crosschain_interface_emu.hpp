@@ -51,10 +51,11 @@ namespace graphene {
 			virtual void initialize_config(fc::variant_object &json_config);
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase);
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration);
+			virtual bool open_wallet(string wallet_name);
 			virtual void close_wallet();
 			virtual std::vector<std::string> wallet_list();
 			virtual std::string create_normal_account(std::string account_name);
-			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses);
+			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired);
 			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit);
 			virtual fc::variant_object transaction_query(std::string trx_id);
 			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true);
