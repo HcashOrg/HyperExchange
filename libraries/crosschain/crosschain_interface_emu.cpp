@@ -111,32 +111,89 @@ namespace graphene {
 
 		std::vector<fc::variant_object> crosschain_interface_emu::deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit)
 		{
-			return std::vector<fc::variant_object>();
+			std::vector<fc::variant_object> results;
+			//TODo add rpc get function
+			hd_trx a;
+			a.trx_id = "trx-id-test";
+			a.from_account.push_back(user_account);
+			a.to_account.push_back("to_account");
+			a.amount = "10";
+			a.fee = "1";
+			a.memo = "Falcom";
+			a.asset_sympol = "mbtc";
+			a.block_num = 1;
+			fc::variant v;
+			fc::to_variant(a, v);
+			//
+			results.emplace_back(v.get_object());
+			return results;
+			//return std::vector<fc::variant_object>();
 		}
 
 		fc::variant_object crosschain_interface_emu::transaction_query(std::string trx_id)
 		{
-			return fc::variant_object();
+			//TODo add rpc get function
+			hd_trx a;
+			a.trx_id = trx_id;
+			a.from_account.push_back("from_account");
+			a.to_account.push_back("to_account");
+			a.amount = "10";
+			a.fee = "1";
+			a.memo = "Falcom";
+			a.asset_sympol = "mbtc";
+			a.block_num = 1;
+			fc::variant v;
+			fc::to_variant(a, v);
+			return v.get_object();
 		}
 
 		fc::variant_object crosschain_interface_emu::transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
-			return fc::variant_object();
+			//TODo add rpc get function
+			hd_trx a;
+			a.trx_id = "trx-id-test";
+			a.from_account.push_back(from_account);
+			a.to_account.push_back(to_account);
+			a.amount = amount;
+			a.fee = "1";
+			a.memo = "Falcom";
+			a.asset_sympol = memo;
+			a.block_num = 1;
+			fc::variant v;
+			fc::to_variant(a, v);
+			return v.get_object();
 		}
 
 		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
-			return fc::variant_object();
+			hd_trx a;
+			a.trx_id = "trx-id-test";
+			a.from_account.push_back(from_account);
+			a.to_account.push_back(to_account);
+			a.amount = amount;
+			a.fee = "0";
+			a.memo = "Falcom";
+			a.asset_sympol = "mbtc";
+			a.block_num = 1;
+			fc::variant v;
+			fc::to_variant(a, v);
+			return v.get_object();
 		}
 
 		fc::variant_object crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast)
 		{
-			return fc::variant_object();
+			hd_trx a;
+			fc::variant v;
+			fc::to_variant(a, v);
+			return v.get_object();
 		}
 
 		fc::variant_object crosschain_interface_emu::merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures)
 		{
-			return fc::variant_object();
+			hd_trx a;
+			fc::variant v;
+			fc::to_variant(a, v);
+			return v.get_object();
 		}
 
 		bool crosschain_interface_emu::validate_transaction(fc::variant_object trx)

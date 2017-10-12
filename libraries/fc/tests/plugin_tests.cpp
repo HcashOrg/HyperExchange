@@ -24,7 +24,7 @@ static void setup_env()
 
 BOOST_AUTO_TEST_SUITE(plugin_test)
 
-BOOST_AUTO_TEST_CASE(wallet_create_operation)
+BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 {
 	//create wallet
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(wallet_create_operation)
 }
 
 
-BOOST_AUTO_TEST_CASE(account_operation)
+BOOST_AUTO_TEST_CASE(plugin_account_operation)
 {
 	//create normal account
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(account_operation)
 	hdl->create_normal_account("test_account");
 }
 
-BOOST_AUTO_TEST_CASE(transfer)
+BOOST_AUTO_TEST_CASE(plugin_transfer)
 {
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(transfer)
 }
 
 
-BOOST_AUTO_TEST_CASE(create_multi_account)
+BOOST_AUTO_TEST_CASE(plugin_create_multi_account)
 {
 	//create multi_account
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(create_multi_account)
 
 }
 
-BOOST_AUTO_TEST_CASE(transfer_multi)
+BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 {
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(transfer_multi)
 
 }
 
-BOOST_AUTO_TEST_CASE(transfer_history)
+BOOST_AUTO_TEST_CASE(plugin_transfer_history)
 {
 	//get history of transactions
 	auto manager = graphene::crosschain::crosschain_manager::get_instance();

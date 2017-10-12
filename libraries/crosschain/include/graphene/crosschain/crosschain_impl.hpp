@@ -30,7 +30,16 @@
 
 namespace graphene {
 	namespace crosschain {
-
+		typedef struct handle_history_trx {
+			std::string trx_id;
+			std::vector<std::string> from_account;
+			std::vector<std::string> to_account;
+			std::string amount;
+			std::string fee;
+			std::string memo;
+			std::string asset_sympol;
+			int64_t block_num;
+		}hd_trx;
 		class abstract_crosschain_interface
 		{
 		public:
@@ -106,3 +115,4 @@ namespace graphene {
 		};
 	}
 }
+FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(fee)(memo)(asset_sympol)(block_num))
