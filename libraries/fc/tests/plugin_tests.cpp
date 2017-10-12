@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(plugin_test)
 BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 {
 	//create wallet
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	hdl->create_wallet("test", "12345678");
 	//open unlock lock close wallet
@@ -39,14 +39,14 @@ BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 BOOST_AUTO_TEST_CASE(plugin_account_operation)
 {
 	//create normal account
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	hdl->create_normal_account("test_account");
 }
 
 BOOST_AUTO_TEST_CASE(plugin_transfer)
 {
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	//transfer normal trx
 	auto trx = hdl->transfer(std::string("test_account"), std::string("to_account"), std::string("1"), std::string("mBTC"), std::string(""), true);
@@ -58,19 +58,19 @@ BOOST_AUTO_TEST_CASE(plugin_transfer)
 BOOST_AUTO_TEST_CASE(plugin_create_multi_account)
 {
 	//create multi_account
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	std::vector<std::string> vec{"str1","str2"};
 
 
-    auto addr = hdl->create_multi_sig_account("multi_sig_account",vec); //n/m 
+    auto addr = hdl->create_multi_sig_account("multi_sig_account",vec,2); //n/m 
 	plugin_data.multi_sig_address = addr;
 
 }
 
 BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 {
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 
 	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),std::string("10"),std::string("mBTC"),std::string(""),true);
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 BOOST_AUTO_TEST_CASE(plugin_transfer_history)
 {
 	//get history of transactions
-	auto manager = graphene::crosschain::crosschain_manager::get_instance();
+	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	hdl->transaction_history(std::string("test_account"), 0, 10);
 }
