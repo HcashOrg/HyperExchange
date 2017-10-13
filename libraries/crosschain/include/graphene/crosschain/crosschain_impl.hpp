@@ -27,19 +27,24 @@
 #include <string>
 #include <vector>
 #include <fc/variant_object.hpp>
+#include <graphene/chain/protocol/asset.hpp>
 
 namespace graphene {
 	namespace crosschain {
 		typedef struct handle_history_trx {
 			std::string trx_id;
-			std::vector<std::string> from_account;
-			std::vector<std::string> to_account;
+			std::string from_account;
+			std::string to_account;
 			std::string amount;
-			std::string fee;
-			std::string memo;
 			std::string asset_sympol;
 			int64_t block_num;
 		}hd_trx;
+		
+		typedef struct crosschain_balance {
+			std::string account;
+			graphene::chain::asset balance;
+		};
+
 		class abstract_crosschain_interface
 		{
 		public:
@@ -70,7 +75,7 @@ namespace graphene {
 			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
 
 			// Query transactions to given address.
-			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
+			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
 
 			// Query transaction details by transaction id.
 			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
@@ -82,19 +87,21 @@ namespace graphene {
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Get signature for a given transaction.
-			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
+			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
 
 			// Merge all signatures into on transaction.
-			virtual fc::variant_object merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures) = 0;
+			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) = 0;
 
 			// Validate transaction.
-			virtual bool validate_transaction(fc::variant_object trx) = 0;
+			virtual bool validate_link_trx(const hd_trx &trx) = 0;
+			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) = 0;
+			virtual bool validate_other_trx(const fc::variant_object &trx) = 0;
 
 			// Broadcast transaction.
-			virtual void broadcast_transaction(fc::variant_object trx) = 0;
+			virtual void broadcast_transaction(const fc::variant_object &trx) = 0;
 
 			// Query account balance.
-			virtual std::vector<fc::variant_object> query_account_balance(std::string &account) = 0;
+			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) = 0;
 
 			// Query transactions of given account.
 			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit) = 0;
