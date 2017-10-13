@@ -124,9 +124,9 @@ namespace graphene {
 			return string(new_account.addr);
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_emu::deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit)
+		std::vector<hd_trx> crosschain_interface_emu::deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit)
 		{
-			std::vector<fc::variant_object> results;
+			std::vector<hd_trx> results;
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = "trx-id-test";
@@ -135,10 +135,8 @@ namespace graphene {
 			a.amount = "10";
 			a.asset_sympol = "mbtc";
 			a.block_num = 1;
-			fc::variant v;
-			fc::to_variant(a, v);
 			//
-			results.emplace_back(v.get_object());
+			results.emplace_back(a);
 			return results;
 			//return std::vector<fc::variant_object>();
 		}
@@ -187,15 +185,15 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		fc::variant_object crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast)
+		std::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast)
 		{
 			hd_trx a;
 			fc::variant v;
 			fc::to_variant(a, v);
-			return v.get_object();
+			return v.as_string();
 		}
 
-		fc::variant_object crosschain_interface_emu::merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures)
+		fc::variant_object crosschain_interface_emu::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
 			hd_trx a;
 			fc::variant v;
@@ -216,7 +214,7 @@ namespace graphene {
 		}
 
 
-		void crosschain_interface_emu::broadcast_transaction(fc::variant_object trx)
+		void crosschain_interface_emu::broadcast_transaction(const fc::variant_object& trx)
 		{
 			auto &idx_by_id = _transactions.get<trx_id>();
 			if (idx_by_id.find(trx["trx_id"].as_string()) == idx_by_id.end())
@@ -225,7 +223,7 @@ namespace graphene {
 			}
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(std::string &account)
+		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(const std::string &account)
 		{
 			std::vector<fc::variant_object> ret;
 			if (!account.empty())

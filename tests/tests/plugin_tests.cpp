@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 	//sign
 	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),true);
 	
-	std::vector<fc::variant_object> vec;
+	std::vector<std::string> vec;
 	vec.push_back(signature);
 	//merge
 	hdl->merge_multisig_transaction(trx,vec);
