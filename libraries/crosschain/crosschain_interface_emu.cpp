@@ -273,7 +273,7 @@ namespace graphene {
 					ret.push_back(fc::variant(*itr).get_object());
 				}
 			}
-			return std::vector<fc::variant_object>();
+			return ret;
 		}
 
 		std::string crosschain_interface_emu::export_private_key(std::string &account, std::string &encrypt_passprase)
