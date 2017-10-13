@@ -122,4 +122,4 @@ namespace graphene {
 		};
 	}
 }
-FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(fee)(memo)(asset_sympol)(block_num))
+FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(asset_sympol)(block_num))
