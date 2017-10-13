@@ -130,11 +130,9 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account.push_back(user_account);
-			a.to_account.push_back("to_account");
+			a.from_account=user_account;
+			a.to_account="to_account";
 			a.amount = "10";
-			a.fee = "1";
-			a.memo = "Falcom";
 			a.asset_sympol = "mbtc";
 			a.block_num = 1;
 			fc::variant v;
@@ -150,11 +148,9 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = trx_id;
-			a.from_account.push_back("from_account");
-			a.to_account.push_back("to_account");
+			a.from_account="from_account";
+			a.to_account="to_account";
 			a.amount = "10";
-			a.fee = "1";
-			a.memo = "Falcom";
 			a.asset_sympol = "mbtc";
 			a.block_num = 1;
 			fc::variant v;
@@ -167,11 +163,9 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account.push_back(from_account);
-			a.to_account.push_back(to_account);
+			a.from_account=from_account;
+			a.to_account=to_account;
 			a.amount = amount;
-			a.fee = "1";
-			a.memo = "Falcom";
 			a.asset_sympol = memo;
 			a.block_num = 1;
 			fc::variant v;
@@ -183,11 +177,9 @@ namespace graphene {
 		{
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account.push_back(from_account);
-			a.to_account.push_back(to_account);
+			a.from_account=from_account;
+			a.to_account=to_account;
 			a.amount = amount;
-			a.fee = "0";
-			a.memo = "Falcom";
 			a.asset_sympol = "mbtc";
 			a.block_num = 1;
 			fc::variant v;
