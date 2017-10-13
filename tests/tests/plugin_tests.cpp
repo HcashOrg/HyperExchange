@@ -3,6 +3,7 @@
 #include <iostream>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
+#include <boost/filesystem.hpp>
 /*
 need a normal account
 need a multisig account
@@ -33,6 +34,10 @@ BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 	hdl->open_wallet("test");
 	hdl->unlock_wallet("test","12345678",100000);
 	
+
+	std::string temp_path = boost::filesystem::initial_path<boost::filesystem::path>().string();
+	temp_path += "/";
+	boost::filesystem::remove(temp_path + "test");
 	//open unlock lock close wallet
 
 	//auto _wallet = create_wallet();
@@ -44,9 +49,14 @@ BOOST_AUTO_TEST_CASE(plugin_account_operation)
 	//create normal account
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
-	hdl->open_wallet("test");
+	if (!hdl->create_wallet("test", "12345678"))
+		hdl->open_wallet("test");
 	hdl->unlock_wallet("test", "12345678", 100000);
 	hdl->create_normal_account("test_account");
+	std::string temp_path = boost::filesystem::initial_path<boost::filesystem::path>().string();
+	temp_path += "/";
+	boost::filesystem::remove(temp_path + "test");
+	
 }
 
 BOOST_AUTO_TEST_CASE(plugin_transfer)
@@ -67,9 +77,14 @@ BOOST_AUTO_TEST_CASE(plugin_create_multi_account)
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	std::vector<std::string> vec{"str1","str2"};
 
-
+	if (!hdl->create_wallet("test", "12345678"))
+		hdl->open_wallet("test");
+	hdl->unlock_wallet("test", "12345678", 100000);
     auto addr = hdl->create_multi_sig_account("multi_sig_account",vec,2); //n/m 
 	plugin_data.multi_sig_address = addr;
+	std::string temp_path = boost::filesystem::initial_path<boost::filesystem::path>().string();
+	temp_path += "/";
+	boost::filesystem::remove(temp_path + "test");
 
 }
 
