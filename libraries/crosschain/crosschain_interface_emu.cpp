@@ -219,7 +219,12 @@ namespace graphene {
 			auto &idx_by_id = _transactions.get<trx_id>();
 			if (idx_by_id.find(trx["trx_id"].as_string()) == idx_by_id.end())
 			{
-				_transactions.insert(transaction_emu{ trx["trx_id"].as_string(), trx["from_addr"].as_string(), trx["to_addr"].as_string(), trx["block_num"].as_int64(), trx["amount"].as_int64() });
+				_transactions.insert(hd_trx{
+					trx["trx_id"].as_string(),
+					trx["from_addr"].as_string(),
+					trx["to_addr"].as_string(),
+					trx["amount"].as_string(),
+					trx["asset_symbol"].as_string() });
 			}
 		}
 
@@ -249,10 +254,13 @@ namespace graphene {
 			struct comp_block_num
 			{
 				// compare an ID and an employee
-				bool operator()(int x, const transaction_emu& t)const{ return x<t.block_num; }
+				bool operator()(int x, const hd_trx& t)const{ return x<t.block_num; }
 
 				// compare an employee and an ID
-				bool operator()(const transaction_emu& t, int x)const{ return t.block_num<x; }
+				bool operator()(const hd_trx& t, int x)const{ return t.block_num<x; }
+				// compare an ID and an ID
+				bool operator()(const int& t, int x)const{ return t<x; }
+
 			};
 
 			auto &blocks = _transactions.get<block_num>();
@@ -260,7 +268,7 @@ namespace graphene {
 			std::vector<fc::variant_object> ret;
 			for (; itr != blocks.end(); ++itr)
 			{
-				if (itr->from_addr == user_account)
+				if (itr->from_account == user_account)
 				{
 					ret.push_back(fc::variant(*itr).get_object());
 				}

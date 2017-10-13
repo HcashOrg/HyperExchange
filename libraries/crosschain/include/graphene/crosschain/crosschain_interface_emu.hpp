@@ -16,29 +16,19 @@ using namespace boost::multi_index;
 namespace graphene {
 	namespace crosschain {
 
-		struct transaction_emu
-		{
-			std::string trx_id;
-			std::string from_addr;
-			std::string to_addr;
-			uint64_t block_num;
-			uint64_t amount;
-
-		};
-
 		struct block_num {};
 		struct trx_id {};
 		struct to_addr {};
 
 		typedef	multi_index_container<
-			transaction_emu,
+			handle_history_trx,
 			indexed_by<
 			ordered_non_unique<
-			tag<block_num>, BOOST_MULTI_INDEX_MEMBER(transaction_emu, uint64_t, block_num)>,
+			tag<block_num>, BOOST_MULTI_INDEX_MEMBER(handle_history_trx, int64_t, block_num)>,
 			ordered_non_unique<
-			tag<trx_id>, BOOST_MULTI_INDEX_MEMBER(transaction_emu, std::string, trx_id)>,
+			tag<trx_id>, BOOST_MULTI_INDEX_MEMBER(handle_history_trx, std::string, trx_id)>,
 			ordered_non_unique<
-			tag<to_addr>, BOOST_MULTI_INDEX_MEMBER(transaction_emu, std::string, to_addr)>
+			tag<to_addr>, BOOST_MULTI_INDEX_MEMBER(handle_history_trx, std::string, to_account)>
 			>
 		> transaction_emu_db;
 
@@ -89,9 +79,8 @@ namespace graphene {
 
 		private:
 			fc::variant_object config;
-			std::vector<std::string> wallets;
-			transaction_emu_db transactions;
-			std::set<std::string> trx_ids;
+			transaction_emu_db _transactions;
+			std::map<address, uint64_t> _balances;
 			std::string _plugin_wallet_filepath ;
 			std::string _wallet_name;
 			graphene::wallet::wallet_data _wallet;
@@ -102,4 +91,3 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::crosschain::transaction_emu, (trx_id)(from_addr)(to_addr)(block_num)(amount))
