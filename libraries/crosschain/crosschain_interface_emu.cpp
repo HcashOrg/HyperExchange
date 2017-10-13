@@ -203,10 +203,10 @@ namespace graphene {
 
 		void crosschain_interface_emu::broadcast_transaction(fc::variant_object trx)
 		{
-			auto &idx_by_id = transactions.get<1>();
+			auto &idx_by_id = _transactions.get<trx_id>();
 			if (idx_by_id.find(trx["trx_id"].as_string()) == idx_by_id.end())
 			{
-				transactions.insert(transaction_emu{ trx["trx_id"].as_string(), trx["from_addr"].as_string(), trx["to_addr"].as_string(), trx["block_num"].as_int64(), trx["amount"].as_int64() });
+				_transactions.insert(transaction_emu{ trx["trx_id"].as_string(), trx["from_addr"].as_string(), trx["to_addr"].as_string(), trx["block_num"].as_int64(), trx["amount"].as_int64() });
 			}
 		}
 
@@ -233,6 +233,16 @@ namespace graphene {
 
 		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit)
 		{
+			struct comp_block_num
+			{
+				// compare an ID and an employee
+				bool operator()(int x, const transaction_emu& t)const{ return x<t.block_num; }
+
+				// compare an employee and an ID
+				bool operator()(const transaction_emu& t, int x)const{ return t.block_num<x; }
+			};
+
+			auto &blocks = _transactions.get<block_num>();
 
 			return std::vector<fc::variant_object>();
 		}

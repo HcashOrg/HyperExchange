@@ -87,7 +87,7 @@ namespace graphene {
 
 		private:
 			fc::variant_object config;
-			transaction_emu_db transactions;
+			transaction_emu_db _transactions;
 			std::set<std::string> trx_ids;
 			std::string _plugin_wallet_filepath;
 			std::string _wallet_name;
