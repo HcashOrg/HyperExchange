@@ -258,7 +258,15 @@ namespace graphene {
 			};
 
 			auto &blocks = _transactions.get<block_num>();
-
+			auto &itr = blocks.lower_bound(start_block, comp_block_num());
+			std::vector<fc::variant_object> ret;
+			for (; itr != blocks.end(); ++itr)
+			{
+				if (itr->from_addr == user_account)
+				{
+					ret.push_back(fc::variant(*itr).get_object());
+				}
+			}
 			return std::vector<fc::variant_object>();
 		}
 
