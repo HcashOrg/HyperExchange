@@ -56,13 +56,15 @@ namespace graphene {
 			virtual std::vector<std::string> wallet_list();
 			virtual std::string create_normal_account(std::string account_name);
 			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired);
-			virtual std::vector<fc::variant_object> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit);
+			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit);
 			virtual fc::variant_object transaction_query(std::string trx_id);
 			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true);
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true);
-			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true);
+			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true);
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures);
-			virtual bool validate_transaction(fc::variant_object trx);
+			virtual bool validate_link_trx(const hd_trx &trx);
+			virtual bool validate_link_trx(const std::vector<hd_trx> &trx);
+			virtual bool validate_other_trx(const fc::variant_object &trx);
 			virtual void broadcast_transaction(fc::variant_object trx);
 			virtual std::vector<fc::variant_object> query_account_balance(std::string &account);
 			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit);
@@ -90,7 +92,7 @@ namespace graphene {
 			std::vector<std::string> wallets;
 			transaction_emu_db transactions;
 			std::set<std::string> trx_ids;
-			std::string _plugin_wallet_filepath;
+			std::string _plugin_wallet_filepath ;
 			std::string _wallet_name;
 			graphene::wallet::wallet_data _wallet;
 			chain_id_type           _chain_id;

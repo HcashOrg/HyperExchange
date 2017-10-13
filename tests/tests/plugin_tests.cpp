@@ -29,7 +29,10 @@ BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 	//create wallet
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
-	hdl->create_wallet("test", "12345678");
+	if(!hdl->create_wallet("test", "12345678"))
+	hdl->open_wallet("test");
+	hdl->unlock_wallet("test","12345678",100000);
+	
 	//open unlock lock close wallet
 
 	//auto _wallet = create_wallet();
@@ -41,6 +44,8 @@ BOOST_AUTO_TEST_CASE(plugin_account_operation)
 	//create normal account
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
+	hdl->open_wallet("test");
+	hdl->unlock_wallet("test", "12345678", 100000);
 	hdl->create_normal_account("test_account");
 }
 

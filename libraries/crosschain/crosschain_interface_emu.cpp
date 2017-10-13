@@ -1,6 +1,6 @@
 #include <graphene/crosschain/crosschain_interface_emu.hpp>
-
-
+#include <fc/filesystem.hpp>
+#include <boost/filesystem.hpp>
 namespace graphene {
 	namespace crosschain {
 
@@ -14,11 +14,20 @@ namespace graphene {
 		}
 
 		bool crosschain_interface_emu::create_wallet(std::string wallet_name, std::string wallet_passprase) {
-			if (!fc::exists(_plugin_wallet_filepath + wallet_name))
+			if (_plugin_wallet_filepath == "")
+			{
+				_plugin_wallet_filepath = boost::filesystem::initial_path<boost::filesystem::path>().string();
+				_plugin_wallet_filepath += "/";
+			}
+				if (fc::exists(_plugin_wallet_filepath + wallet_name))
 				return false;
 			_wallet_name = wallet_name;
 			_wallet = *make_shared<graphene::wallet::wallet_data>();
+			_checksum = fc::sha512::hash(wallet_passprase.c_str(), wallet_passprase.size());
+			
+			lock();
 			save_wallet_file(_plugin_wallet_filepath + wallet_name);
+			
 		}
 
 		bool crosschain_interface_emu::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
@@ -35,6 +44,12 @@ namespace graphene {
 
 		bool crosschain_interface_emu::open_wallet(string wallet_name)
 		{
+			if (_plugin_wallet_filepath == "")
+			{
+				_plugin_wallet_filepath = boost::filesystem::initial_path<boost::filesystem::path>().string();
+				_plugin_wallet_filepath += "/";
+			}
+			_wallet_name = wallet_name;
 			load_wallet_file(_plugin_wallet_filepath + wallet_name);
 			return true;
 		}
@@ -195,11 +210,19 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
-
-		bool crosschain_interface_emu::validate_transaction(fc::variant_object trx)
+		bool crosschain_interface_emu::validate_link_trx(const hd_trx &trx)
 		{
 			return false;
 		}
+		bool crosschain_interface_emu::validate_link_trx(const std::vector<hd_trx> &trx)
+		{
+			return false;
+		}
+		bool crosschain_interface_emu::validate_other_trx(const fc::variant_object &trx) 
+		{
+			return false;
+		}
+
 
 		void crosschain_interface_emu::broadcast_transaction(fc::variant_object trx)
 		{
@@ -314,6 +337,8 @@ namespace graphene {
 				//
 				// http://en.wikipedia.org/wiki/Most_vexing_parse
 				//
+
+				std::string test_path = fc::path(wallet_filename).preferred_string();
 				fc::ofstream outfile{ fc::path(wallet_filename) };
 				outfile.write(data.c_str(), data.length());
 				outfile.flush();
