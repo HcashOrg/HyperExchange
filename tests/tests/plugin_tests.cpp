@@ -69,6 +69,13 @@ BOOST_AUTO_TEST_CASE(plugin_transfer)
 	hdl->broadcast_transaction(trx);
 	//check balance of account
 	auto ret = hdl->query_account_balance(std::string("to_account"));
+	for (auto var : ret)
+	{
+		auto iter = var.find("to_account");
+		BOOST_CHECK_EQUAL(iter!=var.end(),true);
+		BOOST_CHECK_EQUAL(iter->value().as_uint64(),1);
+		
+	}
 }
 
 

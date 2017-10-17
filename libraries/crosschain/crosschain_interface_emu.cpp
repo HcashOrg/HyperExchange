@@ -100,6 +100,7 @@ namespace graphene {
 			account_object new_account;
 			new_account.addr = address(owner_key.get_public_key());
 			new_account.name = account_name;
+			_balances.insert(std::make_pair("account_name",10000));
 			_wallet.my_accounts.emplace(new_account);
 			_keys.emplace(new_account.addr, key_to_wif(owner_key));
 			save_wallet_file(_wallet_name);
@@ -228,8 +229,8 @@ namespace graphene {
 					trx["asset_symbol"].as_string() });
 			}
 			
-			_balances[trx["from_account"].as_string()] = 0;
-			_balances[trx["to_account"].as_string()] =0;
+			_balances[trx["from_account"].as_string()] -= trx["amount"].as_uint64();
+			_balances[trx["to_account"].as_string()] += trx["amount"].as_uint64();
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(const std::string &account)
