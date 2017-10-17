@@ -22,6 +22,7 @@ static void setup_env()
 {
 	
 }
+#define INVOKE(test) ((struct test*)this)->test_method(); 
 
 BOOST_AUTO_TEST_SUITE(plugin_test)
 
@@ -64,9 +65,10 @@ BOOST_AUTO_TEST_CASE(plugin_transfer)
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	//transfer normal trx
-	auto trx = hdl->transfer(std::string("test_account"), std::string("to_account"), std::string("1"), std::string("mBTC"), std::string(""), true);
+	auto trx = hdl->transfer(std::string("test_account"), std::string("to_account"), 1, std::string("mBTC"), std::string(""), true);
+	hdl->broadcast_transaction(trx);
 	//check balance of account
-	hdl->query_account_balance(std::string("to_account"));
+	auto ret = hdl->query_account_balance(std::string("to_account"));
 }
 
 
@@ -93,7 +95,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 
-	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),std::string("10"),std::string("mBTC"),std::string(""),true);
+	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),10,std::string("mBTC"),std::string(""),true);
 	//sign
 	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),true);
 	
@@ -107,9 +109,11 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 BOOST_AUTO_TEST_CASE(plugin_transfer_history)
 {
 	//get history of transactions
+	INVOKE(plugin_transfer)
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
-	hdl->transaction_history(std::string("test_account"), 0, 10);
+    auto ret = hdl->transaction_history(std::string("test_account"), 0, 10);
+	BOOST_CHECK_EQUAL(ret.size(), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -48,8 +48,8 @@ namespace graphene {
 			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) override ;
 			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) override ;
 			virtual fc::variant_object transaction_query(std::string trx_id) override ;
-			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) override ;
-			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) override ;
+			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) override ;
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) override ;
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) override ;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) override ;
 			virtual bool validate_link_trx(const hd_trx &trx) override ;
@@ -80,7 +80,7 @@ namespace graphene {
 		private:
 			fc::variant_object config;
 			transaction_emu_db _transactions;
-			std::map<address, uint64_t> _balances;
+			std::map<std::string, uint64_t> _balances;
 			std::string _plugin_wallet_filepath ;
 			std::string _wallet_name;
 			graphene::wallet::wallet_data _wallet;

@@ -1,5 +1,6 @@
 #include <graphene/crosschain/crosschain_interface_emu.hpp>
 #include <fc/filesystem.hpp>
+#include <iostream>
 #include <boost/filesystem.hpp>
 namespace graphene {
 	namespace crosschain {
@@ -132,8 +133,8 @@ namespace graphene {
 			a.trx_id = "trx-id-test";
 			a.from_account=user_account;
 			a.to_account="to_account";
-			a.amount = "10";
-			a.asset_sympol = "mbtc";
+			a.amount = 10;
+			a.asset_symbol = "mbtc";
 			a.block_num = 1;
 			//
 			results.emplace_back(a);
@@ -148,15 +149,15 @@ namespace graphene {
 			a.trx_id = trx_id;
 			a.from_account="from_account";
 			a.to_account="to_account";
-			a.amount = "10";
-			a.asset_sympol = "mbtc";
+			a.amount = 10;
+			a.asset_symbol = "mbtc";
 			a.block_num = 1;
 			fc::variant v;
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
 
-		fc::variant_object crosschain_interface_emu::transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_emu::transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			//TODo add rpc get function
 			hd_trx a;
@@ -164,21 +165,21 @@ namespace graphene {
 			a.from_account=from_account;
 			a.to_account=to_account;
 			a.amount = amount;
-			a.asset_sympol = memo;
+			a.asset_symbol = memo;
 			a.block_num = 1;
 			fc::variant v;
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
 
-		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			hd_trx a;
 			a.trx_id = "trx-id-test";
 			a.from_account=from_account;
 			a.to_account=to_account;
 			a.amount = amount;
-			a.asset_sympol = "mbtc";
+			a.asset_symbol = "mbtc";
 			a.block_num = 1;
 			fc::variant v;
 			fc::to_variant(a, v);
@@ -221,29 +222,34 @@ namespace graphene {
 			{
 				_transactions.insert(hd_trx{
 					trx["trx_id"].as_string(),
-					trx["from_addr"].as_string(),
-					trx["to_addr"].as_string(),
-					trx["amount"].as_string(),
+					trx["from_account"].as_string(),
+					trx["to_account"].as_string(),
+					trx["amount"].as_uint64(),
 					trx["asset_symbol"].as_string() });
 			}
+			
+			_balances[trx["from_account"].as_string()] = 0;
+			_balances[trx["to_account"].as_string()] =0;
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_emu::query_account_balance(const std::string &account)
 		{
 			std::vector<fc::variant_object> ret;
-			if (!account.empty())
+			if (account.empty())
 			{
 				for (auto &b : _balances)
 				{
-					ret.push_back(variant(b.second).get_object());
+					
+					ret.push_back(variant_object(b.first,variant(b.second)));
+					//ret.push_back(variant(b.second).get_object());
 				}
 			}
 			else
 			{
-				auto b = _balances.find(address(account));
+				auto b = _balances.find(account);
 				if (b != _balances.end())
 				{
-					ret.push_back(variant(b->second).get_object());
+					ret.push_back(variant_object(b->first, variant(b->second)));
 				}
 			}
 			return ret;
@@ -264,6 +270,7 @@ namespace graphene {
 			};
 
 			auto &blocks = _transactions.get<block_num>();
+			std::cout << "block size is " << blocks.size() << std::endl;
 			auto &itr = blocks.lower_bound(start_block, comp_block_num());
 			std::vector<fc::variant_object> ret;
 			for (; itr != blocks.end(); ++itr)

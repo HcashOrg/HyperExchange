@@ -29,14 +29,15 @@
 #include <fc/variant_object.hpp>
 #include <graphene/chain/protocol/asset.hpp>
 
+
 namespace graphene {
 	namespace crosschain {
 		typedef struct handle_history_trx {
 			std::string trx_id;
 			std::string from_account;
 			std::string to_account;
-			std::string amount;
-			std::string asset_sympol;
+			std::uint64_t amount;
+			std::string asset_symbol;
 			int64_t block_num;
 		}hd_trx;
 		
@@ -81,10 +82,10 @@ namespace graphene {
 			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
 
 			// Transfer asset.
-			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Create transaction from multi-signed account.
-			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, std::string &amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Get signature for a given transaction.
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
@@ -122,4 +123,4 @@ namespace graphene {
 		};
 	}
 }
-FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(asset_sympol)(block_num))
+FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(asset_symbol)(block_num))
