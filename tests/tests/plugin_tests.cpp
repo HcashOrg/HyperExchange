@@ -110,6 +110,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 	vec.push_back(signature);
 	//merge
 	hdl->merge_multisig_transaction(trx,vec);
+	hdl->broadcast_transaction(trx);
 
 }
 

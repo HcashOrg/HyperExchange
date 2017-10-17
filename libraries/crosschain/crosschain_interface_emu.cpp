@@ -189,7 +189,7 @@ namespace graphene {
 
 		std::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast)
 		{
-			hd_trx a;
+			string a;
 			fc::variant v;
 			fc::to_variant(a, v);
 			return v.as_string();
