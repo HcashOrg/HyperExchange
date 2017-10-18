@@ -288,5 +288,9 @@ void account_transfer_operation::validate()const
    FC_ASSERT( fee.amount >= 0 );
 }
 
+void account_bind_operation::validate()const
+{
+	//FC_ASSERT(fee.amount >= 0);
+}
 
 } } // graphene::chain

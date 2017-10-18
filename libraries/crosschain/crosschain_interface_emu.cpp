@@ -20,15 +20,15 @@ namespace graphene {
 				_plugin_wallet_filepath = boost::filesystem::initial_path<boost::filesystem::path>().string();
 				_plugin_wallet_filepath += "/";
 			}
-				if (fc::exists(_plugin_wallet_filepath + wallet_name))
+			if (fc::exists(_plugin_wallet_filepath + wallet_name))
 				return false;
 			_wallet_name = wallet_name;
 			_wallet = *make_shared<graphene::wallet::wallet_data>();
 			_checksum = fc::sha512::hash(wallet_passprase.c_str(), wallet_passprase.size());
-			
+
 			lock();
 			save_wallet_file(_plugin_wallet_filepath + wallet_name);
-			
+
 		}
 
 		bool crosschain_interface_emu::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
@@ -100,14 +100,14 @@ namespace graphene {
 			account_object new_account;
 			new_account.addr = address(owner_key.get_public_key());
 			new_account.name = account_name;
-			_balances.insert(std::make_pair("account_name",10000));
+			_balances.insert(std::make_pair("account_name", 10000));
 			_wallet.my_accounts.emplace(new_account);
 			_keys.emplace(new_account.addr, key_to_wif(owner_key));
 			save_wallet_file(_wallet_name);
 			return string(new_account.addr);
 		}
 
-		std::string crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses,uint32_t nrequired)
+		std::string crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			fc::sha256::encoder endcoder;
 			for (int i = 0; i < addresses.size(); ++i)
@@ -132,8 +132,8 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account=user_account;
-			a.to_account="to_account";
+			a.from_account = user_account;
+			a.to_account = "to_account";
 			a.amount = 10;
 			a.asset_symbol = "mbtc";
 			a.block_num = 1;
@@ -148,8 +148,8 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = trx_id;
-			a.from_account="from_account";
-			a.to_account="to_account";
+			a.from_account = "from_account";
+			a.to_account = "to_account";
 			a.amount = 10;
 			a.asset_symbol = "mbtc";
 			a.block_num = 1;
@@ -163,8 +163,8 @@ namespace graphene {
 			//TODo add rpc get function
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account=from_account;
-			a.to_account=to_account;
+			a.from_account = from_account;
+			a.to_account = to_account;
 			a.amount = amount;
 			a.asset_symbol = memo;
 			a.block_num = 1;
@@ -177,8 +177,8 @@ namespace graphene {
 		{
 			hd_trx a;
 			a.trx_id = "trx-id-test";
-			a.from_account=from_account;
-			a.to_account=to_account;
+			a.from_account = from_account;
+			a.to_account = to_account;
 			a.amount = amount;
 			a.asset_symbol = "mbtc";
 			a.block_num = 1;
@@ -202,19 +202,26 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
+
 		bool crosschain_interface_emu::validate_link_trx(const hd_trx &trx)
 		{
 			return false;
 		}
+
 		bool crosschain_interface_emu::validate_link_trx(const std::vector<hd_trx> &trx)
 		{
 			return false;
 		}
-		bool crosschain_interface_emu::validate_other_trx(const fc::variant_object &trx) 
+
+		bool crosschain_interface_emu::validate_other_trx(const fc::variant_object &trx)
 		{
 			return false;
 		}
 
+		bool crosschain_interface_emu::validate_signature(std::string &content, ::string &signature)
+		{
+			return false;
+		}
 
 		void crosschain_interface_emu::broadcast_transaction(const fc::variant_object& trx)
 		{
@@ -228,7 +235,7 @@ namespace graphene {
 					trx["amount"].as_uint64(),
 					trx["asset_symbol"].as_string() });
 			}
-			
+
 			_balances[trx["from_account"].as_string()] -= trx["amount"].as_uint64();
 			_balances[trx["to_account"].as_string()] += trx["amount"].as_uint64();
 		}
@@ -240,8 +247,8 @@ namespace graphene {
 			{
 				for (auto &b : _balances)
 				{
-					
-					ret.push_back(variant_object(b.first,variant(b.second)));
+
+					ret.push_back(variant_object(b.first, variant(b.second)));
 					//ret.push_back(variant(b.second).get_object());
 				}
 			}
@@ -261,12 +268,12 @@ namespace graphene {
 			struct comp_block_num
 			{
 				// compare an ID and an employee
-				bool operator()(int x, const hd_trx& t)const{ return x<t.block_num; }
+				bool operator()(int x, const hd_trx& t)const{ return x < t.block_num; }
 
 				// compare an employee and an ID
-				bool operator()(const hd_trx& t, int x)const{ return t.block_num<x; }
+				bool operator()(const hd_trx& t, int x)const{ return t.block_num < x; }
 				// compare an ID and an ID
-				bool operator()(const int& t, int x)const{ return t<x; }
+				bool operator()(const int& t, int x)const{ return t < x; }
 
 			};
 
@@ -329,7 +336,7 @@ namespace graphene {
 			if (_wallet.chain_id != _chain_id)
 				FC_THROW("Wallet chain ID does not match",
 				("wallet.chain_id", _wallet.chain_id)
-					("chain_id", _chain_id));
+				("chain_id", _chain_id));
 
 			return true;
 		}
@@ -418,5 +425,5 @@ namespace graphene {
 			umask(_old_umask);
 #endif
 		}
-	}
-}
+		}
+			}

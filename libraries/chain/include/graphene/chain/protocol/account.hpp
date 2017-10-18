@@ -257,6 +257,30 @@ namespace graphene { namespace chain {
       void        validate()const;
    };
 
+   /**
+   * @brief bind tunnel account with link account
+   * @ingroup operations
+   *
+   * This operation will declare the binding between tunnel account (on other chain) and link
+   * account on link chain. This binding will be seen by all the node then miner or guard can
+   * recognize the deposit from other chain to link chain.
+   *
+   * No fee is required.
+   */
+   struct account_bind_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+	   account_id_type account_id;
+	   signature_type account_signature;
+	   std::string tunnel_address;
+	   std::string tunnel_signature;
+	   extensions_type extensions;
+
+	   account_id_type fee_payer()const { return account_id; }
+	   void        validate()const;
+   };
+
 } } // graphene::chain
 
 FC_REFLECT(graphene::chain::account_options, (memo_key)(voting_account)(num_witness)(num_committee)(votes)(extensions))
