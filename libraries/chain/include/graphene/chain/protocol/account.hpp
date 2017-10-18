@@ -271,6 +271,7 @@ namespace graphene { namespace chain {
    {
 	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
+	   std::string crosschain_type;
 	   account_id_type account_id;
 	   signature_type account_signature;
 	   std::string tunnel_address;

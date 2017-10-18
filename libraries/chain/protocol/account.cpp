@@ -23,6 +23,8 @@
  */
 #include <graphene/chain/protocol/account.hpp>
 #include <graphene/chain/hardfork.hpp>
+#include <graphene/crosschain/crosschain.hpp>
+#include <graphene/crosschain/crosschain_impl.hpp>
 
 namespace graphene { namespace chain {
 
@@ -290,7 +292,8 @@ void account_transfer_operation::validate()const
 
 void account_bind_operation::validate()const
 {
-	//FC_ASSERT(fee.amount >= 0);
+	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
+	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_signature));
 }
 
 } } // graphene::chain

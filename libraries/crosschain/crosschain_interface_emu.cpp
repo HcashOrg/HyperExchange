@@ -218,7 +218,7 @@ namespace graphene {
 			return false;
 		}
 
-		bool crosschain_interface_emu::validate_signature(std::string &content, ::string &signature)
+		bool crosschain_interface_emu::validate_signature(const std::string &content, const std::string &signature)
 		{
 			return false;
 		}

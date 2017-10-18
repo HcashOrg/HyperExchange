@@ -18,7 +18,7 @@ namespace graphene {
 				return mgr;
 			}
 
-			abstract_crosschain_interface * get_crosschain_handle(std::string &name);
+			abstract_crosschain_interface * get_crosschain_handle(const std::string &name);
 
 		private:
 			std::mutex mutex;
