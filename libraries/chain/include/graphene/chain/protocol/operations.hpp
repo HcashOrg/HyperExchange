@@ -60,6 +60,7 @@ namespace graphene { namespace chain {
             account_whitelist_operation,
             account_upgrade_operation,
             account_transfer_operation,
+			account_bind_operation,
             asset_create_operation,
             asset_update_operation,
             asset_update_bitasset_operation,

@@ -271,12 +271,13 @@ namespace graphene { namespace chain {
    {
 	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
+	   asset           fee;
 	   std::string crosschain_type;
 	   account_id_type account_id;
 	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
-	   extensions_type extensions;
+	   //extensions_type extensions;
 
 	   account_id_type fee_payer()const { return account_id; }
 	   void        validate()const;
@@ -310,5 +311,7 @@ FC_REFLECT( graphene::chain::account_whitelist_operation::fee_parameters_type, (
 FC_REFLECT( graphene::chain::account_update_operation::fee_parameters_type, (fee)(price_per_kbyte) )
 FC_REFLECT( graphene::chain::account_upgrade_operation::fee_parameters_type, (membership_annual_fee)(membership_lifetime_fee) )
 FC_REFLECT( graphene::chain::account_transfer_operation::fee_parameters_type, (fee) )
-
 FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_owner)(extensions) )
+
+FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))

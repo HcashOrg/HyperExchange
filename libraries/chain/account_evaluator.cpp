@@ -328,7 +328,6 @@ void_result account_upgrade_evaluator::do_evaluate(const account_upgrade_evaluat
    FC_ASSERT(!account->is_lifetime_member());
 
    return {};
-//} FC_CAPTURE_AND_RETHROW( (o) ) }
 } FC_RETHROW_EXCEPTIONS( error, "Unable to upgrade account '${a}'", ("a",o.account_to_upgrade(db()).name) ) }
 
 void_result account_upgrade_evaluator::do_apply(const account_upgrade_evaluator::operation_type& o)
@@ -361,5 +360,18 @@ void_result account_upgrade_evaluator::do_apply(const account_upgrade_evaluator:
 
    return {};
 } FC_RETHROW_EXCEPTIONS( error, "Unable to upgrade account '${a}'", ("a",o.account_to_upgrade(db()).name) ) }
+
+void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
+{ try {
+	return void_result();
+} FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result account_bind_evaluator::do_apply(const account_bind_operation& o)
+{ try {
+	return void_result();
+} FC_CAPTURE_AND_RETHROW((o))
+}
+
 
 } } // graphene::chain

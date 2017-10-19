@@ -69,4 +69,15 @@ public:
    const account_object* listed_account;
 };
 
+class account_bind_evaluator : public evaluator<account_bind_evaluator>
+{
+public:
+	typedef account_bind_operation operation_type;
+
+	void_result do_evaluate(const account_bind_operation& o);
+	void_result do_apply(const account_bind_operation& o);
+
+	//const account_object* listed_account;
+};
+
 } } // graphene::chain
