@@ -40,7 +40,7 @@
 #include <graphene/chain/protocol/witness.hpp>
 #include <graphene/chain/protocol/worker.hpp>
 #include <graphene/chain/protocol/guard_lock_balance.hpp>
-
+#include <graphene/chain/protocol/guard_refund_balance.hpp>
 
 namespace graphene { namespace chain {
 
@@ -101,7 +101,8 @@ namespace graphene { namespace chain {
 		    graphene::chain::lockbalance_operation,
 		    graphene::chain::foreclose_balance_operation,
 			graphene::chain::guard_lock_balance_operation,
-			graphene::chain::guard_foreclose_balance_operation
+			graphene::chain::guard_foreclose_balance_operation,
+	        guard_refund_balance_operation
          > operation;
 
    /// @} // operations group
