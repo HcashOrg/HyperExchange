@@ -1874,6 +1874,32 @@ public:
    } FC_CAPTURE_AND_RETHROW( (witness_name)(amount) )
    }
 
+
+   signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
+   {
+	   try {
+		   auto acc = get_account(refund_account);
+		   auto addr = acc.addr;
+		   FC_ASSERT(addr != address(), "wallet has no this account.");
+		   asset_object asset_obj = get_asset(symbol);
+		   guard_refund_balance_operation op;
+		   op.refund_addr = addr;
+		   op.refund_amount = asset_obj.amount_from_string(amount).amount;
+		   op.refund_asset_id = asset_obj.get_id();
+		   op.txid = txid;
+
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx,broadcast);
+
+
+          }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
+   }
+
+
    signed_transaction vote_for_committee_member(string voting_account,
                                         string committee_member,
                                         bool approve,
@@ -4272,6 +4298,13 @@ vector< signed_transaction > wallet_api::import_balance( string name_or_id, cons
 {
    return my->import_balance( name_or_id, wif_keys, broadcast );
 }
+
+signed_transaction wallet_api::refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast )
+{
+	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
+}
+
+
 
 namespace detail {
 

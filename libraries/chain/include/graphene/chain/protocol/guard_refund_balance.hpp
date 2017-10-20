@@ -13,6 +13,7 @@ namespace graphene {
 			asset_id_type refund_asset_id;
 			share_type refund_amount;
 			address    refund_addr;
+			string     txid;
 			void       validate()const;
 			address fee_payer()const {
 				return refund_addr;
@@ -28,4 +29,4 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::guard_refund_balance_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(refund_amount)(refund_addr))
+FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(refund_amount)(refund_addr)(txid))

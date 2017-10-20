@@ -1703,7 +1703,7 @@ class wallet_api
                                          bool broadcast = false,
                                          bool to_temp = false );
 
-
+	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
       fc::signal<void(bool)> lock_changed;
@@ -1902,4 +1902,5 @@ FC_API( graphene::wallet::wallet_api,
 	    (update_guard_formal)
 		(get_account_lock_balance)
 		(get_guard_lock_balance)
+		(refund_request)
       )
