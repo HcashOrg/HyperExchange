@@ -80,4 +80,15 @@ public:
 	//const account_object* listed_account;
 };
 
+class account_guard_change_evaluator : public evaluator<account_guard_change_evaluator>
+{
+public:
+	typedef account_guard_change_operation operation_type;
+
+	void_result do_evaluate(const account_guard_change_operation& o);
+	void_result do_apply(const account_guard_change_operation& o);
+
+	//const account_object* listed_account;
+};
+
 } } // graphene::chain

@@ -373,5 +373,18 @@ void_result account_bind_evaluator::do_apply(const account_bind_operation& o)
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result account_guard_change_evaluator::do_evaluate(const account_guard_change_operation& o)
+{
+	try {
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result account_guard_change_evaluator::do_apply(const account_guard_change_operation& o)
+{
+	try {
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
 
 } } // graphene::chain
