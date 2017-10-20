@@ -10,6 +10,7 @@ namespace graphene {
 		class guard_refund_balance_evaluator : public evaluator<guard_refund_balance_evaluator>
 		{
 		public:
+			typedef guard_refund_balance_operation operation_type;
 			void_result do_evaluate(const guard_refund_balance_operation& o);
 			void_result do_apply(const guard_refund_balance_operation& o);
 		};

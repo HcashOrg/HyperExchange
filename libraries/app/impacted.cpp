@@ -164,7 +164,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.owner );
    }
-
+   void operator()(const guard_refund_balance_operation& op) {}
    void operator()( const vesting_balance_withdraw_operation& op ) {}
    void operator()( const worker_create_operation& op ) {}
    void operator()( const custom_operation& op ) {}
