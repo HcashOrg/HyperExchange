@@ -12,17 +12,14 @@ namespace graphene {
 			asset fee;
 			asset_id_type refund_asset_id;
 			share_type refund_amount;
-			address    guard_address;
+			address    refund_addr;
 			void       validate()const;
 			address fee_payer()const {
-				return guard_address;
+				return refund_addr;
 			}
 			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
 			void get_required_authorities(vector<authority>& a)const {
-				a.push_back(authority(1, guard_address, 1));
-				// 				authority x;
-				// 				x.add_authority(lock_balance_account_id, 1);
-				// 				a.push_back(x);
+				a.push_back(authority(1, refund_addr, 1));
 			}
 
 		};
@@ -31,4 +28,4 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::guard_refund_balance_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(refund_amount)(guard_address))
+FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(refund_amount)(refund_addr))
