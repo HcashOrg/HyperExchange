@@ -102,7 +102,7 @@ namespace graphene { namespace chain {
 		    graphene::chain::foreclose_balance_operation,
 			graphene::chain::guard_lock_balance_operation,
 			graphene::chain::guard_foreclose_balance_operation,
-	        guard_refund_balance_operation
+	        graphene::chain::guard_refund_balance_operation
          > operation;
 
    /// @} // operations group

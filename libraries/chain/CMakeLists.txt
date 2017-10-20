@@ -37,6 +37,7 @@ add_library( graphene_chain
              fork_database.cpp
 			 protocol/lockbalance.cpp
 			 protocol/guard_lock_balance.cpp
+			 protocol/guard_refund_balance.cpp
              protocol/types.cpp
              protocol/address.cpp
              protocol/authority.cpp
@@ -82,6 +83,7 @@ add_library( graphene_chain
              special_authority.cpp
              buyback.cpp
 			 guard_lock_balance_evaluator.cpp
+			 guard_refund_balance_evaluator.cpp
 			 lockbalance_evaluator.cpp
              account_object.cpp
              asset_object.cpp
