@@ -9,6 +9,7 @@ namespace graphene {
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
+			asset fee;
 			asset_id_type refund_asset_id;
 			share_type refund_amount;
 			address    guard_address;
@@ -27,4 +28,4 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::guard_refund_balance_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_refund_balance_operation, (refund_asset_id)(guard_address))
+FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(guard_address))
