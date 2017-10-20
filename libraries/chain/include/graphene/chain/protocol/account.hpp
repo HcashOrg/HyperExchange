@@ -283,6 +283,31 @@ namespace graphene { namespace chain {
 	   void        validate()const;
    };
 
+   /**
+   * @brief change multi-signed account of guards.
+   * @ingroup operations
+   *
+   * This operation will declare the multi-signed account change.
+   * When enough signatures are collected by miner this operation
+   * will be confirmed.
+   *
+   * Guard pay the fee.
+   */
+   struct account_guard_change_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+	   asset           fee;
+	   std::string crosschain_type;
+	   account_id_type account_id;
+	   std::string new_address;
+	   signature_type account_signature;
+
+	   account_id_type fee_payer()const { return account_id; }
+	   void        validate()const;
+   };
+
+
 } } // graphene::chain
 
 FC_REFLECT(graphene::chain::account_options, (memo_key)(voting_account)(num_witness)(num_committee)(votes)(extensions))
@@ -315,3 +340,6 @@ FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_o
 
 FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
+
+FC_REFLECT(graphene::chain::account_guard_change_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::account_guard_change_operation, (fee)(crosschain_type)(account_id)(new_address)(account_signature))

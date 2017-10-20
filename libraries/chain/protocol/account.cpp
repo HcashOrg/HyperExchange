@@ -294,6 +294,12 @@ void account_bind_operation::validate()const
 {
 	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
 	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_signature));
+	//auto pub_key = fc::ecc::public_key(sig, d);
+	//FC_ASSERT( address());
+}
+
+void account_guard_change_operation::validate()const
+{
 }
 
 } } // graphene::chain
