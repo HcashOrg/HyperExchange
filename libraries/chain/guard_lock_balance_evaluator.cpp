@@ -81,5 +81,25 @@ namespace graphene {
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))			
 		}
+
+		void_result guard_update_multi_account_evaluator::do_evaluate(const guard_update_multi_account_operation& o)
+		{
+			try
+			{
+				const database& d = db();
+				const asset_object&   asset_type = o.asset_id(d);
+				//TODO
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+
+		void_result guard_update_multi_account_evaluator::do_apply(const guard_update_multi_account_operation& o)
+		{
+			try
+			{
+				//TODO
+				//we need implemention
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+
 	}
 }
