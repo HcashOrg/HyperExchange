@@ -174,6 +174,7 @@ struct get_impacted_account_visitor
    void operator()(const foreclose_balance_operation& op) {}
    void operator()(const guard_lock_balance_operation& op) {}
    void operator()(const guard_foreclose_balance_operation& op) {}
+   void operator()(const guard_update_multi_account_operation& op) {}
    void operator()( const balance_claim_operation& op ) {}
 
    void operator()( const override_transfer_operation& op )

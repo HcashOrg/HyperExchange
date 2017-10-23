@@ -18,5 +18,12 @@ namespace graphene {
 			void_result do_evaluate(const guard_foreclose_balance_operation& o);
 			void_result do_apply(const guard_foreclose_balance_operation& o);
 		};
+		class guard_update_multi_account_evaluator :public evaluator<guard_update_multi_account_evaluator> {
+		public:
+			typedef guard_update_multi_account_operation operation_type;
+			void_result do_evaluate(const guard_update_multi_account_operation& o);
+			void_result do_apply(const guard_update_multi_account_operation& o);
+		};
+
 	}
 }
