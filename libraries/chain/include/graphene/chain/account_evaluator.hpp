@@ -75,9 +75,9 @@ public:
 	typedef account_bind_operation operation_type;
 
 	void_result do_evaluate(const account_bind_operation& o);
-	void_result do_apply(const account_bind_operation& o);
+	object_id_type do_apply(const account_bind_operation& o);
 
-	//const account_object* listed_account;
+	//const account_binding_object* binding_account;
 };
 
 class account_guard_change_evaluator : public evaluator<account_guard_change_evaluator>
