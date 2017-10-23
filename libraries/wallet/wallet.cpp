@@ -70,7 +70,8 @@
 #include <graphene/wallet/reflect_util.hpp>
 #include <graphene/debug_witness/debug_api.hpp>
 #include <fc/smart_ref_impl.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
+#include <graphene/crosschain/crosschain_interface_emu.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1878,6 +1879,7 @@ public:
    signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
    {
 	   try {
+		   FC_ASSERT(!is_locked());
 		   auto acc = get_account(refund_account);
 		   auto addr = acc.addr;
 		   FC_ASSERT(addr != address(), "wallet has no this account.");
@@ -1899,6 +1901,40 @@ public:
           }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
    }
 
+   signed_transaction transfer_from_cold_to_hot(const string& amount, const string& symbol,bool broadcast)
+   {
+	   try
+	   {
+		   //TODO
+		   //get cold hot addresses according to given symbol
+		   //create muliti-trx for given symbol
+		   //return the relvent trx
+		   const address  cold_addr;
+		   const address  hot_addr;
+		   
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   auto inface = instance.get_crosschain_handle("EMU");
+		   auto asset_obj = get_asset(symbol);
+		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
+
+	   }FC_CAPTURE_AND_RETHROW((amount)(symbol)(broadcast))
+   }
+
+   signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time,bool broadcast)
+   {
+	   try 
+	   {
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+
+
+
+
+	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
+   }
+   
 
    signed_transaction vote_for_committee_member(string voting_account,
                                         string committee_member,
@@ -4304,7 +4340,15 @@ signed_transaction wallet_api::refund_request(const string& refund_account,const
 	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
 }
 
+signed_transaction wallet_api::transfer_from_cold_to_hot(const string& amount, const string& symbol, bool broadcast)
+{
+	return my->transfer_from_cold_to_hot(amount,symbol,broadcast);
+}
 
+signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)
+{
+	return my->account_change_for_crosschain(proposer,symbol, expiration_time,broadcast);
+}
 
 namespace detail {
 
