@@ -1924,13 +1924,29 @@ public:
    {
 	   try 
 	   {
+		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
 		   prop_op.proposer = get_account(proposer).get_id();
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 
+		   guard_update_multi_account_operation update_op;
+		   
+		   const auto asset_id = get_asset_id(symbol);
+		   update_op.asset_id = asset_id;
+		   update_op.cold = address().operator fc::string();
+		   update_op.hot = address().operator fc::string();
 
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   prop_op.proposed_ops.emplace_back(update_op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 
+		   signed_transaction trx;
+		   trx.operations.emplace_back(prop_op);
+		   set_operation_fees(trx, current_params.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx,broadcast);
 
 	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
    }
