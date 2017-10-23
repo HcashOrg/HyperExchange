@@ -148,6 +148,8 @@ void database::initialize_evaluators()
    register_evaluator<account_update_evaluator>();
    register_evaluator<account_upgrade_evaluator>();
    register_evaluator<account_whitelist_evaluator>();
+   register_evaluator<account_bind_evaluator>();
+   register_evaluator<account_guard_change_evaluator>();
    register_evaluator<guard_member_create_evaluator>();
    register_evaluator<guard_member_update_evaluator>();
    register_evaluator<committee_member_update_global_parameters_evaluator>();
@@ -221,6 +223,7 @@ void database::initialize_indexes()
    //Implementation object indexes
    add_index< primary_index<transaction_index                             > >();
    add_index< primary_index<account_balance_index                         > >();
+   add_index< primary_index<account_binding_index                         > >();
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();

@@ -267,6 +267,27 @@ namespace graphene { namespace chain {
    };
 
    /**
+   * @brief Tracks the bindings of tunnel account / link account pair
+   * @ingroup object
+   *
+   * This object is indexed on link account and asset_type so that black swan
+   * events in asset_type can be processed quickly.
+   */
+   class account_binding_object : public abstract_object<account_binding_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_account_binding_object_type;
+
+	   account_id_type   owner;
+	   std::string		 chain_type;
+	   std::string       bind_account;
+
+	   std::string get_tunnel_account()const { return bind_account; }
+   };
+
+
+   /**
     *  @brief This secondary index will allow a reverse lookup of all accounts that a particular key or account
     *  is an potential signing authority.
     */
@@ -369,6 +390,37 @@ namespace graphene { namespace chain {
     */
    typedef generic_index<account_object, account_multi_index_type> account_index;
 
+   struct by_account_binding;
+   struct by_tunnel_binding;
+   /**
+   * @ingroup object_index
+   */
+   typedef multi_index_container<
+	   account_binding_object,
+	   indexed_by<
+		   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+		   ordered_unique< tag<by_account_binding>,
+			   composite_key<
+				   account_binding_object,
+				   member<account_binding_object, account_id_type, &account_binding_object::owner>,
+				   member<account_binding_object, std::string, &account_binding_object::chain_type>
+			   >
+		   >,
+		   ordered_unique< tag<by_asset_balance>,
+			   composite_key<
+				   account_binding_object,
+				   member<account_binding_object, std::string, &account_binding_object::bind_account>,
+				   member<account_binding_object, std::string, &account_binding_object::chain_type>
+			   >
+		   >
+	   >
+   > account_binding_object_multi_index_type;
+
+   /**
+   * @ingroup object_index
+   */
+   typedef generic_index<account_binding_object, account_binding_object_multi_index_type> account_binding_index;
+
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::account_object,
@@ -386,6 +438,10 @@ FC_REFLECT_DERIVED( graphene::chain::account_object,
 FC_REFLECT_DERIVED( graphene::chain::account_balance_object,
                     (graphene::db::object),
                     (owner)(asset_type)(balance) )
+
+FC_REFLECT_DERIVED(graphene::chain::account_binding_object,
+					(graphene::db::object),
+					(owner)(chain_type)(bind_account))
 
 FC_REFLECT_DERIVED( graphene::chain::account_statistics_object,
                     (graphene::chain::object),
