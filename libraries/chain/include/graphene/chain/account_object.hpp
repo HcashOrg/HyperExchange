@@ -286,6 +286,26 @@ namespace graphene { namespace chain {
 	   std::string get_tunnel_account()const { return bind_account; }
    };
 
+   /**
+   * @brief Tracks the bindings of tunnel account / link account pair
+   * @ingroup object
+   *
+   * This object is indexed on link account and asset_type so that black swan
+   * events in asset_type can be processed quickly.
+   */
+   class multisig_account_pair_object : public abstract_object<multisig_account_pair_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_multisig_account_binding_object_type;
+
+	   std::string		 chain_type;
+	   std::string       bind_account;
+	   uint64_t			 effective_block_num;
+
+	   //std::string get_tunnel_account()const { return bind_account; }
+   };
+
 
    /**
     *  @brief This secondary index will allow a reverse lookup of all accounts that a particular key or account
@@ -421,6 +441,29 @@ namespace graphene { namespace chain {
    */
    typedef generic_index<account_binding_object, account_binding_object_multi_index_type> account_binding_index;
 
+   struct by_multisig_account_pair {};
+   /**
+   * @ingroup object_index
+   */
+   typedef multi_index_container<
+	   multisig_account_pair_object,
+	   indexed_by<
+		   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+		   ordered_unique< tag<by_multisig_account_pair>,
+		   composite_key<
+			   multisig_account_pair_object,
+			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account>,
+			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type>
+		   >
+	   >
+	   >
+   > multisig_account_pair_object_multi_index_type;
+
+   /**
+   * @ingroup object_index
+   */
+   typedef generic_index<multisig_account_pair_object, multisig_account_pair_object_multi_index_type> multisig_account_pair_index;
+
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::account_object,
@@ -443,7 +486,11 @@ FC_REFLECT_DERIVED(graphene::chain::account_binding_object,
 					(graphene::db::object),
 					(owner)(chain_type)(bind_account))
 
-FC_REFLECT_DERIVED( graphene::chain::account_statistics_object,
+FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
+					(graphene::db::object),
+					(chain_type)(bind_account)(effective_block_num))
+					
+FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (graphene::chain::object),
                     (owner)
                     (most_recent_op)

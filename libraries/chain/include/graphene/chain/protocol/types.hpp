@@ -148,6 +148,7 @@ namespace graphene { namespace chain {
       impl_asset_bitasset_data_type,
       impl_account_balance_object_type,
 	  impl_account_binding_object_type,
+	  impl_multisig_account_binding_object_type,
 	  impl_account_statistics_object_type,
       impl_transaction_object_type,
       impl_block_summary_object_type,

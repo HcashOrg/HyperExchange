@@ -384,17 +384,24 @@ object_id_type account_bind_evaluator::do_apply(const account_bind_operation& o)
 }
 
 void_result account_guard_change_evaluator::do_evaluate(const account_guard_change_operation& o)
-{
-	try {
-		return void_result();
-	} FC_CAPTURE_AND_RETHROW((o))
+{ try {
+	auto &guard_change_idx = db().get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
+	auto itr = guard_change_idx.find(boost::make_tuple(o.new_address, o.crosschain_type));
+	FC_ASSERT(itr == guard_change_idx.end());
+	return void_result();
+} FC_CAPTURE_AND_RETHROW((o))
 }
 
 void_result account_guard_change_evaluator::do_apply(const account_guard_change_operation& o)
-{
-	try {
-		return void_result();
-	} FC_CAPTURE_AND_RETHROW((o))
+{ try {
+	database& d = db();
+	const auto & binding = d.create<multisig_account_pair_object>([&](multisig_account_pair_object& a) {
+		a.bind_account = o.new_address;
+		a.chain_type = o.crosschain_type;
+		a.effective_block_num = o.effective_block_num;
+	});
+	return void_result();
+} FC_CAPTURE_AND_RETHROW((o))
 }
 
 } } // graphene::chain

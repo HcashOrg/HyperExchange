@@ -302,6 +302,7 @@ namespace graphene { namespace chain {
 	   account_id_type account_id;
 	   std::string new_address;
 	   signature_type account_signature;
+	   uint64_t effective_block_num;
 
 	   account_id_type fee_payer()const { return account_id; }
 	   void        validate()const;
