@@ -390,8 +390,8 @@ namespace graphene { namespace chain {
     */
    typedef generic_index<account_object, account_multi_index_type> account_index;
 
-   struct by_account_binding;
-   struct by_tunnel_binding;
+   struct by_account_binding {};
+   struct by_tunnel_binding {};
    /**
    * @ingroup object_index
    */
@@ -406,7 +406,7 @@ namespace graphene { namespace chain {
 				   member<account_binding_object, std::string, &account_binding_object::chain_type>
 			   >
 		   >,
-		   ordered_unique< tag<by_asset_balance>,
+		   ordered_unique< tag<by_tunnel_binding>,
 			   composite_key<
 				   account_binding_object,
 				   member<account_binding_object, std::string, &account_binding_object::bind_account>,

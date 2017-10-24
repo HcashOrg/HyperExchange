@@ -363,13 +363,23 @@ void_result account_upgrade_evaluator::do_apply(const account_upgrade_evaluator:
 
 void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
 { try {
+	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
+	auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+	FC_ASSERT(bind_itr == bind_idx.end());
+
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result account_bind_evaluator::do_apply(const account_bind_operation& o)
+object_id_type account_bind_evaluator::do_apply(const account_bind_operation& o)
 { try {
-	return void_result();
+	database& d = db();
+	const auto & binding = d.create<account_binding_object>([&](account_binding_object& a) {
+		a.owner = o.account_id;
+		a.bind_account = o.tunnel_address;
+		a.chain_type = o.crosschain_type;
+	});
+	return binding.id;
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
