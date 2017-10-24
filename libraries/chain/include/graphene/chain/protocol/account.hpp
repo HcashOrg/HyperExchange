@@ -274,10 +274,9 @@ namespace graphene { namespace chain {
 	   asset           fee;
 	   std::string crosschain_type;
 	   account_id_type account_id;
-	   signature_type account_signature;
+	   std::vector<signature_type> account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
-	   //extensions_type extensions;
 
 	   account_id_type fee_payer()const { return account_id; }
 	   void        validate()const;
@@ -301,7 +300,7 @@ namespace graphene { namespace chain {
 	   std::string crosschain_type;
 	   account_id_type account_id;
 	   std::string new_address;
-	   signature_type account_signature;
+	   std::vector<signature_type> signatures;
 	   uint64_t effective_block_num;
 
 	   account_id_type fee_payer()const { return account_id; }
@@ -343,4 +342,4 @@ FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
 
 FC_REFLECT(graphene::chain::account_guard_change_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_guard_change_operation, (fee)(crosschain_type)(account_id)(new_address)(account_signature))
+FC_REFLECT(graphene::chain::account_guard_change_operation, (fee)(crosschain_type)(account_id)(new_address)(signatures))
