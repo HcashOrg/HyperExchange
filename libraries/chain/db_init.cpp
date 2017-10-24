@@ -224,6 +224,8 @@ void database::initialize_indexes()
    add_index< primary_index<transaction_index                             > >();
    add_index< primary_index<account_balance_index                         > >();
    add_index< primary_index<account_binding_index                         > >();
+   add_index< primary_index<multisig_account_pair_index                   > >();
+   add_index< primary_index<multisig_address_index                        > >();
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();

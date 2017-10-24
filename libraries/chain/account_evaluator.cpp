@@ -391,23 +391,10 @@ void_result account_guard_change_evaluator::do_evaluate(const account_guard_chan
 	auto itr = guard_change_idx.find(boost::make_tuple(o.new_address, o.crosschain_type));
 	FC_ASSERT(itr == guard_change_idx.end());
 
-	//Check if the signatures are enough.
-	auto guards = db().get_index_type<guard_member_index>().indices();
-	auto num = 0;
-	std::for_each(guards.begin(), guards.end(), [&num](const guard_member_object &g) {
-		if (g.formal) {
-			++num;
-		}
-	});
-	FC_ASSERT(o.signatures.size() >= ((num * 2 + 1) / 3));
-
 	//Check if all the signatures are valid.
 	auto &accounts = db().get_index_type<account_index>().indices().get<by_address>();
-	for (auto &sig : o.signatures)
-	{
-		auto addr = address(fc::ecc::public_key(sig, fc::sha256(o.new_address)));
-		FC_ASSERT(accounts.find(addr) != accounts.end());
-	}
+	auto addr = address(fc::ecc::public_key(o.signature, fc::sha256(o.new_address)));
+	FC_ASSERT(accounts.find(addr) != accounts.end());
 
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
@@ -419,7 +406,6 @@ void_result account_guard_change_evaluator::do_apply(const account_guard_change_
 	const auto & binding = d.create<multisig_account_pair_object>([&](multisig_account_pair_object& a) {
 		a.bind_account = o.new_address;
 		a.chain_type = o.crosschain_type;
-		a.effective_block_num = o.effective_block_num;
 	});
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))

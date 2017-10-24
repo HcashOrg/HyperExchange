@@ -306,6 +306,19 @@ namespace graphene { namespace chain {
 	   //std::string get_tunnel_account()const { return bind_account; }
    };
 
+   class multisig_address_object : public abstract_object<multisig_address_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_multisig_address_object_type;
+
+	   account_id_type	 guard_account;
+	   std::string		 chain_type;
+	   std::string       new_address;
+	   signature_type	 signature;
+
+	   //std::string get_tunnel_account()const { return bind_account; }
+   };
 
    /**
     *  @brief This secondary index will allow a reverse lookup of all accounts that a particular key or account
@@ -464,6 +477,29 @@ namespace graphene { namespace chain {
    */
    typedef generic_index<multisig_account_pair_object, multisig_account_pair_object_multi_index_type> multisig_account_pair_index;
 
+   struct by_account_chain_type {};
+   /**
+   * @ingroup object_index
+   */
+   typedef multi_index_container<
+	   multisig_address_object,
+	   indexed_by<
+		   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+		   ordered_unique< tag<by_account_chain_type>,
+			   composite_key<
+					multisig_address_object,
+					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>,
+					member<multisig_address_object, std::string, &multisig_address_object::chain_type>
+			   >
+		   >
+	   >
+   > multisig_address_object_multi_index_type;
+
+   /**
+   * @ingroup object_index
+   */
+   typedef generic_index<multisig_address_object, multisig_address_object_multi_index_type> multisig_address_index;
+
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::account_object,
@@ -489,6 +525,10 @@ FC_REFLECT_DERIVED(graphene::chain::account_binding_object,
 FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
 					(graphene::db::object),
 					(chain_type)(bind_account)(effective_block_num))
+					
+FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
+					(graphene::db::object),
+					(guard_account)(chain_type)(new_address)(signature))
 					
 FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (graphene::chain::object),
