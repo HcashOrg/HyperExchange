@@ -292,7 +292,7 @@ namespace graphene { namespace chain {
    *
    * Guard pay the fee.
    */
-   struct account_guard_change_operation : public base_operation
+   struct account_multisig_create_operation : public base_operation
    {
 	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
@@ -340,5 +340,5 @@ FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_o
 FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
 
-FC_REFLECT(graphene::chain::account_guard_change_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_guard_change_operation, (fee)(crosschain_type)(account_id)(new_address)(signature))
+FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(new_address)(signature))

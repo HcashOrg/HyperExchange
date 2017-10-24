@@ -384,7 +384,7 @@ object_id_type account_bind_evaluator::do_apply(const account_bind_operation& o)
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result account_guard_change_evaluator::do_evaluate(const account_guard_change_operation& o)
+void_result account_multisig_create_evaluator::do_evaluate(const account_multisig_create_operation& o)
 { try {
 	//Check if this address exists.
 	auto &guard_change_idx = db().get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
@@ -400,7 +400,7 @@ void_result account_guard_change_evaluator::do_evaluate(const account_guard_chan
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
-void_result account_guard_change_evaluator::do_apply(const account_guard_change_operation& o)
+void_result account_multisig_create_evaluator::do_apply(const account_multisig_create_operation& o)
 { try {
 	database& d = db();
 	const auto & binding = d.create<multisig_account_pair_object>([&](multisig_account_pair_object& a) {

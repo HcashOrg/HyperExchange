@@ -298,7 +298,7 @@ void account_bind_operation::validate()const
 	//FC_ASSERT( address());
 }
 
-void account_guard_change_operation::validate()const
+void account_multisig_create_operation::validate()const
 {
 }
 

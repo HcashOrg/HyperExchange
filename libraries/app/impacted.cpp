@@ -83,7 +83,7 @@ struct get_impacted_account_visitor
    }
 
    void operator()(const account_bind_operation& op) {}
-   void operator()(const account_guard_change_operation& op) {}
+   void operator()(const account_multisig_create_operation& op) {}
 
    void operator()( const asset_create_operation& op ) {}
    void operator()( const asset_update_operation& op )

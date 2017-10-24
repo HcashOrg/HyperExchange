@@ -78,13 +78,13 @@ public:
 	object_id_type do_apply(const account_bind_operation& o);
 };
 
-class account_guard_change_evaluator : public evaluator<account_guard_change_evaluator>
+class account_multisig_create_evaluator : public evaluator<account_multisig_create_evaluator>
 {
 public:
-	typedef account_guard_change_operation operation_type;
+	typedef account_multisig_create_operation operation_type;
 
-	void_result do_evaluate(const account_guard_change_operation& o);
-	void_result do_apply(const account_guard_change_operation& o);
+	void_result do_evaluate(const account_multisig_create_operation& o);
+	void_result do_apply(const account_multisig_create_operation& o);
 };
 
 } } // graphene::chain
