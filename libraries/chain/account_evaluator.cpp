@@ -364,8 +364,13 @@ void_result account_upgrade_evaluator::do_apply(const account_upgrade_evaluator:
 
 void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
 { try {
+	// One-to-one binding between link account and tunnel address.
 	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 	auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+	FC_ASSERT(bind_itr == bind_idx.end());
+
+	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
+	auto bind_itr = bind_idx.find(boost::make_tuple(o.tunnel_address, o.crosschain_type));
 	FC_ASSERT(bind_itr == bind_idx.end());
 
 	return void_result();
