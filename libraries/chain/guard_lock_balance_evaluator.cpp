@@ -88,7 +88,8 @@ namespace graphene {
 			{
 				const database& d = db();
 				const asset_object&   asset_type = o.asset_id(d);
-				//TODO
+				FC_ASSERT(o.hot != o.cold);
+                //get the multi-asset,and make it get worked
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 
@@ -98,6 +99,9 @@ namespace graphene {
 			{
 				//TODO
 				//we need implemention
+				database& d = db();
+				const asset_object& asset_type = o.asset_id(d);
+				//modify the data for the 
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 

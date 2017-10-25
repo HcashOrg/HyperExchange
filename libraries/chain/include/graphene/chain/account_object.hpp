@@ -489,8 +489,8 @@ namespace graphene { namespace chain {
 		   ordered_unique< tag<by_account_chain_type>,
 			   composite_key<
 					multisig_address_object,
-					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>,
-					member<multisig_address_object, std::string, &multisig_address_object::chain_type>
+					member<multisig_address_object, std::string, &multisig_address_object::chain_type>,
+					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>
 			   >
 		   >
 	   >

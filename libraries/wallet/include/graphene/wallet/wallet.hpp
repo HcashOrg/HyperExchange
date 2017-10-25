@@ -1706,6 +1706,7 @@ class wallet_api
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
 	  signed_transaction transfer_from_cold_to_hot(const string& amount,const string& symbol,bool broadcast=true);
 	  signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
       fc::signal<void(bool)> lock_changed;

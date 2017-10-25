@@ -393,7 +393,7 @@ void_result account_multisig_create_evaluator::do_evaluate(const account_multisi
 { try {
 	//Check if this address exists.
 	auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-	auto itr = guard_change_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+	auto itr = guard_change_idx.find(boost::make_tuple(o.crosschain_type, o.account_id));
 	FC_ASSERT(itr == guard_change_idx.end());
 
 	//Check if all the signatures are valid.
