@@ -300,7 +300,8 @@ namespace graphene { namespace chain {
 	   static const uint8_t type_id = impl_multisig_account_binding_object_type;
 
 	   std::string		 chain_type;
-	   std::string       bind_account;
+	   std::string       bind_account_hot;
+	   std::string       bind_account_cold;
 	   uint64_t			 effective_block_num;
 
 	   //std::string get_tunnel_account()const { return bind_account; }
@@ -466,7 +467,8 @@ namespace graphene { namespace chain {
 		   ordered_unique< tag<by_multisig_account_pair>,
 		   composite_key<
 			   multisig_account_pair_object,
-			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account>,
+			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account_hot>,
+			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account_cold>,
 			   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type>
 		   >
 	   >
@@ -525,7 +527,7 @@ FC_REFLECT_DERIVED(graphene::chain::account_binding_object,
 
 FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
 					(graphene::db::object),
-					(chain_type)(bind_account)(effective_block_num))
+					(chain_type)(bind_account_hot)(bind_account_cold)(effective_block_num))
 					
 FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
 					(graphene::db::object),
