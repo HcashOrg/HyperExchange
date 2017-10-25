@@ -45,4 +45,12 @@ namespace graphene { namespace chain {
          void_result do_apply( const witness_update_operation& o );
    };
 
+   class miner_generate_multi_asset_evaluator : public evaluator<miner_generate_multi_asset_evaluator>
+   {
+   public:
+	   typedef miner_generate_multi_asset_operation operation_type;
+	   void_result do_evaluate(const miner_generate_multi_asset_operation& o);
+	   void_result do_apply(const miner_generate_multi_asset_operation& o);
+   };
+
 } } // graphene::chain

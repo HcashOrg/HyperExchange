@@ -109,6 +109,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.miner_account );
    }
+   void operator() (const miner_generate_multi_asset_operation& op) {}
    void operator()( const witness_update_operation& op )
    {
       _impacted.insert( op.witness_account );

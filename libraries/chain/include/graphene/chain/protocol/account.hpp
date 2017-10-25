@@ -299,11 +299,12 @@ namespace graphene { namespace chain {
 	   asset           fee;
 	   std::string crosschain_type;
 	   account_id_type account_id;
+	   address addr;
 	   std::string new_address_hot;
 	   std::string new_address_cold;
 	   signature_type signature;
 
-	   account_id_type fee_payer()const { return account_id; }
+	   address fee_payer()const { return addr; }
 	   void        validate()const;
    };
 
@@ -342,4 +343,4 @@ FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
 
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(new_address_hot)(new_address_cold)(signature))
+FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_address_cold)(signature))

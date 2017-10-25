@@ -25,9 +25,11 @@
 
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/witness_object.hpp>
-
+#include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/account_object.hpp>
 #include <graphene/utilities/key_conversion.hpp>
-
+#include <graphene/crosschain/crosschain_interface_emu.hpp>
+#include <graphene/crosschain/crosschain.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
 
@@ -233,6 +235,59 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
    return result;
 }
 
+fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner)
+{
+	chain::database& db = database();
+	try {
+		const auto& addr = db.get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+		const auto& guard_ids = db.get_index_type<guard_member_index>().indices().get<by_account>();
+		const auto& symbols = db.get_index_type<asset_index>().indices().get<by_symbol>();
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
+		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
+		auto miner_addr = accounts.find(accid)->addr;
+
+		//get cold address
+		for (auto iter : symbols)
+		{
+			vector<string> symbol_addrs_cold;
+			vector<string> symbol_addrs_hot;
+			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
+			std::for_each(
+				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot](const multisig_address_object& obj) {
+				symbol_addrs_cold.push_back(obj.new_address_cold);
+				symbol_addrs_hot.push_back(obj.new_address_hot);
+			}
+			);
+			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size())
+			{
+				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size()*2/3));
+				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
+				signed_transaction trx;
+				miner_generate_multi_asset_operation op;
+				op.miner = miner;
+				op.miner_address = miner_addr;
+				op.multi_address_cold = multi_addr_cold;
+				op.multi_address_hot = multi_addr_hot;
+				trx.operations.emplace_back(op);
+
+				db.push_transaction(trx, database::skip_transaction_signatures);
+			}
+
+
+		}
+	}
+	catch (fc::exception& e)
+	{
+		
+	}
+	return fc::variant();
+}
+
 block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
    chain::database& db = database();
@@ -296,7 +351,9 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
       capture("scheduled_time", scheduled_time)("now", now);
       return block_production_condition::lag;
    }
-
+   //through this to generate new multi-addr
+   auto varient_obj = check_generate_multi_addr(scheduled_miner);
+   //generate blocks
    auto block = db.generate_block(
       scheduled_time,
 	   scheduled_miner,

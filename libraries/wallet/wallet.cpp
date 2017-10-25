@@ -1901,10 +1901,43 @@ public:
           }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
    }
 
+   signed_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   //we need get proper crosschain interface
+		   auto cross_interface = instance.get_crosschain_handle("EMU");
+		   //we need generate two public
+		    string hot_addr =cross_interface->create_normal_account(symbol);
+		   //string hot_pri = cross_interface->export_private_key(symbol, "");
+		   string cold_addr = cross_interface->create_normal_account(symbol);
+
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+		   op.new_address_cold = cold_addr;
+		   op.new_address_hot = hot_addr;
+
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx,broadcast);
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
+   }
+
    signed_transaction transfer_from_cold_to_hot(const string& amount, const string& symbol,bool broadcast)
    {
 	   try
 	   {
+		   FC_ASSERT(!is_locked());
 		   //TODO
 		   //get cold hot addresses according to given symbol
 		   //create muliti-trx for given symbol
@@ -1916,7 +1949,9 @@ public:
 		   auto inface = instance.get_crosschain_handle("EMU");
 		   auto asset_obj = get_asset(symbol);
 		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
+		   // TODO
 
+		   return sign_transaction(signed_transaction(),broadcast);
 	   }FC_CAPTURE_AND_RETHROW((amount)(symbol)(broadcast))
    }
 
@@ -4368,6 +4403,12 @@ signed_transaction wallet_api::refund_request(const string& refund_account,const
 {
 	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
 }
+
+signed_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+{
+	return my->update_asset_private_keys(from_account,symbol,broadcast);
+}
+
 
 signed_transaction wallet_api::transfer_from_cold_to_hot(const string& amount, const string& symbol, bool broadcast)
 {

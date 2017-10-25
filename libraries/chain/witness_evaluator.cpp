@@ -77,5 +77,19 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
       });
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
+void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_generate_multi_asset_operation& o)
+{
+	try {
+		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
+void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_multi_asset_operation& o)
+{
+	try
+	{
+		//update the latest multi-addr in database
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 } } // graphene::chain

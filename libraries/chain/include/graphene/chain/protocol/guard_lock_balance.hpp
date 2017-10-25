@@ -62,8 +62,6 @@ namespace graphene {
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
-
-
 		};
 
 	}
