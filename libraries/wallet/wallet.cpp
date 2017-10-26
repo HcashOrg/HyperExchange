@@ -1923,6 +1923,8 @@ public:
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
 		   op.new_address_cold = cold_addr;
 		   op.new_address_hot = hot_addr;
+		   auto key =  fc::ecc::extended_private_key::from_base58(_keys[op.addr]);
+		   op.signature = key.sign_compact(fc::sha256(op.new_address_hot + op.new_address_cold));
 
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
