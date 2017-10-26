@@ -82,6 +82,15 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 	try {
 		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
 		//need to check the status of miner...
+		const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+		auto miner = miners.find(o.miner);
+		FC_ASSERT(miner != miners.end());
+		const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
+		const auto acct = accounts.find(miner->miner_account);
+		FC_ASSERT(acct->addr == o.miner_address);
+
+		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
+		FC_ASSERT(assets.find(o.chain_type) != assets.end());
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
@@ -90,6 +99,13 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 	try
 	{
 		//update the latest multi-addr in database
+
+		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
+			obj.bind_account_cold = o.multi_address_cold;
+			obj.bind_account_hot = o.multi_address_hot;
+			obj.chain_type = o.chain_type;
+			obj.effective_block_num = db().head_block_num() + 10;
+		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 } } // graphene::chain

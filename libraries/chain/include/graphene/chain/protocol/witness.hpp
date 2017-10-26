@@ -81,6 +81,7 @@ namespace graphene { namespace chain {
 	   };
 	   asset fee;
 	   miner_id_type miner;
+	   string chain_type;
 	   address miner_address;
 	   string multi_address_hot;
 	   string multi_address_cold;
@@ -100,4 +101,4 @@ FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
 
 FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(miner_address)(multi_address_hot)(multi_address_cold))
+FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_address_cold))

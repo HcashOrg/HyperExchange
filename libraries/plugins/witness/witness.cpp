@@ -235,7 +235,7 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
    return result;
 }
 
-fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner)
+fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc::private_key pk)
 {
 	chain::database& db = database();
 	try {
@@ -273,9 +273,10 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner)
 				op.miner_address = miner_addr;
 				op.multi_address_cold = multi_addr_cold;
 				op.multi_address_hot = multi_addr_hot;
+				op.chain_type = iter.symbol;
 				trx.operations.emplace_back(op);
-
-				db.push_transaction(trx, database::skip_transaction_signatures);
+				trx.sign(pk, db.get_chain_id());
+				db.push_transaction(trx);
 			}
 
 
@@ -352,7 +353,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
       return block_production_condition::lag;
    }
    //through this to generate new multi-addr
-   auto varient_obj = check_generate_multi_addr(scheduled_miner);
+   auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
    //generate blocks
    auto block = db.generate_block(
       scheduled_time,
