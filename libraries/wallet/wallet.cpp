@@ -1988,6 +1988,19 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
    }
    
+   signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+
+		   signed_transaction trx;
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
+   }
+
 
    signed_transaction vote_for_committee_member(string voting_account,
                                         string committee_member,
@@ -4407,6 +4420,11 @@ signed_transaction wallet_api::transfer_from_cold_to_hot(const string& amount, c
 signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->account_change_for_crosschain(proposer,symbol, expiration_time,broadcast);
+}
+
+signed_transaction wallet_api::withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast)
+{
+	return my->withdraw_from_link(account, symbol, amount, broadcast);
 }
 
 namespace detail {
