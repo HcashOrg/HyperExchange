@@ -87,8 +87,13 @@ namespace graphene {
 			try
 			{
 				const database& d = db();
-				const asset_object&   asset_type = o.asset_id(d);
+				const auto& assets = d.get_index_type<asset_index>().indices().get<by_symbol>();
+				FC_ASSERT(assets.find(o.chain_type)!=assets.end());
 				FC_ASSERT(o.hot != o.cold);
+				const auto& multi_assets = d.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
+				auto multisig_account_obj = multi_assets.find(boost::make_tuple(o.hot,o.cold,o.chain_type));
+				FC_ASSERT(multisig_account_obj != multi_assets.end());
+
                 //get the multi-asset,and make it get worked
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
@@ -100,8 +105,15 @@ namespace graphene {
 				//TODO
 				//we need implemention
 				database& d = db();
-				const asset_object& asset_type = o.asset_id(d);
-				//modify the data for the 
+				//modify the data for the
+				auto& multi_assets = d.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
+				auto multisig_account_obj = multi_assets.find(boost::make_tuple(o.hot, o.cold, o.chain_type));
+
+				auto head_num = d.head_block_num();
+				d.modify(*multisig_account_obj, [o,head_num](multisig_account_pair_object& obj) {
+					obj.effective_block_num = head_num + 10;
+				});
+				//multi_assets.modify();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 

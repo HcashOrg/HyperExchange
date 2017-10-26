@@ -306,6 +306,9 @@ namespace graphene { namespace chain {
 
 	   address fee_payer()const { return addr; }
 	   void        validate()const;
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, addr, 1));
+	   }
    };
 
 

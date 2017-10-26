@@ -1970,7 +1970,7 @@ public:
 		   guard_update_multi_account_operation update_op;
 		   
 		   const auto asset_id = get_asset_id(symbol);
-		   update_op.asset_id = asset_id;
+		   update_op.chain_type = symbol;
 		   update_op.cold = address().operator fc::string();
 		   update_op.hot = address().operator fc::string();
 
