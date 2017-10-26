@@ -55,7 +55,8 @@ namespace graphene {
 			virtual bool validate_link_trx(const hd_trx &trx) override ;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) override ;
 			virtual bool validate_other_trx(const fc::variant_object &trx) override ;
-			virtual bool validate_signature(const std::string &content, const std::string &signature);
+			virtual bool validate_signature(const std::string &content, const std::string &signature) override;
+			virtual bool create_signature(const std::string &content, const std::string &signature) override;
 			virtual void broadcast_transaction(const fc::variant_object &trx) override ;
 			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) override ;
 			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit) override ;

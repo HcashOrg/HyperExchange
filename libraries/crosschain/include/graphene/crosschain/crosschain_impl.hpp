@@ -101,6 +101,9 @@ namespace graphene {
 			// Validate signature. Now it is used to validate signature of multi-signed addresses.
 			virtual bool validate_signature(const std::string &content, const std::string &signature) = 0;
 
+			// Sign for the content.
+			virtual bool create_signature(const std::string &content, const std::string &signature) = 0;
+
 			// Broadcast transaction.
 			virtual void broadcast_transaction(const fc::variant_object &trx) = 0;
 

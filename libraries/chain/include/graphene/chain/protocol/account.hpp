@@ -274,7 +274,7 @@ namespace graphene { namespace chain {
 	   asset           fee;
 	   std::string crosschain_type;
 	   account_id_type account_id;
-	   std::vector<signature_type> account_signature;
+	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
 

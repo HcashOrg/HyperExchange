@@ -1708,6 +1708,7 @@ class wallet_api
 	  signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
 	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
+	  signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
       fc::signal<void(bool)> lock_changed;
