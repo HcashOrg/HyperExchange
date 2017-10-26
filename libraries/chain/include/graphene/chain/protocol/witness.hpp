@@ -87,6 +87,9 @@ namespace graphene { namespace chain {
 	   string multi_address_cold;
 	   address fee_payer() const { return miner_address;} 
 	   void validate() const;
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, miner_address, 1));
+	   }
    };
 
 
