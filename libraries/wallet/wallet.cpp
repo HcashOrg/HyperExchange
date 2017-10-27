@@ -4475,6 +4475,11 @@ signed_transaction wallet_api::bind_tunnel_account(const string& link_account, c
 	return my->bind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
 
+signed_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
+{
+	return my->unbind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
+}
+
 namespace detail {
 
 vector< signed_transaction > wallet_api_impl::import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast )
