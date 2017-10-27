@@ -265,9 +265,34 @@ namespace graphene { namespace chain {
    * account on link chain. This binding will be seen by all the node then miner or guard can
    * recognize the deposit from other chain to link chain.
    *
-   * No fee is required.
+   * 
    */
    struct account_bind_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+	   asset           fee;
+	   std::string crosschain_type;
+	   account_id_type account_id;
+	   signature_type account_signature;
+	   std::string tunnel_address;
+	   std::string tunnel_signature;
+
+	   account_id_type fee_payer()const { return account_id; }
+	   void        validate()const;
+   };
+
+   /**
+   * @brief bind tunnel account with link account
+   * @ingroup operations
+   *
+   * This operation will declare the binding between tunnel account (on other chain) and link
+   * account on link chain. This binding will be seen by all the node then miner or guard can
+   * recognize the deposit from other chain to link chain.
+   *
+   * 
+   */
+   struct account_unbind_operation : public base_operation
    {
 	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
@@ -344,6 +369,8 @@ FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_o
 
 FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
+FC_REFLECT(graphene::chain::account_unbind_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
 
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_address_cold)(signature))

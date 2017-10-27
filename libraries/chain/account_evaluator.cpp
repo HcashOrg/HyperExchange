@@ -389,6 +389,34 @@ object_id_type account_bind_evaluator::do_apply(const account_bind_operation& o)
 } FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result account_unbind_evaluator::do_evaluate(const account_unbind_operation& o)
+{
+	try {
+		// One-to-one binding between link account and tunnel address.
+		auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
+		auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+		FC_ASSERT(bind_itr != bind_idx.end());
+
+		auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
+		auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.tunnel_address, o.crosschain_type));
+		FC_ASSERT(tunnel_itr != tunnel_idx.end());
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+object_id_type account_unbind_evaluator::do_apply(const account_unbind_operation& o)
+{
+	try {
+		database& d = db();
+		auto &bind_idx = d.get_index_type<account_binding_index>().indices().get<by_account_binding>();
+		auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+		auto id = bind_itr->id;
+		d.remove(*bind_itr);
+		return id;
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
 void_result account_multisig_create_evaluator::do_evaluate(const account_multisig_create_operation& o)
 { try {
 	//Check if this address exists.
