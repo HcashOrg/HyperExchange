@@ -102,7 +102,7 @@ namespace graphene {
 			virtual bool validate_signature(const std::string &content, const std::string &signature) = 0;
 
 			// Sign for the content.
-			virtual bool create_signature(const std::string &content, const std::string &signature) = 0;
+			virtual bool create_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;
 
 			// Broadcast transaction.
 			virtual void broadcast_transaction(const fc::variant_object &trx) = 0;

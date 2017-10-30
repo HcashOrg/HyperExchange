@@ -298,6 +298,12 @@ void account_bind_operation::validate()const
 	//FC_ASSERT( address());
 }
 
+void account_unbind_operation::validate()const
+{
+	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
+	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_signature));
+}
+
 void account_multisig_create_operation::validate()const
 {
 }
