@@ -72,6 +72,7 @@
 #include <fc/smart_ref_impl.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_interface_emu.hpp>
+#include <graphene/chain/transaction_object.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1935,10 +1936,11 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
    }
 
-   signed_transaction transfer_from_cold_to_hot(const string& amount, const string& symbol,bool broadcast)
+   signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol,bool broadcast)
    {
 	   try
 	   {
+		   
 		   FC_ASSERT(!is_locked());
 		   //TODO
 		   //get cold hot addresses according to given symbol
@@ -1952,15 +1954,69 @@ public:
 		   auto asset_obj = get_asset(symbol);
 		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
 		   // TODO
+		   const auto& acct = get_account(account);
 
-		   return sign_transaction(signed_transaction(),broadcast);
-	   }FC_CAPTURE_AND_RETHROW((amount)(symbol)(broadcast))
+		   asset_transfer_from_cold_to_hot_operation op;
+		   op.addr = acct.addr;
+		   op.chain_type = symbol;
+		   op.trx = trx;
+
+		   signed_transaction tx;
+		   tx.operations.emplace_back(op);
+		   set_operation_fees(tx,get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx,broadcast);
+		   
+	   }FC_CAPTURE_AND_RETHROW((account)(amount)(symbol)(broadcast))
+   }
+
+   vector<multisig_asset_transfer_object> get_multisig_asset_tx()
+   {
+	   try {
+		   return _remote_db->get_multisigs_trx();
+	   }FC_CAPTURE_AND_RETHROW()
+   }
+   multisig_asset_transfer_object get_multisig_asset_tx(multisig_asset_transfer_id_type id)
+   {
+	   try {
+		   auto obj = _remote_db->lookup_multisig_asset(id);
+		   FC_ASSERT(obj.valid());
+		   return *obj;
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+   
+   signed_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+   {
+	   try {
+		   
+		   FC_ASSERT(!is_locked());
+		   const auto& acct = get_account(account);
+		   const auto multisig_trx_obj = get_multisig_asset_tx(id);
+		   
+		   sign_multisig_asset_operation op;
+		 
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
+		   
+		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,string(""));
+		   op.signature = "";
+		   op.addr = acct.addr;
+		   op.multisig_trx_id = multisig_trx_obj.id;
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   /*
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx,broadcast);
+		   */
+	   }FC_CAPTURE_AND_RETHROW((account)(id)(broadcast))
    }
 
    signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time,bool broadcast)
    {
 	   try 
 	   {
+		   
 		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
@@ -1984,7 +2040,7 @@ public:
 		   trx.validate();
 
 		   return sign_transaction(trx,broadcast);
-
+		   
 	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
    }
    
@@ -4434,9 +4490,19 @@ signed_transaction wallet_api::update_asset_private_keys(const string& from_acco
 }
 
 
-signed_transaction wallet_api::transfer_from_cold_to_hot(const string& amount, const string& symbol, bool broadcast)
+signed_transaction wallet_api::transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol, bool broadcast)
 {
-	return my->transfer_from_cold_to_hot(amount,symbol,broadcast);
+	return my->transfer_from_cold_to_hot(account,amount,symbol,broadcast);
+}
+
+vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
+{
+	return my->get_multisig_asset_tx();
+}
+
+signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+{
+	return my->sign_multi_asset_trx(account,id, broadcast);
 }
 
 signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)

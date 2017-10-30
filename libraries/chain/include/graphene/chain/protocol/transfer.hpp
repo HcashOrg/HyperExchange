@@ -107,10 +107,53 @@ namespace graphene { namespace chain {
       share_type      calculate_fee(const fee_parameters_type& k)const;
    };
 
+   struct asset_transfer_from_cold_to_hot_operation :public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   address addr;
+	   string chain_type;
+	   fc::variant_object trx;
+	   address fee_payer()const { return addr; }
+	   void            validate()const;
+	   share_type      calculate_fee(const fee_parameters_type& k)const;
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, addr, 1));
+	   }
+
+   };
+
+   struct sign_multisig_asset_operation :public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   address addr;
+	   multisig_asset_transfer_id_type multisig_trx_id;
+	   string signature;
+	   address fee_payer()const { return addr; }
+	   void            validate()const;
+	   share_type      calculate_fee(const fee_parameters_type& k)const;
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, addr, 1));
+	   }
+   };
 }} // graphene::chain
 
-FC_REFLECT( graphene::chain::transfer_operation::fee_parameters_type, (fee)(price_per_kbyte) )
-FC_REFLECT( graphene::chain::override_transfer_operation::fee_parameters_type, (fee)(price_per_kbyte) )
+FC_REFLECT(graphene::chain::transfer_operation::fee_parameters_type, (fee)(price_per_kbyte))
+FC_REFLECT(graphene::chain::override_transfer_operation::fee_parameters_type, (fee)(price_per_kbyte))
 
-FC_REFLECT( graphene::chain::override_transfer_operation, (fee)(issuer)(from)(to)(amount)(memo)(extensions) )
-FC_REFLECT( graphene::chain::transfer_operation, (fee)(from)(to)(from_addr)(to_addr)(amount)(memo)(extensions) )
+FC_REFLECT(graphene::chain::override_transfer_operation, (fee)(issuer)(from)(to)(amount)(memo)(extensions))
+FC_REFLECT(graphene::chain::transfer_operation, (fee)(from)(to)(from_addr)(to_addr)(amount)(memo)(extensions))
+
+FC_REFLECT(graphene::chain::asset_transfer_from_cold_to_hot_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::asset_transfer_from_cold_to_hot_operation, (fee)(addr)(chain_type)(trx))
+
+FC_REFLECT(graphene::chain::sign_multisig_asset_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::sign_multisig_asset_operation, (fee)(addr)(multisig_trx_id)(signature))
+

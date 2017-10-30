@@ -45,5 +45,20 @@ namespace graphene { namespace chain {
          void_result do_evaluate( const override_transfer_operation& o );
          void_result do_apply( const override_transfer_operation& o );
    };
+   class asset_transfer_from_cold_to_hot_evaluator :public evaluator<asset_transfer_from_cold_to_hot_evaluator>
+   {
+   public:
+	   typedef asset_transfer_from_cold_to_hot_operation operation_type;
+	   void_result do_evaluate(const asset_transfer_from_cold_to_hot_operation& o);
+	   void_result do_apply(const asset_transfer_from_cold_to_hot_operation& o);
+   };
+
+   class sign_multisig_asset_evaluator :public evaluator<sign_multisig_asset_evaluator>
+   {
+   public:
+	   typedef sign_multisig_asset_operation operation_type;
+	   void_result do_evaluate(const sign_multisig_asset_operation& op);
+	   void_result do_apply(const sign_multisig_asset_operation& op);
+   };
 
 } } // graphene::chain

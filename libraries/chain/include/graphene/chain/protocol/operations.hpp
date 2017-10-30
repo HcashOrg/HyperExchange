@@ -93,6 +93,8 @@ namespace graphene { namespace chain {
             assert_operation,
             balance_claim_operation,
             override_transfer_operation,
+	        asset_transfer_from_cold_to_hot_operation,
+	        sign_multisig_asset_operation,
             transfer_to_blind_operation,
             blind_transfer_operation,
             transfer_from_blind_operation,

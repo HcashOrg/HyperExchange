@@ -136,6 +136,7 @@ namespace graphene { namespace chain {
       balance_object_type,
 	  lockbalance_object_type,
 	  guard_lock_balance_object_type,
+	  multisig_transfer_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -182,6 +183,7 @@ namespace graphene { namespace chain {
    class blinded_balance_object;
    class lockbalance_object;
    class guard_lock_balance_object;
+   class multisig_asset_transfer_object;
 
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
@@ -199,7 +201,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, balance_object_type,            balance_object>               balance_id_type;
    typedef object_id<protocol_ids, lockbalance_object_type, lockbalance_object>			  lockbalance_id_type;
    typedef object_id< protocol_ids, guard_lock_balance_object_type, guard_lock_balance_object>	  guard_lock_balance_id_type;
-
+   typedef object_id< protocol_ids, multisig_transfer_object_type, multisig_asset_transfer_object >          multisig_asset_transfer_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;
@@ -216,6 +218,7 @@ namespace graphene { namespace chain {
    class special_authority_object;
    class buyback_object;
    class fba_accumulator_object;
+   
 
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
@@ -351,6 +354,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (balance_object_type)
 				 (lockbalance_object_type)
 				 (guard_lock_balance_object_type)
+	             (multisig_transfer_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -404,6 +408,7 @@ FC_REFLECT_TYPENAME( graphene::chain::buyback_id_type )
 FC_REFLECT_TYPENAME(graphene::chain::lockbalance_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::guard_lock_balance_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::fba_accumulator_id_type )
+FC_REFLECT_TYPENAME(graphene::chain::multisig_asset_transfer_id_type)
 
 FC_REFLECT( graphene::chain::void_t, )
 

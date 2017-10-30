@@ -152,6 +152,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
+	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
+	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -632,8 +634,9 @@ std::map<std::string, full_account> database_api_impl::get_full_accounts( const 
    for (const std::string& account_name_or_id : names_or_ids)
    {
       const account_object* account = nullptr;
-      if (std::isdigit(account_name_or_id[0]))
-         account = _db.find(fc::variant(account_name_or_id).as<account_id_type>());
+	  if (std::isdigit(account_name_or_id[0]))
+		  
+		  account = _db.find(fc::variant(account_name_or_id).as<account_id_type>());
       else
       {
          const auto& idx = _db.get_index_type<account_index>().indices().get<by_name>();
@@ -775,6 +778,17 @@ vector<optional<account_object>> database_api::lookup_account_names(const vector
    return my->lookup_account_names( account_names );
 }
 
+vector <multisig_asset_transfer_object> database_api::get_multisigs_trx() const
+{
+	return {  };
+}
+
+optional<multisig_asset_transfer_object> database_api::lookup_multisig_asset(multisig_asset_transfer_id_type id)const
+{
+	return multisig_asset_transfer_object();// my->lookup_multisig_asset(id);
+}
+
+
 vector<optional<account_object>> database_api_impl::lookup_account_names(const vector<string>& account_names)const
 {
    const auto& accounts_by_name = _db.get_index_type<account_index>().indices().get<by_name>();
@@ -787,6 +801,32 @@ vector<optional<account_object>> database_api_impl::lookup_account_names(const v
    });
    return result;
 }
+
+vector<multisig_asset_transfer_object> database_api_impl::get_multisigs_trx() const
+{
+
+	const auto& multisigs_trx = _db.get_index_type<crosschain_transfer_index>().indices().get<by_status>().\
+		                   equal_range(multisig_asset_transfer_object::waiting_signtures);
+	vector<multisig_asset_transfer_object> result;
+	for (auto iter : boost::make_iterator_range(multisigs_trx.first,multisigs_trx.second))
+	{
+		result.emplace_back(iter);
+	}
+	return result;
+}
+
+optional<multisig_asset_transfer_object> database_api_impl::lookup_multisig_asset(multisig_asset_transfer_id_type id) const
+{
+	if (auto iter = _db.find(id))
+	{
+		return *iter;
+	}
+	return optional<multisig_asset_transfer_object>();
+
+}
+
+
+
 
 map<string,account_id_type> database_api::lookup_accounts(const string& lower_bound_name, uint32_t limit)const
 {

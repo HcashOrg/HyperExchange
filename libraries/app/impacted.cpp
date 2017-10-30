@@ -185,6 +185,9 @@ struct get_impacted_account_visitor
       _impacted.insert( op.issuer );
    }
 
+   void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
+   void operator() (const sign_multisig_asset_operation& op) {}
+
    void operator()( const transfer_to_blind_operation& op )
    {
       _impacted.insert( op.from );

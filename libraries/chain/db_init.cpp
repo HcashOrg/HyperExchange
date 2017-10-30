@@ -65,7 +65,6 @@
 #include <graphene/chain/worker_evaluator.hpp>
 #include <graphene/chain/lockbalance_evaluator.hpp>
 #include <graphene/chain/guard_lock_balance_evaluator.hpp>
-
 #include <graphene/chain/protocol/fee_schedule.hpp>
 
 #include <fc/smart_ref_impl.hpp>
@@ -136,6 +135,8 @@ const uint8_t lockbalance_object::type_id;
 const uint8_t guard_lock_balance_object::space_id;
 const uint8_t guard_lock_balance_object::type_id;
 
+const uint8_t multisig_asset_transfer_object::space_id;
+const uint8_t multisig_asset_transfer_object::type_id;
 
 void database::initialize_evaluators()
 {
@@ -210,7 +211,7 @@ void database::initialize_indexes()
    add_index< primary_index<miner_index> >();
    add_index< primary_index<limit_order_index > >();
    add_index< primary_index<call_order_index > >();
-
+   add_index< primary_index<crosschain_transfer_index> >();
    auto prop_index = add_index< primary_index<proposal_index > >();
    prop_index->add_secondary_index<required_approval_index>();
 

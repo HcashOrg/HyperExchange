@@ -60,4 +60,24 @@ void override_transfer_operation::validate()const
    FC_ASSERT( issuer != from );
 }
 
+void asset_transfer_from_cold_to_hot_operation::validate()const
+{
+	FC_ASSERT(fee.amount>=0);
+}
+share_type asset_transfer_from_cold_to_hot_operation::calculate_fee(const fee_parameters_type& schedule)const
+{
+	return 0;
+}
+
+void sign_multisig_asset_operation::validate() const
+{
+	FC_ASSERT(fee.amount >= 0);
+}
+share_type sign_multisig_asset_operation::calculate_fee(const fee_parameters_type& schedule)const
+{
+	return 0;
+}
+
+
+
 } } // graphene::chain

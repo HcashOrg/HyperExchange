@@ -43,7 +43,7 @@
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
-
+#include <graphene/chain/transaction_object.hpp>
 #include <fc/api.hpp>
 #include <fc/optional.hpp>
 #include <fc/variant_object.hpp>
@@ -280,6 +280,15 @@ class database_api
        */
       vector<optional<account_object>> lookup_account_names(const vector<string>& account_names)const;
 
+	  /**
+	  * @brief Get a list of multisigs
+	  * @param account_names Names of the accounts to retrieve
+	  * @return The accounts holding the provided names
+	  *
+	  * This function has semantics identical to @ref get_objects
+	  */
+	  vector<multisig_asset_transfer_object> get_multisigs_trx()const;
+	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id)const;
       /**
        * @brief Get names and IDs for registered accounts
        * @param lower_bound_name Lower bound of the first name to return
@@ -701,4 +710,6 @@ FC_API(graphene::app::database_api,
 
 	(get_guard_lock_balance)
 	(get_guard_asset_lock_balance)
+	(get_multisigs_trx)
+	(lookup_multisig_asset)
 );
