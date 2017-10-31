@@ -92,6 +92,23 @@ namespace graphene { namespace chain {
 	   }
    };
 
+   struct miner_merge_signatures_operation :public base_operation
+   {
+	   struct fee_parameters_type
+	   {
+		   share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   miner_id_type miner;
+	   string chain_type;
+	   address miner_address;
+	   multisig_asset_transfer_id_type id;
+	   address fee_payer() const { return miner_address; }
+	   void validate() const;
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, miner_address, 1));
+	   }
+   };
 
    /// TODO: witness_resign_operation : public base_operation
 
@@ -105,3 +122,6 @@ FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_ac
 
 FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_address_cold))
+
+FC_REFLECT(graphene::chain::miner_merge_signatures_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::miner_merge_signatures_operation, (fee)(miner)(chain_type)(miner_address)(id))

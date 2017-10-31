@@ -43,4 +43,9 @@ void miner_generate_multi_asset_operation::validate() const
 	FC_ASSERT(fee.amount >= 0);
 }
 
+void miner_merge_signatures_operation::validate() const
+{
+	FC_ASSERT(fee.amount>=0);
+}
+
 } } // graphene::chain

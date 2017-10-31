@@ -76,6 +76,7 @@ namespace graphene { namespace chain {
             miner_create_operation,
             witness_update_operation,
 	        miner_generate_multi_asset_operation,
+	        miner_merge_signatures_operation,
             proposal_create_operation,
             proposal_update_operation,
             proposal_delete_operation,

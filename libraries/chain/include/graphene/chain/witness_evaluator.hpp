@@ -53,4 +53,12 @@ namespace graphene { namespace chain {
 	   void_result do_apply(const miner_generate_multi_asset_operation& o);
    };
 
+   class miner_merge_signatures_evaluator : public evaluator<miner_merge_signatures_evaluator>
+   {
+   public:
+	   typedef miner_merge_signatures_operation operation_type;
+	   void_result do_evaluate(const miner_merge_signatures_operation& o);
+	   void_result do_apply(const miner_merge_signatures_operation& o);
+   };
+
 } } // graphene::chain

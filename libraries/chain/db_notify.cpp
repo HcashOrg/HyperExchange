@@ -95,6 +95,7 @@ struct get_impacted_account_visitor
    void operator()(const guard_foreclose_balance_operation& op) {}
    void operator()(const guard_update_multi_account_operation& op) {}
    void operator()(const miner_generate_multi_asset_operation& op) {}
+   void operator() (const miner_merge_signatures_operation& op) {}
    void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()( const miner_create_operation& op )

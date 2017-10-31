@@ -32,7 +32,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
-
+#include <graphene/chain/transaction_object.hpp>
 #include <iostream>
 
 using namespace graphene::miner_plugin;
@@ -60,6 +60,12 @@ void new_chain_banner( const graphene::chain::database& db )
          ;
    }
    return;
+}
+
+void set_operation_fees(signed_transaction& tx, const fee_schedule& s)
+{
+	for (auto& op : tx.operations)
+		s.set_fee(op);
 }
 
 void miner_plugin::plugin_set_program_options(
@@ -240,7 +246,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 	chain::database& db = database();
 	try {
 		const auto& addr = db.get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-		const auto& guard_ids = db.get_index_type<guard_member_index>().indices().get<by_account>();
+		const auto& guard_ids = db.get_global_properties().active_committee_members;
 		const auto& symbols = db.get_index_type<asset_index>().indices().get<by_symbol>();
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		auto crosschain_interface = instance.get_crosschain_handle("EMU");
@@ -275,19 +281,46 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				op.multi_address_hot = multi_addr_hot;
 				op.chain_type = iter.symbol;
 				trx.operations.emplace_back(op);
+				set_operation_fees(trx,db.get_global_properties().parameters.current_fees);
 				trx.sign(pk, db.get_chain_id());
 				db.push_transaction(trx);
 			}
-
-
 		}
-	}
-	catch (fc::exception& e)
-	{
-		
-	}
+	}FC_CAPTURE_AND_LOG((0))
 	return fc::variant();
 }
+
+void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_key pk)
+{
+	chain::database& db = database();
+	try {
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
+		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
+		auto miner_addr = accounts.find(accid)->addr;
+		const auto& guard_ids = db.get_global_properties().active_committee_members;
+		const auto& transfers = db.get_index_type<crosschain_transfer_index>().indices().get<by_status>();
+		for (auto transfer : transfers)
+		{
+			if (transfer.signatures.size() >= std::ceill(guard_ids.size() * 2 / 3))
+			{
+				miner_merge_signatures_operation op;
+				op.miner = miner;
+				op.miner_address = miner_addr;
+				op.chain_type = transfer.chain_type;
+				op.id = transfer.id;
+				signed_transaction trx;
+				trx.operations.emplace_back(op);
+				set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+				trx.sign(pk, db.get_chain_id());
+				db.push_transaction(trx);
+			}
+			
+		}
+	}FC_CAPTURE_AND_LOG((0))
+}
+
 
 block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
