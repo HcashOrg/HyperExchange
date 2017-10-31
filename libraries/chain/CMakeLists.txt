@@ -90,7 +90,8 @@ add_library( graphene_chain
              fba_object.cpp
              proposal_object.cpp
              vesting_balance_object.cpp
-
+			crosschain_record.cpp
+			crosschain_record_evaluate.cpp
              block_database.cpp
 
              is_authorized_asset.cpp

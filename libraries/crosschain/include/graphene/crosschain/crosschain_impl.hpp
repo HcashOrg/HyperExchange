@@ -28,7 +28,7 @@
 #include <vector>
 #include <fc/variant_object.hpp>
 #include <graphene/chain/protocol/asset.hpp>
-
+#include <graphene/chain/protocol/types.hpp>
 
 namespace graphene {
 	namespace crosschain {
@@ -36,7 +36,7 @@ namespace graphene {
 			std::string trx_id;
 			std::string from_account;
 			std::string to_account;
-			std::uint64_t amount;
+			graphene::chain::share_type amount;
 			std::string asset_symbol;
 			int64_t block_num;
 		}hd_trx;

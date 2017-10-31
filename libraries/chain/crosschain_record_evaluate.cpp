@@ -31,7 +31,7 @@ namespace graphene {
 		void_result crosschain_withdraw_evaluate::do_evaluate(const crosschain_withdraw_operation& o) {
 			FC_ASSERT(o.amount > 0);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
-			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.withdraw_account, o.asset_symbol));
+			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(std::string(o.withdraw_account), o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
 			FC_ASSERT(tunnel_itr->bind_account == o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
@@ -43,6 +43,7 @@ namespace graphene {
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
 			database& d = db();
 			d.adjust_balance(o.withdraw_account, asset(-o.amount, o.asset_id));
+			return void_result();
 		}
 
 		void crosschain_withdraw_evaluate::pay_fee() {
@@ -58,7 +59,7 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_withdraw_result_evaluate::do_apply(const crosschain_withdraw_result_operation& o) {
-
+			return void_result();
 		}
 
 		void crosschain_withdraw_result_evaluate::pay_fee() {
@@ -78,17 +79,19 @@ namespace graphene {
 				FC_ASSERT(create_trx.amount == withdraw_op.amount);
 				FC_ASSERT(create_trx.asset_symbol == withdraw_op.asset_symbol);
 			}
+			return void_result();
 		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_apply(const crosschain_withdraw_without_sign_operation& o) {
-
+			return void_result();
 		}
 		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
 
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
+			return void_result();
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_apply(const crosschain_withdraw_combine_sign_operation& o) {
-
+			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
 
@@ -96,10 +99,10 @@ namespace graphene {
 		void_result crosschain_withdraw_with_sign_evaluate::do_evaluate(const crosschain_withdraw_with_sign_operation& o) {
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
-			
+			return void_result();
 		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_apply(const crosschain_withdraw_with_sign_operation& o) {
-
+			return void_result();
 		}
 		void crosschain_withdraw_with_sign_evaluate::pay_fee() {
 
