@@ -190,7 +190,7 @@ void_result sign_multisig_asset_evaluator::do_apply(const sign_multisig_asset_op
 		auto& trxids = d.get_index_type<crosschain_transfer_index>().indices().get<by_id>();
 		auto iter = trxids.find(o.multisig_trx_id);
 		d.modify(*iter, [&](multisig_asset_transfer_object& obj) {
-			obj.signatures.emplace_back(o.signature);
+			obj.signatures.insert(o.signature);
 		}
 		);
 
