@@ -2090,7 +2090,7 @@ public:
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
 		   auto key = fc::ecc::extended_private_key::from_base58(_keys[acct_obj.addr]);
-		   op.account_signature = key.sign_compact(fc::sha256(std::string(acct_obj.addr)));
+		   op.account_signature = key.sign_compact(fc::sha256::hash(acct_obj.addr));
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
