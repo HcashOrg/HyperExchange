@@ -275,6 +275,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
 				signed_transaction trx;
 				miner_generate_multi_asset_operation op;
+				uint32_t expiration_time_offset = 0;
+				auto dyn_props = db.get_dynamic_global_properties();
 				op.miner = miner;
 				op.miner_address = miner_addr;
 				op.multi_address_cold = multi_addr_cold;
@@ -282,6 +284,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				op.chain_type = iter.symbol;
 				trx.operations.emplace_back(op);
 				set_operation_fees(trx,db.get_global_properties().parameters.current_fees);
+				trx.set_reference_block(dyn_props.head_block_id);
+				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				trx.sign(pk, db.get_chain_id());
 				db.push_transaction(trx);
 			}
@@ -301,6 +305,9 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 		auto miner_addr = accounts.find(accid)->addr;
 		const auto& guard_ids = db.get_global_properties().active_committee_members;
 		const auto& transfers = db.get_index_type<crosschain_transfer_index>().indices().get<by_status>();
+		uint32_t expiration_time_offset = 0;
+		auto dyn_props = db.get_dynamic_global_properties();
+		
 		for (auto transfer : transfers)
 		{
 			if (transfer.signatures.size() >= std::ceill(guard_ids.size() * 2 / 3))
@@ -313,6 +320,8 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 				signed_transaction trx;
 				trx.operations.emplace_back(op);
 				set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+				trx.set_reference_block(dyn_props.head_block_id);
+				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				trx.sign(pk, db.get_chain_id());
 				db.push_transaction(trx);
 			}

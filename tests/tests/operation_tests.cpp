@@ -36,7 +36,8 @@
 #include <graphene/chain/withdraw_permission_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
+#include <graphene/crosschain/crosschain_impl.hpp>
 #include <fc/crypto/digest.hpp>
 
 #include "../common/database_fixture.hpp"
@@ -631,6 +632,44 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
         throw;
     }
 }
+
+BOOST_AUTO_TEST_CASE(account_bind_operatio_test)
+{
+	try {
+	
+		account_bind_operation op;
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
+		auto& acct = create_account("bindtest",private_key.get_public_key());
+		string tunnel_account = "bsddsfdsfsdfds";
+		op.account_id = acct.id;
+		op.crosschain_type = "EMU";
+		op.tunnel_address = tunnel_account;
+
+		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
+		auto crosschain =graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
+		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		signed_transaction trx;
+		trx.operations.emplace_back(op);
+		set_expiration(db, trx);
+		trx.validate();
+		sign(trx, private_key);
+		PUSH_TX(db, trx, ~0);
+
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+
+
+
+
+
+
+
+
 
 BOOST_AUTO_TEST_CASE(create_guard_member_true_test)
 {
