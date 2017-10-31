@@ -53,7 +53,7 @@ namespace graphene {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
 
-			asset_id_type asset_id;
+			string chain_type;
 			asset fee;
 			string cold;
 			string hot;
@@ -62,8 +62,6 @@ namespace graphene {
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
-
-
 		};
 
 	}
@@ -75,4 +73,4 @@ FC_REFLECT(graphene::chain::guard_foreclose_balance_operation::fee_parameters_ty
 FC_REFLECT(graphene::chain::guard_foreclose_balance_operation,(foreclose_asset_id)(foreclose_asset_amount)(fee)(foreclose_address)(foreclose_balance_account)(foreclose_balance_account_id))
 
 FC_REFLECT(graphene::chain::guard_update_multi_account_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_update_multi_account_operation, (asset_id)(fee)(cold)(hot))
+FC_REFLECT(graphene::chain::guard_update_multi_account_operation, (chain_type)(fee)(cold)(hot))

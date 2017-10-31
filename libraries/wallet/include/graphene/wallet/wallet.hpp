@@ -1704,10 +1704,15 @@ class wallet_api
                                          bool to_temp = false );
 
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
-	  signed_transaction transfer_from_cold_to_hot(const string& amount,const string& symbol,bool broadcast=true);
+	  signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount,const string& symbol,bool broadcast=true);
 	  signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
+	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
+	  signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
+	  signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
-
+	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
+	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id, bool broadcast = false);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1906,4 +1911,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_guard_lock_balance)
 		(refund_request)
 		(transfer_from_cold_to_hot)
+		(withdraw_from_link)
+		(get_multisig_asset_tx)
+		(sign_multi_asset_trx)
       )

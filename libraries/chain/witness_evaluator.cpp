@@ -27,6 +27,8 @@
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/vote.hpp>
+#include <graphene/crosschain/crosschain_interface_emu.hpp>
+#include <graphene/crosschain/crosschain.hpp>
 
 namespace graphene { namespace chain {
 
@@ -77,5 +79,92 @@ void_result witness_update_evaluator::do_apply( const witness_update_operation& 
       });
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
+void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_generate_multi_asset_operation& o)
+{
+	try {
+		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+		const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+		auto miner = miners.find(o.miner);
+		FC_ASSERT(miner != miners.end());
+		const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
+		const auto acct = accounts.find(miner->miner_account);
+		FC_ASSERT(acct->addr == o.miner_address);
+		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
+		FC_ASSERT(assets.find(o.chain_type) != assets.end());
+		//if the multi-addr correct or not.
+		vector<string> symbol_addrs_cold;
+		vector<string> symbol_addrs_hot;
+		const auto& addr = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+		auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
+		std::for_each(
+			addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot](const multisig_address_object& obj) {
+			symbol_addrs_cold.push_back(obj.new_address_cold);
+			symbol_addrs_hot.push_back(obj.new_address_hot);
+		}
+		);
+
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size() * 2 / 3));
+		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
+
+		FC_ASSERT(o.multi_address_cold == multi_addr_cold);
+		FC_ASSERT(o.multi_address_hot == multi_addr_hot);
+
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_multi_asset_operation& o)
+{
+	try
+	{
+		//update the latest multi-addr in database
+		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
+			obj.bind_account_cold = o.multi_address_cold;
+			obj.bind_account_hot = o.multi_address_hot;
+			obj.chain_type = o.chain_type;
+			obj.effective_block_num = 0;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result miner_merge_signatures_evaluator::do_evaluate(const miner_merge_signatures_operation& o)
+{
+	try {
+		//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+		const auto& miners = db().get_index_type<miner_index>().indices().get<by_id>();
+		auto miner = miners.find(o.miner);
+		FC_ASSERT(miner != miners.end());
+		const auto& accounts = db().get_index_type<account_index>().indices().get<by_id>();
+		const auto acct = accounts.find(miner->miner_account);
+		FC_ASSERT(acct->addr == o.miner_address);
+		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
+		FC_ASSERT(assets.find(o.chain_type) != assets.end());
+		//TODO
+		//need to evalute the correction of the crosschain trx
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result miner_merge_signatures_evaluator::do_apply(const miner_merge_signatures_operation& o)
+{
+	try {
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+		auto& transfers = db().get_index_type<crosschain_transfer_index>().indices().get<by_id>();
+		auto trx = transfers.find(o.id);
+		FC_ASSERT(trx != transfers.end());
+		crosschain_interface->broadcast_transaction(trx->trx);
+		db().modify(*trx, [&](multisig_asset_transfer_object& obj) {
+			obj.status = multisig_asset_transfer_object::waiting;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 } } // graphene::chain

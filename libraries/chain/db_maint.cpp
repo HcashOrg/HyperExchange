@@ -305,8 +305,15 @@ void database::update_active_committee_members()
          stake_tally += _guard_count_histogram_buffer[++guard_count];
 
    const chain_property_object& cpo = get_chain_properties();
-   auto guards = sort_votable_objects<guard_member_index>(std::max(guard_count*2+1, (size_t)cpo.immutable_parameters.min_guard_count));
-
+   auto guards_t = sort_votable_objects<guard_member_index>(std::max(guard_count*2+1, (size_t)cpo.immutable_parameters.min_guard_count));
+   auto guards = guards_t;
+   guards.clear();
+   for (const guard_member_object& del : guards_t)
+   {
+	   if (del.formal == false)
+		   continue;
+	   guards.emplace_back(del);
+   }
    for( const guard_member_object& del : guards )
    {
       modify( del, [&]( guard_member_object& obj ){

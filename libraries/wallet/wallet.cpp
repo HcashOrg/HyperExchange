@@ -72,6 +72,7 @@
 #include <fc/smart_ref_impl.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_interface_emu.hpp>
+#include <graphene/chain/transaction_object.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1901,10 +1902,46 @@ public:
           }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
    }
 
-   signed_transaction transfer_from_cold_to_hot(const string& amount, const string& symbol,bool broadcast)
+   signed_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   //we need get proper crosschain interface
+		   auto cross_interface = instance.get_crosschain_handle("EMU");
+		   //we need generate two public
+		    string hot_addr =cross_interface->create_normal_account(symbol);
+		   //string hot_pri = cross_interface->export_private_key(symbol, "");
+		   string cold_addr = cross_interface->create_normal_account(symbol);
+
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+		   op.new_address_cold = cold_addr;
+		   op.new_address_hot = hot_addr;
+		   auto key =  fc::ecc::extended_private_key::from_base58(_keys[op.addr]);
+		   op.signature = key.sign_compact(fc::sha256(op.new_address_hot + op.new_address_cold));
+
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx,broadcast);
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
+   }
+
+   signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol,bool broadcast)
    {
 	   try
 	   {
+		   
+		   FC_ASSERT(!is_locked());
 		   //TODO
 		   //get cold hot addresses according to given symbol
 		   //create muliti-trx for given symbol
@@ -1916,14 +1953,70 @@ public:
 		   auto inface = instance.get_crosschain_handle("EMU");
 		   auto asset_obj = get_asset(symbol);
 		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
+		   // TODO
+		   const auto& acct = get_account(account);
 
-	   }FC_CAPTURE_AND_RETHROW((amount)(symbol)(broadcast))
+		   asset_transfer_from_cold_to_hot_operation op;
+		   op.addr = acct.addr;
+		   op.chain_type = symbol;
+		   op.trx = trx;
+
+		   signed_transaction tx;
+		   tx.operations.emplace_back(op);
+		   set_operation_fees(tx,get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx,broadcast);
+		   
+	   }FC_CAPTURE_AND_RETHROW((account)(amount)(symbol)(broadcast))
+   }
+
+   vector<multisig_asset_transfer_object> get_multisig_asset_tx()
+   {
+	   try {
+		   return _remote_db->get_multisigs_trx();
+	   }FC_CAPTURE_AND_RETHROW()
+   }
+   multisig_asset_transfer_object get_multisig_asset_tx(multisig_asset_transfer_id_type id)
+   {
+	   try {
+		   auto obj = _remote_db->lookup_multisig_asset(id);
+		   FC_ASSERT(obj.valid());
+		   return *obj;
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+   
+   signed_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+   {
+	   try {
+		   
+		   FC_ASSERT(!is_locked());
+		   const auto& acct = get_account(account);
+		   const auto multisig_trx_obj = get_multisig_asset_tx(id);
+		   
+		   sign_multisig_asset_operation op;
+		 
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
+		   
+		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,string(""));
+		   op.signature = "";
+		   op.addr = acct.addr;
+		   op.multisig_trx_id = multisig_trx_obj.id;
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   /*
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx,broadcast);
+		   */
+	   }FC_CAPTURE_AND_RETHROW((account)(id)(broadcast))
    }
 
    signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time,bool broadcast)
    {
 	   try 
 	   {
+		   
 		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
@@ -1933,7 +2026,7 @@ public:
 		   guard_update_multi_account_operation update_op;
 		   
 		   const auto asset_id = get_asset_id(symbol);
-		   update_op.asset_id = asset_id;
+		   update_op.chain_type = symbol;
 		   update_op.cold = address().operator fc::string();
 		   update_op.hot = address().operator fc::string();
 
@@ -1947,10 +2040,66 @@ public:
 		   trx.validate();
 
 		   return sign_transaction(trx,broadcast);
-
+		   
 	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
    }
    
+   signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+
+		   signed_transaction trx;
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
+   }
+
+   signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+		   account_bind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   op.account_id = acct_obj.id;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   auto key = fc::ecc::extended_private_key::from_base58(_keys[acct_obj.addr]);
+		   op.account_signature = key.sign_compact(fc::sha256(std::string(acct_obj.addr)));
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
+   }
+
+   signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+		   account_unbind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   op.account_id = acct_obj.id;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   auto key = fc::ecc::extended_private_key::from_base58(_keys[acct_obj.addr]);
+		   op.account_signature = key.sign_compact(fc::sha256(std::string(acct_obj.addr)));
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
+   }
 
    signed_transaction vote_for_committee_member(string voting_account,
                                         string committee_member,
@@ -4356,14 +4505,45 @@ signed_transaction wallet_api::refund_request(const string& refund_account,const
 	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
 }
 
-signed_transaction wallet_api::transfer_from_cold_to_hot(const string& amount, const string& symbol, bool broadcast)
+signed_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
 {
-	return my->transfer_from_cold_to_hot(amount,symbol,broadcast);
+	return my->update_asset_private_keys(from_account,symbol,broadcast);
+}
+
+
+signed_transaction wallet_api::transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol, bool broadcast)
+{
+	return my->transfer_from_cold_to_hot(account,amount,symbol,broadcast);
+}
+
+vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
+{
+	return my->get_multisig_asset_tx();
+}
+
+signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+{
+	return my->sign_multi_asset_trx(account,id, broadcast);
 }
 
 signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->account_change_for_crosschain(proposer,symbol, expiration_time,broadcast);
+}
+
+signed_transaction wallet_api::withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast)
+{
+	return my->withdraw_from_link(account, symbol, amount, broadcast);
+}
+
+signed_transaction wallet_api::bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
+{
+	return my->bind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
+}
+
+signed_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
+{
+	return my->unbind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
 
 namespace detail {

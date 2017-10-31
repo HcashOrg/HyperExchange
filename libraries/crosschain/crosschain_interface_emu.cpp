@@ -225,6 +225,11 @@ namespace graphene {
 			return false;
 		}
 
+		bool crosschain_interface_emu::create_signature(const std::string &account, const std::string &content, const std::string &signature)
+		{
+			return false;
+		}
+
 		void crosschain_interface_emu::broadcast_transaction(const fc::variant_object& trx)
 		{
 			auto &idx_by_id = _transactions.get<trx_id>();

@@ -26,7 +26,10 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
-
+#include <graphene/chain/committee_member_object.hpp>
+#include <graphene/crosschain/crosschain.hpp>
+#include <graphene/crosschain/crosschain_impl.hpp>
+#include <graphene/chain/transaction_object.hpp>
 namespace graphene { namespace chain {
 void_result transfer_evaluator::do_evaluate( const transfer_operation& op )
 { try {
@@ -133,5 +136,65 @@ void_result override_transfer_evaluator::do_apply( const override_transfer_opera
    db().adjust_balance( o.to, o.amount );
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result asset_transfer_from_cold_to_hot_evaluator::do_evaluate(const asset_transfer_from_cold_to_hot_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& assets = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		FC_ASSERT(assets.find(o.chain_type) != assets.end());
+		const auto& accounts = d.get_index_type<account_index>().indices().get<by_address>();
+		const auto acct = accounts.find(o.addr);
+		FC_ASSERT(acct != accounts.end());
+		const auto& guards = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		FC_ASSERT(guards.find(acct->get_id()) != guards.end());
+		
+		auto& instance = crosschain::crosschain_manager::get_instance();
+		auto crosschain_interface = instance.get_crosschain_handle(string("EMU"));
+		FC_ASSERT(crosschain_interface->validate_other_trx(o.trx));
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result asset_transfer_from_cold_to_hot_evaluator::do_apply(const asset_transfer_from_cold_to_hot_operation& o)
+{
+	try {
+		auto& d = db();
+		d.create<multisig_asset_transfer_object>([&o](multisig_asset_transfer_object& obj) {
+			obj.trx = o.trx;
+			obj.chain_type = o.chain_type;
+			obj.status = multisig_asset_transfer_object::waiting_signtures;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result sign_multisig_asset_evaluator::do_evaluate(const sign_multisig_asset_operation& o)
+{
+	try {
+		const auto& d = db();
+		auto id = o.multisig_trx_id;
+		const auto& trxids = d.get_index_type<crosschain_transfer_index>().indices().get<by_id>();
+		FC_ASSERT(trxids.find(id) != trxids.end());
+
+		//if the addr is guard
+		const auto& addrs = d.get_index_type<account_index>().indices().get<by_address>();
+		const auto& guards = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		FC_ASSERT(guards.find(addrs.find(o.addr)->get_id())!= guards.end());
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result sign_multisig_asset_evaluator::do_apply(const sign_multisig_asset_operation& o)
+{
+	try {
+		auto& d = db();
+		auto& trxids = d.get_index_type<crosschain_transfer_index>().indices().get<by_id>();
+		auto iter = trxids.find(o.multisig_trx_id);
+		d.modify(*iter, [&](multisig_asset_transfer_object& obj) {
+			obj.signatures.insert(o.signature);
+		}
+		);
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 } } // graphene::chain

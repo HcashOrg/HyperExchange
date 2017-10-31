@@ -292,6 +292,9 @@ namespace graphene { namespace chain {
 		 void adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account, asset delta);
 		 void adjust_guard_lock_balance(guard_member_id_type guard_account,asset delta);
          //////////////////// db_balance.cpp ////////////////////
+		 //get lattest multi_asset_objects
+		 vector<multisig_address_object> get_multisig_address_list();
+
 
          /**
           * @brief Retrieve a particular account's balance in a given asset

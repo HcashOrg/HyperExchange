@@ -23,10 +23,10 @@
  */
 #pragma once
 #include <fc/io/raw.hpp>
-
-#include <graphene/chain/protocol/transaction.hpp>
-#include <graphene/db/index.hpp>
+#include <graphene/chain/protocol/operations.hpp>
 #include <graphene/db/generic_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <graphene/chain/protocol/transaction.hpp>
 #include <fc/uint128.hpp>
 
 #include <boost/multi_index_container.hpp>
@@ -69,6 +69,46 @@ namespace graphene { namespace chain {
    > transaction_multi_index_type;
 
    typedef generic_index<transaction_object, transaction_multi_index_type> transaction_index;
+
+   class multisig_asset_transfer_object : public abstract_object<multisig_asset_transfer_object>
+   {
+   public:
+	   static const uint8_t space_id = protocol_ids;
+	   static const uint8_t type_id = multisig_transfer_object_type;
+	   enum tranaction_status
+	   {
+		   success = 0,
+		   failure,
+		   waiting_signtures,
+		   waiting
+	   };
+	   std::string		 chain_type;
+	   tranaction_status status;
+	   fc::variant_object  trx;
+	   set<string> signatures;
+	   //std::string get_tunnel_account()const { return bind_account; }
+   };
+
+   /**
+   * @ingroup object_index
+   */
+   struct by_status {};
+   typedef multi_index_container<
+	   multisig_asset_transfer_object,
+	   indexed_by<
+	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   ordered_non_unique< tag<by_status>, member<multisig_asset_transfer_object, multisig_asset_transfer_object::tranaction_status, &multisig_asset_transfer_object::status> >
+	   >
+   > multi_multisig_index_type;
+
+   /**
+   * @ingroup object_index
+   */
+   typedef generic_index<multisig_asset_transfer_object, multi_multisig_index_type> crosschain_transfer_index;
+
+
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id) )
+FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
+FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))

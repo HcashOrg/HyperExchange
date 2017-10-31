@@ -83,6 +83,7 @@ struct get_impacted_account_visitor
    }
 
    void operator()(const account_bind_operation& op) {}
+   void operator()(const account_unbind_operation& op) {}
    void operator()(const account_multisig_create_operation& op) {}
 
    void operator()( const asset_create_operation& op ) {}
@@ -109,6 +110,8 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.miner_account );
    }
+   void operator() (const miner_generate_multi_asset_operation& op) {}
+   void operator() (const miner_merge_signatures_operation& op) {}
    void operator()( const witness_update_operation& op )
    {
       _impacted.insert( op.witness_account );
@@ -189,6 +192,9 @@ struct get_impacted_account_visitor
       _impacted.insert( op.from );
       _impacted.insert( op.issuer );
    }
+
+   void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
+   void operator() (const sign_multisig_asset_operation& op) {}
 
    void operator()( const transfer_to_blind_operation& op )
    {

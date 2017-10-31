@@ -38,4 +38,14 @@ void witness_update_operation::validate() const
        FC_ASSERT(new_url->size() < GRAPHENE_MAX_URL_LENGTH );
 }
 
+void miner_generate_multi_asset_operation::validate() const
+{
+	FC_ASSERT(fee.amount >= 0);
+}
+
+void miner_merge_signatures_operation::validate() const
+{
+	FC_ASSERT(fee.amount>=0);
+}
+
 } } // graphene::chain

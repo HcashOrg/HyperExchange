@@ -78,6 +78,17 @@ public:
 	object_id_type do_apply(const account_bind_operation& o);
 };
 
+class account_unbind_evaluator : public evaluator<account_unbind_evaluator>
+{
+public:
+	typedef account_unbind_operation operation_type;
+
+	void_result do_evaluate(const account_unbind_operation& o);
+	object_id_type do_apply(const account_unbind_operation& o);
+
+	//const account_binding_object *bind_object;
+};
+
 class account_multisig_create_evaluator : public evaluator<account_multisig_create_evaluator>
 {
 public:

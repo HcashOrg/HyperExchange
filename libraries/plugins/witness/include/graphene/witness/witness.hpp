@@ -76,7 +76,8 @@ private:
    void schedule_production_loop();
    block_production_condition::block_production_condition_enum block_production_loop();
    block_production_condition::block_production_condition_enum maybe_produce_block( fc::mutable_variant_object& capture );
-
+   fc::variant check_generate_multi_addr(chain::miner_id_type miner,fc::ecc::private_key prk);
+   void check_multi_transfer(chain::miner_id_type miner, fc::ecc::private_key prk);
    boost::program_options::variables_map _options;
    bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
