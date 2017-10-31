@@ -24,6 +24,7 @@
 #pragma once
 #include <graphene/chain/protocol/base.hpp>
 #include <graphene/chain/protocol/lockbalance.hpp>
+#include <graphene/chain/crosschain_record.hpp>
 #include <graphene/chain/protocol/account.hpp>
 #include <graphene/chain/protocol/assert.hpp>
 #include <graphene/chain/protocol/asset_ops.hpp>
@@ -104,6 +105,12 @@ namespace graphene { namespace chain {
 			graphene::chain::guard_lock_balance_operation,
 			graphene::chain::guard_foreclose_balance_operation,
 	        graphene::chain::guard_refund_balance_operation,
+	   graphene::chain::crosschain_record_operation,
+	   graphene::chain::crosschain_withdraw_operation,
+	   graphene::chain::crosschain_withdraw_without_sign_operation,
+	   graphene::chain::crosschain_withdraw_with_sign_operation,
+	   graphene::chain::crosschain_withdraw_combine_sign_operation,
+	   graphene::chain::crosschain_withdraw_result_operation,
 	        guard_update_multi_account_operation
          > operation;
 

@@ -22,5 +22,23 @@ namespace graphene {
 		share_type crosschain_withdraw_result_operation::calculate_fee(const fee_parameters_type& k)const {
 			return share_type(0);
 		}
+		void crosschain_withdraw_without_sign_operation::validate() const {
+
+		}
+		share_type crosschain_withdraw_without_sign_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
+		void crosschain_withdraw_with_sign_operation::validate() const {
+
+		}
+		share_type crosschain_withdraw_with_sign_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
+		void crosschain_withdraw_combine_sign_operation::validate() const {
+
+		}
+		share_type crosschain_withdraw_combine_sign_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
 	}
 }

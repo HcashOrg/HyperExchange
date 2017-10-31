@@ -92,6 +92,12 @@ struct get_impacted_account_visitor
    void operator()(const foreclose_balance_operation& op) {}
    void operator()(const guard_lock_balance_operation& op) {}
    void operator()(const guard_foreclose_balance_operation& op) {}
+   void operator()(const crosschain_record_operation& op) {}
+   void operator()(const crosschain_withdraw_operation& op) {}
+   void operator()(const crosschain_withdraw_without_sign_operation& op) {}
+   void operator()(const crosschain_withdraw_with_sign_operation& op) {}
+   void operator()(const crosschain_withdraw_combine_sign_operation& op) {}
+   void operator()(const crosschain_withdraw_result_operation& op) {}
    void operator()(const guard_update_multi_account_operation& op) {}
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()( const miner_create_operation& op )

@@ -65,7 +65,7 @@
 #include <graphene/chain/worker_evaluator.hpp>
 #include <graphene/chain/lockbalance_evaluator.hpp>
 #include <graphene/chain/guard_lock_balance_evaluator.hpp>
-
+#include <graphene/chain/crosschain_record_evaluate.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 
 #include <fc/smart_ref_impl.hpp>
@@ -142,6 +142,12 @@ void database::initialize_evaluators()
    _operation_evaluators.resize(255);
    register_evaluator<lockbalance_evaluator>();
    register_evaluator<foreclose_balance_evaluator>();
+   register_evaluator<crosschain_record_evaluate>(); 
+   register_evaluator<crosschain_withdraw_evaluate>();
+   register_evaluator<crosschain_withdraw_without_sign_evaluate>();
+   register_evaluator<crosschain_withdraw_with_sign_evaluate>();
+   register_evaluator<crosschain_withdraw_combine_sign_evaluate>();
+   register_evaluator<crosschain_withdraw_result_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();

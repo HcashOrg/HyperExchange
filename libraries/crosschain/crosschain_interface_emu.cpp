@@ -30,7 +30,9 @@ namespace graphene {
 			save_wallet_file(_plugin_wallet_filepath + wallet_name);
 
 		}
-
+		hd_trx crosschain_interface_emu::turn_trx(const fc::variant_object & trx) {
+			return hd_trx();
+		}
 		bool crosschain_interface_emu::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
 		{
 			FC_ASSERT(wallet_passprase.size() > 0);
