@@ -39,6 +39,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 #include <fc/crypto/digest.hpp>
+#include <graphene/chain/transaction_object.hpp>
 
 #include "../common/database_fixture.hpp"
 
@@ -752,8 +753,76 @@ BOOST_AUTO_TEST_CASE(account_multisig_create_operation_test)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
+{
+	try {
+		INVOKE(create_guard_member_false_test);
+		const address  cold_addr;
+		const address  hot_addr;
 
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto inface = instance.get_crosschain_handle("EMU");
+		auto asset_obj = get_asset("LNK");
+		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), asset_obj.amount_from_string("10").amount.value, asset_obj.symbol, string(""), true);
+		
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+		auto acct = get_account("guardtest");
 
+		asset_transfer_from_cold_to_hot_operation op;
+		op.addr = acct.addr;
+		op.trx = trx;
+		op.chain_type = "LNK";
+
+		signed_transaction tx;
+
+		tx.operations.emplace_back(op);
+		set_expiration(db, tx);
+		tx.validate();
+		sign(tx, private_key);
+		PUSH_TX(db, tx, ~0);
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+BOOST_AUTO_TEST_CASE(sign_multisig_asset_operation_test)
+{
+	try {
+
+		INVOKE(asset_transfer_from_cold_to_hot_operation_test);
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+		auto acct = get_account("guardtest");
+		const auto& multisigs_trx = db.get_index_type<crosschain_transfer_index>().indices().get<by_status>().\
+			equal_range(multisig_asset_transfer_object::waiting_signtures);
+
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		auto inface = instance.get_crosschain_handle("EMU");
+
+		for (auto iter : boost::make_iterator_range(multisigs_trx.first, multisigs_trx.second))
+		{
+			sign_multisig_asset_operation op;
+			op.addr = acct.addr;
+			op.multisig_trx_id = iter.id;
+			op.signature = inface->sign_multisig_transaction(iter.trx, string(""));
+
+			signed_transaction tx;
+
+			tx.operations.emplace_back(op);
+			set_expiration(db, tx);
+			tx.validate();
+			sign(tx, private_key);
+			PUSH_TX(db, tx, ~0);
+
+		}
+
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
 
 
 BOOST_AUTO_TEST_CASE(resign_guard_member)

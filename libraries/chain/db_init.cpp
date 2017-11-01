@@ -158,6 +158,8 @@ void database::initialize_evaluators()
    register_evaluator<account_whitelist_evaluator>();
    register_evaluator<account_bind_evaluator>();
    register_evaluator<account_unbind_evaluator>();
+   register_evaluator<asset_transfer_from_cold_to_hot_evaluator>();
+   register_evaluator<sign_multisig_asset_evaluator>();
    register_evaluator<account_multisig_create_evaluator>();
    register_evaluator<guard_member_create_evaluator>();
    register_evaluator<guard_member_update_evaluator>();

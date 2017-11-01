@@ -1924,8 +1924,9 @@ public:
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
 		   op.new_address_cold = cold_addr;
 		   op.new_address_hot = hot_addr;
+		   op.crosschain_type = symbol;
 		   auto key =  fc::ecc::extended_private_key::from_base58(_keys[op.addr]);
-		   op.signature = key.sign_compact(fc::sha256(op.new_address_hot + op.new_address_cold));
+		   op.signature = key.sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
 
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
@@ -2004,11 +2005,10 @@ public:
 		   op.multisig_trx_id = multisig_trx_obj.id;
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
-		   /*
+		   
 		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
 		   trx.validate();
 		   return sign_transaction(trx,broadcast);
-		   */
 	   }FC_CAPTURE_AND_RETHROW((account)(id)(broadcast))
    }
 

@@ -217,7 +217,7 @@ namespace graphene {
 
 		bool crosschain_interface_emu::validate_other_trx(const fc::variant_object &trx)
 		{
-			return false;
+			return true;
 		}
 
 		bool crosschain_interface_emu::validate_signature(const std::string &content, const std::string &signature)

@@ -785,7 +785,7 @@ vector <multisig_asset_transfer_object> database_api::get_multisigs_trx() const
 
 optional<multisig_asset_transfer_object> database_api::lookup_multisig_asset(multisig_asset_transfer_id_type id)const
 {
-	return multisig_asset_transfer_object();// my->lookup_multisig_asset(id);
+	return  my->lookup_multisig_asset(id);
 }
 
 

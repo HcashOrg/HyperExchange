@@ -426,7 +426,7 @@ void_result account_multisig_create_evaluator::do_evaluate(const account_multisi
 
 	//Check if all the signatures are valid.
 	auto &accounts = db().get_index_type<account_index>().indices().get<by_address>();
-	auto addr = address(fc::ecc::public_key(o.signature, fc::sha256(o.new_address_hot+o.new_address_cold)));
+	auto addr = address(fc::ecc::public_key(o.signature, fc::sha256::hash(o.new_address_hot+o.new_address_cold)));
 	FC_ASSERT(accounts.find(addr) != accounts.end());
 
 	return void_result();
