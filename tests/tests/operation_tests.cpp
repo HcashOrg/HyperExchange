@@ -691,15 +691,58 @@ BOOST_AUTO_TEST_CASE(account_unbind_operation_test)
 	}
 }
 
-
-
-BOOST_AUTO_TEST_CASE(create_guard_member_true_test)
+BOOST_AUTO_TEST_CASE(guard_refund_balance_operation_test)
 {
 	try {
-		//INVOKE(create_guard_member_false_test);
-		vector<fc::ecc::private_key> pri_vec;
-		
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("refundacct")));
+		auto& acct = create_account("refundacct", private_key.get_public_key());
+		guard_refund_balance_operation op;
+		op.refund_addr = acct.addr;
+		op.refund_amount = 10;
+		op.refund_asset_id = get_asset("EMU").get_id();
+		op.txid = "fdsfsddsfsd";
 
+		signed_transaction trx;
+		trx.operations.emplace_back(op);
+		set_expiration(db, trx);
+		trx.validate();
+		sign(trx, private_key);
+		PUSH_TX(db,trx,~0);
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
+
+BOOST_AUTO_TEST_CASE(account_multisig_create_operation_test)
+{
+	try {
+		INVOKE(create_guard_member_false_test);
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
+		auto acct = get_account("guardtest");
+		account_multisig_create_operation op;
+		op.addr = acct.addr;
+		op.account_id = acct.get_id();
+		
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		//we need get proper crosschain interface
+		auto cross_interface = instance.get_crosschain_handle("EMU");
+		//we need generate two public
+		string hot_addr = cross_interface->create_normal_account("EMU_HOT");
+		//string hot_pri = cross_interface->export_private_key(symbol, "");
+		string cold_addr = cross_interface->create_normal_account("EMU_COLD");
+
+		op.new_address_cold = cold_addr;
+		op.new_address_hot = hot_addr;
+		op.signature = private_key.sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+
+		signed_transaction trx;
+		trx.operations.emplace_back(op);
+		set_expiration(db, trx);
+		trx.validate();
+		sign(trx, private_key);
+		PUSH_TX(db, trx, ~0);
 
 
 	}
@@ -708,6 +751,8 @@ BOOST_AUTO_TEST_CASE(create_guard_member_true_test)
 		throw;
 	}
 }
+
+
 
 
 
