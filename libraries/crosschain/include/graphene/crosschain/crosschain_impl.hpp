@@ -100,7 +100,7 @@ namespace graphene {
 			//Turn plugin transaction to handle transaction
 			virtual hd_trx turn_trx(const fc::variant_object & trx) = 0;
 			// Validate signature. Now it is used to validate signature of multi-signed addresses.
-			virtual bool validate_signature(const std::string &content, const std::string &signature) = 0;
+			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;
 
 			// Sign for the content.
 			virtual bool create_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;

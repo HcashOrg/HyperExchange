@@ -1,4 +1,9 @@
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
+#include <fc/network/ip.hpp>
+#include <fc/network/tcp_socket.hpp>
+#include <fc/io/json.hpp>
+#include <fc/variant.hpp>
+#include <fc/variant_object.hpp>
 
 
 namespace graphene {
@@ -7,7 +12,10 @@ namespace graphene {
 
 		void crosschain_interface_btc::initialize_config(fc::variant_object &json_config)
 		{
-
+			_config = json_config;
+			_rpc_method = "POST";
+			_rpc_url = "/";
+			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 		}
 
 		bool crosschain_interface_btc::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
@@ -15,9 +23,16 @@ namespace graphene {
 			return false;
 		}
 
-		bool crosschain_interface_btc::open_wallet(string wallet_name)
+		bool crosschain_interface_btc::open_wallet(std::string wallet_name)
 		{
-			return false;
+			if (_connection->get_socket().is_open())
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		void crosschain_interface_btc::close_wallet()
@@ -37,11 +52,43 @@ namespace graphene {
 
 		std::string crosschain_interface_btc::create_normal_account(std::string account_name)
 		{
-			return std::string();
+			auto response = _connection->request(_rpc_method, _rpc_url, "{ \
+				\"id\": 1, \
+				\"method\" : \"getnewaddress\", \
+				\"params\" : [] \
+			}");
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp["result"].as_string();
+			}
+			else
+				FC_THROW(account_name) ;
 		}
 		
 		std::string crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"createmultisig\", \"params\": ["
+				<< nrequired << ", [";
+			for (int i = 0; i < addresses.size(); ++i)
+			{
+				req_body << "\"" << addresses[i] << "\"";
+				if (i < addresses.size() - 1)
+				{
+					req_body << ",";
+				}
+
+			}
+			req_body << "]]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp["result"].as_string();
+			}
+			else
+				FC_THROW(account_name) ;
 			return std::string();
 		}
 
@@ -52,7 +99,17 @@ namespace graphene {
 
 		fc::variant_object crosschain_interface_btc::transaction_query(std::string trx_id)
 		{
-			return fc::variant_object();
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"gettransaction\", \"params\": [\""
+				<< trx_id << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp;
+			}
+			else
+				FC_THROW(trx_id);
 		}
 
 		fc::variant_object crosschain_interface_btc::transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
@@ -90,9 +147,19 @@ namespace graphene {
 			return false;
 		}
 
-		bool crosschain_interface_btc::validate_signature(const std::string &content, const std::string &signature)
+		bool crosschain_interface_btc::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
-			return false;
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"verifymessage\", \"params\": [\""
+				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp["result"].as_bool();
+			}
+			else
+				FC_THROW(signature);
 		}
 
 		bool crosschain_interface_btc::create_signature(const std::string &account, const std::string &content, const std::string &signature)
@@ -122,7 +189,17 @@ namespace graphene {
 
 		std::string crosschain_interface_btc::export_private_key(std::string &account, std::string &encrypt_passprase)
 		{
-			return std::string();
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"dumpprivkey\", \"params\": [\""
+				<< account << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp["result"].as_string();
+			}
+			else
+				FC_THROW(account);
 		}
 
 		std::string crosschain_interface_btc::import_private_key(std::string &account, std::string &encrypt_passprase)

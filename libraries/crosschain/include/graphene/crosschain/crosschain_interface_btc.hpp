@@ -2,11 +2,12 @@
 #include <vector>
 #include <string>
 #include <graphene/crosschain/crosschain_impl.hpp>
-#include <graphene/wallet/wallet.hpp>
-#include <fc/io/fstream.hpp>
-#include <fc/io/json.hpp>
-#include <fc/crypto/aes.hpp>
-#include <fc/crypto/elliptic.hpp>
+//#include <graphene/wallet/wallet.hpp>
+//#include <fc/io/fstream.hpp>
+//#include <fc/io/json.hpp>
+//#include <fc/crypto/aes.hpp>
+//#include <fc/crypto/elliptic.hpp>
+#include <fc/network/http/connection.hpp>
 
 
 namespace graphene {
@@ -16,13 +17,16 @@ namespace graphene {
 		class crosschain_interface_btc : public abstract_crosschain_interface
 		{
 		public:
-			crosschain_interface_btc() {}
+			crosschain_interface_btc()
+			{
+				_connection = std::make_shared<fc::http::connection>();
+			}
 			virtual ~crosschain_interface_btc() {}
 
 			virtual void initialize_config(fc::variant_object &json_config) override;
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) override;
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration) override;
-			virtual bool open_wallet(string wallet_name) override;
+			virtual bool open_wallet(std::string wallet_name) override;
 			virtual void close_wallet() override;
 			virtual std::vector<std::string> wallet_list() override;
 			virtual std::string create_normal_account(std::string account_name) override;
@@ -36,7 +40,7 @@ namespace graphene {
 			virtual bool validate_link_trx(const hd_trx &trx) override;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) override;
 			virtual bool validate_other_trx(const fc::variant_object &trx) override;
-			virtual bool validate_signature(const std::string &content, const std::string &signature) override;
+			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) override;
 			virtual bool create_signature(const std::string &account, const std::string &content, const std::string &signature) override;
 			virtual hd_trx turn_trx(const fc::variant_object & trx) override;
 			virtual void broadcast_transaction(const fc::variant_object &trx) override;
@@ -49,11 +53,12 @@ namespace graphene {
 
 
 		private:
-			fc::variant_object config;
+			fc::variant_object _config;
 			std::string _plugin_wallet_filepath;
 			std::string _wallet_name;
-			graphene::wallet::wallet_data _wallet;
-			chain_id_type           _chain_id;
+			fc::http::connection_ptr _connection;
+			std::string _rpc_method;
+			std::string _rpc_url;
 		};
 	}
 }
