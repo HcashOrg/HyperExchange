@@ -12,6 +12,7 @@ file(GLOB HEADERS "include/graphene/crosschain/*.hpp")
 set(sources
    crosschain.cpp
    crosschain_interface_emu.cpp
+   crosschain_interface_btc.cpp
    ${HEADERS})
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
