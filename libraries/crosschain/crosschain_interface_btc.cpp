@@ -156,15 +156,44 @@ namespace graphene {
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				return resp["result"].as_bool();
+				auto error = resp["error"];
+				if (error.as_string() == "null")
+				{
+					return resp["result"].as_bool();
+				}
+				else
+				{
+					return false;
+				}
+				
 			}
 			else
 				FC_THROW(signature);
 		}
 
-		bool crosschain_interface_btc::create_signature(const std::string &account, const std::string &content, const std::string &signature)
+		bool crosschain_interface_btc::create_signature(const std::string &account, const std::string &content, std::string &signature)
 		{
-			return false;
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"signmessage\", \"params\": [\""
+				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				auto error = resp["error"];
+				if (error.as_string() == "null")
+				{
+					signature = resp["result"].as_string();
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+				
+			}
+			else
+				FC_THROW(signature);
 		}
 
 		graphene::crosschain::hd_trx crosschain_interface_btc::turn_trx(const fc::variant_object & trx)
