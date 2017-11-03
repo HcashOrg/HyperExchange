@@ -396,6 +396,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    }
    //through this to generate new multi-addr
    auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
+   check_multi_transfer(scheduled_miner, private_key_itr->second);
    //generate blocks
    auto block = db.generate_block(
       scheduled_time,
