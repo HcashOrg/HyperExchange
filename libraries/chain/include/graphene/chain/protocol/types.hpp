@@ -135,6 +135,7 @@ namespace graphene { namespace chain {
       worker_object_type,
       balance_object_type,
 	  lockbalance_object_type,
+	  crosschain_trx_object_type,
 	  guard_lock_balance_object_type,
 	  multisig_transfer_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
@@ -184,6 +185,7 @@ namespace graphene { namespace chain {
    class lockbalance_object;
    class guard_lock_balance_object;
    class multisig_asset_transfer_object;
+   class crosschain_trx_object;
 
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
@@ -200,6 +202,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, worker_object_type,             worker_object>                worker_id_type;
    typedef object_id< protocol_ids, balance_object_type,            balance_object>               balance_id_type;
    typedef object_id<protocol_ids, lockbalance_object_type, lockbalance_object>			  lockbalance_id_type;
+   typedef object_id<protocol_ids,crosschain_trx_object_type,crosschain_trx_object> crosschain_trx_id_type;
    typedef object_id< protocol_ids, guard_lock_balance_object_type, guard_lock_balance_object>	  guard_lock_balance_id_type;
    typedef object_id< protocol_ids, multisig_transfer_object_type, multisig_asset_transfer_object >          multisig_asset_transfer_id_type;
    // implementation types
@@ -352,6 +355,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (vesting_balance_object_type)
                  (worker_object_type)
                  (balance_object_type)
+				 (crosschain_trx_object_type)
 				 (lockbalance_object_type)
 				 (guard_lock_balance_object_type)
 	             (multisig_transfer_object_type)
@@ -380,6 +384,7 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
 FC_REFLECT_TYPENAME( graphene::chain::share_type )
 
 FC_REFLECT_TYPENAME( graphene::chain::account_id_type )
+FC_REFLECT_TYPENAME(graphene::chain::crosschain_trx_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::asset_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::force_settlement_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::guard_member_id_type )

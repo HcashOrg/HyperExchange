@@ -30,12 +30,12 @@
 #include <graphene/chain/block_database.hpp>
 #include <graphene/chain/genesis_state.hpp>
 #include <graphene/chain/evaluator.hpp>
-
+#include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/db/object_database.hpp>
 #include <graphene/db/object.hpp>
 #include <graphene/db/simple_index.hpp>
 #include <fc/signals.hpp>
-
+#include <fc/crypto/elliptic.hpp>
 #include <graphene/chain/protocol/protocol.hpp>
 
 #include <fc/log/logger.hpp>
@@ -124,7 +124,7 @@ namespace graphene { namespace chain {
          optional<signed_block>     fetch_block_by_number( uint32_t num )const;
          const signed_transaction&  get_recent_transaction( const transaction_id_type& trx_id )const;
          std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const;
-
+		 
          /**
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
@@ -291,6 +291,10 @@ namespace graphene { namespace chain {
 		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;
 		 void adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account, asset delta);
 		 void adjust_guard_lock_balance(guard_member_id_type guard_account,asset delta);
+		 ////////db_crosschain_trx.cpp/////////////
+		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);
+		 void combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
+		 void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id, transaction_id_type transaction_id, uint64_t op_type, transaction_stata trx_state);
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
@@ -465,7 +469,7 @@ namespace graphene { namespace chain {
 
          ///Steps performed only at maintenance intervals
          ///@{
-
+		
          //////////////////// db_maint.cpp ////////////////////
 
          void initialize_budget_record( fc::time_point_sec now, budget_record& rec )const;

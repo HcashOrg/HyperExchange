@@ -47,6 +47,7 @@
 #include <graphene/chain/witness_schedule_object.hpp>
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
 
 #include <graphene/chain/account_evaluator.hpp>
@@ -67,6 +68,7 @@
 #include <graphene/chain/guard_lock_balance_evaluator.hpp>
 #include <graphene/chain/crosschain_record_evaluate.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
+#include <graphene/chain/crosschain_trx_object.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -135,7 +137,8 @@ const uint8_t lockbalance_object::type_id;
 
 const uint8_t guard_lock_balance_object::space_id;
 const uint8_t guard_lock_balance_object::type_id;
-
+const uint8_t crosschain_trx_object::space_id;
+const uint8_t crosschain_trx_object::type_id;
 const uint8_t multisig_asset_transfer_object::space_id;
 const uint8_t multisig_asset_transfer_object::type_id;
 

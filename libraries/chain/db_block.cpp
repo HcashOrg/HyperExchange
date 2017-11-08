@@ -322,7 +322,6 @@ signed_block database::_generate_block(
    size_t total_block_size = max_block_header_size;
 
    signed_block pending_block;
-
    //
    // The following code throws away existing pending_tx_session and
    // rebuilds it by re-applying pending transactions.

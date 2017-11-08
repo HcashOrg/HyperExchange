@@ -43,6 +43,7 @@ namespace graphene {
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
 			database& d = db();
 			d.adjust_balance(o.withdraw_account, asset(-o.amount, o.asset_id));
+			d.adjust_crosschain_transaction(transaction_id_type(), trx_state->_trx->id(), uint64_t(operation::tag<crosschain_withdraw_operation>::value), withdraw_without_sign_trx_uncreate);
 			return void_result();
 		}
 
@@ -82,6 +83,8 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_apply(const crosschain_withdraw_without_sign_operation& o) {
+			db().adjust_crosschain_transaction(trx_state->_trx->id(), o.ccw_trx_id, uint64_t(operation::tag<crosschain_withdraw_without_sign_operation>::value), withdraw_without_sign_trx_create);
+
 			return void_result();
 		}
 		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
@@ -102,6 +105,7 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_apply(const crosschain_withdraw_with_sign_operation& o) {
+			db().adjust_crosschain_transaction(o.ccw_trx_id, trx_state->_trx->id(), uint64_t(operation::tag<crosschain_withdraw_with_sign_operation>::value), withdraw_sign_trx);
 			return void_result();
 		}
 		void crosschain_withdraw_with_sign_evaluate::pay_fee() {
