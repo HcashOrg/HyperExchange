@@ -2449,7 +2449,33 @@ public:
          trx.validate();
          return sign_transaction(trx, broadcast);
    } FC_CAPTURE_AND_RETHROW((order_id)) }
+   signed_transaction withdraw_cross_chain_transaction(string account_name,
+	   string amount,
+	   string asset_symbol,
+	   string crosschain_account,
+	   string memo,
+	   bool broadcast = false) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   auto& iter = _wallet.my_accounts.get<by_name>();
+		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
+		   crosschain_withdraw_operation op;
+		   op.withdraw_account = iter.find(account_name)->addr;
+		   op.amount = asset_obj->amount_from_string(amount).amount;
+		   op.asset_id = asset_obj->id;
+		   op.asset_symbol = asset_symbol;
+		   op.crosschain_account = crosschain_account;
+		   signed_transaction tx;
 
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account_name)(amount)(asset_symbol)(crosschain_account)(memo))
+   }
    signed_transaction lock_balance_to_miner(string miner_account,
 	   string lock_account,
 	   string amount,
@@ -3994,6 +4020,14 @@ signed_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->lock_balance_to_miner(miner_account, lock_account,amount, asset_symbol, broadcast);
+}
+signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
+	string amount,
+	string asset_symbol,
+	string crosschain_account,
+	string memo,
+	bool broadcast/* = false*/) {
+	return my->withdraw_cross_chain_transaction(account_name, amount, asset_symbol, crosschain_account, memo, broadcast);
 }
 signed_transaction wallet_api::guard_lock_balance(string guard_account,
 	string amount,
