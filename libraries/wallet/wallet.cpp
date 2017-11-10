@@ -1915,7 +1915,7 @@ public:
 		   //we need get proper crosschain interface
 		   auto cross_interface = instance.get_crosschain_handle("EMU");
 		   //we need generate two public
-		    string hot_addr =cross_interface->create_normal_account(symbol);
+		   string hot_addr =cross_interface->create_normal_account(symbol);
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
 		   string cold_addr = cross_interface->create_normal_account(symbol);
 
@@ -1941,7 +1941,6 @@ public:
    {
 	   try
 	   {
-		   
 		   FC_ASSERT(!is_locked());
 		   //TODO
 		   //get cold hot addresses according to given symbol

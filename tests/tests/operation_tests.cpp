@@ -625,7 +625,6 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
             });
 
         }
-        
 
     }
     catch (fc::exception& e) {
@@ -637,7 +636,6 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
 BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 {
 	try {
-	
 		account_bind_operation op;
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = create_account("bindtest",private_key.get_public_key());
@@ -744,8 +742,6 @@ BOOST_AUTO_TEST_CASE(account_multisig_create_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
-
-
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
