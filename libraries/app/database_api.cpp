@@ -1980,10 +1980,12 @@ vector<optional<account_binding_object>> database_api_impl::get_binding_account(
 {
 	vector<optional<account_binding_object>> result;
 	const auto& binding_accounts = _db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
-	const auto accounts = binding_accounts.equal_range(boost::make_tuple(account, symbol));
+	auto acct = get_account_by_name(account);
+	FC_ASSERT(acct.valid());
+	const auto accounts = binding_accounts.equal_range(boost::make_tuple(acct->get_id(), symbol));
 	for (auto acc : boost::make_iterator_range(accounts.first, accounts.second))
 	{
-		result.emplace_back(acc.bind_account);
+		result.emplace_back(acc);
 	}
 	return result;
 }
