@@ -885,6 +885,12 @@ class wallet_api
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
+	  signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
+		  string amount,
+		  string asset_symbol,
+		  string crosschain_account,
+		  string memo,
+		  bool broadcast = false);
       /**
        *  This method works just like transfer, except it always broadcasts and
        *  returns the transaction ID along with the signed transaction.
