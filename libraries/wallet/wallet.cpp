@@ -1485,6 +1485,14 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (authorizing_account)(account_to_list)(new_listing_status)(broadcast) ) }
 
+   vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol)
+   {
+	   try {
+		   return _remote_db->get_binding_account(account, symbol);
+	   }FC_CAPTURE_AND_RETHROW((account)(symbol))
+   }
+
+
    signed_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
                                       bool broadcast /* = false */)
    { try {
@@ -4751,7 +4759,10 @@ signed_transaction wallet_api::buy( string buyer_account,
    return my->sell_asset( buyer_account, std::to_string( rate * amount ), quote,
                           std::to_string( amount ), base, 0, false, broadcast );
 }
-
+vector<optional<account_binding_object>> wallet_api::get_binding_account(const string& account, const string& symbol)
+{
+	return my->get_binding_account(account,symbol);
+}
 signed_transaction wallet_api::borrow_asset(string seller_name, string amount_to_sell,
                                                 string asset_symbol, string amount_of_collateral, bool broadcast)
 {

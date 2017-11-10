@@ -220,7 +220,7 @@ class database_api
       //////////
 
       vector<vector<account_id_type>> get_key_references( vector<public_key_type> key )const;
-
+	  vector <optional<account_binding_object>> get_binding_account(const string& account, const string& symbol) const;
      /**
       * Determine whether a textual representation of a public key
       * (in Base-58 format) is *currently* linked
@@ -712,4 +712,5 @@ FC_API(graphene::app::database_api,
 	(get_guard_asset_lock_balance)
 	(get_multisigs_trx)
 	(lookup_multisig_asset)
+	(get_binding_account)
 );

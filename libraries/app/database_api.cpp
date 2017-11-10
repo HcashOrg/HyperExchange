@@ -149,7 +149,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
 	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
 	  vector<lockbalance_object> get_miner_lock_balance(const miner_id_type& miner) const;
-
+	  vector<optional<account_binding_object>> get_binding_account(const string& account, const string& symbol) const;
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
@@ -824,9 +824,6 @@ optional<multisig_asset_transfer_object> database_api_impl::lookup_multisig_asse
 	return optional<multisig_asset_transfer_object>();
 
 }
-
-
-
 
 map<string,account_id_type> database_api::lookup_accounts(const string& lower_bound_name, uint32_t limit)const
 {
@@ -1973,6 +1970,24 @@ vector<lockbalance_object> database_api_impl::get_miner_lock_balance(const miner
 vector<guard_lock_balance_object> database_api::get_guard_lock_balance(const guard_member_id_type& id)const {
 	return my->get_guard_lock_balance(id);
 }
+
+vector<optional<account_binding_object>> database_api::get_binding_account(const string& account, const string& symbol) const
+{
+	return my->get_binding_account(account,symbol);
+}
+
+vector<optional<account_binding_object>> database_api_impl::get_binding_account(const string& account, const string& symbol) const
+{
+	vector<optional<account_binding_object>> result;
+	const auto& binding_accounts = _db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
+	const auto accounts = binding_accounts.equal_range(boost::make_tuple(account, symbol));
+	for (auto acc : boost::make_iterator_range(accounts.first, accounts.second))
+	{
+		result.emplace_back(acc.bind_account);
+	}
+	return result;
+}
+
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
 }
