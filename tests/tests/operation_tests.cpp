@@ -675,7 +675,7 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 	   
 		crosschain_withdraw_operation op;
 		op.withdraw_account = acct.addr;
-		op.amount = 1;
+		op.amount = 1000;
 		op.asset_id = get_asset("EMU").get_id();
 		op.asset_symbol = "EMU";
 		op.crosschain_account = "bsddsfdsfsdfds";
@@ -686,6 +686,7 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
+
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
