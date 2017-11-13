@@ -215,7 +215,7 @@ void database::initialize_indexes()
    add_index< primary_index<force_settlement_index> >();
    add_index<primary_index<lockbalance_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
-
+   add_index<primary_index<crosschain_trx_index>>();
    auto acnt_index = add_index< primary_index<account_index> >();
    acnt_index->add_secondary_index<account_member_index>();
    acnt_index->add_secondary_index<account_referrer_index>();
