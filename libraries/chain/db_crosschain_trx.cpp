@@ -1,4 +1,5 @@
 #include <graphene/chain/database.hpp>
+#include <graphene/chain/crosschain_trx_object.hpp>
 namespace graphene {
 	namespace chain {
 		void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,

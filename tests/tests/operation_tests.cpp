@@ -653,7 +653,39 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
+		const auto& binding_accounts = db.get_index_type<account_binding_index>().indices();
+		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"EMU"));
+		BOOST_CHECK(iter != binding_accounts.get<by_account_binding>().end());
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+	}
+}
 
+
+BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
+{
+	try {
+		INVOKE(account_bind_operation_test);
+		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
+		auto& acct = get_account("bindtest");
+		const asset_object& emu = create_bitasset("EMU");
+		db.adjust_balance(acct.addr,asset(1000,emu.get_id()));
+	   
+		crosschain_withdraw_operation op;
+		op.withdraw_account = acct.addr;
+		op.amount = 1;
+		op.asset_id = get_asset("EMU").get_id();
+		op.asset_symbol = "EMU";
+		op.crosschain_account = "bsddsfdsfsdfds";
+
+		signed_transaction trx;
+		trx.operations.emplace_back(op);
+		set_expiration(db, trx);
+		trx.validate();
+		sign(trx, private_key);
+		PUSH_TX(db, trx, ~0);
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));

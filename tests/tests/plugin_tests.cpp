@@ -44,7 +44,6 @@ BOOST_AUTO_TEST_CASE(plugin_wallet_create_operation)
 	//auto _wallet = create_wallet();
 }
 
-
 BOOST_AUTO_TEST_CASE(plugin_account_operation)
 {
 	//create normal account

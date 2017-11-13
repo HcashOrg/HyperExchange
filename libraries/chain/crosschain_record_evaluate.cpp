@@ -30,14 +30,16 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_evaluate::do_evaluate(const crosschain_withdraw_operation& o) {
 			FC_ASSERT(o.amount > 0);
-			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
-			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(std::string(o.withdraw_account), o.asset_symbol));
+			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
+			auto& acc = db().get_index_type<account_index>().indices().get<by_address>();
+			auto id = acc.find(o.withdraw_account)->get_id();
+			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(id, o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
 			FC_ASSERT(tunnel_itr->bind_account == o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
-			FC_ASSERT(asset_itr->symbol == o.asset_symbol);
+			//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
 			return void_result();
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
