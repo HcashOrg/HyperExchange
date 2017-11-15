@@ -14,12 +14,9 @@ namespace graphene {
 		{
 			_config = json_config;
 			_rpc_method = "POST";
-			_rpc_url = "/";
-			std::string rpc_user_pass = _config["rpcuser"].as_string() + ":" + _config["rpcpassword"].as_string();
-			fc::http::header auth("Authorization", fc::base64_encode(rpc_user_pass));
-			_rpc_headers.push_back(auth);
-
+			_rpc_url = "http://";
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			_rpc_url = _rpc_url + _config["ip"].as_string() + ":" + std::string(_config["port"].as_string())+"/api";
 		}
 
 		bool crosschain_interface_btc::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
@@ -56,18 +53,23 @@ namespace graphene {
 
 		std::string crosschain_interface_btc::create_normal_account(std::string account_name)
 		{
-			auto response = _connection->request(_rpc_method, _rpc_url, "{ \
-				\"id\": 1, \
-				\"method\" : \"getnewaddress\", \
-				\"params\" : [] \
-			}",	_rpc_headers);
+
+			std::string json_str = "{ \"jsonrpc\": \"2.0\", \
+				\"params\" : {\"chainId\":\"etp\" \
+			}, \
+				\"id\" : \"45\", \
+				\"method\" : \"Zchain.Address.Create\" \
+			}";
+
+			auto response = _connection->request(_rpc_method, _rpc_url, json_str,	_rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				return resp["result"].as_string();
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				auto ret = resp["result"].get_object()["address"];
+				return ret.as_string();
 			}
 			else
-				FC_THROW(account_name) ;
+				FC_THROW(std::string(response.body.begin(),response.body.end())) ;
 		}
 		
 		std::string crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
@@ -178,7 +180,7 @@ namespace graphene {
 				}
 			}
 			else
-				FC_THROW(signature);
+				FC_THROW(std::string(response.body.begin(),response.body.end()));
 			return fc::variant_object();
 		}
 
