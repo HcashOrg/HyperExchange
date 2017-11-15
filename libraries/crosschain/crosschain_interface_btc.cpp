@@ -15,6 +15,10 @@ namespace graphene {
 			_config = json_config;
 			_rpc_method = "POST";
 			_rpc_url = "/";
+			std::string rpc_user_pass = _config["rpcuser"].as_string() + ":" + _config["rpcpassword"].as_string();
+			fc::http::header auth("Authorization", fc::base64_encode(rpc_user_pass));
+			_rpc_headers.push_back(auth);
+
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 		}
 
@@ -56,7 +60,7 @@ namespace graphene {
 				\"id\": 1, \
 				\"method\" : \"getnewaddress\", \
 				\"params\" : [] \
-			}");
+			}",	_rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
@@ -81,7 +85,7 @@ namespace graphene {
 
 			}
 			req_body << "]]}";
-			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
@@ -102,7 +106,7 @@ namespace graphene {
 			std::ostringstream req_body;
 			req_body << "{ \"id\": 1, \"method\": \"gettransaction\", \"params\": [\""
 				<< trx_id << "\"]}";
-			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
@@ -119,16 +123,62 @@ namespace graphene {
 
 		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
 		{
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"createrawtransaction\", \"params\": [\""
+				<< "TODO" << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp;
+			}
+			else
+				FC_THROW("TODO");
 			return fc::variant_object();
 		}
 
 		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast /*= true*/)
 		{
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"createrawtransaction\", \"params\": [\""
+				<< "TODO" << "\"]}";
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				return resp["result"]["hex"].as_string();
+			}
+			else
+				FC_THROW("TODO");
 			return std::string();
 		}
 
 		fc::variant_object crosschain_interface_btc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
+			std::ostringstream req_body;
+			req_body << "{ \"id\": 1, \"method\": \"combinerawtransaction\", \"params\": [[";
+			for (auto itr = signatures.begin(); itr != signatures.end(); ++itr)
+			{
+				req_body << "\"" << *itr << "\"";
+				if (itr != signatures.end() - 1)
+				{
+					req_body << ",";
+				}
+			}
+			req_body << "\"]]}";
+				
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				auto error = resp["error"];
+				if (error.as_string() == "null")
+				{
+					return resp;
+				}
+			}
+			else
+				FC_THROW(signature);
 			return fc::variant_object();
 		}
 
@@ -152,7 +202,7 @@ namespace graphene {
 			std::ostringstream req_body;
 			req_body << "{ \"id\": 1, \"method\": \"verifymessage\", \"params\": [\""
 				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
-			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
@@ -176,7 +226,7 @@ namespace graphene {
 			std::ostringstream req_body;
 			req_body << "{ \"id\": 1, \"method\": \"signmessage\", \"params\": [\""
 				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
-			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
@@ -221,7 +271,7 @@ namespace graphene {
 			std::ostringstream req_body;
 			req_body << "{ \"id\": 1, \"method\": \"dumpprivkey\", \"params\": [\""
 				<< account << "\"]}";
-			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str());
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
