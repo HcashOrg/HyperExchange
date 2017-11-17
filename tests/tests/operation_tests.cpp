@@ -639,19 +639,17 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		account_bind_operation op;
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = create_account("bindtest",private_key.get_public_key());
-		string tunnel_account = "bsddsfdsfsdfds";
 		op.account_id = acct.id;
-		op.crosschain_type = "EMU";
-		op.tunnel_address = tunnel_account;
+		op.crosschain_type = "BTC";
+		
 		
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC"); 
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}" ).get_object();
 		crosschain->initialize_config(config);
-		auto ret = crosschain->create_normal_account("test");
-		std::cout << ret << std::endl;
-		/*
-		auto crosschain =graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
+		string tunnel_account  = crosschain->create_normal_account("test");
+		op.tunnel_address = tunnel_account;
+
 		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
@@ -660,9 +658,9 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
 		const auto& binding_accounts = db.get_index_type<account_binding_index>().indices();
-		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"EMU"));
+		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"BTC"));
 		BOOST_CHECK(iter != binding_accounts.get<by_account_binding>().end());
-		*/
+		
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
@@ -707,14 +705,17 @@ BOOST_AUTO_TEST_CASE(account_unbind_operation_test)
 		account_unbind_operation op;
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = get_account("bindtest");
-		string tunnel_account = "bsddsfdsfsdfds";
 		op.account_id = acct.id;
-		op.crosschain_type = "EMU";
-		op.tunnel_address = tunnel_account;
+		op.crosschain_type = "BTC";
+		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
+		auto iter =bindings.find(boost::make_tuple(acct.id, "BTC"));
+		
 
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
-		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
-		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC");
+
+		op.tunnel_address = iter->get_tunnel_account();
+		crosschain->create_signature(op.tunnel_address, op.tunnel_address, op.tunnel_signature);
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);

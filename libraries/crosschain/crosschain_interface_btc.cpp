@@ -4,7 +4,7 @@
 #include <fc/io/json.hpp>
 #include <fc/variant.hpp>
 #include <fc/variant_object.hpp>
-
+#include <iostream>
 
 namespace graphene {
 	namespace crosschain {
@@ -55,7 +55,7 @@ namespace graphene {
 		{
 
 			std::string json_str = "{ \"jsonrpc\": \"2.0\", \
-				\"params\" : {\"chainId\":\"etp\" \
+				\"params\" : {\"chainId\":\"btc\" \
 			}, \
 				\"id\" : \"45\", \
 				\"method\" : \"Zchain.Address.Create\" \
@@ -202,16 +202,21 @@ namespace graphene {
 		bool crosschain_interface_btc::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"verifymessage\", \"params\": [\""
-				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Crypt.VerifyMessage\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"addr\": " << "\"" << account << "\"," << "\"message\":" << "\""  \
+				<< content << "\"," << "\""<<"signature" <<"\":\""<<signature <<"\""<<"}}";
+
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				auto error = resp["error"];
-				if (error.as_string() == "null")
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				auto ret = resp.get_object();
+				if (ret.contains("result"))
 				{
-					return resp["result"].as_bool();
+					auto result = ret["result"].get_object();
+					return result["data"].as_bool();
 				}
 				else
 				{
@@ -226,23 +231,21 @@ namespace graphene {
 		bool crosschain_interface_btc::create_signature(const std::string &account, const std::string &content, std::string &signature)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"signmessage\", \"params\": [\""
-				<< account << "\",\"" << signature << "\",\"" << content << "\"]}";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Crypt.Sign\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"addr\": " <<"\""<<account<<"\"," <<"\"message\":"<<"\""<<content<<"\"" <<"}}";
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				auto error = resp["error"];
-				if (error.as_string() == "null")
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+			    auto result=resp.get_object();
+				if (result.contains("result"))
 				{
-					signature = resp["result"].as_string();
+					signature = result["result"].get_object()["data"].as_string();
 					return true;
 				}
-				else
-				{
-					return false;
-				}
-				
+				return false;
 			}
 			else
 				FC_THROW(signature);
