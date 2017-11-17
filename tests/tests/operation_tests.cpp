@@ -38,11 +38,11 @@
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
+#include <graphene/crosschain/crosschain_interface_btc.hpp>
 #include <fc/crypto/digest.hpp>
 #include <graphene/chain/transaction_object.hpp>
-
 #include "../common/database_fixture.hpp"
-
+#include <fc/network/url.hpp>
 using namespace graphene::chain;
 using namespace graphene::chain::test;
 
@@ -643,8 +643,14 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		op.account_id = acct.id;
 		op.crosschain_type = "EMU";
 		op.tunnel_address = tunnel_account;
-
+		
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
+		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC"); 
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}" ).get_object();
+		crosschain->initialize_config(config);
+		auto ret = crosschain->create_normal_account("test");
+		std::cout << ret << std::endl;
+		/*
 		auto crosschain =graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
 		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		signed_transaction trx;
@@ -656,13 +662,13 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		const auto& binding_accounts = db.get_index_type<account_binding_index>().indices();
 		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"EMU"));
 		BOOST_CHECK(iter != binding_accounts.get<by_account_binding>().end());
+		*/
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
 		throw;
 	}
 }
-
 
 BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 {
