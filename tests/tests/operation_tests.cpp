@@ -766,16 +766,27 @@ BOOST_AUTO_TEST_CASE(account_multisig_create_operation_test)
 		
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		//we need get proper crosschain interface
-		auto cross_interface = instance.get_crosschain_handle("EMU");
+		auto cross_interface = instance.get_crosschain_handle("BTC");
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}").get_object();
+		cross_interface->initialize_config(config);
 		//we need generate two public
-		string hot_addr = cross_interface->create_normal_account("EMU_HOT");
-		//string hot_pri = cross_interface->export_private_key(symbol, "");
-		string cold_addr = cross_interface->create_normal_account("EMU_COLD");
+		std::vector<string> addrs;
+		for (int i = 0; i < 15; i++)
+		{
+			addrs.emplace_back(cross_interface->create_normal_account("test"));
+		}
 
+		string hot_addr = cross_interface->create_multi_sig_account("BTC_HOT",addrs,10);
+		//string hot_pri = cross_interface->export_private_key(symbol, "");
+		addrs.clear();
+		for (int i = 0; i < 15; i++)
+		{
+			addrs.emplace_back(cross_interface->create_normal_account("test"));
+		}
+		string cold_addr = cross_interface->create_multi_sig_account("BTC_COLD",addrs,10);
 		op.new_address_cold = cold_addr;
 		op.new_address_hot = hot_addr;
 		op.signature = private_key.sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
-
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
@@ -834,7 +845,7 @@ BOOST_AUTO_TEST_CASE(sign_multisig_asset_operation_test)
 			equal_range(multisig_asset_transfer_object::waiting_signtures);
 
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		auto inface = instance.get_crosschain_handle("EMU");
+		auto inface = instance.get_crosschain_handle("BTC");
 
 		for (auto iter : boost::make_iterator_range(multisigs_trx.first, multisigs_trx.second))
 		{

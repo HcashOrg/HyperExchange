@@ -75,8 +75,11 @@ namespace graphene {
 		std::string crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"createmultisig\", \"params\": ["
-				<< nrequired << ", [";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Multisig.Create\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"amount\": " << nrequired <<",\""<<"addrs\":[";
+
 			for (int i = 0; i < addresses.size(); ++i)
 			{
 				req_body << "\"" << addresses[i] << "\"";
@@ -86,11 +89,18 @@ namespace graphene {
 				}
 
 			}
-			req_body << "]]}";
+			req_body << "]}}";
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				auto ret = resp.get_object();
+				if (ret.contains("result"))
+				{
+					auto result = ret["result"].get_object();
+					FC_ASSERT(result.contains("address"));
+					return result["address"].as_string();
+				}
 				return resp["result"].as_string();
 			}
 			else
