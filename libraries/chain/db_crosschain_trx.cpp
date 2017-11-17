@@ -86,6 +86,12 @@ namespace graphene {
 				optional<account_object> account_iter = get(miner_iter->miner_account);
 				trx_op.miner_address = account_iter->addr;
 				signed_transaction tx;
+				
+				uint32_t expiration_time_offset = 0;
+				auto dyn_props = get_dynamic_global_properties();
+				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
+				tx.set_reference_block(dyn_props.head_block_id);
+				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				tx.operations.push_back(trx_op);
 				tx.validate();
 				tx.sign(pk, get_chain_id());
@@ -144,6 +150,11 @@ namespace graphene {
 				trx_op.miner_address = account_iter->addr;
 				trx_op.withdraw_trx = with_sign_op.ccw_trx_id;
 				signed_transaction tx;
+				uint32_t expiration_time_offset = 0;
+				auto dyn_props = get_dynamic_global_properties();
+				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
+				tx.set_reference_block(dyn_props.head_block_id);
+				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				tx.operations.push_back(trx_op);
 				tx.validate();
 				tx.sign(pk, get_chain_id());

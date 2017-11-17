@@ -142,6 +142,9 @@ const uint8_t crosschain_trx_object::type_id;
 const uint8_t multisig_asset_transfer_object::space_id;
 const uint8_t multisig_asset_transfer_object::type_id;
 
+const uint8_t acquired_crosschain_trx_object::space_id;
+const uint8_t acquired_crosschain_trx_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -216,6 +219,7 @@ void database::initialize_indexes()
    add_index<primary_index<lockbalance_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
    add_index<primary_index<crosschain_trx_index>>();
+   add_index<primary_index<acquired_crosschain_index>>();
    auto acnt_index = add_index< primary_index<account_index> >();
    acnt_index->add_secondary_index<account_member_index>();
    acnt_index->add_secondary_index<account_referrer_index>();
