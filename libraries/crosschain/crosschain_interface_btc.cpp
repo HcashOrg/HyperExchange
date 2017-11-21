@@ -136,13 +136,18 @@ namespace graphene {
 		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"createrawtransaction\", \"params\": [\""
-				<< "TODO" << "\"]}";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Multisig.Create\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"" << "to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
+
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				return resp;
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end());
+				auto ret =resp.get_object()["result"].get_object();
+				FC_ASSERT(ret.contains("data"));
+				return ret["data"];
 			}
 			else
 				FC_THROW("TODO");

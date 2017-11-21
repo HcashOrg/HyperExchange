@@ -69,6 +69,7 @@
 #include <graphene/chain/crosschain_record_evaluate.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/guard_refund_balance_evaluator.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -206,6 +207,7 @@ void database::initialize_evaluators()
    register_evaluator<transfer_from_blind_evaluator>();
    register_evaluator<blind_transfer_evaluator>();
    register_evaluator<asset_claim_fees_evaluator>();
+   register_evaluator<guard_refund_balance_evaluator>();
 }
 
 void database::initialize_indexes()

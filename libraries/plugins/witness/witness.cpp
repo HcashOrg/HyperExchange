@@ -249,7 +249,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 		const auto& guard_ids = db.get_global_properties().active_committee_members;
 		const auto& symbols = db.get_index_type<asset_index>().indices().get<by_symbol>();
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+		
 
 		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
 		auto iter = miners.find(miner);
@@ -262,6 +262,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 		{
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
+			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(
 				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot](const multisig_address_object& obj) {
@@ -271,6 +272,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			);
 			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size())
 			{
+				
 				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size()*2/3));
 				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
 				signed_transaction trx;
