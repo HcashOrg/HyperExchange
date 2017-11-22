@@ -140,11 +140,9 @@ namespace graphene {
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.createTrx\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
-
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
 				auto ret =resp.get_object()["result"].get_object();
 				FC_ASSERT(ret.contains("data"));
