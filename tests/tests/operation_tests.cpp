@@ -814,7 +814,7 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 	try {
 		INVOKE(create_guard_member_false_test);
 		const address  cold_addr;
-		const address  hot_addr;
+		const string  hot_addr="3BMEXX78GQ7q4iawXNbTHeNX3bZJ61zw8d";
 		const asset_object& emu = create_bitasset("BTC");
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		

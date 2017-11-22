@@ -294,7 +294,11 @@ namespace graphene { namespace chain {
 		 ////////db_crosschain_trx.cpp/////////////
 		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
-		 void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id, transaction_id_type transaction_id, uint64_t op_type, transaction_stata trx_state);
+		 void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
+			 transaction_id_type transaction_id,
+			 signed_transaction real_transaction,
+			 uint64_t op_type,
+			 transaction_stata trx_state);
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
