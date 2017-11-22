@@ -674,15 +674,17 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		INVOKE(account_bind_operation_test);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = get_account("bindtest");
-		const asset_object& emu = create_bitasset("EMU");
+		const asset_object& emu = create_bitasset("BTC");
 		db.adjust_balance(acct.addr,asset(1000,emu.get_id()));
 	   
 		crosschain_withdraw_operation op;
 		op.withdraw_account = acct.addr;
 		op.amount = 1000;
-		op.asset_id = get_asset("EMU").get_id();
-		op.asset_symbol = "EMU";
-		op.crosschain_account = "bsddsfdsfsdfds";
+		op.asset_id = get_asset("BTC").get_id();
+		op.asset_symbol = "BTC";
+		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
+		auto iter = bindings.find(boost::make_tuple(acct.id, "BTC"));
+		op.crosschain_account = iter->get_tunnel_account();
 
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
@@ -691,6 +693,10 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
 
+		const auto id = get_miner("miner6");
+		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner6")));
+		db.create_result_transaction(id, private_key);
+		
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
@@ -735,14 +741,17 @@ BOOST_AUTO_TEST_CASE(guard_refund_balance_operation_test)
 	try {
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("refundacct")));
 		auto& acct = create_account("refundacct", private_key.get_public_key());
+		const asset_object& emu = create_bitasset("BTC");
+		db.adjust_balance(acct.addr, asset(100, emu.get_id()));
 		guard_refund_balance_operation op;
 		op.refund_addr = acct.addr;
-		op.refund_amount = 10;
-		op.refund_asset_id = get_asset("EMU").get_id();
+		op.refund_amount = 100;
+		op.refund_asset_id = get_asset("BTC").get_id();
 		op.txid = "fdsfsddsfsd";
 
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
+		for (auto& op : trx.operations) db.current_fee_schedule().set_fee(op);
 		set_expiration(db, trx);
 		trx.validate();
 		sign(trx, private_key);
@@ -806,11 +815,14 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		INVOKE(create_guard_member_false_test);
 		const address  cold_addr;
 		const address  hot_addr;
-
+		const asset_object& emu = create_bitasset("BTC");
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		auto inface = instance.get_crosschain_handle("EMU");
-		auto asset_obj = get_asset("LNK");
-		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), asset_obj.amount_from_string("10").amount.value, asset_obj.symbol, string(""), true);
+		
+		auto inface = instance.get_crosschain_handle("BTC");
+		
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}").get_object();
+		inface->initialize_config(config);
+		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), emu.amount_from_string("10").amount.value, string("BTC"), string(""), true);
 		
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
 		auto acct = get_account("guardtest");
@@ -818,7 +830,7 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		asset_transfer_from_cold_to_hot_operation op;
 		op.addr = acct.addr;
 		op.trx = trx;
-		op.chain_type = "LNK";
+		op.chain_type = "BTC";
 
 		signed_transaction tx;
 

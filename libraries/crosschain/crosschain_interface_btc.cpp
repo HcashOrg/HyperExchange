@@ -138,16 +138,17 @@ namespace graphene {
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
-				\"method\" : \"Zchain.Multisig.Create\" ,\
-				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"" << "to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
+				\"method\" : \"Zchain.Trans.createTrx\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
 
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end());
+				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
 				auto ret =resp.get_object()["result"].get_object();
 				FC_ASSERT(ret.contains("data"));
-				return ret["data"];
+				return ret["data"].get_object();
 			}
 			else
 				FC_THROW("TODO");
