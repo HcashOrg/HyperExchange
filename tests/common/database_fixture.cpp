@@ -453,7 +453,16 @@ const account_object& database_fixture::get_account( const string& name )const
    assert( itr != idx.end() );
    return *itr;
 }
-
+const miner_id_type database_fixture::get_miner(const string& name)const
+{
+	const auto& idx = db.get_index_type<account_index>().indices().get<by_name>();
+	const auto itr = idx.find(name);
+	assert(itr != idx.end());
+	const auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
+	const auto iter = miner_idx.find(itr->get_id());
+	assert(iter != miner_idx.end());
+	return iter->id;
+}
 const asset_object& database_fixture::create_bitasset(
    const string& name,
    account_id_type issuer /* = GRAPHENE_MINER_ACCOUNT */,
