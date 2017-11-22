@@ -72,11 +72,11 @@ namespace graphene {
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			auto create_trx = hdl->turn_trx(o.withdraw_source_trx);
-			auto &trx_db = db().get_index_type<transaction_index>().indices().get<by_trx_id>();
+			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 			auto trx_itr = trx_db.find(o.ccw_trx_id);
 			FC_ASSERT(trx_itr != trx_db.end());
-			FC_ASSERT(trx_itr->trx.operations.size() == 1);
-			for (const auto & op : trx_itr->trx.operations) {
+			FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
+			for (const auto & op : trx_itr->real_transaction.operations) {
 				const auto withdraw_op = op.get<crosschain_withdraw_evaluate::operation_type>();
 				FC_ASSERT(create_trx.to_account == withdraw_op.crosschain_account);
 				FC_ASSERT(create_trx.amount == withdraw_op.amount);
