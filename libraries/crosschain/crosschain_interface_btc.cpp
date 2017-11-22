@@ -147,7 +147,7 @@ namespace graphene {
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
 				auto ret =resp.get_object()["result"].get_object();
 				FC_ASSERT(ret.contains("data"));
-				return ret["data"].get_object();
+				return ret;
 			}
 			else
 				FC_THROW("TODO");
