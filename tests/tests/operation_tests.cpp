@@ -685,7 +685,7 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
 		auto iter = bindings.find(boost::make_tuple(acct.id, "BTC"));
 		op.crosschain_account = iter->get_tunnel_account();
-
+		
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
@@ -823,7 +823,7 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}").get_object();
 		inface->initialize_config(config);
 		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), emu.amount_from_string("10").amount.value, string("BTC"), string(""), true);
-		
+		auto link_trx = inface->turn_trx(trx);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
 		auto acct = get_account("guardtest");
 
