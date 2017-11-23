@@ -154,6 +154,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
+	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -1992,6 +1993,29 @@ vector<optional<account_binding_object>> database_api_impl::get_binding_account(
 
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
+}
+vector<crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
+	return my->get_crosschain_transaction(crosschain_trx_state,id);
+}
+vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
+	vector<crosschain_trx_object> result;
+	if (id == transaction_id_type()){
+		_db.get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
+		{
+			const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+			if (p.trx_state == crosschain_trx_state) {
+				result.push_back(p);
+			}
+		});
+	}
+	else{
+		const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+		const auto cct_trx_iter = cct_db.find(boost::make_tuple(id, crosschain_trx_state));
+		FC_ASSERT(cct_trx_iter != cct_db.end(), "Tansaction exist error");
+		result.push_back(*cct_trx_iter);
+	}
+	
+	return result;
 }
 vector<guard_lock_balance_object> database_api_impl::get_guard_lock_balance(const guard_member_id_type& id)const {
 	const auto& glb_index = _db.get_index_type<guard_lock_balance_index>();

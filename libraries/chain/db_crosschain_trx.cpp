@@ -34,6 +34,7 @@ namespace graphene {
 					obj.transaction_id = transaction_id;
 					obj.trx_state = withdraw_without_sign_trx_create;
 				});
+				trx_itr = trx_db.find(relate_transaction_id);
 				modify<crosschain_trx_object>(*trx_itr, [](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_without_sign_trx_create;
 				});

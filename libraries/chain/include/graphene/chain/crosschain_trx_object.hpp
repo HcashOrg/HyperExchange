@@ -70,6 +70,7 @@ namespace graphene {
 		struct by_type;
 		struct by_transaction_stata;
 		struct by_trx_relate_type_stata;
+		struct by_trx_type_state;
 		using crosschain_multi_index_type = multi_index_container <
 			crosschain_trx_object,
 			indexed_by <
@@ -107,6 +108,18 @@ namespace graphene {
 			composite_key<
 			crosschain_trx_object,
 			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::relate_transaction_id>,
+			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>
+			>,
+			composite_key_compare<
+			std::less< transaction_id_type >,
+			std::less<transaction_stata>
+			>
+			>,
+			ordered_unique<
+			tag<by_trx_type_state>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>,
 			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>
 			>,
 			composite_key_compare<

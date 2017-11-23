@@ -2429,6 +2429,23 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
+   std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction(){
+	   std::vector<signed_transaction> result;
+	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create,transaction_id_type());
+	   for (const auto& cct : cct_objs){
+		   result.push_back(cct.real_transaction);
+	   }
+	   return result;
+   }
+   void guard_sign_crosschain_transaction(string trx_id){
+	   if (trx_id == "ALL"){
+		   _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
+		   
+	   }
+	   else{
+		   _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(trx_id));
+	   }
+   }
    std::vector<lockbalance_object> get_account_lock_balance(const string& account)const {
 	   FC_ASSERT(account.size() != 0, "Param without account name");
 	   const auto& account_obj = get_account(account);
@@ -4016,6 +4033,13 @@ signed_transaction wallet_api::transfer_to_account(string from, string to, strin
 	const auto acc = get_account(to);
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
+}
+std::vector<signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
+	
+	return my->get_withdraw_crosschain_without_sign_transaction();
+}
+void wallet_api::guard_sign_crosschain_transaction(string trx_id){
+	return my->guard_sign_crosschain_transaction(trx_id);
 }
 
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
