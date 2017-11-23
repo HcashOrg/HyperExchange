@@ -2439,8 +2439,7 @@ public:
    }
    void guard_sign_crosschain_transaction(string trx_id){
 	   if (trx_id == "ALL"){
-		   _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
-		   
+		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 	   }
 	   else{
 		   _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(trx_id));
