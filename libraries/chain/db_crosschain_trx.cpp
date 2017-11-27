@@ -8,62 +8,67 @@ namespace graphene {
 		uint64_t op_type,
 		transaction_stata trx_state
 		) {
-			if (op_type == operation::tag<crosschain_withdraw_evaluate::operation_type>::value){
-				auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				auto trx_itr = trx_db.find(transaction_id);
-				FC_ASSERT(trx_itr == trx_db.end(), "This Transaction exist");
-				create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
-					obj.op_type = op_type;
-					obj.relate_transaction_id = transaction_id_type();
-					obj.transaction_id = transaction_id;
-					obj.real_transaction = real_transaction;
-					obj.trx_state = withdraw_without_sign_trx_uncreate;
-				});
-			}
-			else if (op_type == operation::tag<crosschain_withdraw_without_sign_evaluate::operation_type>::value){
-				auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				auto trx_itr = trx_db.find(relate_transaction_id);
-				FC_ASSERT(trx_itr != trx_db.end(), "Source Transaction doesn`t exist");
-				auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
-				auto trx_itr_relate = trx_db_relate.find(transaction_id);
-				FC_ASSERT(trx_itr_relate == trx_db_relate.end(), "Crosschain transaction has been created");
-				create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
-					obj.op_type = op_type;
-					obj.relate_transaction_id = relate_transaction_id;
-					obj.real_transaction = real_transaction;
-					obj.transaction_id = transaction_id;
-					obj.trx_state = withdraw_without_sign_trx_create;
-				});
-				auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				auto trx_iter_new = trx_db_new.find(relate_transaction_id);
-				modify<crosschain_trx_object>(*trx_iter_new, [&](crosschain_trx_object& obj) {
-					obj.trx_state = withdraw_without_sign_trx_create;
-				});
-			}
-			else if (op_type == operation::tag<crosschain_withdraw_combine_sign_evaluate::operation_type>::value) {
+			try{
+				if (op_type == operation::tag<crosschain_withdraw_evaluate::operation_type>::value) {
+					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_itr = trx_db.find(transaction_id);
+					FC_ASSERT(trx_itr == trx_db.end(), "This Transaction exist");
+					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
+						obj.op_type = op_type;
+						obj.relate_transaction_id = transaction_id_type();
+						obj.transaction_id = transaction_id;
+						obj.real_transaction = real_transaction;
+						obj.trx_state = withdraw_without_sign_trx_uncreate;
+					});
+				}
+				else if (op_type == operation::tag<crosschain_withdraw_without_sign_evaluate::operation_type>::value) {
+					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_itr = trx_db.find(relate_transaction_id);
+					FC_ASSERT(trx_itr != trx_db.end(), "Source Transaction doesn`t exist");
+					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
+					auto trx_itr_relate = trx_db_relate.find(transaction_id);
+					FC_ASSERT(trx_itr_relate == trx_db_relate.end(), "Crosschain transaction has been created");
+					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
+						obj.op_type = op_type;
+						obj.relate_transaction_id = relate_transaction_id;
+						obj.real_transaction = real_transaction;
+						obj.transaction_id = transaction_id;
+						obj.trx_state = withdraw_without_sign_trx_create;
+					});
+					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_iter_new = trx_db_new.find(relate_transaction_id);
+					if (trx_iter_new == trx_db_new.end())
+					{
+						std::cout << "Sourcce Trasaction dosent exist" << std::endl;
+					}
+					std::cout << string(trx_iter_new->id) << std::endl;
+					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
+						obj.trx_state = withdraw_without_sign_trx_create;
+					});
+				}
+				else if (op_type == operation::tag<crosschain_withdraw_combine_sign_evaluate::operation_type>::value) {
 
-			}
-			else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
-				auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
-				auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
-				FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
-				
-				auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				auto trx_itr = trx_db.find(transaction_id);
-				FC_ASSERT(trx_itr == trx_db.end(), "This sign tex is exist");
-				
-				
-				create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
-					obj.op_type = op_type;
-					obj.relate_transaction_id = relate_transaction_id;
-					obj.real_transaction = real_transaction;
-					obj.transaction_id = transaction_id;
-					obj.trx_state = withdraw_sign_trx;
-				});
-			}
-			else if (op_type == operation::tag<crosschain_withdraw_result_evaluate::operation_type>::value) {
+				}
+				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
+					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
+					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
+					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
 
-			}
+					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_itr = trx_db.find(transaction_id);
+					FC_ASSERT(trx_itr == trx_db.end(), "This sign tex is exist");
+					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
+						obj.op_type = op_type;
+						obj.relate_transaction_id = relate_transaction_id;
+						obj.real_transaction = real_transaction;
+						obj.transaction_id = transaction_id;
+						obj.trx_state = withdraw_sign_trx;
+					});
+				}
+				else if (op_type == operation::tag<crosschain_withdraw_result_evaluate::operation_type>::value) {
+
+				}
+			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			vector<crosschain_trx_object> create_withdraw_trx;

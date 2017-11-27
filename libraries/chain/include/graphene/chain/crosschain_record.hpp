@@ -71,19 +71,19 @@ namespace graphene {
 			transaction_id_type ccw_trx_id;
 			fc::variant_object withdraw_source_trx;
 			//TODO:refund balance in the situation that channel account tie to formal account
-			miner_id_type miner_broadcast;
+			guard_member_id_type sign_guard;
 			string asset_symbol;
 			asset fee;
-			address miner_address;
+			address guard_address;
 			string ccw_trx_signature;
 
 			address fee_payer()const {
-				return miner_address;
+				return guard_address;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 			void get_required_authorities(vector<authority>& a)const {
-				a.push_back(authority(1, miner_address, 1));
+				a.push_back(authority(1, guard_address, 1));
 			}
 		};
 		struct crosschain_withdraw_combine_sign_operation :public base_operation {
@@ -134,7 +134,7 @@ FC_REFLECT(graphene::chain::crosschain_withdraw_operation,(withdraw_account)(amo
 FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation, (ccw_trx_id)(withdraw_source_trx)(fee)(miner_broadcast)(miner_address)(asset_id)(asset_symbol))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation, (ccw_trx_id)(asset_symbol)(fee)(withdraw_source_trx)(miner_broadcast)(miner_address)(ccw_trx_signature))
+FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation, (ccw_trx_id)(asset_symbol)(fee)(withdraw_source_trx)(sign_guard)(guard_address)(ccw_trx_signature))
 FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (cross_chain_trx)(signed_trx_ids)(fee)(miner_broadcast)(withdraw_trx)(miner_address))
 FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation::fee_parameters_type, (fee))

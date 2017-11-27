@@ -2009,7 +2009,7 @@ vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(cons
 		});
 	}
 	else{
-		const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+		const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_trx_type_state>();
 		const auto cct_trx_iter = cct_db.find(boost::make_tuple(id, crosschain_trx_state));
 		FC_ASSERT(cct_trx_iter != cct_db.end(), "Tansaction exist error");
 		result.push_back(*cct_trx_iter);

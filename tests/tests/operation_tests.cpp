@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
-
+		generate_block();
 		const auto id = get_miner("miner6");
 		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner6")));
 		db.create_result_transaction(id, private_key);
