@@ -93,9 +93,15 @@ namespace graphene {
 
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
+			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto trx_iter = trx_db.find(*(o.signed_trx_ids.begin()));
+			FC_ASSERT(trx_iter != trx_db.end());
 			return void_result();
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_apply(const crosschain_withdraw_combine_sign_operation& o) {
+			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto trx_iter = trx_db.find(*(o.signed_trx_ids.begin()));
+			db().adjust_crosschain_transaction(trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_with_sign_operation>::value), withdraw_combine_trx_create);
 			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
