@@ -36,6 +36,10 @@ namespace graphene {
 				});
 				auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto trx_iter_new = trx_db_new.find(relate_transaction_id);
+				auto trx_iter_1 = trx_db_new.find(transaction_id);
+				FC_ASSERT(trx_iter_new != trx_db.end());
+				std::cout << string(trx_iter_new->id) << std::endl;
+				std::cout << string(trx_iter_1->id) << std::endl;
 				modify<crosschain_trx_object>(*trx_iter_new, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_without_sign_trx_create;
 				});

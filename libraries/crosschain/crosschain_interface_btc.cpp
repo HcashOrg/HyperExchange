@@ -121,12 +121,13 @@ namespace graphene {
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.queryTrans\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"trxid\": \"" << trx_id << "\"}}";
-          
+			std::cout << req_body.str() << std::endl;
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			std::cout <<"dfsdfsdfsd" <<std::string(response.body.begin(), response.body.end()) << std::endl;
 			if (response.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
-				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+				
 				FC_ASSERT(resp.contains("result"));
 				FC_ASSERT(resp["result"].get_object().contains("data"));
 				return resp["result"].get_object()["data"].get_object();
@@ -147,7 +148,7 @@ namespace graphene {
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.createTrx\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
-			std::cout << req_body.str() << std::endl;
+			
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -163,14 +164,23 @@ namespace graphene {
 
 		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast /*= true*/)
 		{
+
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"createrawtransaction\", \"params\": [\""
-				<< "TODO" << "\"]}";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Trans.Sign\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"addr\": \"" << sign_account << "\",\"trx_hex\":\"" << trx["hex"].as_string() << "\"}}";
+			std::cout << req_body.str() << std::endl;
+
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				return resp["result"]["hex"].as_string();
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+				FC_ASSERT(resp.contains("result"));
+				auto ret = resp["result"].get_object();
+				FC_ASSERT(ret.contains("data"));
+				return ret["data"].get_object()["hex"].as_string();
 			}
 			else
 				FC_THROW("TODO");
@@ -276,16 +286,19 @@ namespace graphene {
 		graphene::crosschain::hd_trx crosschain_interface_btc::turn_trx(const fc::variant_object & trx)
 		{
 			hd_trx hdtx;
-			hdtx.asset_symbol = chain_type;
-			hdtx.trx_id = trx["hash"].as_string();
-			const std::string to_addr = trx["vout"].get_array()[0].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-			const std::string from_trx_id = trx["vin"].get_array()[0].get_object()["txid"].as_string();
-			const auto index = trx["vin"].get_array()[0].get_object()["vout"].as_uint64();
-			auto from_trx = transaction_query(from_trx_id);
-			const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-			hdtx.to_account = to_addr;
-			hdtx.amount = trx["vout"].get_array()[0].get_object()["value"].as_double();
-			
+			try {
+				auto tx = trx["trx"].get_object();
+				hdtx.asset_symbol = chain_type;
+				hdtx.trx_id = tx["hash"].as_string();
+				const std::string to_addr = tx["vout"].get_array()[0].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
+				const std::string from_trx_id = tx["vin"].get_array()[0].get_object()["txid"].as_string();
+				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
+				auto from_trx = transaction_query(from_trx_id);
+				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
+				hdtx.to_account = to_addr;
+				hdtx.amount = tx["vout"].get_array()[0].get_object()["value"].as_double();
+			}
+			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtx;
 		}
 

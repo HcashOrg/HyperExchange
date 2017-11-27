@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
-
+		generate_block();
 		const auto id = get_miner("miner6");
 		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner6")));
 		db.create_result_transaction(id, private_key);
@@ -820,13 +820,14 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		
 		auto inface = instance.get_crosschain_handle("BTC");
 		
-		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}").get_object();
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
 		inface->initialize_config(config);
 		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), emu.amount_from_string("10").amount.value, string("BTC"), string(""), true);
+		inface->initialize_config(config);
 		auto link_trx = inface->turn_trx(trx);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));
 		auto acct = get_account("guardtest");
-
+		
 		asset_transfer_from_cold_to_hot_operation op;
 		op.addr = acct.addr;
 		op.trx = trx;
@@ -859,12 +860,15 @@ BOOST_AUTO_TEST_CASE(sign_multisig_asset_operation_test)
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		auto inface = instance.get_crosschain_handle("BTC");
 
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
+		inface->initialize_config(config);
+
 		for (auto iter : boost::make_iterator_range(multisigs_trx.first, multisigs_trx.second))
 		{
 			sign_multisig_asset_operation op;
 			op.addr = acct.addr;
 			op.multisig_trx_id = iter.id;
-			op.signature = inface->sign_multisig_transaction(iter.trx, string(""));
+			op.signature = inface->sign_multisig_transaction(iter.trx, string("1112BhPMSEFRYm51TCyDGd9nTmQcP5TC8s"));
 
 			signed_transaction tx;
 
