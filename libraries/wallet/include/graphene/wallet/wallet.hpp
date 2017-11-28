@@ -1595,7 +1595,7 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction();
-	  void guard_sign_crosschain_transaction(string trx_id);
+	  void guard_sign_crosschain_transaction(const string& trx_id,string& guard);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs

@@ -93,17 +93,43 @@ namespace graphene {
 
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
+			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto trx_iter = trx_db.find(*(o.signed_trx_ids.begin()));
+			FC_ASSERT(trx_iter != trx_db.end());
 			return void_result();
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_apply(const crosschain_withdraw_combine_sign_operation& o) {
+			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto trx_iter = trx_db.find(*(o.signed_trx_ids.begin()));
+			db().adjust_crosschain_transaction(trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_with_sign_operation>::value), withdraw_combine_trx_create);
 			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
 
 		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_evaluate(const crosschain_withdraw_with_sign_operation& o) {
-			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			//auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			//auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			vector<crosschain_trx_object> all_signs;
+			db().get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& obj)
+			{
+				const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(obj);
+				if (p.relate_transaction_id == o.ccw_trx_id&&p.trx_state == withdraw_sign_trx) {
+					all_signs.push_back(p);
+				}
+			});
+			set<std::string> signs;
+			for (const auto & signing : all_signs) {
+				std::string temp_sign;
+				auto op = signing.real_transaction.operations[0];
+				auto sign_op = op.get<crosschain_withdraw_with_sign_operation>();
+				signs.insert(sign_op.ccw_trx_signature);
+			}
+			auto sign_iter = signs.find(o.ccw_trx_signature);
+			FC_ASSERT(sign_iter == signs.end(), "Guard has sign this transaction");
+			//db().get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
+			//auto trx_iter = trx_db.find(boost::make_tuple(o.ccw_trx_id, withdraw_sign_trx));
+
 			return void_result();
 		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_apply(const crosschain_withdraw_with_sign_operation& o) {
