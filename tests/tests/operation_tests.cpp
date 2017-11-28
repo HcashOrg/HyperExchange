@@ -742,10 +742,10 @@ BOOST_AUTO_TEST_CASE(guard_refund_balance_operation_test)
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("refundacct")));
 		auto& acct = create_account("refundacct", private_key.get_public_key());
 		const asset_object& emu = create_bitasset("BTC");
-		db.adjust_balance(acct.addr, asset(100, emu.get_id()));
+		db.adjust_balance(acct.addr, asset(0, emu.get_id()));
 		guard_refund_balance_operation op;
 		op.refund_addr = acct.addr;
-		op.refund_amount = 100;
+		op.refund_amount = 1000;
 		op.refund_asset_id = get_asset("BTC").get_id();
 		op.txid = "fdsfsddsfsd";
 
@@ -756,6 +756,9 @@ BOOST_AUTO_TEST_CASE(guard_refund_balance_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db,trx,~0);
+
+		INVOKE(crosschain_withdraw_operation_test);
+		//generate_block();
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));

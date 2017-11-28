@@ -1922,7 +1922,7 @@ public:
 
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		   //we need get proper crosschain interface
-		   auto cross_interface = instance.get_crosschain_handle("EMU");
+		   auto cross_interface = instance.get_crosschain_handle(symbol);
 		   //we need generate two public
 		   string hot_addr =cross_interface->create_normal_account(symbol);
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
@@ -1986,6 +1986,14 @@ public:
 		   return _remote_db->get_multisigs_trx();
 	   }FC_CAPTURE_AND_RETHROW()
    }
+   optional<multisig_address_object> get_multi_address_obj(const string symbol,const account_id_type& guard) const
+   {
+	   try {
+		   return _remote_db->get_multisig_address_obj(symbol,guard);
+	   }FC_CAPTURE_AND_RETHROW()
+   }
+
+
    multisig_asset_transfer_object get_multisig_asset_tx(multisig_asset_transfer_id_type id)
    {
 	   try {
@@ -1995,7 +2003,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
    
-   signed_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+   signed_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
    {
 	   try {
 		   
@@ -2004,11 +2012,13 @@ public:
 		   const auto multisig_trx_obj = get_multisig_asset_tx(id);
 		   
 		   sign_multisig_asset_operation op;
-		 
-		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle("EMU");
+		   guard_member_object guard_obj = get_guard_member(guard);
+		   optional<multisig_address_object> multisig_obj = _remote_db->get_multisig_address_obj(multisig_trx_obj.chain_type,guard_obj.guard_member_account);
+		   FC_ASSERT(multisig_obj.valid());
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(multisig_trx_obj.chain_type);
 		   
-		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,string(""));
-		   op.signature = "";
+		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj->new_address_hot);
+		   op.signature = signature;
 		   op.addr = acct.addr;
 		   op.multisig_trx_id = multisig_trx_obj.id;
 		   signed_transaction trx;
@@ -4637,9 +4647,14 @@ vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
 	return my->get_multisig_asset_tx();
 }
 
-signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id, bool broadcast)
+optional<multisig_address_object> wallet_api::get_multi_address_obj(const string& symbol,const account_id_type& guard) const
 {
-	return my->sign_multi_asset_trx(account,id, broadcast);
+	return my->get_multi_address_obj(symbol,guard);
+}
+
+signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
+{
+	return my->sign_multi_asset_trx(account,id, guard,broadcast);
 }
 
 signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)

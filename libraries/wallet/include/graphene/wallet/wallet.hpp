@@ -1720,7 +1720,8 @@ class wallet_api
 	  signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
-	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id, bool broadcast = false);
+	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
+	  optional<multisig_address_object> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1925,4 +1926,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_multi_address_obj)
       )
