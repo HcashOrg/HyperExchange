@@ -128,7 +128,7 @@ namespace graphene {
 			get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
 			{
 				const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-				if (p.trx_state == withdraw_sign_trx) {
+				if (p.trx_state == withdraw_sign_trx && p.relate_transaction_id != transaction_id_type()) {
 					uncombine_trxs_counts[p.relate_transaction_id].push_back(p.transaction_id);
 				}
 			});
