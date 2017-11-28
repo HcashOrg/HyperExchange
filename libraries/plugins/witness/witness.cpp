@@ -28,8 +28,9 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/utilities/key_conversion.hpp>
-#include <graphene/crosschain/crosschain_interface_emu.hpp>
 #include <graphene/crosschain/crosschain.hpp>
+#include <graphene/wallet/wallet.hpp>
+#include <graphene/crosschain/crosschain_interface_btc.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
 #include <graphene/chain/transaction_object.hpp>
@@ -260,6 +261,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 		//get cold address
 		for (auto iter : symbols)
 		{
+			if (iter.symbol == "LNK")
+				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
