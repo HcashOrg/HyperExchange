@@ -39,6 +39,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
+#include <graphene/chain/crosschain_trx_object.hpp>
 #include <fc/crypto/digest.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include "../common/database_fixture.hpp"
@@ -667,7 +668,6 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		throw;
 	}
 }
-
 BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 {
 	try {
@@ -701,6 +701,51 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
 		throw;
+	}
+}
+BOOST_AUTO_TEST_CASE(guard_sign_crosschain_transaction_test)
+{
+	try {
+		INVOKE(crosschain_withdraw_operation_test);
+		generate_block();
+		std::vector<crosschain_trx_object> result;
+		db.get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
+		{
+			const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+			if (p.trx_state == withdraw_without_sign_trx_uncreate && p.relate_transaction_id != transaction_id_type()) {
+				result.push_back(p);
+			}
+		});
+		FC_ASSERT(result.size() == 1, "result is error");
+		const account_object& nathan = get_account("guard6");
+		auto op = result[0].real_transaction.operations[0];
+		auto sign_op = op.get<crosschain_withdraw_without_sign_operation>();
+		auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+		auto hdl = manager.get_crosschain_handle(std::string(sign_op.asset_symbol));
+		string temp = "";
+		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, temp, false);
+
+		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
+		crosschain_withdraw_with_sign_operation trx_op;
+		trx_op.ccw_trx_id = sign_op.ccw_trx_id;
+		trx_op.asset_symbol = sign_op.asset_symbol;
+		trx_op.ccw_trx_signature = sign_string;
+		trx_op.withdraw_source_trx = sign_op.withdraw_source_trx;
+		trx_op.sign_guard = guard.id;
+		trx_op.guard_address = nathan.addr;
+		signed_transaction trx;
+		trx.operations.emplace_back(trx_op);
+		set_expiration(db, trx);
+		trx.validate();
+		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard6")));
+		sign(trx, private_key);
+		PUSH_TX(db, trx, ~0);
+		generate_block();
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+		throw;
+
 	}
 }
 
