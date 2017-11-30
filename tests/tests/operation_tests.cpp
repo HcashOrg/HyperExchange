@@ -634,19 +634,21 @@ BOOST_AUTO_TEST_CASE( create_guard_member_false_test )
     }
 }
 
-BOOST_AUTO_TEST_CASE(account_bind_operation_test)
+BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 {
 	try {
+		generate_block();
 		account_bind_operation op;
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
-		auto& acct = create_account("bindtest",private_key.get_public_key());
-		op.account_id = acct.id;
+		auto acct = create_account("bindtest",private_key);
+		generate_block();
+		op.account_id = acct.get_id();
 		op.crosschain_type = "BTC";
 		
 		
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC"); 
-		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}" ).get_object();
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}" ).get_object();
 		crosschain->initialize_config(config);
 		string tunnel_account  = crosschain->create_normal_account("test");
 		op.tunnel_address = tunnel_account;
@@ -658,25 +660,32 @@ BOOST_AUTO_TEST_CASE(account_bind_operation_test)
 		trx.validate();
 		sign(trx, private_key);
 		PUSH_TX(db, trx, ~0);
+		generate_block();
 		const auto& binding_accounts = db.get_index_type<account_binding_index>().indices();
 		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"BTC"));
 		BOOST_CHECK(iter != binding_accounts.get<by_account_binding>().end());
-		
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
 		throw;
 	}
 }
-BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
+BOOST_FIXTURE_TEST_CASE(crosschain_withdraw_operation_test,database_fixture)
 {
 	try {
+		generate_block();
 		INVOKE(account_bind_operation_test);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = get_account("bindtest");
-		const asset_object& emu = create_bitasset("BTC");
-		db.adjust_balance(acct.addr,asset(1000,emu.get_id()));
-	   
+		auto acct_nathan = get_account("guard0");
+		auto test_asset = create_user_issued_asset("BTC", acct_nathan, true);
+		generate_block();
+		auto account_id = acct_nathan.get_id();
+		issue_uia(account_id(db), asset(10000, test_asset.get_id()));
+		generate_block();
+		auto to_account_id = acct.get_id();
+		transfer(account_id, to_account_id, asset(1000, test_asset.get_id()));
+		generate_block();
 		crosschain_withdraw_operation op;
 		op.withdraw_account = acct.addr;
 		op.amount = 1000;
@@ -685,18 +694,16 @@ BOOST_AUTO_TEST_CASE(crosschain_withdraw_operation_test)
 		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
 		auto iter = bindings.find(boost::make_tuple(acct.id, "BTC"));
 		op.crosschain_account = iter->get_tunnel_account();
-		
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
 		trx.validate();
 		sign(trx, private_key);
-		PUSH_TX(db, trx, ~0);
+		db.push_transaction(trx, ~0);
 		generate_block();
-		const auto id = get_miner("miner6");
-		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner6")));
+		const auto id = get_miner("miner0");
+		private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("miner0")));
 		db.create_result_transaction(id, private_key);
-		
 	}
 	catch (fc::exception& e) {
 		edump((e.to_detail_string()));
@@ -712,19 +719,22 @@ BOOST_AUTO_TEST_CASE(guard_sign_crosschain_transaction_test)
 		db.get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
 		{
 			const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-			if (p.trx_state == withdraw_without_sign_trx_uncreate && p.relate_transaction_id != transaction_id_type()) {
+			if (p.trx_state == withdraw_without_sign_trx_create && p.relate_transaction_id != transaction_id_type()) {
 				result.push_back(p);
+
 			}
 		});
 		FC_ASSERT(result.size() == 1, "result is error");
-		const account_object& nathan = get_account("guard6");
+		const account_object& nathan = get_account("guard0");
 		auto op = result[0].real_transaction.operations[0];
 		auto sign_op = op.get<crosschain_withdraw_without_sign_operation>();
 		auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 		auto hdl = manager.get_crosschain_handle(std::string(sign_op.asset_symbol));
-		string temp = "";
-		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, temp, false);
-
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
+		hdl->initialize_config(config);
+		auto sign_test = hdl->create_normal_account("signtest");
+		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, sign_test, false);
+		//string sign_string = "Hello";
 		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
 		crosschain_withdraw_with_sign_operation trx_op;
 		trx_op.ccw_trx_id = sign_op.ccw_trx_id;

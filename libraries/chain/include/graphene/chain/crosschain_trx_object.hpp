@@ -41,7 +41,7 @@ namespace graphene {
 			ordered_unique< tag<by_id>,
 			member<object, object_id_type, &object::id>
 			>,
-			ordered_unique< tag<by_acquired_trx_state>,
+			ordered_non_unique< tag<by_acquired_trx_state>,
 			member<acquired_crosschain_trx_object, acquired_trx_state, &acquired_crosschain_trx_object::acquired_transaction_state>
 			>,
 			ordered_unique< tag<by_acquired_trx_id>,
@@ -77,19 +77,19 @@ namespace graphene {
 			ordered_unique< tag<by_id>,
 			member<object, object_id_type, &object::id>
 			>,
-			ordered_unique< tag<by_type>,
+			ordered_non_unique< tag<by_type>,
 			member<crosschain_trx_object, uint64_t, &crosschain_trx_object::op_type>
 			>,
-			ordered_unique< tag<by_transaction_stata>,
+			ordered_non_unique< tag<by_transaction_stata>,
 			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>
 			>,
-			ordered_unique<	tag<by_relate_trx_id>,
+			ordered_non_unique<	tag<by_relate_trx_id>,
 			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::relate_transaction_id>
 			>,
 			ordered_unique< tag<by_transaction_id>,
 			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>
 			>,
-			ordered_unique<
+			ordered_non_unique<
 			tag<by_trx_relate_type_stata>,
 			composite_key<
 			crosschain_trx_object,
@@ -101,7 +101,7 @@ namespace graphene {
 			std::less<transaction_stata>
 			>
 			>,
-			ordered_unique<
+			ordered_non_unique<
 			tag<by_trx_type_state>,
 			composite_key<
 			crosschain_trx_object,
