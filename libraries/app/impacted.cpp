@@ -102,6 +102,7 @@ struct get_impacted_account_visitor
    }
 
    void operator()( const asset_reserve_operation& op ) {}
+   void operator()(const asset_real_create_operation& op) {}
    void operator()( const asset_fund_fee_pool_operation& op ) {}
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}

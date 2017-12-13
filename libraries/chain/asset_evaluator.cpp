@@ -29,6 +29,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
+#include <graphene/chain/committee_member_object.hpp>
 
 #include <functional>
 
@@ -549,6 +550,46 @@ void_result asset_claim_fees_evaluator::do_apply( const asset_claim_fees_operati
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+
+void_result asset_real_create_evaluator::do_evaluate(const asset_real_create_operation& o)
+{
+	try {
+		const database& d = db();
+		auto id = o.issuer;
+		const auto& guards = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		FC_ASSERT(guards.find(o.issuer) != guards.end());
+		const auto& accounts = d.get_index_type<account_index>().indices().get<by_id>();
+		FC_ASSERT(accounts.find(o.issuer)->addr == o.issuer_addr);
+		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		auto asset_symbol_itr = asset_indx.find(o.symbol);
+		FC_ASSERT(asset_symbol_itr == asset_indx.end());
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result asset_real_create_evaluator::do_apply(const asset_real_create_operation& o)
+{
+	try {
+		const asset_dynamic_data_object& dyn_asset =
+			db().create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
+			a.current_supply = 0;
+			a.fee_pool = o.core_fee_paid; //op.calculate_fee(db().current_fee_schedule()).value / 2;
+		});
+		auto next_asset_id = db().get_index_type<asset_index>().get_next_id();
+
+		const asset_object& new_asset =
+			db().create<asset_object>([&](asset_object& a) {
+			a.issuer = o.issuer;
+			a.symbol = o.symbol;
+			a.precision = o.precision;
+			a.options.core_exchange_rate.base.asset_id = next_asset_id;
+			a.options.max_supply = o.max_supply;
+			a.dynamic_asset_data_id = dyn_asset.id;
+		});
+		assert(new_asset.id == next_asset_id);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 
 } } // graphene::chain

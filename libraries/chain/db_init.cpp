@@ -208,6 +208,7 @@ void database::initialize_evaluators()
    register_evaluator<blind_transfer_evaluator>();
    register_evaluator<asset_claim_fees_evaluator>();
    register_evaluator<guard_refund_balance_evaluator>();
+   register_evaluator<asset_real_create_evaluator>();
 }
 
 void database::initialize_indexes()

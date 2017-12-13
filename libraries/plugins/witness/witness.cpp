@@ -103,6 +103,8 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->multitoken()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
+			 ("crosschain-ip,w", bpo::value<string>()->composing()->default_value("127.0.0.1"))
+	          ("crosschain-port,w", bpo::value<int64_t>()->composing()->default_value(500))
          ;
    config_file_options.add(command_line_options);
 }
@@ -143,6 +145,7 @@ void miner_plugin::plugin_initialize(const boost::program_options::variables_map
          _private_keys[key_id_to_wif_pair.first] = *private_key;
       }
    }
+
    ilog("miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 

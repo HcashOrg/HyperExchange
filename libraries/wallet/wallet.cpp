@@ -1284,6 +1284,36 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (issuer)(symbol)(precision)(common)(bitasset_opts)(broadcast) ) }
 
+   signed_transaction wallet_create_asset(string issuer,
+	   string symbol,
+	   uint8_t precision,
+	   share_type max_supply,
+	   share_type core_fee_paid,
+	   bool broadcast = false)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   FC_ASSERT(!find_asset(symbol).valid(), "Asset with that symbol already exists!");
+
+		   //need a create asset op create a new asset
+		   asset_real_create_operation op;
+		   auto issuer_account = get_guard_member(issuer);
+		   op.issuer = issuer_account.guard_member_account;
+		   op.issuer_addr = get_account(op.issuer).addr;
+		   op.precision = precision;
+		   op.max_supply = max_supply;
+		   op.symbol = symbol;
+
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   
+		   return sign_transaction(tx, broadcast);
+	   } FC_CAPTURE_AND_RETHROW((issuer)(symbol)(precision)(max_supply)(broadcast))
+   }
+
+
    signed_transaction update_asset(string symbol,
                                    optional<string> new_issuer,
                                    asset_options new_options,
@@ -2042,9 +2072,12 @@ public:
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 
 		   guard_update_multi_account_operation update_op;
-		   
 		   const auto asset_id = get_asset_id(symbol);
 		   update_op.chain_type = symbol;
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   //crosschain->initialize_config("");
+		   //auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx, multisig_obj->new_address_hot);
+
 		   update_op.cold = address().operator fc::string();
 		   update_op.hot = address().operator fc::string();
 
@@ -4150,6 +4183,18 @@ signed_transaction wallet_api::create_asset(string issuer,
 
 {
    return my->create_asset(issuer, symbol, precision, common, bitasset_opts, broadcast);
+}
+
+
+signed_transaction wallet_api::wallet_create_asset(string issuer,
+	string symbol,
+	uint8_t precision,
+	share_type max_supply,
+	share_type core_fee_paid,
+	bool broadcast)
+
+{
+	return my->wallet_create_asset(issuer, symbol, precision,max_supply, core_fee_paid, broadcast);
 }
 
 signed_transaction wallet_api::update_asset(string symbol,

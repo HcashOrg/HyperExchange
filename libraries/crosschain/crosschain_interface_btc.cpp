@@ -267,6 +267,7 @@ namespace graphene {
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Crypt.Sign\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"addr\": " <<"\""<<account<<"\"," <<"\"message\":"<<"\""<<content<<"\"" <<"}}";
+
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{

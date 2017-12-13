@@ -1133,6 +1133,36 @@ class wallet_api
                                       fc::optional<bitasset_options> bitasset_opts,
                                       bool broadcast = false);
 
+
+	  /** Creates a new user-issued or market-issued asset.
+	  *
+	  * Many options can be changed later using \c update_asset()
+	  *
+	  * Right now this function is difficult to use because you must provide raw JSON data
+	  * structures for the options objects, and those include prices and asset ids.
+	  *
+	  * @param issuer the name or id of the account who will pay the fee and become the
+	  *               issuer of the new asset.  This can be updated later
+	  * @param symbol the ticker symbol of the new asset
+	  * @param precision the number of digits of precision to the right of the decimal point,
+	  *                  must be less than or equal to 12
+	  * @param common asset options required for all new assets.
+	  *               Note that core_exchange_rate technically needs to store the asset ID of
+	  *               this new asset. Since this ID is not known at the time this operation is
+	  *               created, create this price as though the new asset has instance ID 1, and
+	  *               the chain will overwrite it with the new asset's ID.
+	  * @param bitasset_opts options specific to BitAssets.  This may be null unless the
+	  *               \c market_issued flag is set in common.flags
+	  * @param broadcast true to broadcast the transaction on the network
+	  * @returns the signed transaction creating a new asset
+	  */
+	  signed_transaction wallet_create_asset(string issuer,
+		  string symbol,
+		  uint8_t precision,
+		  share_type max_supply,
+		  share_type core_fee_paid,
+		  bool broadcast = false);
+
       /** Issue new shares of an asset.
        *
        * @param to_account the name or id of the account to receive the new shares
@@ -1927,4 +1957,5 @@ FC_API( graphene::wallet::wallet_api,
 		(withdraw_cross_chain_transaction)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_multi_address_obj)
+		(wallet_create_asset)
       )
