@@ -103,8 +103,9 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->multitoken()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-			 ("crosschain-ip,w", bpo::value<string>()->composing()->default_value("127.0.0.1"))
-	          ("crosschain-port,w", bpo::value<int64_t>()->composing()->default_value(500))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("127.0.0.1"))
+	    ("crosschain-port,w", bpo::value<int64_t>()->composing()->default_value(500))
+	    ("chain-type,w",bpo::value<vector<string>>()->composing()->multitoken(), (string(" chain-type for crosschains  (e.g. BTC, quotes are required, may specify multiple times)")).c_str())
          ;
    config_file_options.add(command_line_options);
 }
@@ -145,7 +146,27 @@ void miner_plugin::plugin_initialize(const boost::program_options::variables_map
          _private_keys[key_id_to_wif_pair.first] = *private_key;
       }
    }
+   // maybe here should add crosschain initialize
+   if (options.count("crosschain-ip"))
+   {
+	   auto crosschain_ip = options["crosschain-ip"].as<std::string>();
+	   string port = "80";
+	   if (options.count("crosschain-port"))
+	   {
+		   port = options["crosschain-port"].as<int64_t>();
+	   }
+	   ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port",port));
+	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+	   auto config = "{\"ip\":\" "+crosschain_ip+" \",\"port\":"+port+"}";               
+	   auto config_var = fc::json::from_string(config).get_object();
+	   set<string> chain_types;
+	   LOAD_VALUE_SET(options,"chain-type",chain_types,string);
+	   for (auto chain_type : chain_types)
+	   {
+		   instance.get_crosschain_handle(chain_type)->initialize_config(config_var);
+	   }
 
+   }
    ilog("miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 

@@ -19,7 +19,6 @@ namespace graphene {
 			}
 
 			abstract_crosschain_interface * get_crosschain_handle(const std::string &name);
-
 		private:
 			std::mutex mutex;
 			std::map<std::string, abstract_crosschain_interface *> crosschain_handles;
@@ -27,4 +26,3 @@ namespace graphene {
 
 	}
 }
-void stub(void);

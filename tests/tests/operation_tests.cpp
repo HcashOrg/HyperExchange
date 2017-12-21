@@ -648,7 +648,7 @@ BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 		
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC"); 
-		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}" ).get_object();
+		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}" ).get_object();
 		crosschain->initialize_config(config);
 		string tunnel_account  = crosschain->create_normal_account("test");
 		op.tunnel_address = tunnel_account;

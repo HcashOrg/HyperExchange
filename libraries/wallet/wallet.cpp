@@ -2107,7 +2107,7 @@ public:
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
    }
-
+   
    signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
 	   try
@@ -5436,6 +5436,13 @@ vector<blind_receipt> wallet_api::blind_history( string key_or_account )
    }
    std::sort( result.begin(), result.end(), [&]( const blind_receipt& a, const blind_receipt& b ){ return a.date > b.date; } );
    return result;
+}
+
+string wallet_api::create_crosschain_symbol(const string& symbol)
+{
+	auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+	auto cross_interface = instance.get_crosschain_handle(symbol);
+	return cross_interface->create_normal_account(symbol);
 }
 
 order_book wallet_api::get_order_book( const string& base, const string& quote, unsigned limit )
