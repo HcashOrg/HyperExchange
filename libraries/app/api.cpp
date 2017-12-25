@@ -40,7 +40,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/future.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)
@@ -73,7 +73,11 @@ namespace graphene { namespace app {
           enable_api( api_name );
        return true;
     }
-
+	fc::api<crosschain_api> login_api::crosschain_config() const
+	{
+		FC_ASSERT(_crosschain_api);
+		return *_crosschain_api;
+	}
     void login_api::enable_api( const std::string& api_name )
     {
        if( api_name == "database_api" )
@@ -110,6 +114,11 @@ namespace graphene { namespace app {
           if( _app.get_plugin( "debug_miner" ) )
              _debug_api = std::make_shared< graphene::debug_miner::debug_api >( std::ref(_app) );
        }
+	   else if (api_name == "crosschain_api")
+	   {
+		   _crosschain_api = std::make_shared<crosschain_api>(_app.get_crosschain_manager_config());
+	   }
+
        return;
     }
 
@@ -631,7 +640,13 @@ namespace graphene { namespace app {
     {
        return fc::ecc::range_get_info( proof );
     }
-
+	//crosschain_api
+	crosschain_api::crosschain_api(const string& config) :_config(config) {}
+	crosschain_api::~crosschain_api() {}
+	string crosschain_api::get_config()
+	{
+		return _config;
+	}
     // asset_api
     asset_api::asset_api(graphene::chain::database& db) : _db(db) { }
     asset_api::~asset_api() { }

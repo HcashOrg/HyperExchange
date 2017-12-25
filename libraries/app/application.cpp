@@ -57,7 +57,9 @@
 #include <fc/log/logger_config.hpp>
 
 #include <boost/range/adaptor/reversed.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
+#include <graphene/crosschain/crosschain_impl.hpp>
+#include <graphene/crosschain/crosschain_interface_btc.hpp>
 namespace graphene { namespace app {
 using net::item_hash_t;
 using net::item_id;
@@ -222,6 +224,7 @@ namespace detail {
          _p2p_network->sync_from(net::item_id(net::core_message_type_enum::block_message_type,
                                               _chain_db->head_block_id()),
                                  std::vector<uint32_t>());
+		 
       } FC_CAPTURE_AND_RETHROW() }
 
       std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints(const std::string& endpoint_string)
@@ -486,12 +489,38 @@ namespace detail {
             wild_access.allowed_apis.push_back( "network_broadcast_api" );
             wild_access.allowed_apis.push_back( "history_api" );
             wild_access.allowed_apis.push_back( "crypto_api" );
+			wild_access.allowed_apis.push_back("crosschain_api");
             _apiaccess.permission_map["*"] = wild_access;
          }
 
          reset_p2p_node(_data_dir);
          reset_websocket_server();
          reset_websocket_tls_server();
+
+		 // maybe here should add crosschain initialize
+		 if (_options->count("crosschain-ip"))
+		 {
+			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
+			 string port = "80";
+			 if (_options->count("crosschain-port"))
+			 {
+				 port = _options->at("crosschain-port").as<string>();
+			 }
+			 ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port", port));
+			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
+			 auto config_var = fc::json::from_string(config).get_object();
+			 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
+
+			 for (auto chain_type : chain_types)
+			 {
+				auto fd = instance.get_crosschain_handle(chain_type);
+				if (fd != nullptr)
+					fd->initialize_config(config_var);
+			 }
+			 _self->set_crosschain_manager_config(config);
+		 }
+
       } FC_LOG_AND_RETHROW() }
 
       optional< api_access_info > get_api_access_info(const string& username)const
@@ -1072,6 +1101,15 @@ optional< api_access_info > application::get_api_access_info( const string& user
 void application::set_api_access_info(const string& username, api_access_info&& permissions)
 {
    my->set_api_access_info(username, std::move(permissions));
+}
+
+string application::get_crosschain_manager_config()
+{
+	return _crosschain_config;
+}
+void application::set_crosschain_manager_config(const string& config)
+{
+	_crosschain_config = config;
 }
 
 bool application::is_finished_syncing() const

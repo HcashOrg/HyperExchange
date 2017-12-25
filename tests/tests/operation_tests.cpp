@@ -642,7 +642,7 @@ BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto acct = create_account("bindtest",private_key);
 		generate_block();
-		op.account_id = acct.get_id();
+		op.addr = acct.addr;
 		op.crosschain_type = "BTC";
 		
 		
@@ -662,7 +662,7 @@ BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 		PUSH_TX(db, trx, ~0);
 		generate_block();
 		const auto& binding_accounts = db.get_index_type<account_binding_index>().indices();
-		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.id,"BTC"));
+		auto iter = binding_accounts.get<by_account_binding>().find(boost::make_tuple(acct.addr,"BTC"));
 		BOOST_CHECK(iter != binding_accounts.get<by_account_binding>().end());
 	}
 	catch (fc::exception& e) {
@@ -692,7 +692,7 @@ BOOST_FIXTURE_TEST_CASE(crosschain_withdraw_operation_test,database_fixture)
 		op.asset_id = get_asset("BTC").get_id();
 		op.asset_symbol = "BTC";
 		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
-		auto iter = bindings.find(boost::make_tuple(acct.id, "BTC"));
+		auto iter = bindings.find(boost::make_tuple(acct.addr, "BTC"));
 		op.crosschain_account = iter->get_tunnel_account();
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
@@ -766,10 +766,10 @@ BOOST_AUTO_TEST_CASE(account_unbind_operation_test)
 		account_unbind_operation op;
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("bindtest")));
 		auto& acct = get_account("bindtest");
-		op.account_id = acct.id;
+		op.addr = acct.addr;
 		op.crosschain_type = "BTC";
 		const auto& bindings = db.get_index_type<account_binding_index>().indices().get<by_account_binding>();
-		auto iter =bindings.find(boost::make_tuple(acct.id, "BTC"));
+		auto iter =bindings.find(boost::make_tuple(acct.addr, "BTC"));
 		
 
 		op.account_signature = private_key.sign_compact(fc::sha256::hash(acct.addr));

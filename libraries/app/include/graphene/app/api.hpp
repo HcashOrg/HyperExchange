@@ -38,7 +38,7 @@
 #include <fc/optional.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/network/ip.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
 #include <boost/container/flat_set.hpp>
 
 #include <functional>
@@ -319,6 +319,17 @@ namespace graphene { namespace app {
          graphene::chain::database& _db;
    };
 
+   class crosschain_api
+   {
+   public:
+	   crosschain_api(const string& config);
+	   ~crosschain_api();
+	   string get_config();
+   private:
+	   string _config;
+   };
+
+
    /**
     * @brief The login_api class implements the bottom layer of the RPC API
     *
@@ -356,9 +367,10 @@ namespace graphene { namespace app {
          fc::api<asset_api> asset()const;
          /// @brief Retrieve the debug API (if available)
          fc::api<graphene::debug_miner::debug_api> debug()const;
-
+	     fc::api<crosschain_api> crosschain_config() const;
          /// @brief Called to enable an API, not reflected.
          void enable_api( const string& api_name );
+		 
       private:
 
          application& _app;
@@ -370,6 +382,7 @@ namespace graphene { namespace app {
          optional< fc::api<crypto_api> > _crypto_api;
          optional< fc::api<asset_api> > _asset_api;
          optional< fc::api<graphene::debug_miner::debug_api> > _debug_api;
+		 optional <fc::api<crosschain_api >>   _crosschain_api;
    };
 
 }}  // graphene::app
@@ -394,9 +407,12 @@ FC_API(graphene::app::history_api,
        (get_market_history)
        (get_market_history_buckets)
      )
-FC_API(graphene::app::block_api,
-       (get_blocks)
+FC_API(graphene::app::crosschain_api,
+       (get_config)
      )
+FC_API(graphene::app::block_api,
+	(get_blocks)
+	)
 FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
        (broadcast_transaction_with_callback)
@@ -437,4 +453,5 @@ FC_API(graphene::app::login_api,
        (crypto)
        (asset)
        (debug)
+	   (crosschain_config)
      )

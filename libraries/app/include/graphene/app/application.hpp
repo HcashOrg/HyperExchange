@@ -26,7 +26,7 @@
 #include <graphene/app/api_access.hpp>
 #include <graphene/net/node.hpp>
 #include <graphene/chain/database.hpp>
-
+#include <graphene/crosschain/crosschain.hpp>
 #include <boost/program_options.hpp>
 
 namespace graphene { namespace app {
@@ -87,13 +87,15 @@ namespace graphene { namespace app {
          bool is_finished_syncing()const;
          /// Emitted when syncing finishes (is_finished_syncing will return true)
          boost::signals2::signal<void()> syncing_finished;
-
+		 string get_crosschain_manager_config();
+		 void set_crosschain_manager_config(const string& config);
       private:
          void add_plugin( const string& name, std::shared_ptr<abstract_plugin> p );
          std::shared_ptr<detail::application_impl> my;
 
          boost::program_options::options_description _cli_options;
          boost::program_options::options_description _cfg_options;
+		 string _crosschain_config;
    };
 
 } }
