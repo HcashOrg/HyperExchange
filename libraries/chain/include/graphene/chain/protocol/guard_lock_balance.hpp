@@ -57,11 +57,15 @@ namespace graphene {
 			asset fee;
 			string cold;
 			string hot;
+			address addr;
 			address fee_payer()const {
-				return address();
+				return addr;
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, addr, 1));
+			}
 		};
 
 	}

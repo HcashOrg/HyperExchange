@@ -1977,8 +1977,8 @@ public:
 		   op.new_address_cold = cold_addr;
 		   op.new_address_hot = hot_addr;
 		   op.crosschain_type = symbol;
-		   auto key =  fc::ecc::extended_private_key::from_base58(_keys[op.addr]);
-		   op.signature = key.sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
+		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
 
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
@@ -2095,8 +2095,8 @@ public:
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   //auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx, multisig_obj->new_address_hot);
 
-		   update_op.cold = address().operator fc::string();
-		   update_op.hot = address().operator fc::string();
+		   update_op.cold = crosschain->create_normal_account("");
+		   update_op.hot = crosschain->create_normal_account("");
 
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(update_op);

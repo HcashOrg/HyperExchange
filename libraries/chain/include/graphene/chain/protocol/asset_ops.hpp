@@ -459,6 +459,9 @@ namespace graphene { namespace chain {
 	   extensions_type extensions;
 	   void            validate() const;
 	   share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, issuer_addr, 1));
+	   }
    };
 
 
