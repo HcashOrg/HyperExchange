@@ -1961,10 +1961,11 @@ public:
 		   auto guard_account = get_guard_member(from_account);
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
-
+		   string config = (*_crosschain_manager)->get_config();
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		   //we need get proper crosschain interface
 		   auto cross_interface = instance.get_crosschain_handle(symbol);
+		   cross_interface->initialize_config(fc::json::from_string(config).get_object());
 		   //we need generate two public
 		   string hot_addr =cross_interface->create_normal_account(symbol);
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
@@ -2001,7 +2002,9 @@ public:
 		   const address  hot_addr;
 		   
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		   auto inface = instance.get_crosschain_handle("EMU");
+		   auto inface = instance.get_crosschain_handle(symbol);
+		   string config = (*_crosschain_manager)->get_config();
+		   inface->initialize_config(fc::json::from_string(config).get_object());
 		   auto asset_obj = get_asset(symbol);
 		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
 		   // TODO
@@ -2057,8 +2060,9 @@ public:
 		   guard_member_object guard_obj = get_guard_member(guard);
 		   optional<multisig_address_object> multisig_obj = _remote_db->get_multisig_address_obj(multisig_trx_obj.chain_type,guard_obj.guard_member_account);
 		   FC_ASSERT(multisig_obj.valid());
+		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(multisig_trx_obj.chain_type);
-		   
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj->new_address_hot);
 		   op.signature = signature;
 		   op.addr = acct.addr;
@@ -2086,8 +2090,9 @@ public:
 		   guard_update_multi_account_operation update_op;
 		   const auto asset_id = get_asset_id(symbol);
 		   update_op.chain_type = symbol;
+		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
-		   //crosschain->initialize_config("");
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   //auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx, multisig_obj->new_address_hot);
 
 		   update_op.cold = address().operator fc::string();
@@ -2132,7 +2137,9 @@ public:
 		   op.tunnel_address = tunnel_account;
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
@@ -2154,7 +2161,9 @@ public:
 		   op.tunnel_address = tunnel_account;
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
@@ -2501,6 +2510,8 @@ public:
 			   auto withop_without_sign = op.get<crosschain_withdraw_without_sign_operation>();
 			   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
+			   string config = (*_crosschain_manager)->get_config();
+			   hdl->initialize_config(fc::json::from_string(config).get_object());
 			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, guard, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
@@ -2525,6 +2536,10 @@ public:
 		   auto withop_without_sign = op.get<crosschain_withdraw_without_sign_operation>();
 		   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 		   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
+		   string config = (*_crosschain_manager)->get_config();
+		   hdl->initialize_config(fc::json::from_string(config).get_object());
+
+
 		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, guard, false);
 		   crosschain_withdraw_with_sign_operation trx_op;
 		   /*
