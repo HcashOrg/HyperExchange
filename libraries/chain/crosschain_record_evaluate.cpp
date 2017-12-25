@@ -20,8 +20,8 @@ namespace graphene {
 			database& d = db();
 			auto &tunnel_idx = d.get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
-			optional<account_object> account_iter = d.get(tunnel_itr->owner);
-			d.adjust_balance(account_iter->addr, asset(o.cross_chain_trx.amount, o.asset_id));
+		
+			d.adjust_balance(tunnel_itr->owner, asset(o.cross_chain_trx.amount, o.asset_id));
 			return void_result();
 		}
 
@@ -32,8 +32,8 @@ namespace graphene {
 			FC_ASSERT(o.amount > 0);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 			auto& acc = db().get_index_type<account_index>().indices().get<by_address>();
-			auto id = acc.find(o.withdraw_account)->get_id();
-			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(id, o.asset_symbol));
+			auto addr = acc.find(o.withdraw_account)->addr;
+			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(addr, o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
 			FC_ASSERT(tunnel_itr->bind_account == o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();

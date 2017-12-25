@@ -279,7 +279,7 @@ namespace graphene { namespace chain {
 	   static const uint8_t space_id = implementation_ids;
 	   static const uint8_t type_id = impl_account_binding_object_type;
 
-	   account_id_type   owner;
+	   address   owner;
 	   std::string		 chain_type;
 	   std::string       bind_account;
 
@@ -437,7 +437,7 @@ namespace graphene { namespace chain {
 		   ordered_unique< tag<by_account_binding>,
 			   composite_key<
 				   account_binding_object,
-				   member<account_binding_object, account_id_type, &account_binding_object::owner>,
+				   member<account_binding_object, address, &account_binding_object::owner>,
 				   member<account_binding_object, std::string, &account_binding_object::chain_type>
 			   >
 		   >,

@@ -273,13 +273,19 @@ namespace graphene { namespace chain {
 
 	   asset           fee;
 	   std::string crosschain_type;
-	   account_id_type account_id;
+	   address addr;
 	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
 
-	   account_id_type fee_payer()const { return account_id; }
+	   address fee_payer()const { return addr; }
 	   void        validate()const;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; };
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   // registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure
+		   a.push_back(authority(1, addr, 1));
+	   }
    };
 
    /**
@@ -298,13 +304,19 @@ namespace graphene { namespace chain {
 
 	   asset           fee;
 	   std::string crosschain_type;
-	   account_id_type account_id;
+	   address addr;
 	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
 
-	   account_id_type fee_payer()const { return account_id; }
+	   address fee_payer()const { return addr; }
 	   void        validate()const;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; };
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   // registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure
+		   a.push_back(authority(1, addr, 1));
+	   }
    };
 
    /**
@@ -368,9 +380,9 @@ FC_REFLECT( graphene::chain::account_transfer_operation::fee_parameters_type, (f
 FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_owner)(extensions) )
 
 FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
+FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature))
 FC_REFLECT(graphene::chain::account_unbind_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(account_id)(account_signature)(tunnel_address)(tunnel_signature))
+FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature))
 
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_address_cold)(signature))

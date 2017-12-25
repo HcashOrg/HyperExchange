@@ -1960,4 +1960,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multi_address_obj)
 		(wallet_create_asset)
 		(create_crosschain_symbol)
+		(bind_tunnel_account)
+		(unbind_tunnel_account)
+		(update_asset_private_keys)
       )

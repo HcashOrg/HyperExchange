@@ -401,7 +401,8 @@ public:
         _remote_api(rapi),
         _remote_db(rapi->database()),
         _remote_net_broadcast(rapi->network_broadcast()),
-        _remote_hist(rapi->history())
+        _remote_hist(rapi->history()),
+	   _crosschain_manager(rapi->crosschain_config())
    {
       chain_id_type remote_chain_id = _remote_db->get_chain_id();
       if( remote_chain_id != _chain_id )
@@ -618,6 +619,17 @@ public:
       }
 	  return account_object();
    }
+
+   string create_crosschain_symbol(const string& symbol)
+   {
+	   string config = (*_crosschain_manager)->get_config();
+	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+	  
+	   auto fd = instance.get_crosschain_handle(symbol);
+	   fd->initialize_config(fc::json::from_string(config).get_object());
+	   return fd->create_normal_account("");
+   }
+
    account_id_type get_account_id(string account_name_or_id) const
    {
       return get_account(account_name_or_id).get_id();
@@ -2115,11 +2127,11 @@ public:
 		   FC_ASSERT(!is_locked());
 		   account_bind_operation op;
 		   auto acct_obj = get_account(link_account);
-		   op.account_id = acct_obj.id;
+		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
-		   auto key = fc::ecc::extended_private_key::from_base58(_keys[acct_obj.addr]);
-		   op.account_signature = key.sign_compact(fc::sha256::hash(acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
@@ -2137,11 +2149,11 @@ public:
 		   FC_ASSERT(!is_locked());
 		   account_unbind_operation op;
 		   auto acct_obj = get_account(link_account);
-		   op.account_id = acct_obj.id;
+		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
-		   auto key = fc::ecc::extended_private_key::from_base58(_keys[acct_obj.addr]);
-		   op.account_signature = key.sign_compact(fc::sha256::hash(acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
@@ -2408,7 +2420,7 @@ public:
          // else we've generated a dupe, increment expiration time and re-sign it
          ++expiration_time_offset;
       }
-	 
+	  FC_ASSERT(tx.signatures.size()!=0);
       if( broadcast )
       {
          try
@@ -3446,7 +3458,7 @@ public:
    fc::api<history_api>    _remote_hist;
    optional< fc::api<network_node_api> > _remote_net_node;
    optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
-
+   optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
 
    static_variant_map _operation_which_map = create_static_variant_map< operation >();
@@ -5440,9 +5452,7 @@ vector<blind_receipt> wallet_api::blind_history( string key_or_account )
 
 string wallet_api::create_crosschain_symbol(const string& symbol)
 {
-	auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-	auto cross_interface = instance.get_crosschain_handle(symbol);
-	return cross_interface->create_normal_account(symbol);
+	return my->create_crosschain_symbol(symbol);
 }
 
 order_book wallet_api::get_order_book( const string& base, const string& quote, unsigned limit )

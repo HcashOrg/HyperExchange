@@ -296,6 +296,8 @@ void verify_authority( const vector<operation>& ops, const flat_set<public_key_t
                        tx_missing_owner_auth, "Missing Owner Authority ${id}", ("id",id)("auth",*get_owner(id)) );
    }
    */
+   //we need at least one signatures
+   FC_ASSERT(other.size() != 0);
    GRAPHENE_ASSERT(
       !s.remove_unused_signatures(),
       tx_irrelevant_sig,

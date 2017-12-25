@@ -366,7 +366,7 @@ void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
 { try {
 	// One-to-one binding between link account and tunnel address.
 	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
-	auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+	auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 	FC_ASSERT(bind_itr == bind_idx.end());
 
 	auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
@@ -381,7 +381,7 @@ object_id_type account_bind_evaluator::do_apply(const account_bind_operation& o)
 { try {
 	database& d = db();
 	const auto & binding = d.create<account_binding_object>([&](account_binding_object& a) {
-		a.owner = o.account_id;
+		a.owner = o.addr;
 		a.bind_account = o.tunnel_address;
 		a.chain_type = o.crosschain_type;
 	});
@@ -394,7 +394,7 @@ void_result account_unbind_evaluator::do_evaluate(const account_unbind_operation
 	try {
 		// One-to-one binding between link account and tunnel address.
 		auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
-		auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+		auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 		FC_ASSERT(bind_itr != bind_idx.end());
 
 		auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
@@ -410,7 +410,7 @@ object_id_type account_unbind_evaluator::do_apply(const account_unbind_operation
 	try {
 		database& d = db();
 		auto &bind_idx = d.get_index_type<account_binding_index>().indices().get<by_account_binding>();
-		auto bind_itr = bind_idx.find(boost::make_tuple(o.account_id, o.crosschain_type));
+		auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 		auto id = bind_itr->id;
 		d.remove(*bind_itr);
 		return id;

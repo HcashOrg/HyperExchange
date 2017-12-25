@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include <fc/reflect/reflect.hpp>
 namespace graphene {
 	namespace crosschain {
 		class abstract_crosschain_interface;
@@ -19,10 +20,10 @@ namespace graphene {
 			}
 
 			abstract_crosschain_interface * get_crosschain_handle(const std::string &name);
-		private:
-			std::mutex mutex;
+	   private:
 			std::map<std::string, abstract_crosschain_interface *> crosschain_handles;
 		};
 
 	}
 }
+//FC_REFLECT(graphene::crosschain::crosschain_manager, (crosschain_handles))
