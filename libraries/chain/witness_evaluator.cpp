@@ -127,6 +127,15 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;
 		});
+		//we need change the status of the multisig_address_object
+		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+		for (auto itr : guard_change_idx)
+		{
+			db().modify(itr, [&](multisig_address_object& obj) {
+				obj.formal = true;
+			});
+		}
+
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 

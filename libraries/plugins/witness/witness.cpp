@@ -273,8 +273,11 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(
 				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot](const multisig_address_object& obj) {
-				symbol_addrs_cold.push_back(obj.new_address_cold);
-				symbol_addrs_hot.push_back(obj.new_address_hot);
+				if (obj.formal == false)
+				{
+					symbol_addrs_cold.push_back(obj.new_address_cold);
+					symbol_addrs_hot.push_back(obj.new_address_hot);
+				}
 			}
 			);
 			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size())
