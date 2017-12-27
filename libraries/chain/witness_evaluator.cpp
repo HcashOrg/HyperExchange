@@ -99,13 +99,17 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
 		std::for_each(
 			addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot](const multisig_address_object& obj) {
-			symbol_addrs_cold.push_back(obj.new_address_cold);
-			symbol_addrs_hot.push_back(obj.new_address_hot);
+			if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
+			{
+				symbol_addrs_cold.push_back(obj.new_address_cold);
+				symbol_addrs_hot.push_back(obj.new_address_hot);
+			}
 		}
 		);
-
+		const auto& guard_ids = db().get_global_properties().active_committee_members;
+		FC_ASSERT(symbol_addrs_cold.size()==guard_ids.size() && symbol_addrs_hot.size()==guard_ids.size());
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		auto crosschain_interface = instance.get_crosschain_handle("EMU");
+		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size() * 2 / 3));
 		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
 
@@ -132,7 +136,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		for (auto itr : guard_change_idx)
 		{
 			db().modify(itr, [&](multisig_address_object& obj) {
-				obj.formal = true;
+				obj.multisig_account_pair_object_id = new_acnt_object.id;
 			});
 		}
 

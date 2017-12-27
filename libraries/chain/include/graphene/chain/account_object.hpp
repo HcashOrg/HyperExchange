@@ -316,8 +316,8 @@ namespace graphene { namespace chain {
 	   std::string		 chain_type;
 	   std::string       new_address_hot;
 	   std::string       new_address_cold;
-	   bool              formal = false;
-	   signature_type	 signature;
+	   multisig_account_pair_id_type    multisig_account_pair_object_id;
+   	   signature_type	 signature;
 
 	   //std::string get_tunnel_account()const { return bind_account; }
    };
@@ -492,7 +492,9 @@ namespace graphene { namespace chain {
 			   composite_key<
 					multisig_address_object,
 					member<multisig_address_object, std::string, &multisig_address_object::chain_type>,
+	                member<multisig_address_object, multisig_account_pair_id_type, &multisig_address_object::multisig_account_pair_object_id>,
 					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>
+	            
 			   >
 		   >
 	   >
@@ -531,7 +533,7 @@ FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
 					
 FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
 					(graphene::db::object),
-					(guard_account)(chain_type)(new_address_hot)(new_address_cold)(formal)(signature))
+					(guard_account)(chain_type)(new_address_hot)(new_address_cold)(multisig_account_pair_object_id)(signature))
 					
 FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (graphene::chain::object),

@@ -421,10 +421,6 @@ void_result account_multisig_create_evaluator::do_evaluate(const account_multisi
 { try {
 	//Check if this address exists.
 	auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-	auto itr = guard_change_idx.find(boost::make_tuple(o.crosschain_type, o.account_id));
-	if (itr != guard_change_idx.end())
-		db().remove(*itr);
-
 	//Check if all the signatures are valid.
 	auto &accounts = db().get_index_type<account_index>().indices().get<by_address>();
 	auto addr = address(fc::ecc::public_key(o.signature, fc::sha256::hash(o.new_address_hot+o.new_address_cold)));

@@ -145,7 +145,8 @@ const uint8_t multisig_asset_transfer_object::type_id;
 
 const uint8_t acquired_crosschain_trx_object::space_id;
 const uint8_t acquired_crosschain_trx_object::type_id;
-
+const uint8_t multisig_account_pair_object::space_id;
+const uint8_t multisig_account_pair_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);

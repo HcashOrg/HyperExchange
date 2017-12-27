@@ -224,6 +224,7 @@ namespace graphene { namespace chain {
    class special_authority_object;
    class buyback_object;
    class fba_accumulator_object;
+   class multisig_account_pair_object;
    
 
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
@@ -245,7 +246,7 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_special_authority_object_type, special_authority_object >                special_authority_id_type;
    typedef object_id< implementation_ids, impl_buyback_object_type, buyback_object >                                    buyback_id_type;
    typedef object_id< implementation_ids, impl_fba_accumulator_object_type, fba_accumulator_object >                    fba_accumulator_id_type;
-
+   typedef object_id< implementation_ids, impl_multisig_account_binding_object_type, multisig_account_pair_object >     multisig_account_pair_id_type;
    typedef fc::array<char, GRAPHENE_MAX_ASSET_SYMBOL_LENGTH>    symbol_type;
    typedef fc::ripemd160                                        block_id_type;
    typedef fc::ripemd160                                        checksum_type;
@@ -362,7 +363,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (lockbalance_object_type)
 				 (guard_lock_balance_object_type)
 	             (multisig_transfer_object_type)
-(acquired_crosschain_object_type)
+                 (acquired_crosschain_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -383,6 +384,7 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_special_authority_object_type)
                  (impl_buyback_object_type)
                  (impl_fba_accumulator_object_type)
+	             (impl_multisig_account_binding_object_type)
                )
 
 FC_REFLECT_TYPENAME( graphene::chain::share_type )
@@ -419,6 +421,7 @@ FC_REFLECT_TYPENAME(graphene::chain::guard_lock_balance_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::fba_accumulator_id_type )
 FC_REFLECT_TYPENAME(graphene::chain::multisig_asset_transfer_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::acquired_crosschain_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::multisig_account_pair_id_type)
 FC_REFLECT( graphene::chain::void_t, )
 
 FC_REFLECT_ENUM( graphene::chain::asset_issuer_permission_flags,
