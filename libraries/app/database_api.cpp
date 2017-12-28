@@ -33,7 +33,7 @@
 #include <boost/range/iterator_range.hpp>
 #include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-
+#include <graphene/chain/account_object.hpp>
 #include <cctype>
 
 #include <cfenv>
@@ -2047,9 +2047,22 @@ vector<guard_lock_balance_object> database_api_impl::get_guard_asset_lock_balanc
 }
 
 optional<multisig_address_object> database_api_impl::get_multisig_address_obj(const string& symbol,const account_id_type& guard) const {
+	const auto& multisig_idx = _db.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
+	const auto range_idx = multisig_idx.equal_range(boost::make_tuple(symbol));
+	multisig_account_pair_id_type id;
+	uint64_t max = 0;	
+	std::for_each(range_idx.first, range_idx.second, [&](multisig_account_pair_object obj) {
+		if (max < obj.effective_block_num)
+		{
+			max = obj.effective_block_num;
+			id = obj.id;
+		}
+	});
 	const auto& multisig_addr_by_guard = _db.get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-	const auto iter = multisig_addr_by_guard.find(boost::make_tuple(symbol,guard));
-	return *iter;
+	const auto iter = multisig_addr_by_guard.find(boost::make_tuple(symbol,guard,id));
+	if (iter != multisig_addr_by_guard.end())
+		return *iter;
+	return optional<multisig_address_object>();
 }
 
 //////////////////////////////////////////////////////////////////////

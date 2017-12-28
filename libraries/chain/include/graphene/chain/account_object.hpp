@@ -492,8 +492,8 @@ namespace graphene { namespace chain {
 			   composite_key<
 					multisig_address_object,
 					member<multisig_address_object, std::string, &multisig_address_object::chain_type>,
-	                member<multisig_address_object, multisig_account_pair_id_type, &multisig_address_object::multisig_account_pair_object_id>,
-					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>
+					member<multisig_address_object, account_id_type, &multisig_address_object::guard_account>,
+	                member<multisig_address_object, multisig_account_pair_id_type, &multisig_address_object::multisig_account_pair_object_id>
 	            
 			   >
 		   >
