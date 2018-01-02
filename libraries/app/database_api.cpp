@@ -152,7 +152,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<optional<account_binding_object>> get_binding_account(const string& account, const string& symbol) const;
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
-	  optional<multisig_address_object> get_multisig_address_obj(const string& symbol, const account_id_type& guard) const;
+	  vector<optional<multisig_address_object>> get_multisig_address_obj(const string& symbol, const account_id_type& guard) const;
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
@@ -1992,7 +1992,7 @@ vector<optional<account_binding_object>> database_api_impl::get_binding_account(
 	return result;
 }
 
-optional<multisig_address_object> database_api::get_multisig_address_obj(const string& symbol, const account_id_type& guard) const {
+vector<optional<multisig_address_object>> database_api::get_multisig_address_obj(const string& symbol, const account_id_type& guard) const {
 	return my->get_multisig_address_obj(symbol,guard);
 }
 
@@ -2046,23 +2046,15 @@ vector<guard_lock_balance_object> database_api_impl::get_guard_asset_lock_balanc
 	return result;
 }
 
-optional<multisig_address_object> database_api_impl::get_multisig_address_obj(const string& symbol,const account_id_type& guard) const {
-	const auto& multisig_idx = _db.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
-	const auto range_idx = multisig_idx.equal_range(boost::make_tuple(symbol));
-	multisig_account_pair_id_type id;
-	uint64_t max = 0;	
-	std::for_each(range_idx.first, range_idx.second, [&](multisig_account_pair_object obj) {
-		if (max < obj.effective_block_num)
-		{
-			max = obj.effective_block_num;
-			id = obj.id;
-		}
-	});
+vector<optional<multisig_address_object>> database_api_impl::get_multisig_address_obj(const string& symbol,const account_id_type& guard) const {
+	vector<optional<multisig_address_object>> result;
 	const auto& multisig_addr_by_guard = _db.get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-	const auto iter = multisig_addr_by_guard.find(boost::make_tuple(symbol,guard,id));
-	if (iter != multisig_addr_by_guard.end())
-		return *iter;
-	return optional<multisig_address_object>();
+	const auto iter_range = multisig_addr_by_guard.equal_range(boost::make_tuple(symbol,guard));
+	std::for_each(iter_range.first, iter_range.second, [&](multisig_address_object obj) {
+		result.emplace_back(obj);
+	});
+	
+	return result;
 }
 
 //////////////////////////////////////////////////////////////////////

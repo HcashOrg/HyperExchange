@@ -2031,7 +2031,7 @@ public:
 		   return _remote_db->get_multisigs_trx();
 	   }FC_CAPTURE_AND_RETHROW()
    }
-   optional<multisig_address_object> get_multi_address_obj(const string symbol,const account_id_type& guard) const
+   vector<optional<multisig_address_object>> get_multi_address_obj(const string symbol,const account_id_type& guard) const
    {
 	   try {
 		   return _remote_db->get_multisig_address_obj(symbol,guard);
@@ -2058,12 +2058,12 @@ public:
 		   
 		   sign_multisig_asset_operation op;
 		   guard_member_object guard_obj = get_guard_member(guard);
-		   optional<multisig_address_object> multisig_obj = _remote_db->get_multisig_address_obj(multisig_trx_obj.chain_type,guard_obj.guard_member_account);
-		   FC_ASSERT(multisig_obj.valid());
+		   vector<optional<multisig_address_object>> multisig_obj = _remote_db->get_multisig_address_obj(multisig_trx_obj.chain_type,guard_obj.guard_member_account);
+		   FC_ASSERT(multisig_obj[0].valid());
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(multisig_trx_obj.chain_type);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj->new_address_hot);
+		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj[0]->new_address_hot);
 		   op.signature = signature;
 		   op.addr = acct.addr;
 		   op.multisig_trx_id = multisig_trx_obj.id;
@@ -4719,7 +4719,7 @@ vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
 	return my->get_multisig_asset_tx();
 }
 
-optional<multisig_address_object> wallet_api::get_multi_address_obj(const string& symbol,const account_id_type& guard) const
+vector<optional<multisig_address_object>> wallet_api::get_multi_address_obj(const string& symbol,const account_id_type& guard) const
 {
 	return my->get_multi_address_obj(symbol,guard);
 }
@@ -4925,6 +4925,11 @@ vector<optional<account_binding_object>> wallet_api::get_binding_account(const s
 {
 	return my->get_binding_account(account,symbol);
 }
+optional<multisig_account_pair_object> wallet_api::get_multisig_account_pair() const
+{
+	return optional<multisig_account_pair_object>();
+}
+
 signed_transaction wallet_api::borrow_asset(string seller_name, string amount_to_sell,
                                                 string asset_symbol, string amount_of_collateral, bool broadcast)
 {

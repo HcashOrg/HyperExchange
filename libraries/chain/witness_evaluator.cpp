@@ -125,15 +125,21 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 	try
 	{
 		//update the latest multi-addr in database
+		auto& account_pair_index = db().get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
+		auto& iter = account_pair_index.find(boost::make_tuple(o.multi_address_hot,o.multi_address_cold,o.chain_type));
+		if (iter != account_pair_index.end())
+		{
+			db().remove(*iter);
+		}
 		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
-			obj.bind_account_cold = o.multi_address_cold;
 			obj.bind_account_hot = o.multi_address_hot;
+			obj.bind_account_cold = o.multi_address_cold;
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;
 		});
 		//we need change the status of the multisig_address_object
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-		for (auto itr : guard_change_idx)
+		for (auto& itr : guard_change_idx)
 		{
 			db().modify(itr, [&](multisig_address_object& obj) {
 				obj.multisig_account_pair_object_id = new_acnt_object.id;

@@ -1752,7 +1752,8 @@ class wallet_api
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
 	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
-	  optional<multisig_address_object> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
+	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
+	  optional<multisig_account_pair_object> get_multisig_account_pair() const;
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();

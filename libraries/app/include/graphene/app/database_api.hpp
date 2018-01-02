@@ -222,7 +222,7 @@ class database_api
 
       vector<vector<account_id_type>> get_key_references( vector<public_key_type> key )const;
 	  vector <optional<account_binding_object>> get_binding_account(const string& account, const string& symbol) const;
-	  optional<multisig_address_object> get_multisig_address_obj(const string& symbol, const account_id_type& guard) const;
+	  vector<optional<multisig_address_object>> get_multisig_address_obj(const string& symbol, const account_id_type& guard) const;
      /**
       * Determine whether a textual representation of a public key
       * (in Base-58 format) is *currently* linked
