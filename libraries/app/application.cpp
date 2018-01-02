@@ -343,7 +343,28 @@ namespace detail {
       { try {
          bool clean = !fc::exists(_data_dir / "blockchain/dblock");
          fc::create_directories(_data_dir / "blockchain/dblock");
+		 if (_options->count("crosschain-ip"))
+		 {
+			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
+			 string port = "80";
+			 if (_options->count("crosschain-port"))
+			 {
+				 port = _options->at("crosschain-port").as<string>();
+			 }
+			 ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port", port));
+			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
+			 auto config_var = fc::json::from_string(config).get_object();
+			 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
 
+			 for (auto chain_type : chain_types)
+			 {
+				 auto fd = instance.get_crosschain_handle(chain_type);
+				 if (fd != nullptr)
+					 fd->initialize_config(config_var);
+			 }
+			 _self->set_crosschain_manager_config(config);
+		 }
          auto initial_state = [&] {
             ilog("Initializing database...");
             if( _options->count("genesis-json") )
@@ -498,28 +519,7 @@ namespace detail {
          reset_websocket_tls_server();
 
 		 // maybe here should add crosschain initialize
-		 if (_options->count("crosschain-ip"))
-		 {
-			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
-			 string port = "80";
-			 if (_options->count("crosschain-port"))
-			 {
-				 port = _options->at("crosschain-port").as<string>();
-			 }
-			 ilog("crosschain-ip: ${crosschain-ip},port:${port}", ("crosschain-ip", crosschain_ip)("port", port));
-			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
-			 auto config_var = fc::json::from_string(config).get_object();
-			 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
-
-			 for (auto chain_type : chain_types)
-			 {
-				auto fd = instance.get_crosschain_handle(chain_type);
-				if (fd != nullptr)
-					fd->initialize_config(config_var);
-			 }
-			 _self->set_crosschain_manager_config(config);
-		 }
+		 
 
       } FC_LOG_AND_RETHROW() }
 

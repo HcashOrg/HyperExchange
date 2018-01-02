@@ -156,6 +156,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
+	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
+	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -390,6 +392,27 @@ map<uint32_t, optional<block_header>> database_api_impl::get_block_header_batch(
    }
    return results;
 }
+vector<optional<multisig_account_pair_object> > database_api_impl::get_multisig_account_pair(const string& symbol) const
+{
+    const auto& multisig_accounts_byid = _db.get_index_type<multisig_account_pair_index>().indices().get<by_id>();
+	vector<optional<multisig_account_pair_object>> result;
+	std::transform(multisig_accounts_byid.begin(), multisig_accounts_byid.end(), std::back_inserter(result),
+		[&multisig_accounts_byid,&symbol](const multisig_account_pair_object& obj) -> optional<multisig_account_pair_object> {
+		if (obj.chain_type == symbol)
+			return obj;
+		//return  optional<multisig_account_pair_object>() ;
+	});
+	return result;
+}
+optional<multisig_account_pair_object> database_api_impl::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const
+{
+	const auto& multisig_accounts_byid = _db.get_index_type<multisig_account_pair_index>().indices().get<by_id>();
+	const auto iter = multisig_accounts_byid.find(id);
+	if (iter != multisig_accounts_byid.end())
+		return *iter;
+	return optional < multisig_account_pair_object>();
+}
+
 
 optional<signed_block> database_api::get_block(uint32_t block_num)const
 {
@@ -1994,6 +2017,14 @@ vector<optional<account_binding_object>> database_api_impl::get_binding_account(
 
 vector<optional<multisig_address_object>> database_api::get_multisig_address_obj(const string& symbol, const account_id_type& guard) const {
 	return my->get_multisig_address_obj(symbol,guard);
+}
+
+vector<optional<multisig_account_pair_object>> database_api::get_multisig_account_pair(const string& symbol) const {
+	return my->get_multisig_account_pair(symbol);
+}
+optional<multisig_account_pair_object> database_api::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const
+{
+	return my->lookup_multisig_account_pair(id);
 }
 
 

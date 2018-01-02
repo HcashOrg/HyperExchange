@@ -211,6 +211,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_refund_balance_evaluator>();
    register_evaluator<asset_real_create_evaluator>();
    register_evaluator<miner_generate_multi_asset_evaluator>();
+   register_evaluator<guard_update_multi_account_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -2076,7 +2076,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(id)(broadcast))
    }
 
-   signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time,bool broadcast)
+   signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol,const string& hot,const string& cold, int64_t expiration_time,bool broadcast)
    {
 	   try 
 	   {
@@ -2093,10 +2093,8 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   //auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx, multisig_obj->new_address_hot);
-
-		   update_op.cold = crosschain->create_normal_account("");
-		   update_op.hot = crosschain->create_normal_account("");
+		   update_op.cold = hot;
+		   update_op.hot = cold;
 
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(update_op);
@@ -2109,7 +2107,7 @@ public:
 
 		   return sign_transaction(trx,broadcast);
 		   
-	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(expiration_time)(broadcast))
+	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(hot)(cold)(expiration_time)(broadcast))
    }
    
    signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true)
@@ -2171,6 +2169,14 @@ public:
 
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
+   }
+   vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const
+   {
+	   return _remote_db->get_multisig_account_pair(symbol);
+   }
+   optional<multisig_account_pair_object> get_multisig_account_pair(const multisig_account_pair_id_type & id) const
+   {
+	   return _remote_db->lookup_multisig_account_pair(id);
    }
 
    signed_transaction vote_for_committee_member(string voting_account,
@@ -4729,9 +4735,9 @@ signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multi
 	return my->sign_multi_asset_trx(account,id, guard,broadcast);
 }
 
-signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast)
+signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, const string& hot, const string& cold,int64_t expiration_time, bool broadcast)
 {
-	return my->account_change_for_crosschain(proposer,symbol, expiration_time,broadcast);
+	return my->account_change_for_crosschain(proposer,symbol,hot,cold ,expiration_time,broadcast);
 }
 
 signed_transaction wallet_api::withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast)
@@ -4925,11 +4931,14 @@ vector<optional<account_binding_object>> wallet_api::get_binding_account(const s
 {
 	return my->get_binding_account(account,symbol);
 }
-optional<multisig_account_pair_object> wallet_api::get_multisig_account_pair() const
+vector<optional<multisig_account_pair_object>> wallet_api::get_multisig_account_pair(const string& symbol) const
 {
-	return optional<multisig_account_pair_object>();
+	return my->get_multisig_account_pair(symbol);
 }
-
+optional<multisig_account_pair_object> wallet_api::get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const
+{
+	return my->get_multisig_account_pair(id);
+}
 signed_transaction wallet_api::borrow_asset(string seller_name, string amount_to_sell,
                                                 string asset_symbol, string amount_of_collateral, bool broadcast)
 {

@@ -1743,7 +1743,7 @@ class wallet_api
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
 	  signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount,const string& symbol,bool broadcast=true);
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
-	  signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  signed_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
 	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
 	  signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
@@ -1753,7 +1753,8 @@ class wallet_api
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
 	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
 	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
-	  optional<multisig_account_pair_object> get_multisig_account_pair() const;
+	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
+	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1964,4 +1965,7 @@ FC_API( graphene::wallet::wallet_api,
 		(bind_tunnel_account)
 		(unbind_tunnel_account)
 		(update_asset_private_keys)
+		(get_multisig_account_pair_by_id)
+		(get_multisig_account_pair)
+		(account_change_for_crosschain)
       )
