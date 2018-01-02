@@ -2093,8 +2093,8 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   update_op.cold = hot;
-		   update_op.hot = cold;
+		   update_op.cold = cold;
+		   update_op.hot = hot;
 
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(update_op);
