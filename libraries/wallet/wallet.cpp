@@ -2509,7 +2509,8 @@ public:
 	   }
 	   return result;
    }
-   void guard_sign_crosschain_transaction(const string& trx_id,string & guard){
+   void guard_sign_crosschain_transaction(const string& trx_id,const string & guard){
+	   
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 		   for (const auto& trx : trxs) {
@@ -2519,7 +2520,8 @@ public:
 			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
 			   string config = (*_crosschain_manager)->get_config();
 			   hdl->initialize_config(fc::json::from_string(config).get_object());
-			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, guard, false);
+			   string temp_guard(guard);
+			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, temp_guard, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
@@ -2546,19 +2548,10 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   hdl->initialize_config(fc::json::from_string(config).get_object());
 
-
-		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, guard, false);
+		   string temp_guard(guard);
+		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, temp_guard, false);
 		   crosschain_withdraw_with_sign_operation trx_op;
-		   /*
-		   transaction_id_type ccw_trx_id;
-		   fc::variant_object withdraw_source_trx;
-		   //TODO:refund balance in the situation that channel account tie to formal account
-		   miner_id_type miner_broadcast;
-		   string asset_symbol;
-		   asset fee;
-		   address miner_address;
-		   string ccw_trx_signature;
-		   */
+	
 		   const account_object & account_obj = get_account(guard);
 		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 		   trx_op.ccw_trx_id = transaction_id_type(trx_id);
@@ -2572,7 +2565,9 @@ public:
 		   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
 		   transaction.validate();
 		   sign_transaction(transaction, true);
+		   
 	   }
+	   
    }
    std::vector<lockbalance_object> get_account_lock_balance(const string& account)const {
 	   FC_ASSERT(account.size() != 0, "Param without account name");
@@ -4166,7 +4161,7 @@ std::vector<signed_transaction> wallet_api::get_withdraw_crosschain_without_sign
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
-void wallet_api::guard_sign_crosschain_transaction(const string& trx_id, string& guard){
+void wallet_api::guard_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);
 }
 
