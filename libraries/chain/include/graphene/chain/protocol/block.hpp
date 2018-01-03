@@ -60,6 +60,6 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 
-FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(miner)(transaction_merkle_root)(extensions) )
+FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(miner)(transaction_merkle_root)(extensions)(next_secret_hash)(previous_secret) )
 FC_REFLECT_DERIVED( graphene::chain::signed_block_header, (graphene::chain::block_header), (miner_signature) )
 FC_REFLECT_DERIVED( graphene::chain::signed_block, (graphene::chain::signed_block_header), (transactions) )
