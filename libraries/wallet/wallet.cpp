@@ -2093,6 +2093,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
+		   
 		   update_op.cold = cold;
 		   update_op.hot = hot;
 
