@@ -117,7 +117,7 @@ namespace graphene {
 					}
 				});
 				//auto multisign_hot = multisign_db.find()
-				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount.value, withop.asset_symbol, withop.memo, false);
+				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
 				trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
 				trx_op.miner_broadcast = miner;
 				trx_op.asset_symbol = withop.asset_symbol;

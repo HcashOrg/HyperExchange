@@ -28,7 +28,7 @@ namespace graphene {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
 			address withdraw_account;
-			share_type amount;
+			string amount;
 			string asset_symbol;
 			asset fee;
 			asset_id_type asset_id;

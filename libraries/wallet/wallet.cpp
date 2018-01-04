@@ -2006,7 +2006,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   inface->initialize_config(fc::json::from_string(config).get_object());
 		   auto asset_obj = get_asset(symbol);
-		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),asset_obj.amount_from_string(amount).amount.value,asset_obj.symbol,string(""),true);
+		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
 		   // TODO
 		   const auto& acct = get_account(account);
 
@@ -2610,7 +2610,7 @@ public:
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
 		   crosschain_withdraw_operation op;
 		   op.withdraw_account = iter.find(account_name)->addr;
-		   op.amount = asset_obj->amount_from_string(amount).amount;
+		   op.amount = amount;
 		   op.asset_id = asset_obj->id;
 		   op.asset_symbol = asset_symbol;
 		   op.crosschain_account = crosschain_account;
