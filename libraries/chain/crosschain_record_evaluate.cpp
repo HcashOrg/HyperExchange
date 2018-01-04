@@ -23,6 +23,7 @@ namespace graphene {
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			d.adjust_balance(tunnel_itr->owner, asset(asset_itr->amount_from_string(o.cross_chain_trx.amount).amount, o.asset_id));
+			d.adjust_deposit_to_link_trx(o.cross_chain_trx);
 			return void_result();
 		}
 
@@ -62,6 +63,7 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_withdraw_result_evaluate::do_apply(const crosschain_withdraw_result_operation& o) {
+			db().adjust_crosschain_confirm_trx(o.cross_chain_trx);
 			return void_result();
 		}
 
