@@ -6,7 +6,7 @@
 #include <string>
 namespace graphene {
 	namespace crosschain {
-		class crosschain_record_plugin :public graphene::app::abstract_plugin {
+		class crosschain_record_plugin :public graphene::app::plugin {
 		public:
 			crosschain_record_plugin() {};
 			~crosschain_record_plugin() {};
