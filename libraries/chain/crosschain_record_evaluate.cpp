@@ -20,8 +20,10 @@ namespace graphene {
 			database& d = db();
 			auto &tunnel_idx = d.get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
-		
-			d.adjust_balance(tunnel_itr->owner, asset(o.cross_chain_trx.amount, o.asset_id));
+			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
+			auto asset_itr = asset_idx.find(o.asset_id);
+			d.adjust_balance(tunnel_itr->owner, asset(asset_itr->amount_from_string(o.cross_chain_trx.amount).amount, o.asset_id));
+			d.adjust_deposit_to_link_trx(o.cross_chain_trx);
 			return void_result();
 		}
 
@@ -29,7 +31,6 @@ namespace graphene {
 
 		}
 		void_result crosschain_withdraw_evaluate::do_evaluate(const crosschain_withdraw_operation& o) {
-			FC_ASSERT(o.amount > 0);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 			auto& acc = db().get_index_type<account_index>().indices().get<by_address>();
 			auto addr = acc.find(o.withdraw_account)->addr;
@@ -44,7 +45,7 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
 			database& d = db();
-			d.adjust_balance(o.withdraw_account, asset(-o.amount, o.asset_id));
+			//d.adjust_balance(o.withdraw_account, asset(-o.amount, o.asset_id));
 			d.adjust_crosschain_transaction(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx),uint64_t(operation::tag<crosschain_withdraw_operation>::value), withdraw_without_sign_trx_uncreate);
 			return void_result();
 		}
@@ -62,6 +63,7 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_withdraw_result_evaluate::do_apply(const crosschain_withdraw_result_operation& o) {
+			db().adjust_crosschain_confirm_trx(o.cross_chain_trx);
 			return void_result();
 		}
 
@@ -78,9 +80,14 @@ namespace graphene {
 			FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
 			for (const auto & op : trx_itr->real_transaction.operations) {
 				const auto withdraw_op = op.get<crosschain_withdraw_evaluate::operation_type>();
-				FC_ASSERT(create_trx.to_account == withdraw_op.crosschain_account);
-				FC_ASSERT(create_trx.amount == withdraw_op.amount);
+				printf("withdraw_op is %s \n", withdraw_op.crosschain_account.c_str());
+				printf("withdraw_op is %s \n", create_trx.to_account.c_str());
+				FC_ASSERT(create_trx.to_account == withdraw_op.crosschain_account);	
+				const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
+				const auto asset_itr =asset_idx.find(withdraw_op.asset_symbol);
+				FC_ASSERT(asset_itr != asset_idx.end());
 				FC_ASSERT(create_trx.asset_symbol == withdraw_op.asset_symbol);
+				FC_ASSERT(asset_itr->amount_from_string(create_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
 			}
 			return void_result();
 		}

@@ -175,7 +175,7 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			hd_trx a;
 			a.trx_id = "trx-id-test";
@@ -239,7 +239,7 @@ namespace graphene {
 					trx["trx_id"].as_string(),
 					trx["from_account"].as_string(),
 					trx["to_account"].as_string(),
-					trx["amount"].as_uint64(),
+					trx["amount"].as_string(),
 					trx["asset_symbol"].as_string() });
 			}
 

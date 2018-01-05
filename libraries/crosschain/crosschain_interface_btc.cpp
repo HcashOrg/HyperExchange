@@ -143,17 +143,19 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
+		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.createTrx\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
+			std::cout << req_body.str() << std::endl;
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
+				auto str = std::string(response.body.begin(), response.body.end());
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
 				auto ret =resp.get_object()["result"].get_object();
 				FC_ASSERT(ret.contains("data"));
@@ -298,8 +300,24 @@ namespace graphene {
 				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
 				auto from_trx = transaction_query(from_trx_id);
 				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				hdtx.to_account = to_addr;
-				hdtx.amount = tx["vout"].get_array()[0].get_object()["value"].as_double();
+				hdtx.from_account = from_addr;
+				for (auto vouts : tx["vout"].get_array())
+				{
+					auto addrs = vouts.get_object()["scriptPubKey"].get_object()["addresses"].get_array();
+					for (auto addr : addrs)
+					{
+						if (addr.as_string() == from_addr)
+							continue;
+						hdtx.to_account = addr.as_string();
+						auto amount = vouts.get_object()["value"].as_double();
+						char temp[1024];
+						std::sprintf(temp,"%g", amount);
+						hdtx.amount = temp;
+
+					}
+					
+				}
+				
 			}
 			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtx;
