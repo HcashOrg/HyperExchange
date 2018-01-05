@@ -78,9 +78,14 @@ namespace graphene {
 			FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
 			for (const auto & op : trx_itr->real_transaction.operations) {
 				const auto withdraw_op = op.get<crosschain_withdraw_evaluate::operation_type>();
-				FC_ASSERT(create_trx.to_account == withdraw_op.crosschain_account);
-				FC_ASSERT(create_trx.amount == withdraw_op.amount);
+				printf("withdraw_op is %s \n", withdraw_op.crosschain_account.c_str());
+				printf("withdraw_op is %s \n", create_trx.to_account.c_str());
+				FC_ASSERT(create_trx.to_account == withdraw_op.crosschain_account);	
+				const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
+				const auto asset_itr =asset_idx.find(withdraw_op.asset_symbol);
+				FC_ASSERT(asset_itr != asset_idx.end());
 				FC_ASSERT(create_trx.asset_symbol == withdraw_op.asset_symbol);
+				FC_ASSERT(asset_itr->amount_from_string(create_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
 			}
 			return void_result();
 		}

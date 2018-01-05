@@ -2514,8 +2514,12 @@ public:
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 		   for (const auto& trx : trxs) {
+			   auto id = trx.transaction_id.str();
+			   std::cout << id << std::endl;
+			   /*
+			   auto operations = trx.real_transaction.operations;
 			   auto op = trx.real_transaction.operations[0];
-			   auto withop_without_sign = op.get<crosschain_withdraw_without_sign_operation>();
+			   auto withop_without_sign = op.get<graphene::chain::crosschain_withdraw_without_sign_operation>();
 			   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
 			   string config = (*_crosschain_manager)->get_config();
@@ -2536,12 +2540,13 @@ public:
 			   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
 			   transaction.validate();
 			   sign_transaction(transaction, true);
+			   */
 		   }
 	   }
 	   else{
 		   auto trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(trx_id));
 		   FC_ASSERT(trx.size() == 1, "Transaction error");
-		   auto op = trx[0].real_transaction.operations[0];
+		   auto& op = trx[0].real_transaction.operations[0];
 		   auto withop_without_sign = op.get<crosschain_withdraw_without_sign_operation>();
 		   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 		   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));

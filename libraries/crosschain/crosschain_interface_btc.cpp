@@ -300,8 +300,24 @@ namespace graphene {
 				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
 				auto from_trx = transaction_query(from_trx_id);
 				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				hdtx.to_account = to_addr;
-				hdtx.amount = tx["vout"].get_array()[0].get_object()["value"].as_double();
+				hdtx.from_account = from_addr;
+				for (auto vouts : tx["vout"].get_array())
+				{
+					auto addrs = vouts.get_object()["scriptPubKey"].get_object()["addresses"].get_array();
+					for (auto addr : addrs)
+					{
+						if (addr.as_string() == from_addr)
+							continue;
+						hdtx.to_account = addr.as_string();
+						auto amount = vouts.get_object()["value"].as_double();
+						char temp[1024];
+						std::sprintf(temp,"%g", amount);
+						hdtx.amount = temp;
+
+					}
+					
+				}
+				
 			}
 			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtx;
