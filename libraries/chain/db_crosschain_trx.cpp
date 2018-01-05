@@ -2,6 +2,50 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 namespace graphene {
 	namespace chain {
+		void database::adjust_deposit_to_link_trx(const hd_trx& handled_trx) {
+			try {
+				auto & deposit_db = get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
+				auto deposit_to_link_trx = deposit_db.find(handled_trx.trx_id);
+				if (deposit_to_link_trx == deposit_db.end()){
+					create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
+						obj.handle_trx = handled_trx;
+						obj.handle_trx_id = handled_trx.trx_id;
+						obj.acquired_transaction_state = acquired_trx_create;
+					});
+				}
+				else {
+					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
+						FC_ASSERT("deposit transaction exist");
+					}
+					modify(*deposit_to_link_trx, [&](acquired_crosschain_trx_object& obj) {
+						obj.acquired_transaction_state = acquired_trx_create;
+					});
+				}
+				
+			}FC_CAPTURE_AND_RETHROW((handled_trx))
+		}
+		void database::adjust_crosschain_confirm_trx(const hd_trx& handled_trx) {
+			try {
+				auto & deposit_db = get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
+				auto deposit_to_link_trx = deposit_db.find(handled_trx.trx_id);
+				if (deposit_to_link_trx == deposit_db.end()) {
+					create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
+						obj.handle_trx = handled_trx;
+						obj.handle_trx_id = handled_trx.trx_id;
+						obj.acquired_transaction_state = acquired_trx_comfirmed;
+					});
+				}
+				else {
+					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
+						FC_ASSERT("deposit transaction exist");
+					}
+					modify(*deposit_to_link_trx, [&](acquired_crosschain_trx_object& obj) {
+						obj.acquired_transaction_state = acquired_trx_comfirmed;
+					});
+				}
+
+			}FC_CAPTURE_AND_RETHROW((handled_trx))
+		}
 		void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
 		transaction_id_type transaction_id,
 		signed_transaction real_transaction,
@@ -84,7 +128,21 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_result_evaluate::operation_type>::value) {
+					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
+					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
+					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
 
+					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_itr = trx_db.find(transaction_id);
+					FC_ASSERT(trx_itr != trx_db.end(), "crosschain trx doesnt exist on link");
+					modify(*trx_itr,[&](crosschain_trx_object& obj) {
+						obj.trx_state = withdraw_transaction_confirm;
+					});
+					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_iter_new = trx_db_new.find(relate_transaction_id);
+					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
+						obj.trx_state = withdraw_transaction_confirm;
+					});
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}
@@ -136,6 +194,75 @@ namespace graphene {
 				tx.validate();
 				tx.sign(pk, get_chain_id());
 				push_transaction(tx);
+			}
+		}
+		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
+			map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
+			get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o){
+				const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
+				if (p.acquired_transaction_state == acquired_trx_uncreate){
+					acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+				}
+			});
+
+			for (auto & acquired_trxs : acquired_crosschain_trx) {
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				auto hdl = manager.get_crosschain_handle(acquired_trxs.first);
+				set<string> multi_account_obj_hot;
+				get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
+				{
+					const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
+					if (p.chain_type == acquired_trxs.first) {
+						multi_account_obj_hot.insert(p.bind_account_hot);
+					}
+				});
+				for (auto acquired_trx : acquired_trxs.second){
+					auto to_intr = multi_account_obj_hot.find(acquired_trx.handle_trx.to_account);
+					auto from_iter = multi_account_obj_hot.find(acquired_trx.handle_trx.from_account);
+					if (to_intr != multi_account_obj_hot.end()){
+						crosschain_record_operation op;
+						auto & asset_iter = get_index_type<asset_index>().indices().get<by_symbol>();
+						auto asset_itr = asset_iter.find(op.asset_symbol);
+						if (asset_itr == asset_iter.end()) {
+							continue;
+						}
+						op.asset_id = asset_itr->id;
+						op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
+						op.cross_chain_trx = acquired_trx.handle_trx;
+						op.miner_broadcast = miner;
+						optional<miner_object> miner_iter = get(miner);
+						optional<account_object> account_iter = get(miner_iter->miner_account);
+						op.miner_address = account_iter->addr;
+						signed_transaction tx;
+						uint32_t expiration_time_offset = 0;
+						auto dyn_props = get_dynamic_global_properties();
+						get_global_properties().parameters.current_fees->set_fee(operation(op));
+						tx.set_reference_block(dyn_props.head_block_id);
+						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+						tx.operations.push_back(op);
+						tx.validate();
+						tx.sign(pk, get_chain_id());
+						push_transaction(tx);
+					}
+					else if(from_iter != multi_account_obj_hot.end()){
+						crosschain_withdraw_result_operation op;
+						op.cross_chain_trx = acquired_trx.handle_trx;
+						op.miner_broadcast = miner;
+						optional<miner_object> miner_iter = get(miner);
+						optional<account_object> account_iter = get(miner_iter->miner_account);
+						op.miner_address = account_iter->addr;
+						signed_transaction tx;
+						uint32_t expiration_time_offset = 0;
+						auto dyn_props = get_dynamic_global_properties();
+						get_global_properties().parameters.current_fees->set_fee(operation(op));
+						tx.set_reference_block(dyn_props.head_block_id);
+						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+						tx.operations.push_back(op);
+						tx.validate();
+						tx.sign(pk, get_chain_id());
+						push_transaction(tx);
+					}
+				}
 			}
 		}
 		void database::combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk) {
