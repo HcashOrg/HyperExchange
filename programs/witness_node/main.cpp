@@ -26,6 +26,7 @@
 #include <graphene/witness/witness.hpp>
 #include <graphene/account_history/account_history_plugin.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
+#include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
 
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
@@ -74,7 +75,8 @@ int main(int argc, char** argv) {
       auto witness_plug = node->register_plugin<miner_plugin::miner_plugin>();
       auto history_plug = node->register_plugin<account_history::account_history_plugin>();
       auto market_history_plug = node->register_plugin<market_history::market_history_plugin>();
-
+	  auto crosschain_record_plug = node->register_plugin<crosschain::crosschain_record_plugin>();
+	  crosschain_record_plug->add_acquire_plugin("BTC");
       try
       {
          bpo::options_description cli, cfg;
