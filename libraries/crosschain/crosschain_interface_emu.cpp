@@ -270,7 +270,7 @@ namespace graphene {
 			return ret;
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit)
+		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
 		{
 			struct comp_block_num
 			{

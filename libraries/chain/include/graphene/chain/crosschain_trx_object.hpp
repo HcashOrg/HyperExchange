@@ -23,6 +23,28 @@ namespace graphene {
 			acquired_trx_create = 1,
 			acquired_trx_comfirmed = 2
 		};
+		class crosschain_transaction_history_count_object;
+		class crosschain_transaction_history_count_object :public graphene::db::abstract_object<crosschain_transaction_history_count_object> {
+		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = crosschain_transaction_history_count_object_type;
+			std::string asset_symbol;
+			uint32_t  local_count;
+		};
+		struct by_history_count_id;
+		struct by_history_asset_symbol;
+		using transaction_history_count_multi_index_type = multi_index_container <
+			crosschain_transaction_history_count_object,
+			indexed_by <
+			ordered_unique< tag<by_history_count_id>,
+			member<object, object_id_type, &object::id>
+			>,
+			ordered_non_unique< tag<by_history_asset_symbol>,
+			member<crosschain_transaction_history_count_object, std::string, &crosschain_transaction_history_count_object::asset_symbol>
+			>
+			>
+		>;
+		using transaction_history_count_index = generic_index<crosschain_transaction_history_count_object, transaction_history_count_multi_index_type>;
 		class acquired_crosschain_trx_object;
 		class acquired_crosschain_trx_object :public graphene::db::abstract_object<acquired_crosschain_trx_object> {
 		public:
@@ -141,3 +163,8 @@ FC_REFLECT_DERIVED(graphene::chain::acquired_crosschain_trx_object, (graphene::d
 (handle_trx)
 (handle_trx_id)
 (acquired_transaction_state))
+
+FC_REFLECT_DERIVED(graphene::chain::crosschain_transaction_history_count_object, (graphene::db::object), 
+	(asset_symbol)
+	(local_count)
+	)

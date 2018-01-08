@@ -292,31 +292,14 @@ namespace graphene {
 		{
 			hd_trx hdtx;
 			try {
-				auto tx = trx["trx"].get_object();
 				hdtx.asset_symbol = chain_type;
-				hdtx.trx_id = tx["hash"].as_string();
-				const std::string to_addr = tx["vout"].get_array()[0].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				const std::string from_trx_id = tx["vin"].get_array()[0].get_object()["txid"].as_string();
-				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
-				auto from_trx = transaction_query(from_trx_id);
-				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				hdtx.from_account = from_addr;
-				for (auto vouts : tx["vout"].get_array())
-				{
-					auto addrs = vouts.get_object()["scriptPubKey"].get_object()["addresses"].get_array();
-					for (auto addr : addrs)
-					{
-						if (addr.as_string() == from_addr)
-							continue;
-						hdtx.to_account = addr.as_string();
-						auto amount = vouts.get_object()["value"].as_double();
-						char temp[1024];
-						std::sprintf(temp,"%g", amount);
-						hdtx.amount = temp;
+				hdtx.trx_id = trx["txid"].as_string();
 
-					}
-					
-				}
+				hdtx.from_account = trx["from_account"].as_string();
+				hdtx.to_account = trx["to_account"].as_string();
+				hdtx.block_num = trx["blockNum"].as_uint64();
+				hdtx.amount = trx["amount"].as_string();
+
 				
 			}
 			FC_CAPTURE_AND_RETHROW((trx));
@@ -333,9 +316,35 @@ namespace graphene {
 			return std::vector<fc::variant_object>();
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_btc::transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit)
+		std::vector<fc::variant_object> crosschain_interface_btc::transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
 		{
-			return std::vector<fc::variant_object>();
+			std::vector<fc::variant_object> return_value;
+			std::string local_symbol = "btc";
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Transaction.Deposit.History\" ,\
+				\"params\" : {\"chainId\":\""<< local_symbol<<"\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": " << "\"" << start_block << "\"}}";
+			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				std::cout << std::string(response.body.begin(), response.body.end());
+				auto result = resp.get_object();
+				if (result.contains("result"))
+				{
+					end_block_num =  boost::lexical_cast<uint32_t> (result["result"].get_object()["blockNum"].get_string());
+					for (auto one_data : result["result"].get_object()["data"].get_array())
+					{
+						std::cout << one_data.get_string();
+						return_value.push_back(one_data.get_object());
+					}
+				}
+			}
+
+			return return_value;
 		}
 
 		std::string crosschain_interface_btc::export_private_key(std::string &account, std::string &encrypt_passprase)
