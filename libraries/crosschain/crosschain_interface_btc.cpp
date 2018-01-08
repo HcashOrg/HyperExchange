@@ -194,7 +194,7 @@ namespace graphene {
 		fc::variant_object crosschain_interface_btc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"combinerawtransaction\", \"params\": [[";
+			req_body << "{ \"id\": 1, \"method\": \"Zchain.Trans.CombineTrx\", \"params\": [[";
 			for (auto itr = signatures.begin(); itr != signatures.end(); ++itr)
 			{
 				req_body << "\"" << *itr << "\"";
@@ -208,12 +208,11 @@ namespace graphene {
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).as<fc::mutable_variant_object>();
-				auto error = resp["error"];
-				if (error.as_string() == "null")
-				{
-					return resp;
-				}
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+				FC_ASSERT(resp.contains("result"));
+				auto ret = resp["result"].get_object();
+				FC_ASSERT(ret.contains("data"));
+				return ret["data"].get_object();
 			}
 			else
 				FC_THROW(std::string(response.body.begin(),response.body.end()));

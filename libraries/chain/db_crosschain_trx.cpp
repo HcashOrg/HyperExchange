@@ -76,6 +76,7 @@ namespace graphene {
 					
 					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto trx_iter_new = trx_db_new.find(relate_transaction_id);
+					std::cout << relate_transaction_id.str() << std::endl;
 					std::cout << (trx_iter_new == trx_db_new.end()) << std::endl;
 					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_without_sign_trx_create;
@@ -177,6 +178,7 @@ namespace graphene {
 				//auto multisign_hot = multisign_db.find()
 				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
 				trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
+				std::cout << trx_op.ccw_trx_id.str() << std::endl;
 				trx_op.miner_broadcast = miner;
 				trx_op.asset_symbol = withop.asset_symbol;
 				trx_op.asset_id = withop.asset_id;
