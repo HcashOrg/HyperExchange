@@ -355,15 +355,17 @@ namespace detail {
 			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
 			 auto config_var = fc::json::from_string(config).get_object();
-			 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
-
-			 for (auto chain_type : chain_types)
+			 if (_options->count("chain-type"))
 			 {
-				 auto fd = instance.get_crosschain_handle(chain_type);
-				 if (fd != nullptr)
-					 fd->initialize_config(config_var);
+				 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
+				 for (auto chain_type : chain_types)
+				 {
+					 auto fd = instance.get_crosschain_handle(chain_type);
+					 if (fd != nullptr)
+						 fd->initialize_config(config_var);
+				 }
+				 _self->set_crosschain_manager_config(config);
 			 }
-			 _self->set_crosschain_manager_config(config);
 		 }
          auto initial_state = [&] {
             ilog("Initializing database...");

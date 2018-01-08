@@ -1755,6 +1755,7 @@ class wallet_api
 	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
+	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1969,4 +1970,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair)
 		(guard_sign_crosschain_transaction)
 		(account_change_for_crosschain)
+		(get_current_multi_address_obj)
       )

@@ -2449,7 +2449,7 @@ public:
             throw;
          }
       }
-	  
+	  std::cout << tx.id().str() << std::endl;
       return tx;
    }
 
@@ -2509,13 +2509,37 @@ public:
 	   }
 	   return result;
    }
+
+   optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
+   {
+	   auto vec_objs = get_multi_address_obj(symbol,guard);
+	   optional<multisig_address_object> ret ;
+	   int max = 0;
+	   for (auto vec : vec_objs)
+	   {
+		   if (vec->multisig_account_pair_object_id == multisig_account_pair_id_type())
+			   continue;
+		   auto account_pair = get_multisig_account_pair(vec->multisig_account_pair_object_id);
+		   if (max < account_pair->effective_block_num)
+		   {
+			   max = account_pair->effective_block_num;
+			   ret = vec;
+		   }
+	   }
+	   return ret;
+   }
+
    void guard_sign_crosschain_transaction(const string& trx_id,const string & guard){
-	   
+	   FC_ASSERT(!is_locked());
+	   auto guard_obj = get_guard_member(guard);
+	   auto guard_id = guard_obj.guard_member_account;
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 		   for (const auto& trx : trxs) {
 			   auto id = trx.transaction_id.str();
 			   std::cout << id << std::endl;
+			   auto op = trx.real_transaction.operations[0];
+			   std::cout << op.which() << std::endl;
 			   /*
 			   auto operations = trx.real_transaction.operations;
 			   auto op = trx.real_transaction.operations[0];
@@ -2553,13 +2577,15 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   hdl->initialize_config(fc::json::from_string(config).get_object());
 
-		   string temp_guard(guard);
-		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, temp_guard, false);
+		   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
+		   FC_ASSERT(current_multi_obj.valid());
+
+		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, false);
 		   crosschain_withdraw_with_sign_operation trx_op;
 	
 		   const account_object & account_obj = get_account(guard);
 		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-		   trx_op.ccw_trx_id = transaction_id_type(trx_id);
+		   trx_op.ccw_trx_id = withop_without_sign.ccw_trx_id;
 		   trx_op.ccw_trx_signature = siging;
 		   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 		   trx_op.asset_symbol = withop_without_sign.asset_symbol;
@@ -4169,7 +4195,10 @@ std::vector<signed_transaction> wallet_api::get_withdraw_crosschain_without_sign
 void wallet_api::guard_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);
 }
-
+optional<multisig_address_object> wallet_api::get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
+{
+	return my->get_current_multi_address_obj(symbol,guard);
+}
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);
 }
