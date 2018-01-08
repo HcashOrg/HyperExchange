@@ -194,7 +194,10 @@ namespace graphene {
 		fc::variant_object crosschain_interface_btc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
 			std::ostringstream req_body;
-			req_body << "{ \"id\": 1, \"method\": \"Zchain.Trans.CombineTrx\", \"params\": [[";
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Trans.CombineTrx\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"transactions\": [" ;
 			for (auto itr = signatures.begin(); itr != signatures.end(); ++itr)
 			{
 				req_body << "\"" << *itr << "\"";
@@ -203,7 +206,7 @@ namespace graphene {
 					req_body << ",";
 				}
 			}
-			req_body << "\"]]}";
+			req_body << "]}}";
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
@@ -324,7 +327,24 @@ namespace graphene {
 
 		void crosschain_interface_btc::broadcast_transaction(const fc::variant_object &trx)
 		{
-
+			try {
+				std::ostringstream req_body;
+				req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Trans.broadcastTrx\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"trx\": " << "\"" << trx["hex"].as_string() <<"\"" << "}}";
+				_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+				auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+				if (response.status == fc::http::reply::OK)
+				{
+					auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+					auto result = resp.get_object();
+					if (result.contains("result"))
+					{
+						auto hex = result["result"].get_object()["data"].as_string();
+					}
+				}
+			}FC_CAPTURE_AND_RETHROW((trx));
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_btc::query_account_balance(const std::string &account)

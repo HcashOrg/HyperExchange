@@ -97,6 +97,7 @@ namespace graphene {
 			miner_id_type miner_broadcast;
 			transaction_id_type withdraw_trx;
 			address miner_address;
+			string asset_symbol;
 			asset fee;
 			address fee_payer()const {
 				return miner_address;
@@ -137,6 +138,6 @@ FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation, (ccw_trx
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation, (ccw_trx_id)(asset_symbol)(fee)(withdraw_source_trx)(sign_guard)(guard_address)(ccw_trx_signature))
 FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (cross_chain_trx)(signed_trx_ids)(fee)(miner_broadcast)(withdraw_trx)(miner_address))
+FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (cross_chain_trx)(signed_trx_ids)(fee)(miner_broadcast)(withdraw_trx)(miner_address)(asset_symbol))
 FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation, (cross_chain_trx)(miner_broadcast)(fee)(miner_address))
