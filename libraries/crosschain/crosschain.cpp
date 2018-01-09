@@ -24,12 +24,12 @@ namespace graphene {
 			{
 				if (name == "EMU")
 				{
-					auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_emu()));
+					const auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_emu()));
 					return itr.first->second;
 				}
 				else if (name == "BTC")
 				{
-					auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_btc()));
+					const auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_btc()));
 					return itr.first->second;
 				}
 			}
