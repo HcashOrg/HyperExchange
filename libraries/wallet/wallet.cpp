@@ -2515,12 +2515,17 @@ public:
    {
 	   auto vec_objs = get_multi_address_obj(symbol,guard);
 	   optional<multisig_address_object> ret ;
+
 	   int max = 0;
+	   auto dynamic_props = get_dynamic_global_properties();
+	   auto head_num = dynamic_props.head_block_number;
 	   for (auto vec : vec_objs)
 	   {
 		   if (vec->multisig_account_pair_object_id == multisig_account_pair_id_type())
 			   continue;
 		   auto account_pair = get_multisig_account_pair(vec->multisig_account_pair_object_id);
+		   if (account_pair->effective_block_num > head_num)
+			   continue;
 		   if (max < account_pair->effective_block_num)
 		   {
 			   max = account_pair->effective_block_num;

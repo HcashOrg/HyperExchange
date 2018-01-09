@@ -123,7 +123,7 @@ FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
 
 FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_address_cold))
+FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_redeemScript_hot)(multi_address_cold)(multi_redeemScript_cold))
 
 FC_REFLECT(graphene::chain::miner_merge_signatures_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::miner_merge_signatures_operation, (fee)(miner)(chain_type)(miner_address)(id))

@@ -166,16 +166,18 @@ namespace graphene {
 				auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
 				crosschain_withdraw_without_sign_operation trx_op;
 				multisig_account_pair_object multi_account_obj;
+
 				get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
 				{
 					const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
 					if (p.chain_type == withop.asset_symbol){
-						if (multi_account_obj.effective_block_num < p.effective_block_num) {
+						if (multi_account_obj.effective_block_num < p.effective_block_num && p.effective_block_num <= head_block_num()) {
 							multi_account_obj = p;
 						}
 					}
 				});
 				//auto multisign_hot = multisign_db.find()
+				FC_ASSERT(multi_account_obj.bind_account_cold == multi_account_obj.bind_account_hot);
 				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
 				trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
 				std::cout << trx_op.ccw_trx_id.str() << std::endl;
