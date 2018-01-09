@@ -39,7 +39,7 @@ namespace graphene {
 			ordered_unique< tag<by_history_count_id>,
 			member<object, object_id_type, &object::id>
 			>,
-			ordered_non_unique< tag<by_history_asset_symbol>,
+			ordered_unique< tag<by_history_asset_symbol>,
 			member<crosschain_transaction_history_count_object, std::string, &crosschain_transaction_history_count_object::asset_symbol>
 			>
 			>

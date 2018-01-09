@@ -323,7 +323,7 @@ namespace graphene {
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Transaction.Deposit.History\" ,\
-				\"params\" : {\"chainId\":\""<< local_symbol<<"\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": " << "\"" << start_block << "\"}}";
+				\"params\" : {\"chainId\":\""<< local_symbol<<"\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": "  << start_block << "}}";
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			
@@ -334,10 +334,10 @@ namespace graphene {
 				auto result = resp.get_object();
 				if (result.contains("result"))
 				{
-					end_block_num =  boost::lexical_cast<uint32_t> (result["result"].get_object()["blockNum"].get_string());
+					end_block_num = result["result"].get_object()["blockNum"].as_uint64();
 					for (auto one_data : result["result"].get_object()["data"].get_array())
 					{
-						std::cout << one_data.get_string();
+						std::cout << one_data.get_object()["txid"].as_string();
 						return_value.push_back(one_data.get_object());
 					}
 				}

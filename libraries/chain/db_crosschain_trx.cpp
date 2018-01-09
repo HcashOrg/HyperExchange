@@ -200,6 +200,14 @@ namespace graphene {
 		}
 		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
 			map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
+			auto ttt = get_index_type<acquired_crosschain_index>().indices();
+			for (auto one_t : ttt)
+			{
+				if (one_t.acquired_transaction_state == acquired_trx_uncreate)
+				{
+					std::cout << "lalala"<<std::endl;
+				}
+			}
 			get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o){
 				const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
 				if (p.acquired_transaction_state == acquired_trx_uncreate){
@@ -224,7 +232,7 @@ namespace graphene {
 					if (to_intr != multi_account_obj_hot.end()){
 						crosschain_record_operation op;
 						auto & asset_iter = get_index_type<asset_index>().indices().get<by_symbol>();
-						auto asset_itr = asset_iter.find(op.asset_symbol);
+						auto asset_itr = asset_iter.find(acquired_trx.handle_trx.asset_symbol);
 						if (asset_itr == asset_iter.end()) {
 							continue;
 						}
