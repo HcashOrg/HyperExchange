@@ -6,7 +6,7 @@ namespace graphene {
 			try {
 				auto & deposit_db = get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
 				auto deposit_to_link_trx = deposit_db.find(handled_trx.trx_id);
-				if (deposit_to_link_trx == deposit_db.end()){
+				if (deposit_to_link_trx == deposit_db.end()) {
 					create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
 						obj.handle_trx = handled_trx;
 						obj.handle_trx_id = handled_trx.trx_id;
@@ -21,7 +21,7 @@ namespace graphene {
 						obj.acquired_transaction_state = acquired_trx_create;
 					});
 				}
-				
+
 			}FC_CAPTURE_AND_RETHROW((handled_trx))
 		}
 		void database::adjust_crosschain_confirm_trx(const hd_trx& handled_trx) {
@@ -47,13 +47,13 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((handled_trx))
 		}
 		void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
-		transaction_id_type transaction_id,
-		signed_transaction real_transaction,
-		uint64_t op_type,
-		transaction_stata trx_state
+			transaction_id_type transaction_id,
+			signed_transaction real_transaction,
+			uint64_t op_type,
+			transaction_stata trx_state
 		) {
 
-			try{
+			try {
 				if (op_type == operation::tag<crosschain_withdraw_evaluate::operation_type>::value) {
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto trx_itr = trx_db.find(transaction_id);
@@ -73,7 +73,7 @@ namespace graphene {
 					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
 					auto trx_itr_relate = trx_db_relate.find(transaction_id);
 					FC_ASSERT(trx_itr_relate == trx_db_relate.end(), "Crosschain transaction has been created");
-					
+
 					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto trx_iter_new = trx_db_new.find(relate_transaction_id);
 					std::cout << relate_transaction_id.str() << std::endl;
@@ -136,7 +136,7 @@ namespace graphene {
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto trx_itr = trx_db.find(transaction_id);
 					FC_ASSERT(trx_itr != trx_db.end(), "crosschain trx doesnt exist on link");
-					modify(*trx_itr,[&](crosschain_trx_object& obj) {
+					modify(*trx_itr, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
 					});
 					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -200,14 +200,6 @@ namespace graphene {
 		}
 		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
 			map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
-			auto ttt = get_index_type<acquired_crosschain_index>().indices();
-			for (auto one_t : ttt)
-			{
-				if (one_t.acquired_transaction_state == acquired_trx_uncreate)
-				{
-					std::cout << "lalala"<<std::endl;
-				}
-			}
 			get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o){
 				const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
 				if (p.acquired_transaction_state == acquired_trx_uncreate){
@@ -276,65 +268,72 @@ namespace graphene {
 			}
 		}
 		void database::combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk) {
-			map<transaction_id_type, vector<transaction_id_type>> uncombine_trxs_counts;
-			get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
-			{
-				const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-				if (p.trx_state == withdraw_sign_trx && p.relate_transaction_id != transaction_id_type()) {
-					uncombine_trxs_counts[p.relate_transaction_id].push_back(p.transaction_id);
-				}
-			});
-			for (auto & trxs : uncombine_trxs_counts){
-				//TODO : Use macro instead this magic number
-				if (trxs.second.size() < 7){
-					continue;
-				}
-				set<string> combine_signature;
-				auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				bool transaction_err = false;
-				for (auto & sign_trx_id:trxs.second){
-					auto trx_itr = trx_db.find(sign_trx_id);
+			try {
+				map<transaction_id_type, vector<transaction_id_type>> uncombine_trxs_counts;
+				get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& o)
+				{
+					const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+					if (p.trx_state == withdraw_sign_trx && p.relate_transaction_id != transaction_id_type()) {
+						uncombine_trxs_counts[p.relate_transaction_id].push_back(p.transaction_id);
+					}
+				});
+				for (auto & trxs : uncombine_trxs_counts) {
+					//TODO : Use macro instead this magic number
+					if (trxs.second.size() < 7) {
+						continue;
+					}
+					set<string> combine_signature;
+					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					bool transaction_err = false;
+					for (auto & sign_trx_id : trxs.second) {
+						auto trx_itr = trx_db.find(sign_trx_id);
 
-					if (trx_itr == trx_db.end() || trx_itr->real_transaction.operations.size() < 1) {
-						transaction_err = true;
-						break;
+						if (trx_itr == trx_db.end() || trx_itr->real_transaction.operations.size() < 1) {
+							transaction_err = true;
+							break;
+						}
+						auto op = trx_itr->real_transaction.operations[0];
+						if (op.which() != operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value)
+						{
+							continue;
+						}
+						auto with_sign_op = op.get<crosschain_withdraw_with_sign_evaluate::operation_type>();
+						combine_signature.insert(with_sign_op.ccw_trx_signature);
+					}
+					if (transaction_err) {
+						continue;
+					}
+					auto& trx_new_db = get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
+					auto trx_itr = trx_new_db.find(boost::make_tuple(trxs.first, withdraw_without_sign_trx_create));
+					if (trx_itr == trx_new_db.end() || trx_itr->real_transaction.operations.size() < 1) {
+						continue;
 					}
 					auto op = trx_itr->real_transaction.operations[0];
-					auto with_sign_op = op.get<crosschain_withdraw_with_sign_evaluate::operation_type>();
-					combine_signature.insert(with_sign_op.ccw_trx_signature);
+					auto with_sign_op = op.get<crosschain_withdraw_without_sign_evaluate::operation_type>();
+					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					auto hdl = manager.get_crosschain_handle(std::string(with_sign_op.asset_symbol));
+					crosschain_withdraw_combine_sign_operation trx_op;
+					vector<string> guard_signed(combine_signature.begin(), combine_signature.end());
+					trx_op.cross_chain_trx = hdl->merge_multisig_transaction(with_sign_op.withdraw_source_trx, guard_signed);
+					trx_op.asset_symbol = with_sign_op.asset_symbol;
+					trx_op.signed_trx_ids.swap(trxs.second);
+					trx_op.miner_broadcast = miner;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
+					trx_op.withdraw_trx = with_sign_op.ccw_trx_id;
+					signed_transaction tx;
+					uint32_t expiration_time_offset = 0;
+					auto dyn_props = get_dynamic_global_properties();
+					get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
+					tx.set_reference_block(dyn_props.head_block_id);
+					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+					tx.operations.push_back(trx_op);
+					tx.validate();
+					tx.sign(pk, get_chain_id());
+					push_transaction(tx);
 				}
-				if (transaction_err){
-					continue;
-				}
-				auto& trx_new_db = get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
-				auto trx_itr = trx_new_db.find(boost::make_tuple(trxs.first, withdraw_without_sign_trx_create));
-				if (trx_itr == trx_new_db.end() || trx_itr->real_transaction.operations.size() < 1) {
-					continue;
-				}
-				auto op = trx_itr->real_transaction.operations[0];
-				auto with_sign_op = op.get<crosschain_withdraw_without_sign_evaluate::operation_type>();
-				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-				auto hdl = manager.get_crosschain_handle(std::string(with_sign_op.asset_symbol));
-				crosschain_withdraw_combine_sign_operation trx_op;
-				vector<string> guard_signed(combine_signature.begin(), combine_signature.end());
-				trx_op.cross_chain_trx = hdl->merge_multisig_transaction(with_sign_op.withdraw_source_trx, guard_signed);
-				trx_op.signed_trx_ids.swap(trxs.second);
-				trx_op.miner_broadcast = miner;
-				optional<miner_object> miner_iter = get(miner);
-				optional<account_object> account_iter = get(miner_iter->miner_account);
-				trx_op.miner_address = account_iter->addr;
-				trx_op.withdraw_trx = with_sign_op.ccw_trx_id;
-				signed_transaction tx;
-				uint32_t expiration_time_offset = 0;
-				auto dyn_props = get_dynamic_global_properties();
-				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-				tx.set_reference_block(dyn_props.head_block_id);
-				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-				tx.operations.push_back(trx_op);
-				tx.validate();
-				tx.sign(pk, get_chain_id());
-				push_transaction(tx);
-			}
+			}FC_CAPTURE_AND_LOG((0))
 		}
 	}
 }
