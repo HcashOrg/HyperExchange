@@ -24,12 +24,38 @@ namespace graphene {
 				auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
 				//TODO:Change Magic Num to Macro
 				std::string multi_sign_account;
-				auto pending_trx = hdl->transaction_history(multi_sign_account, 0, 10);
+				uint32_t return_block_num;
+				uint32_t start_num;
+				
+				chain::database& db = database();
+				auto sess = db._undo_db.start_undo_session();
+				auto& trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+				auto trx_iter = trx_iters.find(asset_symbol);
+				auto db_count = trx_iters.size();
+				if (trx_iter != trx_iters.end()) {
+					start_num = trx_iter->local_count;
+				}
+				else {
+					db.create<crosschain_transaction_history_count_object>([&](crosschain_transaction_history_count_object& obj) {
+						obj.asset_symbol = asset_symbol;
+						obj.local_count = 0;
+					});
+					start_num = 0;
+				}
+
+				auto pending_trx = hdl->transaction_history(asset_symbol,multi_sign_account, start_num, -1, return_block_num);
+
+				auto& last_trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+				auto last_trx_iter = last_trx_iters.find(asset_symbol);
+				assert(last_trx_iter != last_trx_iters.end());
+				db.modify(*last_trx_iter, [&](crosschain_transaction_history_count_object& obj) { obj.local_count = return_block_num; });
+
+
 				for (const auto & trx : pending_trx) {
 					auto handle_trx = hdl->turn_trx(trx);
-					chain::database& db = graphene::chain::database();
+
 					auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
-					auto& trx_iter = trx_iters.find(handle_trx.trx_id);
+					auto trx_iter = trx_iters.find(handle_trx.trx_id);
 					if (trx_iter != trx_iters.end()){
 						continue;
 					}
@@ -39,6 +65,8 @@ namespace graphene {
 						obj.acquired_transaction_state = acquired_trx_uncreate;
 					});
 				}
+			 
+				sess.commit();
 			}
 			schedule_acquired_record_loop();
 		}

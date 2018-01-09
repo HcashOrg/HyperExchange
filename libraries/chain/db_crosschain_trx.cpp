@@ -148,131 +148,124 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
-			try
+			vector<crosschain_trx_object> create_withdraw_trx;
+			get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
 			{
-				vector<crosschain_trx_object> create_withdraw_trx;
-				get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
+				const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+				if (p.trx_state == withdraw_without_sign_trx_uncreate){
+					create_withdraw_trx.push_back(p);
+				}
+			});
+			for (auto & cross_chain_trx : create_withdraw_trx){
+				if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1){
+					continue;
+				}
+				auto op = cross_chain_trx.real_transaction.operations[0];
+				auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
+				crosschain_withdraw_without_sign_operation trx_op;
+				multisig_account_pair_object multi_account_obj;
+				get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
 				{
-					const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-					if (p.trx_state == withdraw_without_sign_trx_uncreate) {
-						create_withdraw_trx.push_back(p);
+					const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
+					if (p.chain_type == withop.asset_symbol){
+						if (multi_account_obj.effective_block_num < p.effective_block_num) {
+							multi_account_obj = p;
+						}
 					}
 				});
-				for (auto & cross_chain_trx : create_withdraw_trx) {
-					if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1) {
-						continue;
-					}
-					auto op = cross_chain_trx.real_transaction.operations[0];
-					auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
-					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-					auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
-					crosschain_withdraw_without_sign_operation trx_op;
-					multisig_account_pair_object multi_account_obj;
-					get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
-					{
-						const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
-						if (p.chain_type == withop.asset_symbol) {
-							if (multi_account_obj.effective_block_num < p.effective_block_num) {
-								multi_account_obj = p;
-							}
-						}
-					});
-					//auto multisign_hot = multisign_db.find()
-					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
-					trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
-					std::cout << trx_op.ccw_trx_id.str() << std::endl;
-					trx_op.miner_broadcast = miner;
-					trx_op.asset_symbol = withop.asset_symbol;
-					trx_op.asset_id = withop.asset_id;
-					optional<miner_object> miner_iter = get(miner);
-					optional<account_object> account_iter = get(miner_iter->miner_account);
-					trx_op.miner_address = account_iter->addr;
-					signed_transaction tx;
+				//auto multisign_hot = multisign_db.find()
+				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
+				trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
+				std::cout << trx_op.ccw_trx_id.str() << std::endl;
+				trx_op.miner_broadcast = miner;
+				trx_op.asset_symbol = withop.asset_symbol;
+				trx_op.asset_id = withop.asset_id;
+				optional<miner_object> miner_iter = get(miner);
+				optional<account_object> account_iter = get(miner_iter->miner_account);
+				trx_op.miner_address = account_iter->addr;
+				signed_transaction tx;
+				
+				uint32_t expiration_time_offset = 0;
+				auto dyn_props = get_dynamic_global_properties();
+				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
+				tx.set_reference_block(dyn_props.head_block_id);
+				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+				tx.operations.push_back(trx_op);
+				tx.validate();
+				tx.sign(pk, get_chain_id());
+				push_transaction(tx);
+			}
+		}
+		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
+			map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
+			get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o){
+				const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
+				if (p.acquired_transaction_state == acquired_trx_uncreate){
+					acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+				}
+			});
 
-					uint32_t expiration_time_offset = 0;
-					auto dyn_props = get_dynamic_global_properties();
-					get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-					tx.set_reference_block(dyn_props.head_block_id);
-					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-					tx.operations.push_back(trx_op);
-					tx.validate();
-					tx.sign(pk, get_chain_id());
-					push_transaction(tx);
+			for (auto & acquired_trxs : acquired_crosschain_trx) {
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				auto hdl = manager.get_crosschain_handle(acquired_trxs.first);
+				set<string> multi_account_obj_hot;
+				get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
+				{
+					const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
+					if (p.chain_type == acquired_trxs.first) {
+						multi_account_obj_hot.insert(p.bind_account_hot);
+					}
+				});
+				for (auto acquired_trx : acquired_trxs.second){
+					auto to_intr = multi_account_obj_hot.find(acquired_trx.handle_trx.to_account);
+					auto from_iter = multi_account_obj_hot.find(acquired_trx.handle_trx.from_account);
+					if (to_intr != multi_account_obj_hot.end()){
+						crosschain_record_operation op;
+						auto & asset_iter = get_index_type<asset_index>().indices().get<by_symbol>();
+						auto asset_itr = asset_iter.find(acquired_trx.handle_trx.asset_symbol);
+						if (asset_itr == asset_iter.end()) {
+							continue;
+						}
+						op.asset_id = asset_itr->id;
+						op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
+						op.cross_chain_trx = acquired_trx.handle_trx;
+						op.miner_broadcast = miner;
+						optional<miner_object> miner_iter = get(miner);
+						optional<account_object> account_iter = get(miner_iter->miner_account);
+						op.miner_address = account_iter->addr;
+						signed_transaction tx;
+						uint32_t expiration_time_offset = 0;
+						auto dyn_props = get_dynamic_global_properties();
+						get_global_properties().parameters.current_fees->set_fee(operation(op));
+						tx.set_reference_block(dyn_props.head_block_id);
+						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+						tx.operations.push_back(op);
+						tx.validate();
+						tx.sign(pk, get_chain_id());
+						push_transaction(tx);
+					}
+					else if(from_iter != multi_account_obj_hot.end()){
+						crosschain_withdraw_result_operation op;
+						op.cross_chain_trx = acquired_trx.handle_trx;
+						op.miner_broadcast = miner;
+						optional<miner_object> miner_iter = get(miner);
+						optional<account_object> account_iter = get(miner_iter->miner_account);
+						op.miner_address = account_iter->addr;
+						signed_transaction tx;
+						uint32_t expiration_time_offset = 0;
+						auto dyn_props = get_dynamic_global_properties();
+						get_global_properties().parameters.current_fees->set_fee(operation(op));
+						tx.set_reference_block(dyn_props.head_block_id);
+						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+						tx.operations.push_back(op);
+						tx.validate();
+						tx.sign(pk, get_chain_id());
+						push_transaction(tx);
+					}
 				}
 			}
-			FC_CAPTURE_AND_LOG((0))
-		}
-		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk) {
-			try {
-				map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
-				get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o) {
-					const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
-					if (p.acquired_transaction_state == acquired_trx_uncreate) {
-						acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
-					}
-				});
-
-				for (auto & acquired_trxs : acquired_crosschain_trx) {
-					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-					auto hdl = manager.get_crosschain_handle(acquired_trxs.first);
-					set<string> multi_account_obj_hot;
-					get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
-					{
-						const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
-						if (p.chain_type == acquired_trxs.first) {
-							multi_account_obj_hot.insert(p.bind_account_hot);
-						}
-					});
-					for (auto acquired_trx : acquired_trxs.second) {
-						auto to_intr = multi_account_obj_hot.find(acquired_trx.handle_trx.to_account);
-						auto from_iter = multi_account_obj_hot.find(acquired_trx.handle_trx.from_account);
-						if (to_intr != multi_account_obj_hot.end()) {
-							crosschain_record_operation op;
-							auto & asset_iter = get_index_type<asset_index>().indices().get<by_symbol>();
-							auto asset_itr = asset_iter.find(op.asset_symbol);
-							if (asset_itr == asset_iter.end()) {
-								continue;
-							}
-							op.asset_id = asset_itr->id;
-							op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
-							op.cross_chain_trx = acquired_trx.handle_trx;
-							op.miner_broadcast = miner;
-							optional<miner_object> miner_iter = get(miner);
-							optional<account_object> account_iter = get(miner_iter->miner_account);
-							op.miner_address = account_iter->addr;
-							signed_transaction tx;
-							uint32_t expiration_time_offset = 0;
-							auto dyn_props = get_dynamic_global_properties();
-							get_global_properties().parameters.current_fees->set_fee(operation(op));
-							tx.set_reference_block(dyn_props.head_block_id);
-							tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-							tx.operations.push_back(op);
-							tx.validate();
-							tx.sign(pk, get_chain_id());
-							push_transaction(tx);
-						}
-						else if (from_iter != multi_account_obj_hot.end()) {
-							crosschain_withdraw_result_operation op;
-							op.cross_chain_trx = acquired_trx.handle_trx;
-							op.miner_broadcast = miner;
-							optional<miner_object> miner_iter = get(miner);
-							optional<account_object> account_iter = get(miner_iter->miner_account);
-							op.miner_address = account_iter->addr;
-							signed_transaction tx;
-							uint32_t expiration_time_offset = 0;
-							auto dyn_props = get_dynamic_global_properties();
-							get_global_properties().parameters.current_fees->set_fee(operation(op));
-							tx.set_reference_block(dyn_props.head_block_id);
-							tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-							tx.operations.push_back(op);
-							tx.validate();
-							tx.sign(pk, get_chain_id());
-							push_transaction(tx);
-						}
-					}
-				}
-			}FC_CAPTURE_AND_LOG((0))
-
 		}
 		void database::combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {

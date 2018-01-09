@@ -116,10 +116,17 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 BOOST_AUTO_TEST_CASE(plugin_transfer_history)
 {
 	//get history of transactions
-	INVOKE(plugin_transfer)
+	//INVOKE(plugin_transfer)
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
-    auto ret = hdl->transaction_history(std::string("test_account"), 0, 10);
+	auto hdl = manager.get_crosschain_handle(std::string("BTC"));
+	uint32_t ret_num;
+    auto ret = hdl->transaction_history("BTC",std::string("test_account"), 0, 10,ret_num);
+	for (auto one_data : ret)
+	{
+		fc::variant temp_data;
+		to_variant(one_data, temp_data);
+		std::cout << temp_data.as_string();
+	}
 	BOOST_CHECK_EQUAL(ret.size(), 1);
 }
 

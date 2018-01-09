@@ -112,7 +112,7 @@ namespace graphene {
 			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) = 0;
 
 			// Query transactions of given account.
-			virtual std::vector<fc::variant_object> transaction_history(std::string &user_account, uint32_t start_block, uint32_t limit) = 0;
+			virtual std::vector<fc::variant_object> transaction_history(std::string symbol, std::string &user_account, uint32_t start_block, uint32_t limit,uint32_t& end_block_num) = 0;
 
 			// Export private key.
 			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) = 0;
