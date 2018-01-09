@@ -1,0 +1,3 @@
+[submodule "libraries/uvm"]
+	path = libraries/uvm
+	url = https://github.com/BlockLink/uvm
