@@ -2,6 +2,12 @@
 #include <fc/filesystem.hpp>
 #include <iostream>
 #include <boost/filesystem.hpp>
+#ifdef __unix__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
+
 namespace graphene {
 	namespace crosschain {
 
@@ -286,7 +292,7 @@ namespace graphene {
 
 			auto &blocks = _transactions.get<block_num>();
 			std::cout << "block size is " << blocks.size() << std::endl;
-			auto &itr = blocks.lower_bound(start_block, comp_block_num());
+			const auto &itr = blocks.lower_bound(start_block, comp_block_num());
 			std::vector<fc::variant_object> ret;
 			for (; itr != blocks.end(); ++itr)
 			{
