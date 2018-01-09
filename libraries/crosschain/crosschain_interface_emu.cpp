@@ -109,7 +109,7 @@ namespace graphene {
 			return string(new_account.addr);
 		}
 
-		std::string crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
+		std::map<std::string, std::string> crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			fc::sha256::encoder endcoder;
 			for (int i = 0; i < addresses.size(); ++i)
@@ -125,7 +125,7 @@ namespace graphene {
 			_wallet.my_accounts.emplace(new_account);
 			_keys.emplace(new_account.addr, key_to_wif(owner_key));
 			save_wallet_file(_wallet_name);
-			return string(new_account.addr);
+			return std::map<std::string,std::string>();
 		}
 
 		std::vector<hd_trx> crosschain_interface_emu::deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit)
@@ -189,7 +189,7 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		std::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast)
+		fc::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript,bool broadcast)
 		{
 			string a;
 			fc::variant v;

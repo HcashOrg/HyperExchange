@@ -2063,7 +2063,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(multisig_trx_obj.chain_type);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj[0]->new_address_hot);
+		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj[0]->new_address_hot,"");
 		   op.signature = signature;
 		   op.addr = acct.addr;
 		   op.multisig_trx_id = multisig_trx_obj.id;
@@ -2173,6 +2173,7 @@ public:
    }
    vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const
    {
+	   auto obj = get_asset(symbol);
 	   return _remote_db->get_multisig_account_pair(symbol);
    }
    optional<multisig_account_pair_object> get_multisig_account_pair(const multisig_account_pair_id_type & id) const
@@ -2579,8 +2580,8 @@ public:
 
 		   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
 		   FC_ASSERT(current_multi_obj.valid());
-
-		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, false);
+		   auto account_pair_obj = get_multisig_account_pair(current_multi_obj->multisig_account_pair_object_id);
+		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, account_pair_obj->redeemScript_hot,false);
 		   crosschain_withdraw_with_sign_operation trx_op;
 	
 		   const account_object & account_obj = get_account(guard);

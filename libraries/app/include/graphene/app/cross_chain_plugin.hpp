@@ -46,12 +46,12 @@ namespace graphene {
 			virtual std::vector<string>  close_wallet() = 0;
 			virtual void wallet_list() = 0;
 			virtual std::string create_normal_account(string account_name) =0;
-			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
+			virtual std::map<std::string, std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
 			virtual std::vector<fc::variant_object> deposit_transaction_query(string user_account,uint32_t from_block,uint32_t limit)=0;
 			virtual fc::variant_object transaction_query(string trx_id) = 0;
 			virtual fc::variant_object transfer(string from_account, string to_account, string amount, string symbol, string memo,bool broadcast=true) = 0;
 			virtual fc::variant_object create_multisig_transaction(string from_account, string to_account, string amount, string symbol, string memo, bool broadcast = true) = 0;
-			virtual fc::variant_object sign_multisig_transaction(fc::variant_object trx, string sign_account,bool broadcast=true) = 0;
+			virtual fc::string sign_multisig_transaction(fc::variant_object trx, string sign_account,bool broadcast=true) = 0;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object trx, std::vector<fc::variant_object> signatures) = 0;
 			virtual bool validate_transaction(fc::variant_object trx) = 0;
 			virtual void broadcast_transaction(fc::variant_object trx) = 0;

@@ -73,7 +73,7 @@ namespace graphene {
 				FC_THROW(std::string(response.body.begin(),response.body.end())) ;
 		}
 		
-		std::string crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
+		std::map<std::string,std::string> crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -95,19 +95,23 @@ namespace graphene {
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
+				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
 				auto ret = resp.get_object();
 				if (ret.contains("result"))
 				{
+					std::map<std::string, std::string> map;
 					auto result = ret["result"].get_object();
 					FC_ASSERT(result.contains("address"));
-					return result["address"].as_string();
+					map["address"] = result["address"].as_string();
+					FC_ASSERT(result.contains("redeemScript"));
+					map["redeemScript"] = result["redeemScript"].as_string();
+					return map;
 				}
-				return resp["result"].as_string();
 			}
-			else
-				FC_THROW(account_name) ;
-			return std::string();
+	
+		    FC_THROW(account_name) ;
+			//return std::string();
 		}
 
 		std::vector<graphene::crosschain::hd_trx> crosschain_interface_btc::deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit)
@@ -166,14 +170,14 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast /*= true*/)
+		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account,const std::string& redeemScript,bool broadcast /*= true*/)
 		{
 
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.Sign\" ,\
-				\"params\" : {\"chainId\":\"btc\" ,\"addr\": \"" << sign_account << "\",\"trx_hex\":\"" << trx["hex"].as_string() << "\"}}";
+				\"params\" : {\"chainId\":\"btc\" ,\"addr\": \"" << sign_account << "\",\"trx_hex\":\"" << trx["hex"].as_string() << "\","<<"\"redeemScript"<<"\":"<<"\""<<redeemScript<<"\"}}";
 			std::cout << req_body.str() << std::endl;
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);

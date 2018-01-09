@@ -113,8 +113,10 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size() * 2 / 3));
 		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
 
-		FC_ASSERT(o.multi_address_cold == multi_addr_cold);
-		FC_ASSERT(o.multi_address_hot == multi_addr_hot);
+		FC_ASSERT(o.multi_address_cold == multi_addr_cold["address"]);
+		FC_ASSERT(o.multi_redeemScript_cold == multi_addr_cold["redeemScript"]);
+		FC_ASSERT(o.multi_address_hot == multi_addr_hot["address"]);
+		FC_ASSERT(o.multi_redeemScript_hot == multi_addr_hot["redeemScript"]);
 
 
 	}FC_CAPTURE_AND_RETHROW((o))
@@ -133,6 +135,8 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		}
 		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
 			obj.bind_account_hot = o.multi_address_hot;
+			obj.redeemScript_hot = o.multi_redeemScript_hot;
+			obj.redeemScript_cold = o.multi_redeemScript_cold;
 			obj.bind_account_cold = o.multi_address_cold;
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;

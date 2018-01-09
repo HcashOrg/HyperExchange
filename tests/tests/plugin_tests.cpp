@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(plugin_create_multi_account)
 		hdl->open_wallet("test");
 	hdl->unlock_wallet("test", "12345678", 100000);
     auto addr = hdl->create_multi_sig_account("multi_sig_account",vec,2); //n/m 
-	plugin_data.multi_sig_address = addr;
+	plugin_data.multi_sig_address = addr["address"];
 	std::string temp_path = boost::filesystem::initial_path<boost::filesystem::path>().string();
 	temp_path += "/";
 	boost::filesystem::remove(temp_path + "test");
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 
 	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),"10",std::string("mBTC"),std::string(""),true);
 	//sign
-	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),true);
+	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),"",true);
 	
 	std::vector<std::string> vec;
 	vec.push_back(signature);

@@ -73,7 +73,7 @@ namespace graphene {
 			virtual std::string create_normal_account(std::string account_name) =0;
 
 			// Create a multi-signed account.
-			virtual std::string create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
+			virtual std::map<std::string,std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
 
 			// Query transactions to given address.
 			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) = 0;
@@ -88,7 +88,7 @@ namespace graphene {
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Get signature for a given transaction.
-			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, bool broadcast = true) = 0;
+			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript, bool broadcast = true) = 0;
 
 			// Merge all signatures into on transaction.
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) = 0;

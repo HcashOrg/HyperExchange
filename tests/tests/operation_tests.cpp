@@ -733,7 +733,7 @@ BOOST_AUTO_TEST_CASE(guard_sign_crosschain_transaction_test)
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
 		hdl->initialize_config(config);
 		auto sign_test = hdl->create_normal_account("signtest");
-		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, sign_test, false);
+		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, sign_test,"" ,false);
 		//string sign_string = "Hello";
 		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
 		crosschain_withdraw_with_sign_operation trx_op;
@@ -843,16 +843,16 @@ BOOST_AUTO_TEST_CASE(account_multisig_create_operation_test)
 			addrs.emplace_back(cross_interface->create_normal_account("test"));
 		}
 
-		string hot_addr = cross_interface->create_multi_sig_account("BTC_HOT",addrs,10);
+		auto hot_obj = cross_interface->create_multi_sig_account("BTC_HOT",addrs,10);
 		//string hot_pri = cross_interface->export_private_key(symbol, "");
 		addrs.clear();
 		for (int i = 0; i < 15; i++)
 		{
 			addrs.emplace_back(cross_interface->create_normal_account("test"));
 		}
-		string cold_addr = cross_interface->create_multi_sig_account("BTC_COLD",addrs,10);
-		op.new_address_cold = cold_addr;
-		op.new_address_hot = hot_addr;
+		auto cold_obj = cross_interface->create_multi_sig_account("BTC_COLD",addrs,10);
+		op.new_address_cold = cold_obj["address"];
+		op.new_address_hot = hot_obj["address"];
 		op.signature = private_key.sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
@@ -926,7 +926,7 @@ BOOST_AUTO_TEST_CASE(sign_multisig_asset_operation_test)
 			sign_multisig_asset_operation op;
 			op.addr = acct.addr;
 			op.multisig_trx_id = iter.id;
-			op.signature = inface->sign_multisig_transaction(iter.trx, string("1112BhPMSEFRYm51TCyDGd9nTmQcP5TC8s"));
+			op.signature = inface->sign_multisig_transaction(iter.trx, string("1112BhPMSEFRYm51TCyDGd9nTmQcP5TC8s"),"");
 
 			signed_transaction tx;
 

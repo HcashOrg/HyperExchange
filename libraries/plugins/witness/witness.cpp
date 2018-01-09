@@ -283,16 +283,18 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size())
 			{
 				
-				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size()*2/3));
-				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
+				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size()*2/3));
+				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
 				signed_transaction trx;
 				miner_generate_multi_asset_operation op;
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = db.get_dynamic_global_properties();
 				op.miner = miner;
 				op.miner_address = miner_addr;
-				op.multi_address_cold = multi_addr_cold;
-				op.multi_address_hot = multi_addr_hot;
+				op.multi_address_cold = multi_addr_cold_obj["address"];
+				op.multi_redeemScript_cold = multi_addr_cold_obj["redeemScript"];
+				op.multi_address_hot = multi_addr_hot_obj["address"];
+				op.multi_redeemScript_hot = multi_addr_hot_obj["redeemScript"];
 				op.chain_type = iter.symbol;
 				trx.operations.emplace_back(op);
 				set_operation_fees(trx,db.get_global_properties().parameters.current_fees);
