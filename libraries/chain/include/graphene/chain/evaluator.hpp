@@ -179,7 +179,6 @@ namespace graphene {
 				//pay_fee();
 				auto result = eval->do_apply(op);
 				//db_adjust_balance(op.fee_payer(), -fee_from_account);
-
 				return result;
 			}
 		};
