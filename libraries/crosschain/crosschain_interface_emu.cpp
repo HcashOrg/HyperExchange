@@ -2,11 +2,6 @@
 #include <fc/filesystem.hpp>
 #include <iostream>
 #include <boost/filesystem.hpp>
-#ifdef __unix__
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-
 
 namespace graphene {
 	namespace crosschain {
