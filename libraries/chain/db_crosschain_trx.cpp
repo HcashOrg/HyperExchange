@@ -111,6 +111,21 @@ namespace graphene {
 					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_combine_trx_create;
 					});
+					vector<transaction_id_type> withsign_trxs;
+					get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
+					{
+						const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+						if (p.trx_state == withdraw_sign_trx && p.relate_transaction_id == relate_transaction_id) {
+							withsign_trxs.push_back(p.relate_transaction_id);
+						}
+					});
+					for (auto withsign_trx : withsign_trxs) {
+						auto& sign_tx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+						auto sign_tx_iter = sign_tx_db.find(withsign_trx);
+						modify(*sign_tx_iter, [&](crosschain_trx_object& obj) {
+							obj.trx_state = withdraw_combine_trx_create;
+						});
+					}
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
 					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
@@ -144,6 +159,21 @@ namespace graphene {
 					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
 					});
+					vector<transaction_id_type> withsign_trxs;
+					get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
+					{
+						const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+						if (p.trx_state == withdraw_combine_trx_create && p.relate_transaction_id == relate_transaction_id) {
+							withsign_trxs.push_back(p.relate_transaction_id);
+						}
+					});
+					for (auto withsign_trx : withsign_trxs) {
+						auto& sign_tx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+						auto sign_tx_iter = sign_tx_db.find(withsign_trx);
+						modify(*sign_tx_iter, [&](crosschain_trx_object& obj) {
+							obj.trx_state = withdraw_transaction_confirm;
+						});
+					}
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}

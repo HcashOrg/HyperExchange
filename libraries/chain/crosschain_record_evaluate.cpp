@@ -45,7 +45,9 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
 			database& d = db();
-			d.adjust_balance(o.withdraw_account, asset(-o.amount, o.asset_id));
+			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
+			auto asset_itr = asset_idx.find(o.asset_id);
+			d.adjust_balance(o.withdraw_account, asset(-(asset_itr->amount_from_string(o.amount).amount), o.asset_id));
 			d.adjust_crosschain_transaction(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx),uint64_t(operation::tag<crosschain_withdraw_operation>::value), withdraw_without_sign_trx_uncreate);
 			return void_result();
 		}
