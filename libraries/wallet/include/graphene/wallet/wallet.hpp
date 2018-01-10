@@ -885,7 +885,7 @@ class wallet_api
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
+	  signed_transaction withdraw_cross_chain_transaction(string account_name,
 		  string amount,
 		  string asset_symbol,
 		  string crosschain_account,

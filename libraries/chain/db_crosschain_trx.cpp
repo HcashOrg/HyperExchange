@@ -221,8 +221,9 @@ namespace graphene {
 				
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = get_dynamic_global_properties();
-				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-				tx.set_reference_block(dyn_props.head_block_id);
+				operation temp = operation(op);
+                                get_global_properties().parameters.current_fees->set_fee(temp);
+                                tx.set_reference_block(dyn_props.head_block_id);
 				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				tx.operations.push_back(trx_op);
 				tx.validate();
@@ -270,8 +271,9 @@ namespace graphene {
 						signed_transaction tx;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = get_dynamic_global_properties();
-						get_global_properties().parameters.current_fees->set_fee(operation(op));
-						tx.set_reference_block(dyn_props.head_block_id);
+						operation temp = operation(op);
+                                                get_global_properties().parameters.current_fees->set_fee(temp);
+                                                tx.set_reference_block(dyn_props.head_block_id);
 						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						tx.operations.push_back(op);
 						tx.validate();
@@ -288,7 +290,8 @@ namespace graphene {
 						signed_transaction tx;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = get_dynamic_global_properties();
-						get_global_properties().parameters.current_fees->set_fee(operation(op));
+                                                operation temp = operation(op);
+						get_global_properties().parameters.current_fees->set_fee(temp);
 						tx.set_reference_block(dyn_props.head_block_id);
 						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						tx.operations.push_back(op);
@@ -357,8 +360,9 @@ namespace graphene {
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;
 					auto dyn_props = get_dynamic_global_properties();
-					get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-					tx.set_reference_block(dyn_props.head_block_id);
+					operation temp = operation(op);
+                                        get_global_properties().parameters.current_fees->set_fee(temp);
+                                        tx.set_reference_block(dyn_props.head_block_id);
 					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 					tx.operations.push_back(trx_op);
 					tx.validate();

@@ -33,7 +33,7 @@ namespace graphene {
 				// 			auto itr = iter.find(o.lock_balance_account);
 				//optional<guard_member_object> iter = d.get(o.lock_balance_account);
 				d.modify(d.get(o.lock_balance_account), [o, asset_type](guard_member_object& b) {
-					auto& map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
+					auto map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
 					if (map_guard_lockbalance_total != b.guard_lock_balance.end()) {
 						map_guard_lockbalance_total->second += o.lock_asset_amount;
 					}
@@ -70,7 +70,7 @@ namespace graphene {
 				// 			auto itr = iter.find(o.lock_balance_account);
 				//optional<guard_member_object> iter = d.get(o.foreclose_balance_account);
 				d.modify(d.get(o.foreclose_balance_account), [o, asset_type](guard_member_object& b) {
-					auto& map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
+					auto map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
 					if (map_guard_lockbalance_total != b.guard_lock_balance.end()) {
 						map_guard_lockbalance_total->second -= o.foreclose_asset_amount;
 					}

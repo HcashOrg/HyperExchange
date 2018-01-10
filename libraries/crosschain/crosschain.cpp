@@ -15,7 +15,7 @@ namespace graphene {
 		abstract_crosschain_interface * crosschain_manager::get_crosschain_handle(const std::string &name)
 		{
 			//std::lock_guard<std::mutex> lgd(mutex);
-			auto &itr = crosschain_handles.find(name);
+			const auto &itr = crosschain_handles.find(name);
 			if (itr != crosschain_handles.end())
 			{
 				return itr->second;
