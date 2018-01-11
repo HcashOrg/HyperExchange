@@ -2503,11 +2503,21 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
-   std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction(){
-	   std::vector<signed_transaction> result;
+   std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type) {
+	   std::map<transaction_id_type, signed_transaction> result;
+	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction((transaction_stata)type, transaction_id_type());
+	   for (const auto& cct : cct_objs) {
+		   auto id = cct.real_transaction.id();
+		   result[id] = cct.real_transaction;
+	   }
+	   return result;
+   }
+   std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction(){
+	   std::map<transaction_id_type, signed_transaction> result;
 	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create,transaction_id_type());
 	   for (const auto& cct : cct_objs){
-		   result.push_back(cct.real_transaction);
+		   auto id = cct.real_transaction.id();
+		   result[id] = cct.real_transaction;
 	   }
 	   return result;
    }
@@ -2543,13 +2553,17 @@ public:
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 		   for (const auto& trx : trxs) {
-			   auto id = trx.transaction_id.str();
+			   /*auto id = trx.transaction_id.str();
 			   std::cout << id << std::endl;
 			   auto op = trx.real_transaction.operations[0];
-			   std::cout << op.which() << std::endl;
-			   /*
+			   std::cout << op.which() << std::endl;*/
+			   
 			   auto operations = trx.real_transaction.operations;
 			   auto op = trx.real_transaction.operations[0];
+			   if (op.which() != operation::tag<graphene::chain::crosschain_withdraw_without_sign_operation>::value)
+			   {
+				   continue;
+			   }
 			   auto withop_without_sign = op.get<graphene::chain::crosschain_withdraw_without_sign_operation>();
 			   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
@@ -2571,7 +2585,6 @@ public:
 			   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
 			   transaction.validate();
 			   sign_transaction(transaction, true);
-			   */
 		   }
 	   }
 	   else{
@@ -4195,7 +4208,10 @@ signed_transaction wallet_api::transfer_to_account(string from, string to, strin
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
-std::vector<signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
+std::map<transaction_id_type, signed_transaction> wallet_api::get_crosschain_transaction(int type) {
+	return my->get_crosschain_transaction(type);
+}
+std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
