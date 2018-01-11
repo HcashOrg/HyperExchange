@@ -28,7 +28,7 @@ namespace graphene {
 				uint32_t start_num;
 				
 				chain::database& db = database();
-				auto sess = db._undo_db.start_undo_session();
+				//auto sess = db._undo_db.start_undo_session();
 				auto& trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
 				auto trx_iter = trx_iters.find(asset_symbol);
 				auto db_count = trx_iters.size();
@@ -66,7 +66,7 @@ namespace graphene {
 					});
 				}
 			 
-				sess.commit();
+				//sess.commit();
 			}
 			schedule_acquired_record_loop();
 		}
