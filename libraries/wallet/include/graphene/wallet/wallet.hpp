@@ -1624,7 +1624,8 @@ class wallet_api
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
-	  std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction();
+	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
       /** Signs a transaction.
        *
@@ -1960,6 +1961,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
 		(create_crosschain_symbol)
