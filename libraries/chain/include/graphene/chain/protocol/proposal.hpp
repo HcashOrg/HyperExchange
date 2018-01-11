@@ -126,7 +126,7 @@ namespace graphene { namespace chain {
          uint32_t price_per_kbyte = 10;
       };
 
-      account_id_type            fee_paying_account;
+	  address            fee_paying_account;
       asset                      fee;
       proposal_id_type           proposal;
       flat_set<account_id_type>  active_approvals_to_add;
@@ -137,7 +137,7 @@ namespace graphene { namespace chain {
       flat_set<address>  key_approvals_to_remove;
       extensions_type            extensions;
 
-      account_id_type fee_payer()const { return fee_paying_account; }
+	  address fee_payer()const { return fee_paying_account; }
       void            validate()const;
       share_type      calculate_fee(const fee_parameters_type& k)const;
 	  void get_required_authorities(vector<authority>& a)const;

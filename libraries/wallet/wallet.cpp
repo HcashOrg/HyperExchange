@@ -3291,7 +3291,7 @@ public:
    {
       proposal_update_operation update_op;
 
-      update_op.fee_paying_account = get_account(fee_paying_account).id;
+      update_op.fee_paying_account = get_account(fee_paying_account).addr;
       update_op.proposal = fc::variant(proposal_id).as<proposal_id_type>();
       // make sure the proposal exists
       get_object( update_op.proposal );

@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE( proposed_single_account )
 
       proposal_update_operation pup;
       pup.proposal = proposal.id;
-      pup.fee_paying_account = nathan.id;
+      pup.fee_paying_account = nathan.addr;
       BOOST_TEST_MESSAGE( "Updating the proposal to have nathan's authority" );
       pup.active_approvals_to_add.insert(nathan.id);
 
@@ -457,7 +457,8 @@ BOOST_AUTO_TEST_CASE( committee_authority )
    trx.operations.clear();
    trx.signatures.clear();
    proposal_update_operation uop;
-   uop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
+   auto temp_account = get_account("4");
+   uop.fee_paying_account = temp_account.addr;
    uop.proposal = prop.id;
 
    uop.key_approvals_to_add.emplace(committee_key.get_public_key());
@@ -535,7 +536,8 @@ BOOST_FIXTURE_TEST_CASE( fired_committee_members, database_fixture )
    ilog( "commitee member approves proposal" );
    //committee key approves of the proposal.
    proposal_update_operation uop;
-   uop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
+   auto temp_account = get_account("4");
+   uop.fee_paying_account = temp_account.addr;
    uop.proposal = pid;
    uop.key_approvals_to_add.emplace(init_account_pub_key);
    trx.operations.back() = uop;
@@ -633,7 +635,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_two_accounts, database_fixture )
       proposal_update_operation uop;
       uop.proposal = prop.id;
       uop.active_approvals_to_add.insert(nathan.get_id());
-      uop.fee_paying_account = nathan.get_id();
+      uop.fee_paying_account = nathan.addr;
       trx.operations.push_back(uop);
       sign( trx, nathan_key );
       PUSH_TX( db, trx );
@@ -730,7 +732,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 	{
 
 		proposal_update_operation uop;
-		uop.fee_paying_account = guard[0].get_id();
+		uop.fee_paying_account = guard[0].addr;
 		uop.proposal = prop.id;
 		//uop.active_approvals_to_add.insert(nathan.get_id());
 		for (int i = 0; i < 6; i++)
@@ -837,7 +839,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_change_guard_pledge_line, database_fixture)
 	{
 
 		proposal_update_operation uop;
-		uop.fee_paying_account = guard0.get_id();
+		uop.fee_paying_account = guard0.addr;
 		uop.proposal = prop.id;
 		//uop.active_approvals_to_add.insert(nathan.get_id());
 		uop.key_approvals_to_add.insert(guard0.addr);
@@ -912,7 +914,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_delete, database_fixture )
 
    {
       proposal_update_operation uop;
-      uop.fee_paying_account = nathan.get_id();
+      uop.fee_paying_account = nathan.addr;
       uop.proposal = prop.id;
       //uop.active_approvals_to_add.insert(nathan.get_id());
 	  uop.key_approvals_to_add.insert(nathan.addr);
@@ -990,7 +992,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_owner_authority_delete, database_fixture )
 
    {
       proposal_update_operation uop;
-      uop.fee_paying_account = nathan.get_id();
+      uop.fee_paying_account = nathan.addr;
       uop.proposal = prop.id;
       uop.owner_approvals_to_add.insert(nathan.get_id());
       trx.operations.push_back(uop);
@@ -1068,7 +1070,7 @@ BOOST_FIXTURE_TEST_CASE( proposal_owner_authority_complete, database_fixture )
    {
       proposal_id_type pid = prop.id;
       proposal_update_operation uop;
-      uop.fee_paying_account = nathan.get_id();
+      uop.fee_paying_account = nathan.addr;
       uop.proposal = prop.id;
       uop.key_approvals_to_add.insert(dan.active.key_auths.begin()->first);
       trx.operations.push_back(uop);
