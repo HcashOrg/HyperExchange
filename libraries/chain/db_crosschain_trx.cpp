@@ -111,6 +111,21 @@ namespace graphene {
 					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_combine_trx_create;
 					});
+					vector<transaction_id_type> withsign_trxs;
+					get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
+					{
+						const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+						if (p.trx_state == withdraw_sign_trx && p.relate_transaction_id == relate_transaction_id) {
+							withsign_trxs.push_back(p.relate_transaction_id);
+						}
+					});
+					for (auto withsign_trx : withsign_trxs) {
+						auto& sign_tx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+						auto sign_tx_iter = sign_tx_db.find(withsign_trx);
+						modify(*sign_tx_iter, [&](crosschain_trx_object& obj) {
+							obj.trx_state = withdraw_combine_trx_create;
+						});
+					}
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
 					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
@@ -144,6 +159,21 @@ namespace graphene {
 					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
 					});
+					vector<transaction_id_type> withsign_trxs;
+					get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
+					{
+						const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+						if (p.trx_state == withdraw_combine_trx_create && p.relate_transaction_id == relate_transaction_id) {
+							withsign_trxs.push_back(p.relate_transaction_id);
+						}
+					});
+					for (auto withsign_trx : withsign_trxs) {
+						auto& sign_tx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+						auto sign_tx_iter = sign_tx_db.find(withsign_trx);
+						modify(*sign_tx_iter, [&](crosschain_trx_object& obj) {
+							obj.trx_state = withdraw_transaction_confirm;
+						});
+					}
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}
@@ -191,8 +221,9 @@ namespace graphene {
 				
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = get_dynamic_global_properties();
-				get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-				tx.set_reference_block(dyn_props.head_block_id);
+				operation temp = operation(op);
+                                get_global_properties().parameters.current_fees->set_fee(temp);
+                                tx.set_reference_block(dyn_props.head_block_id);
 				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				tx.operations.push_back(trx_op);
 				tx.validate();
@@ -240,8 +271,9 @@ namespace graphene {
 						signed_transaction tx;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = get_dynamic_global_properties();
-						get_global_properties().parameters.current_fees->set_fee(operation(op));
-						tx.set_reference_block(dyn_props.head_block_id);
+						operation temp = operation(op);
+                                                get_global_properties().parameters.current_fees->set_fee(temp);
+                                                tx.set_reference_block(dyn_props.head_block_id);
 						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						tx.operations.push_back(op);
 						tx.validate();
@@ -258,7 +290,8 @@ namespace graphene {
 						signed_transaction tx;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = get_dynamic_global_properties();
-						get_global_properties().parameters.current_fees->set_fee(operation(op));
+                                                operation temp = operation(op);
+						get_global_properties().parameters.current_fees->set_fee(temp);
 						tx.set_reference_block(dyn_props.head_block_id);
 						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						tx.operations.push_back(op);
@@ -327,8 +360,9 @@ namespace graphene {
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;
 					auto dyn_props = get_dynamic_global_properties();
-					get_global_properties().parameters.current_fees->set_fee(operation(trx_op));
-					tx.set_reference_block(dyn_props.head_block_id);
+					operation temp = operation(op);
+                                        get_global_properties().parameters.current_fees->set_fee(temp);
+                                        tx.set_reference_block(dyn_props.head_block_id);
 					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 					tx.operations.push_back(trx_op);
 					tx.validate();

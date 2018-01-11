@@ -248,7 +248,7 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
-		 void database::update_witness_random_seed(const SecretHashType& new_secret);
+		 void update_witness_random_seed(const SecretHashType& new_secret);
 
          //////////////////// db_getter.cpp ////////////////////
 
@@ -295,7 +295,7 @@ namespace graphene { namespace chain {
 		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk);
-		 void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
+		 void adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
 			 transaction_id_type transaction_id,
 			 signed_transaction real_transaction,
 			 uint64_t op_type,

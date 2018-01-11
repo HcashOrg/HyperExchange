@@ -1998,6 +1998,7 @@ public:
 		   //get cold hot addresses according to given symbol
 		   //create muliti-trx for given symbol
 		   //return the relvent trx
+                   /*
 		   const address  cold_addr;
 		   const address  hot_addr;
 		   
@@ -2006,7 +2007,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   inface->initialize_config(fc::json::from_string(config).get_object());
 		   auto asset_obj = get_asset(symbol);
-		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
+		   const auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
 		   // TODO
 		   const auto& acct = get_account(account);
 
@@ -2019,8 +2020,8 @@ public:
 		   tx.operations.emplace_back(op);
 		   set_operation_fees(tx,get_global_properties().parameters.current_fees);
 		   tx.validate();
-
-		   return sign_transaction(tx,broadcast);
+                   */
+		   return signed_transaction();
 		   
 	   }FC_CAPTURE_AND_RETHROW((account)(amount)(symbol)(broadcast))
    }
@@ -5538,7 +5539,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
 vesting_balance_object_with_info::vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now )
    : vesting_balance_object( vbo )
 {
-   allowed_withdraw = get_allowed_withdraw( now );
+   //allowed_withdraw = get_allowed_withdraw( now );
    allowed_withdraw_time = now;
 }
 

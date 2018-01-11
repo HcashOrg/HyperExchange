@@ -9,7 +9,10 @@
 #include <fc/io/json.hpp>
 #include <fc/crypto/aes.hpp>
 #include <fc/crypto/elliptic.hpp>
-
+#ifdef __unix__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
@@ -90,6 +93,9 @@ namespace graphene {
 			chain_id_type           _chain_id;
 			fc::sha512              _checksum;
 			map<address, std::string> _keys;
+#ifdef __unix__
+			mode_t  _old_umask;
+#endif
 		};
 	}
 }

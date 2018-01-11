@@ -106,12 +106,13 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 			}
 		}
 		);
+
 		const auto& guard_ids = db().get_global_properties().active_committee_members;
 		FC_ASSERT(symbol_addrs_cold.size()==guard_ids.size() && symbol_addrs_hot.size()==guard_ids.size());
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
-		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceill(symbol_addrs_cold.size() * 2 / 3));
-		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceill(symbol_addrs_hot.size() * 2 / 3));
+		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2 / 3));
+		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2 / 3));
 
 		FC_ASSERT(o.multi_address_cold == multi_addr_cold["address"]);
 		FC_ASSERT(o.multi_redeemScript_cold == multi_addr_cold["redeemScript"]);
@@ -128,7 +129,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 	{
 		//update the latest multi-addr in database
 		auto& account_pair_index = db().get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
-		auto& iter = account_pair_index.find(boost::make_tuple(o.multi_address_hot,o.multi_address_cold,o.chain_type));
+		auto iter = account_pair_index.find(boost::make_tuple(o.multi_address_hot,o.multi_address_cold,o.chain_type));
 		if (iter != account_pair_index.end())
 		{
 			db().remove(*iter);

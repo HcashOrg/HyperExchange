@@ -15,7 +15,7 @@ namespace graphene {
 		abstract_crosschain_interface * crosschain_manager::get_crosschain_handle(const std::string &name)
 		{
 			//std::lock_guard<std::mutex> lgd(mutex);
-			auto &itr = crosschain_handles.find(name);
+			const auto &itr = crosschain_handles.find(name);
 			if (itr != crosschain_handles.end())
 			{
 				return itr->second;
@@ -24,12 +24,12 @@ namespace graphene {
 			{
 				if (name == "EMU")
 				{
-					auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_emu()));
+					const auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_emu()));
 					return itr.first->second;
 				}
 				else if (name == "BTC")
 				{
-					auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_btc()));
+					const auto &itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_btc()));
 					return itr.first->second;
 				}
 			}

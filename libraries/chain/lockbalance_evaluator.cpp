@@ -33,7 +33,7 @@ namespace graphene{
 					d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account,asset(o.lock_asset_amount,o.lock_asset_id));
 					//optional<miner_object> itr = d.get(o.lockto_miner_account);
 					d.modify(d.get(o.lockto_miner_account), [o, asset_type](miner_object& b) {
-						auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+						auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 						if (map_lockbalance_total != b.lockbalance_total.end())	{
 							map_lockbalance_total->second += o.lock_asset_amount;
 						}
@@ -76,7 +76,7 @@ namespace graphene{
 
 				//optional<miner_object> itr = d.get(o.foreclose_miner_account);
 				d.modify(d.get(o.foreclose_miner_account), [o, asset_type](miner_object& b) {
-					auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+					auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 					if (map_lockbalance_total != b.lockbalance_total.end()) {
 						map_lockbalance_total->second -= o.foreclose_asset_amount;
 					}

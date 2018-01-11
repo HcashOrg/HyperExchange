@@ -131,4 +131,3 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(asset_symbol)(block_num))
-FC_REFLECT(graphene::crosschain::abstract_crosschain_interface,())
