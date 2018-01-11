@@ -54,7 +54,7 @@ database& generic_evaluator::db()const { return trx_state->db(); }
 	   const database& d = db();
 	   fee_from_account = fee;
 	   FC_ASSERT(fee.amount >= 0);
-	   //fee_paying_address = &account_id(d);]
+	   fee_paying_address = addr;
 	   fee_asset = &fee.asset_id(d);
 	   if (fee_from_account.asset_id == asset_id_type())
 		   core_fee_paid = fee_from_account.amount;
@@ -112,13 +112,18 @@ database& generic_evaluator::db()const { return trx_state->db(); }
 
    void generic_evaluator::pay_fee()
    { try {
+	 
       if( !trx_state->skip_fee ) {
-         database& d = db();
-         /// TODO: db().pay_fee( account_id, core_fee );
-         d.modify(*fee_paying_account_statistics, [&](account_statistics_object& s)
-         {
-            s.pay_fee( core_fee_paid, d.get_global_properties().parameters.cashback_vesting_threshold );
-         });
+		  if (fee_paying_account_statistics)
+		  {
+			  database& d = db();
+			  /// TODO: db().pay_fee( account_id, core_fee );
+			  d.modify(*fee_paying_account_statistics, [&](account_statistics_object& s)
+			  {
+				  s.pay_fee(core_fee_paid, d.get_global_properties().parameters.cashback_vesting_threshold);
+			  });
+		  }
+         
       }
    } FC_CAPTURE_AND_RETHROW() }
 

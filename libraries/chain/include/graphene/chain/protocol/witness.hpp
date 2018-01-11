@@ -77,7 +77,7 @@ namespace graphene { namespace chain {
    {
 	   struct fee_parameters_type
 	   {
-		   share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   share_type fee = share_type(0);
 	   };
 	   asset fee;
 	   miner_id_type miner;
@@ -92,6 +92,7 @@ namespace graphene { namespace chain {
 	   void get_required_authorities(vector<authority>& a)const {
 		   a.push_back(authority(1, miner_address, 1));
 	   }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
    };
 
    struct miner_merge_signatures_operation :public base_operation
@@ -110,6 +111,7 @@ namespace graphene { namespace chain {
 	   void get_required_authorities(vector<authority>& a)const {
 		   a.push_back(authority(1, miner_address, 1));
 	   }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
    };
 
    /// TODO: witness_resign_operation : public base_operation
