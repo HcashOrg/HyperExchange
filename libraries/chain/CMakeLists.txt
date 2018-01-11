@@ -97,6 +97,13 @@ add_library( graphene_chain
 
              is_authorized_asset.cpp
 
+             contract.cpp
+             contract_engine.cpp
+             contract_engine_builder.cpp
+             uvm_contract_engine.cpp
+             contract_evaluate.cpp
+             contract_entry.cpp
+
              ${HEADERS}
              ${PROTOCOL_HEADERS}
              "${CMAKE_CURRENT_BINARY_DIR}/include/graphene/chain/hardfork.hpp"

@@ -24,6 +24,7 @@
 
 #include <graphene/chain/protocol/authority.hpp>
 #include <graphene/app/impacted.hpp>
+#include <graphene/chain/contract.hpp>
 
 namespace graphene { namespace app {
 
@@ -228,6 +229,9 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.account_id );
    }
+
+   void operator()(const contract_register_operation& op) {}
+   void operator()(const storage_operation& op) {}
 
 };
 

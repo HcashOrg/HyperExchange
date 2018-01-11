@@ -70,6 +70,8 @@
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/guard_refund_balance_evaluator.hpp>
+#include <graphene/chain/contract_evaluate.hpp>
+#include <graphene/chain/contract.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -214,6 +216,8 @@ void database::initialize_evaluators()
    register_evaluator<asset_real_create_evaluator>();
    register_evaluator<miner_generate_multi_asset_evaluator>();
    register_evaluator<guard_update_multi_account_evaluator>();
+
+   register_evaluator<contract_register_evaluate>();
 }
 
 void database::initialize_indexes()

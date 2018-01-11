@@ -42,6 +42,7 @@
 #include <graphene/chain/protocol/worker.hpp>
 #include <graphene/chain/protocol/guard_lock_balance.hpp>
 #include <graphene/chain/protocol/guard_refund_balance.hpp>
+#include <graphene/chain/contract.hpp>
 
 namespace graphene { namespace chain {
 
@@ -117,7 +118,9 @@ namespace graphene { namespace chain {
 	   graphene::chain::crosschain_withdraw_combine_sign_operation,
 	   graphene::chain::crosschain_withdraw_result_operation,
 	        guard_update_multi_account_operation,
-	        asset_real_create_operation
+	        asset_real_create_operation,
+	   contract_register_operation,
+	   storage_operation
          > operation;
 
    /// @} // operations group
