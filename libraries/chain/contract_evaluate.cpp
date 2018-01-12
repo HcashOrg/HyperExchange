@@ -1,5 +1,6 @@
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/contract.hpp>
+#include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/contract_engine_builder.hpp>
 #include <graphene/chain/database.hpp>

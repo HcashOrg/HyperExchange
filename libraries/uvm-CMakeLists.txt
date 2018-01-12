@@ -56,7 +56,7 @@ set(SOURCES src/uvm/lapi.cpp
 add_library( uvm ${SOURCES} ${HEADERS} )
 
 target_link_libraries( uvm 
-  PUBLIC fc )
+  PUBLIC fc)
 target_include_directories( uvm 
   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )

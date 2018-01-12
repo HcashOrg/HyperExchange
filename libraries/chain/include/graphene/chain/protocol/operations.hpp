@@ -43,6 +43,7 @@
 #include <graphene/chain/protocol/guard_lock_balance.hpp>
 #include <graphene/chain/protocol/guard_refund_balance.hpp>
 #include <graphene/chain/contract.hpp>
+#include <graphene/chain/storage.hpp>
 
 namespace graphene { namespace chain {
 

@@ -1,5 +1,6 @@
-#include <graphene/chain/contract.hpp>
+﻿#include <graphene/chain/contract.hpp>
 #include <graphene/chain/contract_engine_builder.hpp>
+#include <uvm/uvm_lib.h>
 
 #include <fc/array.hpp>
 #include <fc/crypto/ripemd160.hpp>
@@ -10,6 +11,8 @@
 
 namespace graphene {
 	namespace chain {
+
+		using namespace uvm::blockchain;
 
 
 		void            contract_register_operation::validate()const
@@ -27,20 +30,7 @@ namespace graphene {
 			return core_fee_required;
 		}
 
-		void            storage_operation::validate()const
-		{
-		}
-		share_type      storage_operation::calculate_fee(const fee_parameters_type& schedule)const
-		{
-			// base fee
-			share_type core_fee_required = schedule.fee;
-			// bytes size fee
-			for (const auto &p : contract_change_storages) {
-				core_fee_required += calculate_data_fee(fc::raw::pack_size(p.first), schedule.price_per_kbyte);
-				core_fee_required += calculate_data_fee(fc::raw::pack_size(p.second), schedule.price_per_kbyte); // FIXME: if p.second is pointer, change to data pointed to's size
-			}
-			return core_fee_required;
-		}
+
 
 	}
 }
