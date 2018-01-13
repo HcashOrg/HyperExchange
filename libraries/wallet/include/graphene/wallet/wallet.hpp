@@ -1730,6 +1730,10 @@ class wallet_api
       void network_add_nodes( const vector<string>& nodes );
       vector< variant > network_get_connected_peers();
 
+	  // contract wallet apis
+	  signed_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+	  // end contract wallet apis
+
       /**
        *  Used to transfer from one set of blinded balances to another
        */
@@ -1971,4 +1975,5 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_crosschain_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
+			(register_contract)
       )

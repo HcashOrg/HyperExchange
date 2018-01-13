@@ -3,6 +3,7 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/contract_engine_builder.hpp>
+#include <graphene/chain/uvm_chain_api.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
 
@@ -16,8 +17,12 @@
 namespace graphene {
 	namespace chain {
 
+		using uvm::lua::api::global_uvm_chain_api;
+
 		void_result contract_register_evaluate::do_evaluate(const contract_register_operation& o) {
 
+			if (!global_uvm_chain_api)
+				global_uvm_chain_api = new UvmChainApi();
 
 			// TODO: execute contract init api in pendingState
 			::blockchain::contract_engine::ContractEngineBuilder builder;
@@ -27,10 +32,9 @@ namespace graphene {
 			try {
 				FC_ASSERT(result_operations.size() == 0);
 
-				GluaStateValue statevalue;
-				statevalue.pointer_value = this;
+				origin_op = o;
 				engine->set_caller((string)(o.owner_addr), (string)(o.owner_addr)); // FIXME: first is owner publickey
-																							//engine->set_state_pointer_value("evaluate_state", &eval_state);
+				engine->set_state_pointer_value("register_evaluate_state", this);
 				engine->clear_exceptions();
 				auto limit = o.init_cost;
 				if (limit < 0 || limit == 0)
@@ -121,5 +125,42 @@ namespace graphene {
 		void contract_register_evaluate::pay_fee() {
 
 		}
+
+		std::shared_ptr<GluaContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
+		{
+			if (string(origin_op.contract_id) == contract_id)
+			{
+				auto contract_info = std::make_shared<GluaContractInfo>();
+				contract_info->contract_apis.push_back("init"); // TODO: change to get contract info from evaluator
+				contract_info->contract_apis.push_back("GetAge");
+				contract_info->contract_apis.push_back("TestHello");
+				contract_info->contract_apis.push_back("OfflineGetAge");
+				return contract_info;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<uvm::blockchain::Code> contract_register_evaluate::get_contract_code_by_id(const string &contract_id) const
+		{
+			if (string(origin_op.contract_id) == contract_id)
+			{
+				auto code = std::make_shared<uvm::blockchain::Code>();
+				*code = origin_op.contract_code;
+				return code;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		address contract_register_evaluate::origin_op_contract_id() const
+		{
+			return origin_op.contract_id;
+		}
+
 	}
 }

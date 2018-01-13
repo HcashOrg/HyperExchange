@@ -30,7 +30,14 @@ namespace graphene {
 			return core_fee_required;
 		}
 
-
+		address contract_register_operation::calculate_contract_id() const
+		{
+			address id;
+			fc::sha512::encoder enc;
+			fc::raw::pack(enc, contract_code);
+			id.addr = fc::ripemd160::hash(enc.result());
+			return id;
+		}
 
 	}
 }

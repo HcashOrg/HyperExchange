@@ -37,6 +37,7 @@ namespace graphene {
 			{
 				a.push_back(authority(1, owner_addr, 1));
 			}
+			address calculate_contract_id() const;
 		};
 
 		

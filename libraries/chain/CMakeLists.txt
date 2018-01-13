@@ -103,6 +103,7 @@ add_library( graphene_chain
              uvm_contract_engine.cpp
              contract_evaluate.cpp
              contract_entry.cpp
+             uvm_chain_api.cpp
 
              ${HEADERS}
              ${PROTOCOL_HEADERS}
