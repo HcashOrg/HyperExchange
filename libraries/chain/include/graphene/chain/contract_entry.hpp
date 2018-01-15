@@ -14,6 +14,24 @@ namespace blockchain
 
 		FC_DECLARE_EXCEPTION(uvm_exception, 34000, "uvm error");
 		FC_DECLARE_DERIVED_EXCEPTION(uvm_executor_internal_error, blockchain::contract_engine::uvm_exception, 34005, "uvm internal error");
+
+		FC_DECLARE_DERIVED_EXCEPTION(read_verify_code_fail, blockchain::contract_engine::uvm_exception, 34006, "read verify contract bytecode error");
+		FC_DECLARE_DERIVED_EXCEPTION(read_bytescode_len_fail, blockchain::contract_engine::uvm_exception, 34007, "read contract bytecode length error");
+		FC_DECLARE_DERIVED_EXCEPTION(read_bytescode_fail, blockchain::contract_engine::uvm_exception, 34008, "read cotnract bytecode error");
+		FC_DECLARE_DERIVED_EXCEPTION(verify_bytescode_sha1_fail, blockchain::contract_engine::uvm_exception, 34009, "verify bytecode sha1 error");
+		FC_DECLARE_DERIVED_EXCEPTION(read_api_count_fail, blockchain::contract_engine::uvm_exception, 34010, "read api count fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_api_len_fail, blockchain::contract_engine::uvm_exception, 34011, "read api len fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_offline_api_count_fail, blockchain::contract_engine::uvm_exception, 34012, "read offline api count_fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_offline_api_len_fail, blockchain::contract_engine::uvm_exception, 34013, "read offline api len fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_events_count_fail, blockchain::contract_engine::uvm_exception, 34014, "read events count fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_events_len_fail, blockchain::contract_engine::uvm_exception, 34015, "read events len fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_storage_count_fail, blockchain::contract_engine::uvm_exception, 34016, "read storage count fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_storage_name_len_fail, blockchain::contract_engine::uvm_exception, 34017, "read storage name len fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_api_fail, blockchain::contract_engine::uvm_exception, 34018, "read api fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_offline_api_fail, blockchain::contract_engine::uvm_exception, 34019, "read offline api fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_events_fail, blockchain::contract_engine::uvm_exception, 34020, "read events fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_storage_name_fail, blockchain::contract_engine::uvm_exception, 34021, "read storage name fail");
+		FC_DECLARE_DERIVED_EXCEPTION(read_storage_type_fail, blockchain::contract_engine::uvm_exception, 34022, "read storage type fail");
 	}
 }
 
@@ -59,6 +77,15 @@ namespace graphene {
 			CodePrintAble() {}
 
 			CodePrintAble(const uvm::blockchain::Code& code);
+		};
+
+		struct ContractEntryPrintable
+		{
+			std::string  id; //contract address
+			public_key_type owner; //the owner of the contract
+			address owner_address;  //the owner address of the contract
+			string owner_name;  //the owner name of the contract
+			CodePrintAble code_printable; // code-related of contract
 		};
 
 		typedef uint64_t gas_price_type;
