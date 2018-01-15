@@ -131,10 +131,10 @@ namespace graphene {
 			if (string(origin_op.contract_id) == contract_id)
 			{
 				auto contract_info = std::make_shared<GluaContractInfo>();
-				contract_info->contract_apis.push_back("init"); // TODO: change to get contract info from evaluator
-				contract_info->contract_apis.push_back("GetAge");
-				contract_info->contract_apis.push_back("TestHello");
-				contract_info->contract_apis.push_back("OfflineGetAge");
+				const auto &code = origin_op.contract_code;
+				for (const auto & api : code.abi) {
+					contract_info->contract_apis.push_back(api);
+				}
 				return contract_info;
 			}
 			else

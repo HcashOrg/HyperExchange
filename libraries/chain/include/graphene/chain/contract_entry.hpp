@@ -43,6 +43,7 @@ namespace uvm {
 			std::set<std::string> abi;
 			std::set<std::string> offline_abi;
 			std::set<std::string> events;
+			std::map<std::string, fc::enum_type<fc::unsigned_int, uvm::blockchain::StorageValueTypes>> storage_properties;
 			std::vector<unsigned char> code;
 			std::string code_hash;
 			Code() {}
@@ -93,4 +94,4 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(code)(code_hash));
+FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));

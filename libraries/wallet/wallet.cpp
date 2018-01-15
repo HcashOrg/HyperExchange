@@ -1001,7 +1001,6 @@ public:
 
    signed_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
-	   // TODO
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1021,11 +1020,11 @@ public:
 
 		   std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
 		   FC_ASSERT(in.is_open());
-		   std::vector<unsigned char> bytecode((std::istreambuf_iterator<char>(in)),
+		   std::vector<unsigned char> contract_filedata((std::istreambuf_iterator<char>(in)),
 			   (std::istreambuf_iterator<char>()));
 		   in.close();
-
-		   contract_register_op.contract_code.code = bytecode;
+		   auto contract_code = ContractHelper::load_contract_from_file(contract_filepath);
+		   contract_register_op.contract_code = contract_code;
 		   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
 

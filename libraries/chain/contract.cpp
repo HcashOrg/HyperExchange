@@ -365,12 +365,11 @@ free(storage_buf); \
 			INIT_API_FROM_FILE(code.offline_abi, blockchain::contract_engine::read_offline_api_count_fail, blockchain::contract_engine::read_offline_api_len_fail, blockchain::contract_engine::read_offline_api_fail);
 			INIT_API_FROM_FILE(code.events, blockchain::contract_engine::read_events_count_fail, blockchain::contract_engine::read_events_len_fail, blockchain::contract_engine::read_events_fail);
 
-			// TODO: contract storage info
-			// int storage_count = 0;
-			// char* storage_buf = nullptr;
-			// StorageValueTypes storage_type;
+			int storage_count = 0;
+			char* storage_buf = nullptr;
+			StorageValueTypes storage_type;
 
-			// INIT_STORAGE_FROM_FILE(code.storage_properties, blockchain::contract_engine::read_storage_count_fail, blockchain::contract_engine::read_storage_name_len_fail, blockchain::contract_engine::read_storage_name_fail, blockchain::contract_engine::read_storage_type_fail);
+			INIT_STORAGE_FROM_FILE(code.storage_properties, blockchain::contract_engine::read_storage_count_fail, blockchain::contract_engine::read_storage_name_len_fail, blockchain::contract_engine::read_storage_name_fail, blockchain::contract_engine::read_storage_type_fail);
 
 			fclose(f);
 

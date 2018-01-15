@@ -117,7 +117,7 @@ namespace graphene {
 			contract_info_ret->contract_apis.clear();
 
 			std::copy(contract_info->contract_apis.begin(), contract_info->contract_apis.end(), std::back_inserter(contract_info_ret->contract_apis));
-			// TODO: offline apis
+			std::copy(code->offline_abi.begin(), code->offline_abi.end(), std::back_inserter(contract_info_ret->contract_apis));
 			return 1;
 		}
 
@@ -182,13 +182,10 @@ namespace graphene {
 			std::copy(code.events.begin(), code.events.end(), std::back_inserter(p_luamodule->contract_emit_events));
 
 			p_luamodule->contract_storage_properties.clear();
-			// FIXME: storage properties
-			p_luamodule->contract_storage_properties["IsMale"] = uvm::blockchain::StorageValueTypes::storage_value_bool;
-			p_luamodule->contract_storage_properties["Age"] = uvm::blockchain::StorageValueTypes::storage_value_int;
-			p_luamodule->contract_storage_properties["Country"] = uvm::blockchain::StorageValueTypes::storage_value_string;
-			p_luamodule->contract_storage_properties["ArrayDemo"] = uvm::blockchain::StorageValueTypes::storage_value_string_array;
-			p_luamodule->contract_storage_properties["Name"] = uvm::blockchain::StorageValueTypes::storage_value_string;
-
+			for (const auto &p : code.storage_properties)
+			{
+				p_luamodule->contract_storage_properties[p.first] = p.second;
+			}
 			return p_luamodule;
 		}
 		/**
