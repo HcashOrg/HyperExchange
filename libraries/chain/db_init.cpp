@@ -270,6 +270,7 @@ void database::initialize_indexes()
    add_index< primary_index< buyback_index                                > >();
 
    add_index< primary_index< simple_index< fba_accumulator_object       > > >();
+   add_index<primary_index<contract_object_index>>();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

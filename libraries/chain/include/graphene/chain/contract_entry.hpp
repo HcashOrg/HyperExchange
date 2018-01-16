@@ -5,6 +5,7 @@
 
 #include <uvm/uvm_lib.h>
 #include <fc/exception/exception.hpp>
+//#include <graphene/chain/protocol/operations.hpp>
 
 
 namespace blockchain
@@ -35,7 +36,9 @@ namespace blockchain
 	}
 }
 
-
+#include <graphene/db/generic_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <graphene/chain/storage.hpp>
 namespace uvm {
 	namespace blockchain {
 		struct Code
@@ -91,7 +94,31 @@ namespace graphene {
 
 		typedef uint64_t gas_price_type;
 		typedef uint64_t gas_count_type;
+        
+        class database;
+        class contract_object;
+        class contract_object :public graphene::db::abstract_object<contract_object>
+        {
+        public:
+            uvm::blockchain::Code code;
+            address owner_address;
+            time_point create_time;
+            string name;
+            address contract_address;
+        };
+        struct by_contract_id {};
+        
+        struct by_contract_obj_id {};
+        using contract_object_multi_index_type= multi_index_container<
+            contract_object,
+            indexed_by<
+            ordered_unique<tag<by_contract_obj_id>, member<object,object_id_type, &contract_object::id>>,
+            ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
+            >>;
+        using contract_object_index=generic_index<contract_object, contract_object_multi_index_type> ;
+        
 	}
 }
 
 FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));
+FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code),(owner_address),(create_time),(name),(contract_address));
