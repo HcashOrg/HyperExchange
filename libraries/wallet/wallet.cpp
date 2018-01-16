@@ -1422,6 +1422,32 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (publishing_account)(symbol)(feed)(broadcast) ) }
 
+
+   signed_transaction publish_normal_asset_feed(string publishing_account,
+	   string symbol,
+	   price_feed feed,
+	   bool broadcast /* = false */)
+   {
+	   try {
+		   optional<asset_object> asset_to_update = find_asset(symbol);
+		   if (!asset_to_update)
+			   FC_THROW("No asset with that symbol exists!");
+
+		   normal_asset_publish_feed_operation publish_op;
+		   publish_op.publisher = get_account_id(publishing_account);
+		   publish_op.publisher_addr = get_account_addr(publishing_account);
+		   publish_op.asset_id = asset_to_update->id;
+		   publish_op.feed = feed;
+
+		   signed_transaction tx;
+		   tx.operations.push_back(publish_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+	   } FC_CAPTURE_AND_RETHROW((publishing_account)(symbol)(feed)(broadcast))
+   }
+
    signed_transaction fund_asset_fee_pool(string from,
                                           string symbol,
                                           string amount,
@@ -2632,6 +2658,14 @@ public:
 	   FC_ASSERT(guard_obj.valid(), "Guard is not exist");
 	   return _remote_db->get_guard_lock_balance(guard_obj->id);
    }
+   std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const
+   {
+	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
+	   const account_object & account_obj = get_account(miner);
+	   const auto& miner_obj = _remote_db->get_miner_by_account(account_obj.get_id());
+	   FC_ASSERT(miner_obj.valid(), "Miner is not exist");
+	   return _remote_db->get_miner_lock_balance(miner_obj->id);
+   }
    signed_transaction cancel_order(object_id_type order_id, bool broadcast = false)
    { try {
          FC_ASSERT(!is_locked());
@@ -3730,6 +3764,9 @@ vector<asset> wallet_api::list_account_balances(const string& id)
 std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const string& miner)const {
 	return my->get_guard_lock_balance(miner);
 }
+std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
+	return my->get_miner_lock_balance(miner);
+}
 vector<asset> wallet_api::get_addr_balances(const string& addr)
 {
 	if (address::is_valid(addr) == false)
@@ -4311,6 +4348,13 @@ signed_transaction wallet_api::publish_asset_feed(string publishing_account,
                                                   bool broadcast /* = false */)
 {
    return my->publish_asset_feed(publishing_account, symbol, feed, broadcast);
+}
+signed_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
+	string symbol,
+	price_feed feed,
+	bool broadcast /* = false */)
+{
+	return my->publish_normal_asset_feed(publishing_account, symbol, feed, broadcast);
 }
 
 signed_transaction wallet_api::fund_asset_fee_pool(string from,

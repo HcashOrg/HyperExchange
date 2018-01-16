@@ -107,6 +107,7 @@ struct get_impacted_account_visitor
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
    void operator()( const asset_publish_feed_operation& op ) {}
+   void operator()(const normal_asset_publish_feed_operation& op) {}
    void operator()( const miner_create_operation& op )
    {
       _impacted.insert( op.miner_account );

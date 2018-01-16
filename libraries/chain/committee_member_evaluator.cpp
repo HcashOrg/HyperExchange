@@ -103,6 +103,21 @@ namespace graphene {
 					if (op.formal.valid())
 						com.formal = *op.formal;
                 });
+				auto& guard_obj = *_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account);
+				_db.modify(_db.get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& a)
+				{
+					if (guard_obj.formal)
+					{
+						a.active.account_auths[guard_obj.id] = 100;
+					}
+					else
+					{
+						a.active.account_auths.erase(guard_obj.id);
+					}
+				});
+				_db.modify(_db.get(GRAPHENE_RELAXED_COMMITTEE_ACCOUNT), [&](account_object& a) {
+					a.active = _db.get(GRAPHENE_GUARD_ACCOUNT).active;
+				});
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }

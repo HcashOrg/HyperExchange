@@ -65,7 +65,7 @@ vector<std::reference_wrapper<const typename Index::object_type>> database::sort
 		[](const ObjectType& o) { return std::cref(o); });
 	std::sort(refs.begin(), refs.end(),
 		[this](const ObjectType& a, const ObjectType& b)->bool {
-		uint64_t oa_pledge = a.pledge_weight;
+		share_type oa_pledge = a.pledge_weight;
 		share_type ob_pledge = _vote_tally_buffer[b.vote_id];
 		if (a.pledge_weight != b.pledge_weight)
 			return a.pledge_weight > b.pledge_weight;

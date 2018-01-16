@@ -193,6 +193,7 @@ void database::initialize_evaluators()
    register_evaluator<override_transfer_evaluator>();
    register_evaluator<asset_fund_fee_pool_evaluator>();
    register_evaluator<asset_publish_feeds_evaluator>();
+   register_evaluator<normal_asset_publish_feeds_evaluator>();
    register_evaluator<proposal_create_evaluator>();
    register_evaluator<proposal_update_evaluator>();
    register_evaluator<proposal_delete_evaluator>();
@@ -692,6 +693,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 	  uop.owner_addr = get_account_address(member.owner_name);
 	  uop.formal = true;
 	  apply_operation(genesis_eval_state, uop);
+	  modify(get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& n) {
+		  n.active.account_auths[get_account_id(member.owner_name)] = 100;
+	  
+	  });
    });
 
    // Create initial workers

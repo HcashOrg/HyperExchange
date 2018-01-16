@@ -41,13 +41,13 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 	   for (auto acc : required_account_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   total_weights += iter->pledge_weight;
+		   total_weights += iter->pledge_weight.value;
 	   }
 	   
 	   for (auto acc : approved_key_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   approved_key_weights += iter->pledge_weight;
+		   approved_key_weights += iter->pledge_weight.value;
 	   }
 
 	   return approved_key_weights >= uint64_t(std::ceil(double(total_weights) * 2 / 3));
