@@ -35,10 +35,10 @@ namespace graphene {
 				d.modify(d.get(o.lock_balance_account), [o, asset_type](guard_member_object& b) {
 					auto map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
 					if (map_guard_lockbalance_total != b.guard_lock_balance.end()) {
-						map_guard_lockbalance_total->second += o.lock_asset_amount;
+						map_guard_lockbalance_total->second += asset(o.lock_asset_amount,o.lock_asset_id);
 					}
 					else {
-						b.guard_lock_balance[asset_type.symbol] = o.lock_asset_amount;
+						b.guard_lock_balance[asset_type.symbol] = asset(o.lock_asset_amount,o.lock_asset_id);
 					}
 				});
 				return void_result();
@@ -72,11 +72,9 @@ namespace graphene {
 				d.modify(d.get(o.foreclose_balance_account), [o, asset_type](guard_member_object& b) {
 					auto map_guard_lockbalance_total = b.guard_lock_balance.find(asset_type.symbol);
 					if (map_guard_lockbalance_total != b.guard_lock_balance.end()) {
-						map_guard_lockbalance_total->second -= o.foreclose_asset_amount;
+						map_guard_lockbalance_total->second -= asset(o.foreclose_asset_amount,o.foreclose_asset_id);
 					}
-					else {
-						b.guard_lock_balance[asset_type.symbol] = o.foreclose_asset_amount;
-					}
+
 				});
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))			

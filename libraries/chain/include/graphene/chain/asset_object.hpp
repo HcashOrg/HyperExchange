@@ -132,6 +132,17 @@ namespace graphene { namespace chain {
 
          optional<account_id_type> buyback_account;
 
+		 /// Feeds published for this asset. If issuer is not committee, the keys in this map are the feed publishing
+		 /// accounts; otherwise, the feed publishers are the currently active committee_members and witnesses and this map
+		 /// should be treated as an implementation detail. The timestamp on each feed is the time it was published.
+
+		 flat_map<account_id_type, pair<time_point_sec, price_feed>> feeds;
+		 /// This is the currently active price feed, calculated as the median of values from the currently active
+		 /// feeds.
+		 price_feed current_feed;
+
+		 time_point_sec current_feed_publication_time;
+
          asset_id_type get_id()const { return id; }
 
          void validate()const
@@ -158,6 +169,17 @@ namespace graphene { namespace chain {
          template<class DB>
          share_type reserved( const DB& db )const
          { return options.max_supply - dynamic_data(db).current_supply; }
+
+
+		 time_point_sec feed_expiration_time()const
+		 {
+			 return current_feed_publication_time + GRAPHENE_DEFAULT_PRICE_FEED_LIFETIME*30;
+		 }
+		 bool feed_is_expired(time_point_sec current_time)const
+		 {
+			 return feed_expiration_time() <= current_time;
+		 }
+		 void update_median_feeds(time_point_sec current_time);
    };
 
    /**
@@ -272,6 +294,9 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
                     (issuer)
                     (options)
                     (dynamic_asset_data_id)
+					(feeds)
+					(current_feed)
+					(current_feed_publication_time)
                     (bitasset_data_id)
                     (buyback_account)
                   )

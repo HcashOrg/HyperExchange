@@ -26,6 +26,8 @@
 #include <graphene/chain/global_property_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/witness_schedule_object.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+#include <iostream>
 
 namespace graphene { namespace chain {
 
@@ -130,6 +132,41 @@ void database::update_miner_schedule()
 		 // return update_active_delegate_list_v1( block_num, pending_state );
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
+			
+			// modify account pledge_weight
+			for (auto& w : gpo.active_witnesses)
+			{
+				
+				modify(get(w), [&](miner_object& miner_obj) 
+				{
+					miner_obj.pledge_weight = 100;
+					for (auto& one_lock_balance : miner_obj.lockbalance_total)
+					{
+						const auto& asset_obj = one_lock_balance.second.asset_id(*this);
+						if (one_lock_balance.second.asset_id == asset_id_type(0))
+						{
+							if (one_lock_balance.second.amount.value > 0)
+							{
+								miner_obj.pledge_weight += one_lock_balance.second.amount;
+							}
+							
+							continue;
+						}
+						if(one_lock_balance.second.asset_id != asset_id_type(0)&&asset_obj.current_feed.settlement_price.is_null())
+							continue;
+						//calculate asset weight
+						{
+							boost::multiprecision::int128_t cal_middle = boost::multiprecision::int128_t(one_lock_balance.second.amount.value) * boost::multiprecision::int128_t(asset_obj.current_feed.settlement_price.quote.amount.value);
+							boost::multiprecision::int128_t cal_end = cal_middle / boost::multiprecision::int128_t(asset_obj.current_feed.settlement_price.base.amount.value);
+							int64_t end_value = int64_t(cal_end);
+							miner_obj.pledge_weight += end_value;
+						}
+					}
+				});
+			}
+
+
+			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
 				_wso.current_shuffled_miners.clear();
@@ -140,8 +177,8 @@ void database::update_miner_schedule()
 				for (const miner_id_type& w : gpo.active_witnesses)
 				{
 					const auto& witness_obj = w(*this);
-					total_weight += witness_obj.pledge_weight * witness_obj.participation_rate / 100;
-					temp_witnesses_weight.push_back(witness_obj.pledge_weight * witness_obj.participation_rate / 100);
+					total_weight += witness_obj.pledge_weight.value * witness_obj.participation_rate / 100;
+					temp_witnesses_weight.push_back(witness_obj.pledge_weight.value * witness_obj.participation_rate / 100);
 					temp_active_witnesses.push_back(w);
 				}
 				fc::sha256 rand_seed;

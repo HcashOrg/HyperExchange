@@ -148,7 +148,9 @@ database& generic_evaluator::db()const { return trx_state->db(); }
    }
    void generic_evaluator::db_adjust_balance(const account_id_type& fee_payer, asset fee_from_account)
    {
-     db().adjust_balance(fee_payer, fee_from_account);
+	   FC_ASSERT(fee_payer != account_id_type());
+	   auto& fee_payer_addr = fee_payer(db()).addr;
+     db().adjust_balance(fee_payer_addr, fee_from_account);
    }
    void generic_evaluator::db_adjust_balance(const address& fee_payer, asset fee_from_account)
    {

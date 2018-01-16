@@ -1254,6 +1254,10 @@ class wallet_api
                                             price_feed feed,
                                             bool broadcast = false);
 
+	  signed_transaction publish_normal_asset_feed(string publishing_account,
+		  string symbol,
+		  price_feed feed,
+		  bool broadcast = false);
       /** Pay into the fee pool for the given asset.
        *
        * User-issued assets can optionally have a pool of the core asset which is 
@@ -1700,6 +1704,7 @@ class wallet_api
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
 	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
+	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1868,6 +1873,7 @@ FC_API( graphene::wallet::wallet_api,
         (update_bitasset)
         (update_asset_feed_producers)
         (publish_asset_feed)
+		(publish_normal_asset_feed)
         (issue_asset)
         (get_asset)
         (get_bitasset_data)
@@ -1953,6 +1959,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (update_guard_formal)
 		(get_account_lock_balance)
 		(get_guard_lock_balance)
+		(get_miner_lock_balance)
 		(refund_request)
 		(transfer_from_cold_to_hot)
 		(withdraw_from_link)

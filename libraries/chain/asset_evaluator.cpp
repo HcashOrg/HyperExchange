@@ -526,6 +526,57 @@ void_result asset_publish_feeds_evaluator::do_apply(const asset_publish_feed_ope
 
 
 
+void_result normal_asset_publish_feeds_evaluator::do_evaluate(const normal_asset_publish_feed_operation& o)
+{
+	try {
+		database& d = db();
+		
+		const asset_object& base = o.asset_id(d);
+		//Verify that this feed is for a market-issued asset and that asset is backed by the base
+
+		FC_ASSERT(o.feed.settlement_price.quote.asset_id == asset_id_type(0));
+
+		if (!o.feed.core_exchange_rate.is_null())
+		{
+			FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
+		}
+// 		if (!o.feed.core_exchange_rate.is_null())
+// 		{
+// 			FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
+// 		}
+		auto aa = d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher);
+		auto bb = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.count(o.publisher_addr);
+		auto cc = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.size();
+		
+		FC_ASSERT(d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher));
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result normal_asset_publish_feeds_evaluator::do_apply(const normal_asset_publish_feed_operation& o)
+{
+	try {
+
+		database& d = db();
+
+		const asset_object& base = o.asset_id(d);
+
+		auto old_feed = base.current_feed;
+		// Store medians for this asset
+		d.modify(base, [&o, &d](asset_object& a) {
+			a.feeds[o.publisher] = make_pair(d.head_block_time(), o.feed);
+			a.update_median_feeds(d.head_block_time());
+		});
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+
+
+
+
 void_result asset_claim_fees_evaluator::do_evaluate( const asset_claim_fees_operation& o )
 { try {
    FC_ASSERT( db().head_block_time() > HARDFORK_413_TIME );

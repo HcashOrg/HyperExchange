@@ -176,8 +176,8 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	for (const miner_id_type& w : gpo.active_witnesses)
 	{
 		const auto& witness_obj = w(db);
-		total_weight += witness_obj.pledge_weight * witness_obj.participation_rate / 100;
-		temp_witnesses_weight.push_back(witness_obj.pledge_weight * witness_obj.participation_rate / 100);
+		total_weight += witness_obj.pledge_weight.value * witness_obj.participation_rate / 100;
+		temp_witnesses_weight.push_back(witness_obj.pledge_weight.value * witness_obj.participation_rate / 100);
 		temp_active_witnesses.push_back(w);
 	}
 	fc::sha256 rand_seed;
