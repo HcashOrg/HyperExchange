@@ -6,6 +6,8 @@ namespace graphene {
 		void_result crosschain_record_evaluate::do_evaluate(const crosschain_record_operation& o) {
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
 			hdl->validate_link_trx(o.cross_chain_trx);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
@@ -56,8 +58,10 @@ namespace graphene {
 
 		}
 		void_result crosschain_withdraw_result_evaluate::do_evaluate(const crosschain_withdraw_result_operation& o) {
-                        auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+            auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
 			hdl->validate_link_trx(o.cross_chain_trx);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.to_account, o.cross_chain_trx.asset_symbol));
@@ -75,6 +79,8 @@ namespace graphene {
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
                         auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
 			auto create_trx = hdl->turn_trx(o.withdraw_source_trx);
 			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 			auto trx_itr = trx_db.find(o.ccw_trx_id);
@@ -112,6 +118,8 @@ namespace graphene {
 			
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
 			hdl->broadcast_transaction(o.cross_chain_trx);
 			return void_result();
 		}

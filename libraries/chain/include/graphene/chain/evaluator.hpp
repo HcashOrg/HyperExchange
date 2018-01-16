@@ -176,9 +176,9 @@ namespace graphene {
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
 
 				convert_fee();
-				pay_fee();
+				//pay_fee();
 				auto result = eval->do_apply(op);
-				db_adjust_balance(op.fee_payer(), -fee_from_account);
+				//db_adjust_balance(op.fee_payer(), -fee_from_account);
 
 				return result;
 			}

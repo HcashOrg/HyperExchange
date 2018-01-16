@@ -18,7 +18,12 @@ namespace graphene {
 			_rpc_url = "http://";
 			_rpc_url = _rpc_url + _config["ip"].as_string() + ":" + std::string(_config["port"].as_string())+"/api";
 		}
-
+		bool crosschain_interface_btc::valid_config()
+		{
+			if (_config.contains("ip") && _config.contains("port"))
+				return true;
+			return false;
+		}
 		bool crosschain_interface_btc::unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration)
 		{
 			return false;
@@ -69,8 +74,8 @@ namespace graphene {
 				auto ret = resp["result"].get_object()["address"];
 				return ret.as_string();
 			}
-			else
-				FC_THROW(std::string(response.body.begin(),response.body.end())) ;
+			else if (response.status == fc::http::reply::BadRequest)
+				throw(fc::http::reply::BadRequest);
 		}
 		
 		std::map<std::string,std::string> crosschain_interface_btc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
@@ -93,6 +98,7 @@ namespace graphene {
 			req_body << "]}}";
 			_connection->connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = _connection->request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			std::cout << response.status << std::endl;
 			if (response.status == fc::http::reply::OK)
 			{
 				std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;

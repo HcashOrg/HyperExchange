@@ -610,7 +610,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    if(skip & skip_transaction_dupe_check) 
       printf("the first is true\n");
    if (trx_idx.indices().get<by_trx_id>().find(trx_id) != trx_idx.indices().get<by_trx_id>().end())
-      printf("%s\n",trx_id.str().c_str());
+      printf("it has exsit now ...%s, block:%d \n",trx_id.str().c_str(),trx.ref_block_num);
    FC_ASSERT( (skip & skip_transaction_dupe_check) ||
               trx_idx.indices().get<by_trx_id>().find(trx_id) == trx_idx.indices().get<by_trx_id>().end() );
    transaction_evaluation_state eval_state(this);

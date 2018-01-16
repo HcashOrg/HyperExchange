@@ -22,7 +22,7 @@ namespace graphene {
 				_connection = std::make_shared<fc::http::connection>();
 			}
 			virtual ~crosschain_interface_btc() {}
-
+			virtual bool valid_config();
 			virtual void initialize_config(fc::variant_object &json_config) override;
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) override;
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration) override;
