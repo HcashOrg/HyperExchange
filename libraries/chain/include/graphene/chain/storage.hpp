@@ -9,8 +9,6 @@
 
 namespace graphene {
 	namespace chain {
-		GluaStorageValue json_to_uvm_storage_value(lua_State *L, jsondiff::JsonValue json_value);
-		jsondiff::JsonValue uvm_storage_value_to_json(GluaStorageValue value);
 
 		struct StorageDataType
 		{

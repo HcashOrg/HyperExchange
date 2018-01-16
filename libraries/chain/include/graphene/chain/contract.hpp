@@ -52,6 +52,7 @@ namespace graphene {
 			static uvm::blockchain::Code load_contract_from_file(const fc::path &path);
 		};
 		
+
 	}
 }
 

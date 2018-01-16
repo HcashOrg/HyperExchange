@@ -302,6 +302,11 @@ namespace graphene { namespace chain {
 			 transaction_stata trx_state);
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
+		 //////contract//////
+		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
+		 // TODO: add contract storage diff, get contract storage diff list
+
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();

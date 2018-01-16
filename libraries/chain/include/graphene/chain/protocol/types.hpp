@@ -140,6 +140,7 @@ namespace graphene { namespace chain {
 	  multisig_transfer_object_type,
 	  acquired_crosschain_object_type,
 	  crosschain_transaction_history_count_object_type,
+	  contract_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -190,6 +191,7 @@ namespace graphene { namespace chain {
    class crosschain_trx_object;
    class acquired_crosschain_trx_object;
    class crosschain_transaction_history_count_object;
+   class contract_object;
 
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
@@ -211,6 +213,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, multisig_transfer_object_type, multisig_asset_transfer_object >          multisig_asset_transfer_id_type;
    typedef object_id<protocol_ids, acquired_crosschain_object_type, acquired_crosschain_trx_object> acquired_crosschain_id_type;
    typedef object_id<protocol_ids, crosschain_transaction_history_count_object_type, crosschain_transaction_history_count_object> transaction_history_count_id_type;
+   typedef object_id<protocol_ids, contract_object_type, contract_object> contract_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;

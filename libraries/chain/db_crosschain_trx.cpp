@@ -46,6 +46,8 @@ namespace graphene {
 
 			}FC_CAPTURE_AND_RETHROW((handled_trx))
 		}
+
+		
 		void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
 			transaction_id_type transaction_id,
 			signed_transaction real_transaction,

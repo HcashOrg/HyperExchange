@@ -1,4 +1,4 @@
-file(GLOB HEADERS "include/uvm/*.h")
+file(GLOB HEADERS "include/uvm/*.h" "../jsondiff/jsondiff-cpp/include/jsondiff/*.h")
 
 set(SOURCES src/uvm/lapi.cpp
     src/uvm/lauxlib.cpp
@@ -56,9 +56,9 @@ set(SOURCES src/uvm/lapi.cpp
 add_library( uvm ${SOURCES} ${HEADERS} )
 
 target_link_libraries( uvm 
-  PUBLIC fc)
+  PUBLIC fc jsondiff)
 target_include_directories( uvm 
-  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../jsondiff/jsondiff-cpp/include"
 )
 
 if (USE_PCH)

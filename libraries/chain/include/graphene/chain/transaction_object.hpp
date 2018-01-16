@@ -106,9 +106,28 @@ namespace graphene { namespace chain {
    */
    typedef generic_index<multisig_asset_transfer_object, multi_multisig_index_type> crosschain_transfer_index;
 
+   // contract storage indexs
+   class transaction_contract_storage_diff_object : public abstract_object<transaction_contract_storage_diff_object> {
+   public:
+	   static const uint8_t space_id = protocol_ids;
+	   static const uint8_t type_id = contract_object_type;
+	   std::string trx_id; // FIXME
+	   std::string storage_name;
+	   std::string diff;
+   };
+   struct by_storage_name {};
+   typedef multi_index_container<
+	   transaction_contract_storage_diff_object,
+	   indexed_by<
+	   ordered_non_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
+	   ordered_non_unique<tag<by_storage_name>, member<transaction_contract_storage_diff_object, std::string, &transaction_contract_storage_diff_object::diff>>
+	   >
+   > transaction_contract_storage_multi_index_type;
+   typedef generic_index<transaction_contract_storage_diff_object, transaction_contract_storage_multi_index_type> transaction_contract_storage_diff_index;
 
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id) )
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
+FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(storage_name)(diff))

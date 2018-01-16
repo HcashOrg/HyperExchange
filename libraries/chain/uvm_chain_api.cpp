@@ -46,19 +46,12 @@ namespace graphene {
 
 			va_list vap;
 			va_start(vap, error_format);
-			// printf(error_format, vap);
-			// const char *msg = luaO_pushfstring(L, error_format, vap);
 			vsnprintf(msg, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH, error_format, vap);
 			va_end(vap);
 			if (strlen(msg) > LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1)
 			{
 				msg[LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1] = 0;
 			}
-			//perror(msg);
-			//printf("\n");
-			// luaL_error(L, error_format); // notify lua error
-			//FC_THROW(msg);
-
 			lua_set_compile_error(L, msg);
 
 			//如果上次的exception code为uvm_API_LVM_LIMIT_OVER_ERROR, 不能被其他异常覆盖
@@ -92,6 +85,8 @@ namespace graphene {
 		static contract_register_evaluate* get_register_contract_evaluator(lua_State *L) {
 			return (contract_register_evaluate*)uvm::lua::lib::get_lua_state_value(L, "register_evaluate_state").pointer_value;
 		}
+
+		// TODO: other contract op evaluator
 
 		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
 		{
@@ -252,23 +247,14 @@ namespace graphene {
 			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
 			if (!evaluator)
 				return null_storage;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(contract_address));
+			std::string contract_id(contract_address);
+			auto code = evaluator->get_contract_code_by_id(contract_id);
 			if (!code)
 			{
 				return null_storage;
 			}
-			// TODO: get storage data
-			/*
-			auto iter = entry->contract_storages.find(std::string(name));
-			if (iter == entry->contract_storages.end())
-				return null_storage;
-
-			uvm::blockchain::StorageDataType storage_data = iter->second;
-
-			return uvm::blockchain::StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
-			*/
-			return null_storage;
+			auto storage_data = evaluator->get_storage(contract_id, name);
+			return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
 		}
 
 		static std::vector<char> json_to_chars(jsondiff::JsonValue json_value)
@@ -286,33 +272,26 @@ namespace graphene {
 
 			if (!evaluator)
 				return false;
-			// TODO
-			/*
+
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
-				StorageOperation storage_op;
+				// commit change to evaluator
+				std::unordered_map<std::string, StorageDataChangeType> contract_storage_change;
 				std::string contract_id = all_con_chg_iter->first;
 				ContractChangesMap contract_change = *(all_con_chg_iter->second);
-
-				storage_op.contract_id = Address(contract_id, AddressType::contract_address);
 
 				for (auto con_chg_iter = contract_change.begin(); con_chg_iter != contract_change.end(); ++con_chg_iter)
 				{
 					std::string contract_name = con_chg_iter->first;
 
 					StorageDataChangeType storage_change;
-					//storage_change.storage_before = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.before);
-					//storage_change.storage_after = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.after);
-					// TODO: storage_op存储的从before, after改成diff
 					storage_change.storage_diff.storage_data = json_to_chars(con_chg_iter->second.diff.value());
-					storage_change.storage_diff.storage_type = StorageValueTypes::storage_value_unknown_table;
 
-					storage_op.contract_change_storages.insert(make_pair(contract_name, storage_change));
+					contract_storage_change[contract_name] = storage_change;
 				}
-
-				eval_state_ptr->p_result_trx.push_storage_operation(storage_op);
+				evaluator->contracts_storage_changes[contract_id] = contract_storage_change;
+				
 			}
-			*/
 
 			return true;
 		}
@@ -320,8 +299,6 @@ namespace graphene {
 		//not use
 		bool UvmChainApi::register_storage(lua_State *L, const char *contract_name, const char *name)
 		{
-			// TODO
-			printf("registered storage %s[%s] to uvm\n", contract_name, name);
 			return true;
 		}
 

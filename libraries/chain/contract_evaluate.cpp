@@ -30,7 +30,6 @@ namespace graphene {
 			int exception_code = 0;
 			string exception_msg;
 			try {
-				FC_ASSERT(result_operations.size() == 0);
 
 				origin_op = o;
 				engine->set_caller((string)(o.owner_addr), (string)(o.owner_addr)); // FIXME: first is owner publickey
@@ -41,12 +40,7 @@ namespace graphene {
 					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 
 				engine->set_gas_limit(limit);
-				result_operations.resize(0);
-				// TODO: push contract_info result operation(with apis, offline_apis, etc.)
-
-				//eval_state.p_result_trx.push_transaction(eval_state.trx);
-				//eval_state.p_result_trx.expiration = eval_state.trx.expiration;
-				//eval_state.p_result_trx.operations.push_back(ContractInfoOperation(get_contract_id(), owner, contract_code, register_time));
+				contracts_storage_changes.clear();
 				try
 				{
 					engine->execute_contract_init_by_address((string)o.contract_id, "", nullptr);
@@ -116,9 +110,21 @@ namespace graphene {
 
 			return void_result();
 		}
+
 		void_result contract_register_evaluate::do_apply(const contract_register_operation& o) {
 			database& d = db();
-			// TODO: commit contract result to db
+			// commit contract result to db
+			for (const auto &pair1 : contracts_storage_changes)
+			{
+				const auto &contract_id = pair1.first;
+				const auto &contract_storage_changes = pair1.second;
+				for (const auto &pair2 : contract_storage_changes)
+				{
+					const auto &storage_name = pair2.first;
+					const auto &change = pair2.second;
+					d.set_contract_storage(address(contract_id), storage_name, change);
+				}
+			}
 			return void_result();
 		}
 
@@ -160,6 +166,13 @@ namespace graphene {
 		address contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
+		}
+
+		StorageDataType contract_register_evaluate::get_storage(const string &contract_id, const string &storage_name) const
+		{
+			database& d = db();
+			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
+			return storage_data;
 		}
 
 	}

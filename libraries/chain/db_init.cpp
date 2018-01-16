@@ -270,6 +270,10 @@ void database::initialize_indexes()
    add_index< primary_index< buyback_index                                > >();
 
    add_index< primary_index< simple_index< fba_accumulator_object       > > >();
+
+   // contract
+   // TODO: contract base info index db
+   add_index< primary_index<transaction_contract_storage_diff_index       > >();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)
