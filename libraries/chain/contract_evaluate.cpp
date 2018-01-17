@@ -64,6 +64,16 @@ namespace graphene {
 				
 				// TODO: withdraw from owner and deposit margin balance to contract
 
+
+                //store contract
+                contract_object new_contract;
+                new_contract.contract_address = o.calculate_contract_id();
+                new_contract.code = o.contract_code;
+                new_contract.owner_address = o.owner_addr;
+                db().store_contract(new_contract);
+                new_contract = db().get_contract(o.calculate_contract_id());
+                printf("11111111\n");
+
 			}
 			catch (std::exception &e)
 			{

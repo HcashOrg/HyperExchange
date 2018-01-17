@@ -3,6 +3,7 @@
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
+#include <graphene/chain/transaction_object.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -21,6 +22,38 @@ namespace graphene {
 				// TODO:
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
+
+        void database::store_contract(const contract_object & contract)
+        {
+            contract_object obj = contract;
+            auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+            auto con = con_db.find(contract.contract_address);
+            if (con == con_db.end())
+            {
+                create<contract_object>([&](contract_object & obj) {
+                    obj = contract; });
+            }
+            else
+            {
+                FC_ASSERT("contract exsited");
+            }
+        }
+
+        contract_object database::get_contract(const address & contract_address)
+        {
+            auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+            auto itr = index.find(contract_address);
+            FC_ASSERT(itr != index.end());
+            return *itr;
+        }
+
+        contract_object database::get_contract(const contract_id_type & id)
+        {
+            auto& index = get_index_type<contract_object_index>().indices().get<by_contract_obj_id>();
+            auto itr = index.find(id);
+            FC_ASSERT(itr != index.end());
+            return *itr;
+        }
 
 	}
 }
