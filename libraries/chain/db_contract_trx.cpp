@@ -42,7 +42,7 @@ namespace graphene {
             }
             else
             {
-                FC_ASSERT("contract exsited");
+                FC_ASSERT( false,"contract exsited");
             }
         }
 
