@@ -140,6 +140,8 @@ namespace graphene { namespace chain {
 	  multisig_transfer_object_type,
 	  acquired_crosschain_object_type,
 	  crosschain_transaction_history_count_object_type,
+	  contract_storage_diff_type,
+	  contract_storage_type,
 	  contract_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };

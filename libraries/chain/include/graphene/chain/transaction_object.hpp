@@ -110,7 +110,7 @@ namespace graphene { namespace chain {
    class transaction_contract_storage_diff_object : public abstract_object<transaction_contract_storage_diff_object> {
    public:
 	   static const uint8_t space_id = protocol_ids;
-	   static const uint8_t type_id = contract_object_type;
+	   static const uint8_t type_id = contract_storage_diff_type;
 	   std::string trx_id; // FIXME
 	   std::string storage_name;
 	   std::string diff;
@@ -124,6 +124,27 @@ namespace graphene { namespace chain {
 	   >
    > transaction_contract_storage_multi_index_type;
    typedef generic_index<transaction_contract_storage_diff_object, transaction_contract_storage_multi_index_type> transaction_contract_storage_diff_index;
+
+   class contract_object : public abstract_object<contract_object> {
+	public:
+		static const uint8_t space_id = protocol_ids;
+		static const uint8_t type_id = contract_object_type;
+
+		uvm::blockchain::Code code;
+		address owner_address;
+		time_point create_time;
+		string name;
+		address contract_address;
+	};
+   struct by_contract_id {};
+   struct by_contract_obj_id {};
+   typedef multi_index_container<
+	   contract_object,
+	   indexed_by<
+	   ordered_unique<tag<by_contract_obj_id>, member<object, object_id_type, &contract_object::id>>,
+	   ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
+	   >> contract_object_multi_index_type;
+   typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
 
 } }
 

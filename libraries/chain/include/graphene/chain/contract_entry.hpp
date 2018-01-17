@@ -7,6 +7,7 @@
 
 #include <uvm/uvm_lib.h>
 #include <fc/exception/exception.hpp>
+//#include <graphene/chain/protocol/operations.hpp>
 
 
 namespace blockchain
@@ -37,7 +38,9 @@ namespace blockchain
 	}
 }
 
-
+#include <graphene/db/generic_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <graphene/chain/storage.hpp>
 namespace uvm {
 	namespace blockchain {
 		struct Code
@@ -93,7 +96,7 @@ namespace graphene {
 
 		typedef uint64_t gas_price_type;
 		typedef uint64_t gas_count_type;
-
+/*
 		class contract_object : public graphene::db::abstract_object<contract_object>
 		{
 		public:
@@ -106,14 +109,35 @@ namespace graphene {
 			string owner_name;  //the owner name of the contract
 			CodePrintAble code_printable; // code-related of contract
 		};
+*/
+        /*
+        class database;
+        class contract_object;
+        class contract_object : public abstract_object<contract_object> {
+        public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = contract_object_type;
 
+            uvm::blockchain::Code code;
+            address owner_address;
+            time_point create_time;
+            string name;
+            address contract_address;
+        };
+        */
+        
 	}
 }
 
 FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));
+
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
 FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner)(owner_address)(owner_name)(code_printable));
+/*
 FC_REFLECT_DERIVED(graphene::chain::contract_object,
 (graphene::db::object),
 (contract_address)(owner)(owner_address)(owner_name)(code_printable)
 )
+*/
+FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code),(owner_address),(create_time),(name),(contract_address));
+
