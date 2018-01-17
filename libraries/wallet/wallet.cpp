@@ -999,7 +999,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
 
-   signed_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+   address register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1039,7 +1039,8 @@ public:
 		   tx.validate();
 
 		   bool broadcast = true;
-		   return sign_transaction(tx, broadcast);
+		   auto signed_tx = sign_transaction(tx, broadcast);
+		   return contract_register_op.contract_id;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
    
@@ -4621,7 +4622,7 @@ signed_transaction wallet_api::approve_proposal(
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
 
-signed_transaction wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+address wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
 }

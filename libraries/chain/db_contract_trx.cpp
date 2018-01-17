@@ -10,7 +10,7 @@ namespace graphene {
 		{
 			try {
 				// TODO:
-				StorageDataType storage_data("TODO");
+				StorageDataType storage_data(std::string("\"TODO\""));
 				return storage_data;
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
@@ -19,7 +19,14 @@ namespace graphene {
 		{
 			try {
 				// TODO:
-			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
+			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(value));
+		}
+
+		void database::add_contract_storage_change(const address& contract_id, const string& name, const StorageDataType &diff)
+		{
+			try {
+				// TODO:
+			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(diff));
 		}
 
 	}

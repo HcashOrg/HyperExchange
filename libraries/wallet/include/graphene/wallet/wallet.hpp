@@ -1731,7 +1731,7 @@ class wallet_api
       vector< variant > network_get_connected_peers();
 
 	  // contract wallet apis
-	  signed_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+	  address register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
 	  // end contract wallet apis
 
       /**

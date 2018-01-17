@@ -117,12 +117,14 @@ namespace graphene {
 			for (const auto &pair1 : contracts_storage_changes)
 			{
 				const auto &contract_id = pair1.first;
+				address contract_addr(contract_id);
 				const auto &contract_storage_changes = pair1.second;
 				for (const auto &pair2 : contract_storage_changes)
 				{
 					const auto &storage_name = pair2.first;
 					const auto &change = pair2.second;
-					d.set_contract_storage(address(contract_id), storage_name, change);
+					d.set_contract_storage(contract_addr, storage_name, change.after);
+					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
 			return void_result();

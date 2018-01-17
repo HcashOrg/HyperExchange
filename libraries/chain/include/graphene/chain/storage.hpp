@@ -10,6 +10,8 @@
 namespace graphene {
 	namespace chain {
 
+		using namespace jsondiff;
+
 		struct StorageDataType
 		{
 			std::vector<char> storage_data;
@@ -32,6 +34,7 @@ namespace graphene {
 		struct StorageDataChangeType
 		{
 			StorageDataType storage_diff;
+			StorageDataType after;
 		};
 
 		struct storage_operation : public base_operation

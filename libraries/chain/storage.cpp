@@ -58,6 +58,7 @@ namespace graphene {
 		const uint8_t StorageNumberArrayType::type = storage_value_number_array;
 		const uint8_t StorageBoolArrayType::type = storage_value_bool_array;
 		const uint8_t StorageStringArrayType::type = storage_value_string_array;
+
 		StorageDataType StorageDataType::get_storage_data_from_lua_storage(const GluaStorageValue& lua_storage)
 		{
 			StorageDataType storage_data;
@@ -139,9 +140,14 @@ namespace graphene {
 			return fc::json::from_string(storage_json_str);
 		}
 
+		static jsondiff::JsonValue json_from_str(const std::string &str)
+		{
+			return fc::json::from_string(str);
+		}
+
 		GluaStorageValue StorageDataType::create_lua_storage_from_storage_data(lua_State *L, const StorageDataType& storage)
 		{
-			auto json_value = json_from_chars(storage.storage_data);
+			auto json_value = json_from_str(storage.as<std::string>());
 			auto value = json_to_uvm_storage_value(L, json_value);
 			return value;
 		}

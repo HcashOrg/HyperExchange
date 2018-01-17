@@ -272,6 +272,7 @@ namespace graphene {
 
 			if (!evaluator)
 				return false;
+			jsondiff::JsonDiff json_differ;
 
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
@@ -285,8 +286,13 @@ namespace graphene {
 					std::string contract_name = con_chg_iter->first;
 
 					StorageDataChangeType storage_change;
+					// storage_op存储的从before, after改成diff
+					auto json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
+					auto json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
+					auto storage_after = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.after);
+					con_chg_iter->second.diff = *(json_differ.diff(json_storage_before, json_storage_after));
 					storage_change.storage_diff.storage_data = json_to_chars(con_chg_iter->second.diff.value());
-
+					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
 				}
 				evaluator->contracts_storage_changes[contract_id] = contract_storage_change;
