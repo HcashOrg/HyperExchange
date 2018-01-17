@@ -306,7 +306,11 @@ namespace graphene { namespace chain {
 		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
 		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void add_contract_storage_change(const address& contract_id, const string& name, const StorageDataType &diff);
-		 // TODO: add contract storage diff, get contract storage diff list
+
+
+         void store_contract(const contract_object& contract);
+         contract_object get_contract(const address& contract_address);
+         contract_object get_contract(const contract_id_type& id);
 
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
