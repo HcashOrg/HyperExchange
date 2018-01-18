@@ -70,7 +70,10 @@ namespace graphene {
 				auto& con_db = get_index_type<transaction_contract_storage_diff_index>().indices().get<by_contract_id>();
 				auto con = con_db.find(contract_id);
 				create<transaction_contract_storage_diff_object>([&](transaction_contract_storage_diff_object & o) {
-						o = obj;
+					o.contract_address = obj.contract_address;
+					o.diff = obj.diff;
+					o.storage_name = obj.storage_name;
+					o = obj;
 				});
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(diff));
 		}

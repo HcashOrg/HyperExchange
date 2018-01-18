@@ -1045,6 +1045,44 @@ public:
 		   return contract_register_op.contract_id;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
+
+   signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   FC_ASSERT(is_valid_account_name(caller_account_name));
+
+		   contract_invoke_operation contract_invoke_op;
+
+		   //juge if the name has been registered in the chain
+		   auto acc_caller = get_account(caller_account_name);
+		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto owner = privkey.get_public_key();
+
+		   contract_invoke_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   contract_invoke_op.fee.asset_id = asset_id_type(); // FIXME: base asset id
+		   contract_invoke_op.fee.amount = std::stoll(gas_limit);
+		   contract_invoke_op.caller_addr = acc_caller.addr;
+		   contract_invoke_op.contract_id = address(contract_address);
+		   contract_invoke_op.contract_api = contract_api;
+		   contract_invoke_op.contract_arg = contract_arg;
+
+		   signed_transaction tx;
+		   tx.operations.push_back(contract_invoke_op);
+		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
+		   set_operation_fees(tx, current_fees);
+
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(30));
+		   tx.validate();
+
+		   bool broadcast = true;
+		   auto signed_tx = sign_transaction(tx, broadcast);
+		   return signed_tx;
+	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address)(contract_api)(contract_arg))
+   }
    
    signed_transaction register_account(string name,
                                        public_key_type owner,
@@ -4627,6 +4665,11 @@ signed_transaction wallet_api::approve_proposal(
 address wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
+}
+
+signed_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
+{
+	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
 
 ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address) const

@@ -224,6 +224,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_update_multi_account_evaluator>();
 
    register_evaluator<contract_register_evaluate>();
+   register_evaluator<contract_invoke_evaluate>();
 }
 
 void database::initialize_indexes()

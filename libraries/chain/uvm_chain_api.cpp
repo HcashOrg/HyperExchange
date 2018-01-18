@@ -86,26 +86,94 @@ namespace graphene {
 			return (contract_register_evaluate*)uvm::lua::lib::get_lua_state_value(L, "register_evaluate_state").pointer_value;
 		}
 
-		// TODO: other contract op evaluator
+		static contract_invoke_evaluate* get_invoke_contract_evaluator(lua_State *L) {
+			return (contract_invoke_evaluate*)uvm::lua::lib::get_lua_state_value(L, "invoke_evaluate_state").pointer_value;
+		}
+
+		struct common_contract_evaluator {
+			contract_register_evaluate* register_contract_evaluator;
+			contract_invoke_evaluate* invoke_contract_evaluator;
+		};
+
+		static common_contract_evaluator get_contract_evaluator(lua_State *L) {
+			common_contract_evaluator evaluator;
+			auto register_contract_evaluator = get_register_contract_evaluator(L);
+			if (register_contract_evaluator) {
+				evaluator.register_contract_evaluator = register_contract_evaluator;
+				return evaluator;
+			}
+			auto invoke_contract_evaluator = get_invoke_contract_evaluator(L);
+			if (invoke_contract_evaluator) {
+				evaluator.invoke_contract_evaluator = invoke_contract_evaluator;
+				return evaluator;
+			}
+			FC_ASSERT(false);
+			return evaluator;
+		}
+
+		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(common_contract_evaluator evaluator, const string& contract_id) {
+			if (evaluator.register_contract_evaluator) {
+				return evaluator.register_contract_evaluator->get_contract_code_by_id(contract_id);
+			}
+			else if (evaluator.invoke_contract_evaluator) {
+				return evaluator.invoke_contract_evaluator->get_contract_code_by_id(contract_id);
+			}
+			else {
+				return nullptr;
+			}
+		 }
+
+		static StorageDataType get_contract_storage_from_evaluator(common_contract_evaluator evaluator, const string& contract_id, const string& storage_name) {
+			if (evaluator.register_contract_evaluator) {
+				return evaluator.register_contract_evaluator->get_storage(contract_id, storage_name);
+			}
+			else if (evaluator.invoke_contract_evaluator) {
+				return evaluator.invoke_contract_evaluator->get_storage(contract_id, storage_name);
+			}
+			else {
+				return nullptr;
+			}
+		}
+
+		static void put_contract_storage_changes_to_evaluator(common_contract_evaluator evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
+			if (evaluator.register_contract_evaluator) {
+				evaluator.register_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+			}
+			else if (evaluator.invoke_contract_evaluator) {
+				evaluator.invoke_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+			}
+		}
+
+		static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(common_contract_evaluator evaluator, const string& contract_id) {
+			if (evaluator.register_contract_evaluator) {
+				return evaluator.register_contract_evaluator->get_contract_by_id(contract_id);
+			}
+			else if (evaluator.invoke_contract_evaluator) {
+				return evaluator.invoke_contract_evaluator->get_contract_by_id(contract_id);
+			}
+			else {
+				return nullptr;
+			}
+		}
 
 		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			auto code = evaluator->get_contract_code_by_id(std::string(name)); // TODO: change to get contract by name
-			auto contract_info = evaluator->get_contract_by_id(std::string(name));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(name));
+			auto contract_info = get_contract_info_by_id(evaluator, std::string(name));
 			if (!code)
 				return 0;
 
-			std::string addr_str = string(evaluator->origin_op_contract_id());
+			std::string addr_str = string(name);
 
 			return get_stored_contract_info_by_address(L, addr_str.c_str(), contract_info_ret);
 		}
 
 		int UvmChainApi::get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<GluaContractInfo> contract_info_ret)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			auto code = evaluator->get_contract_code_by_id(std::string(address));
-			auto contract_info = evaluator->get_contract_by_id(std::string(address));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(address));
+			auto contract_info = get_contract_info_by_id(evaluator, std::string(address));
 			if (!code)
 				return 0;
 
@@ -118,19 +186,14 @@ namespace graphene {
 
 		void UvmChainApi::get_contract_address_by_name(lua_State *L, const char *name, char *address, size_t *address_size)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-			{
-				return;
-			}
+			auto evaluator = get_contract_evaluator(L);
 			// TODO: change to get contract by name
-			auto code = evaluator->get_contract_code_by_id(std::string(name));
-			auto contract_info = evaluator->get_contract_by_id(std::string(name));
+			auto code = get_contract_code_by_id(evaluator, std::string(name));
+			auto contract_info = get_contract_info_by_id(evaluator, std::string(name));
 
-			if (!code)
+			if (code)
 			{
-				string address_str = string(evaluator->origin_op_contract_id());
+				string address_str = name;
 				*address_size = address_str.length();
 				strncpy(address, address_str.c_str(), CONTRACT_ID_MAX_LENGTH - 1);
 				address[CONTRACT_ID_MAX_LENGTH - 1] = '\0';
@@ -139,21 +202,15 @@ namespace graphene {
 
 		bool UvmChainApi::check_contract_exist_by_address(lua_State *L, const char *address)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			if (!evaluator)
-				return false;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(address));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(address));
 			return code ? true : false;
 		}
 
 		bool UvmChainApi::check_contract_exist(lua_State *L, const char *name)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			if (!evaluator)
-				return false;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(name)); // TODO: change to get contract by name
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(name)); // TODO: change to get contract by name
 			return code ? true : false;
 		}
 
@@ -190,12 +247,8 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-				return nullptr;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(name));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(name));
 			if (code && (code->code.size() <= LUA_MODULE_BYTE_STREAM_BUF_SIZE))
 			{
 				return get_bytestream_from_code(L, *code);
@@ -207,12 +260,8 @@ namespace graphene {
 		std::shared_ptr<GluaModuleByteStream> UvmChainApi::open_contract_by_address(lua_State *L, const char *address)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-				return nullptr;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(address));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(address));
 			if (code && (code->code.size() <= LUA_MODULE_BYTE_STREAM_BUF_SIZE))
 			{
 				return get_bytestream_from_code(L, *code);
@@ -226,16 +275,13 @@ namespace graphene {
 			GluaStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			if (!evaluator)
-				return null_storage;
-
-			auto code = evaluator->get_contract_code_by_id(std::string(contract_name));
+			auto evaluator = get_contract_evaluator(L);
+			auto code = get_contract_code_by_id(evaluator, std::string(contract_name));
 			if (!code)
 			{
 				return null_storage;
 			}
-			auto contract_id = string(evaluator->origin_op_contract_id());
+			auto contract_id = std::string(contract_name); // TODO: change to contract address
 			return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name);
 		}
 
@@ -244,16 +290,14 @@ namespace graphene {
 			GluaStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-			if (!evaluator)
-				return null_storage;
+			auto evaluator = get_contract_evaluator(L);
 			std::string contract_id(contract_address);
-			auto code = evaluator->get_contract_code_by_id(contract_id);
+			auto code = get_contract_code_by_id(evaluator, contract_id);
 			if (!code)
 			{
 				return null_storage;
 			}
-			auto storage_data = evaluator->get_storage(contract_id, name);
+			auto storage_data = get_contract_storage_from_evaluator(evaluator, contract_id, name);
 			return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
 		}
 
@@ -268,10 +312,7 @@ namespace graphene {
 
 		bool UvmChainApi::commit_storage_changes_to_uvm(lua_State *L, AllContractsChangesMap &changes)
 		{
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-				return false;
+			auto evaluator = get_contract_evaluator(L);
 			jsondiff::JsonDiff json_differ;
 
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
@@ -295,7 +336,7 @@ namespace graphene {
 					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
 				}
-				evaluator->contracts_storage_changes[contract_id] = contract_storage_change;
+				put_contract_storage_changes_to_evaluator(evaluator, contract_id, contract_storage_change);
 				
 			}
 
@@ -404,14 +445,7 @@ namespace graphene {
 
 			if (amount <= 0)
 				return -6;
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-			{
-				L->force_stopping = true;
-				L->exit_code = LUA_API_INTERNAL_ERROR;
-				return -1;
-			}
+			auto evaluator = get_contract_evaluator(L);
 			// TODO
 			/*
 			string to_addr;
@@ -457,14 +491,7 @@ namespace graphene {
 			const char *asset_type, int64_t amount)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
-			auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
-
-			if (!evaluator)
-			{
-				L->force_stopping = true;
-				L->exit_code = LUA_API_INTERNAL_ERROR;
-				return -1;
-			}
+			auto evaluator = get_contract_evaluator(L);
 			// TODO
 			/*
 			if (!eval_state_ptr->_current_state->is_valid_account_name(to_account_name))
@@ -481,7 +508,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				uvm::blockchain::ChainInterface* cur_state;
@@ -538,7 +565,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				ChainInterface*  db_interface = NULL;
@@ -567,7 +594,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO;
 				/*
 				uvm::blockchain::ChainInterface* cur_state;
@@ -591,7 +618,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				uvm::blockchain::ChainInterface* cur_state;
@@ -616,7 +643,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				if (!eval_state_ptr)
@@ -638,7 +665,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				if (!eval_state_ptr || !eval_state_ptr->_current_state)
@@ -659,7 +686,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				if (!eval_state_ptr || !eval_state_ptr->_current_state)
@@ -688,7 +715,7 @@ namespace graphene {
 			try {
 				if (num <= 1)
 					return -2;
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				uvm::blockchain::ChainInterface* cur_state;
@@ -724,7 +751,7 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
-				auto evaluator = get_register_contract_evaluator(L); // TODO: use call_evaluator if is not register
+				auto evaluator = get_contract_evaluator(L);
 				// TODO
 				/*
 				if (evaluator == NULL)
