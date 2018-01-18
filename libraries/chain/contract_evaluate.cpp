@@ -140,8 +140,8 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
-			db().store_contract(new_contract);
-			auto new_contract2 = db().get_contract(o.calculate_contract_id()); // FIXME: for debug
+			d.store_contract(new_contract);
+			//auto new_contract2 = d.get_contract(o.calculate_contract_id()); // FIXME: for debug
 			
 			for (const auto &pair1 : contracts_storage_changes)
 			{
