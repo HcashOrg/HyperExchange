@@ -61,73 +61,8 @@ namespace graphene {
 
 		StorageDataType StorageDataType::get_storage_data_from_lua_storage(const GluaStorageValue& lua_storage)
 		{
-			StorageDataType storage_data;
-			if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_null)
-				storage_data = StorageDataType(StorageNullType());
-			else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_int)
-				storage_data = StorageDataType(StorageIntType(lua_storage.value.int_value));
-			else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_number)
-				storage_data = StorageDataType(StorageNumberType(lua_storage.value.number_value));
-			else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_bool)
-				storage_data = StorageDataType(StorageBoolType(lua_storage.value.bool_value));
-			else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_string)
-				storage_data = StorageDataType(StorageStringType(string(lua_storage.value.string_value)));
-			else if (uvm::blockchain::is_any_array_storage_value_type(lua_storage.type)
-				|| uvm::blockchain::is_any_table_storage_value_type(lua_storage.type))
-			{
-				if (get_storage_base_type(lua_storage.type) == uvm::blockchain::StorageValueTypes::storage_value_int)
-				{
-					std::map<std::string, LUA_INTEGER> int_map;
-					std::for_each(lua_storage.value.table_value->begin(), lua_storage.value.table_value->end(),
-						[&](const std::pair<std::string, struct GluaStorageValue>& item)
-					{
-						int_map.insert(std::make_pair(item.first, item.second.value.int_value));
-					});
-					if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_int_table)
-						storage_data = StorageDataType(StorageIntTableType(int_map));
-					else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_int_array)
-						storage_data = StorageDataType(StorageIntArrayType(int_map));
-				}
-				else if (get_storage_base_type(lua_storage.type) == uvm::blockchain::StorageValueTypes::storage_value_number)
-				{
-					std::map<std::string, double> number_map;
-					std::for_each(lua_storage.value.table_value->begin(), lua_storage.value.table_value->end(),
-						[&](const std::pair<std::string, struct GluaStorageValue>& item)
-					{
-						number_map.insert(std::make_pair(item.first, item.second.value.number_value));
-					});
-					if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_number_table)
-						storage_data = StorageDataType(StorageNumberTableType(number_map));
-					else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_number_array)
-						storage_data = StorageDataType(StorageNumberArrayType(number_map));
-				}
-				else if (get_storage_base_type(lua_storage.type) == uvm::blockchain::StorageValueTypes::storage_value_bool)
-				{
-					std::map<std::string, bool> bool_map;
-					std::for_each(lua_storage.value.table_value->begin(), lua_storage.value.table_value->end(),
-						[&](const std::pair<std::string, struct GluaStorageValue>& item)
-					{
-						bool_map.insert(std::make_pair(item.first, item.second.value.bool_value));
-					});
-					if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_bool_table)
-						storage_data = StorageDataType(StorageBoolTableType(bool_map));
-					else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_bool_array)
-						storage_data = StorageDataType(StorageBoolArrayType(bool_map));
-				}
-				else if (get_storage_base_type(lua_storage.type) == uvm::blockchain::StorageValueTypes::storage_value_string)
-				{
-					std::map<std::string, string> string_map;
-					std::for_each(lua_storage.value.table_value->begin(), lua_storage.value.table_value->end(),
-						[&](const std::pair<std::string, struct GluaStorageValue>& item)
-					{
-						string_map.insert(std::make_pair(item.first, item.second.value.string_value));
-					});
-					if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_string_table)
-						storage_data = StorageDataType(StorageStringTableType(string_map));
-					else if (lua_storage.type == uvm::blockchain::StorageValueTypes::storage_value_string_array)
-						storage_data = StorageDataType(StorageStringArrayType(string_map));
-				}
-			}
+			auto storage_json = uvm_storage_value_to_json(lua_storage);
+			StorageDataType storage_data(jsondiff::json_dumps(storage_json));
 			return storage_data;
 		}
 

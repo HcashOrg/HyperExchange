@@ -312,6 +312,7 @@ namespace graphene { namespace chain {
          void store_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
+		 bool has_contract(const address& contract_address);
 
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects

@@ -13,7 +13,11 @@ namespace graphene {
 			try {
 				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 				auto itr = index.find(contract_id);
-				FC_ASSERT(itr != index.end());
+				if (itr == index.end())
+				{
+					std::string null_jsonstr("null");
+					return StorageDataType(null_jsonstr);
+				}
 				auto &contract = *itr;
 				auto storage_itr = contract.storages.find(name);
 				if (storage_itr == contract.storages.end())
@@ -102,6 +106,13 @@ namespace graphene {
             FC_ASSERT(itr != index.end());
             return *itr;
         }
+
+		bool database::has_contract(const address& contract_address)
+		{
+			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+			auto itr = index.find(contract_address);
+			return itr != index.end();
+		}
 
 	}
 }
