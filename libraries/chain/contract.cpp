@@ -40,6 +40,21 @@ namespace graphene {
 			return id;
 		}
 
+		void            contract_invoke_operation::validate()const
+		{
+			FC_ASSERT(fee.amount > 0);
+			FC_ASSERT(invoke_cost > 0);
+			FC_ASSERT(gas_price > 0);
+		}
+		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
+		{
+			// base fee
+			share_type core_fee_required = schedule.fee; // FIXME: contract base fee
+														 // bytes size fee
+			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
+			return core_fee_required;
+		}
+
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
 		{
 			int ret;

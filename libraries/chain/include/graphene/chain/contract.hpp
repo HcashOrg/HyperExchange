@@ -40,6 +40,33 @@ namespace graphene {
 			address calculate_contract_id() const;
 		};
 
+		struct contract_invoke_operation : public base_operation
+		{
+			struct fee_parameters_type {
+				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
+			};
+
+
+			asset fee; // transaction fee limit
+			gas_count_type invoke_cost; // contract invoke gas used
+			gas_price_type gas_price; // gas price of this contract transaction
+			address caller_addr;
+			address contract_id;
+			string contract_api;
+			string contract_arg;
+
+			extensions_type   extensions;
+
+			address fee_payer()const { return caller_addr; }
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const
+			{
+				a.push_back(authority(1, caller_addr, 1));
+			}
+		};
+
 		class ContractHelper
 		{
 		public:
@@ -59,3 +86,5 @@ namespace graphene {
 
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(register_time)(contract_id)(contract_code))
+FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))
+FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(contract_id)(contract_api)(contract_arg))

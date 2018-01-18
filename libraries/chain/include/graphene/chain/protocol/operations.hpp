@@ -121,6 +121,7 @@ namespace graphene { namespace chain {
 	        guard_update_multi_account_operation,
 	        asset_real_create_operation,
 	   contract_register_operation,
+	   contract_invoke_operation,
 	   storage_operation
          > operation;
 
