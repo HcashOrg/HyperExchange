@@ -151,6 +151,12 @@ const uint8_t multisig_account_pair_object::space_id;
 const uint8_t multisig_account_pair_object::type_id;
 const uint8_t crosschain_transaction_history_count_object::space_id;
 const uint8_t crosschain_transaction_history_count_object::type_id;
+
+const uint8_t contract_object::space_id;
+const uint8_t contract_object::type_id;
+const uint8_t transaction_contract_storage_diff_object::space_id;
+const uint8_t transaction_contract_storage_diff_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);

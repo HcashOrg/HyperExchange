@@ -1026,6 +1026,8 @@ public:
 		   auto contract_code = ContractHelper::load_contract_from_file(contract_filepath);
 		   contract_register_op.contract_code = contract_code;
 		   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
+		   // contract_register_op.register_time = fc::time_point::now(); // FIXME
+
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
 
 		   signed_transaction tx;

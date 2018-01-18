@@ -4,6 +4,7 @@
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/account_object.hpp>
+#include <graphene/chain/transaction_object.hpp>
 
 #include <memory>
 #include <unordered_map>
@@ -14,6 +15,7 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_register_operation origin_op;
+			contract_object new_contract;
 		public:
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:

@@ -66,12 +66,10 @@ namespace graphene {
 
 
                 //store contract
-                contract_object new_contract;
                 new_contract.contract_address = o.calculate_contract_id();
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
-                db().store_contract(new_contract);
-                new_contract = db().get_contract(o.calculate_contract_id());
+                
                 printf("11111111\n");
 
 			}
@@ -124,6 +122,27 @@ namespace graphene {
 		void_result contract_register_evaluate::do_apply(const contract_register_operation& o) {
 			database& d = db();
 			// commit contract result to db
+			auto new_contract_addr = string(new_contract.contract_address);
+			// if is new_contract storage change, put it directly, and add storage change diff
+			for (const auto &pair1 : contracts_storage_changes)
+			{
+				const auto &contract_id = pair1.first;
+				if (contract_id != new_contract_addr) {
+					continue;
+				}
+				address contract_addr(contract_id);
+				const auto &contract_storage_changes = pair1.second;
+				for (const auto &pair2 : contract_storage_changes)
+				{
+					const auto &storage_name = pair2.first;
+					const auto &change = pair2.second;
+					new_contract.storages[storage_name] = change.after.storage_data;
+					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
+				}
+			}
+			db().store_contract(new_contract);
+			auto new_contract2 = db().get_contract(o.calculate_contract_id()); // FIXME: for debug
+			
 			for (const auto &pair1 : contracts_storage_changes)
 			{
 				const auto &contract_id = pair1.first;
@@ -133,7 +152,13 @@ namespace graphene {
 				{
 					const auto &storage_name = pair2.first;
 					const auto &change = pair2.second;
-					d.set_contract_storage(contract_addr, storage_name, change.after);
+					if (contract_id == new_contract_addr) {
+						// d.set_contract_storage_in_contract(new_contract, storage_name, change.after);
+						continue;
+					}
+					else {
+						d.set_contract_storage(contract_addr, storage_name, change.after);
+					}
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}

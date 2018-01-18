@@ -34,7 +34,8 @@ namespace graphene {
 		{
 			address id;
 			fc::sha512::encoder enc;
-			fc::raw::pack(enc, contract_code);
+			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
+			fc::raw::pack(enc, info_to_digest);
 			id.addr = fc::ripemd160::hash(enc.result());
 			return id;
 		}

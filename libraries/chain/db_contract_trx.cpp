@@ -4,29 +4,70 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/transaction_object.hpp>
+#include <uvm/uvm_api.h>
 
 namespace graphene {
 	namespace chain {
 		StorageDataType database::get_contract_storage(const address& contract_id, const string& name)
 		{
 			try {
-				// TODO:
-				StorageDataType storage_data(std::string("\"TODO\""));
-				return storage_data;
+				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto itr = index.find(contract_id);
+				FC_ASSERT(itr != index.end());
+				auto &contract = *itr;
+				auto storage_itr = contract.storages.find(name);
+				if (storage_itr == contract.storages.end())
+				{
+					std::string null_jsonstr("null");
+					return StorageDataType(null_jsonstr);
+				}
+				const auto &storage_data = storage_itr->second;
+				StorageDataType storage;
+				storage.storage_data = storage_data;
+				return storage;
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
 		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
-				// TODO:
+				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto itr = index.find(contract_id);
+				FC_ASSERT(itr != index.end());
+				auto &contract = *itr;
+				auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto con = con_db.find(contract.contract_address);
+				FC_ASSERT(con != con_db.end());
+				modify(contract, [&](contract_object& obj) {
+					obj.storages[name] = value.storage_data;
+				});
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(value));
+		}
+
+		void database::set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value)
+		{
+			try {
+				auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto con = con_db.find(contract.contract_address);
+				FC_ASSERT(con != con_db.end());
+				modify(contract, [&](contract_object& obj) {
+					obj.storages[name] = value.storage_data;
+				});
+			} FC_CAPTURE_AND_RETHROW((contract.contract_address)(name)(value));
 		}
 
 		void database::add_contract_storage_change(const address& contract_id, const string& name, const StorageDataType &diff)
 		{
 			try {
-				// TODO:
+				transaction_contract_storage_diff_object obj;
+				obj.contract_address = contract_id;
+				obj.storage_name = name;
+				obj.diff = diff.storage_data;
+				auto& con_db = get_index_type<transaction_contract_storage_diff_index>().indices().get<by_contract_id>();
+				auto con = con_db.find(contract_id);
+				create<transaction_contract_storage_diff_object>([&](transaction_contract_storage_diff_object & o) {
+						o = obj;
+				});
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(diff));
 		}
 
