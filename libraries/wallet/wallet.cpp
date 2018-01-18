@@ -4629,6 +4629,17 @@ address wallet_api::register_contract(const string& caller_account_name, const s
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
 }
 
+ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address) const
+{
+    auto cont= my->_remote_db->get_contract_info(contract_address);
+    ContractEntryPrintable res;
+    res.code_printable = cont.code;
+    res.owner_address = cont.owner_address;
+    res.id = cont.contract_address.operator fc::string();
+    printf("new_contract   %s,%s\n", cont.contract_address.operator fc::string().c_str(), cont.owner_address.operator fc::string().c_str());
+    return res;
+}
+
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);

@@ -158,6 +158,10 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
+
+      //contract 
+
+      contract_object get_contract_info(const string& contract_address)const ;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -328,7 +332,17 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-
+contract_object database_api::get_contract_info(const string& contract_address) const
+{
+    return my->get_contract_info(contract_address);
+}
+contract_object database_api_impl::get_contract_info(const string& contract_address) const
+{
+    try {
+        auto res=  _db.get_contract(address(contract_address));
+        return res;
+    }FC_CAPTURE_AND_RETHROW((contract_address))
+}
 void database_api::set_pending_transaction_callback( std::function<void(const variant&)> cb )
 {
    my->set_pending_transaction_callback( cb );

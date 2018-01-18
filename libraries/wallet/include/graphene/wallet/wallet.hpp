@@ -1732,7 +1732,8 @@ class wallet_api
 
 	  // contract wallet apis
 	  address register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-	  // end contract wallet apis
+      ContractEntryPrintable get_contract_info(const string& contract_address)const ;
+      // end contract wallet apis
 
       /**
        *  Used to transfer from one set of blinded balances to another
@@ -1975,5 +1976,6 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_crosschain_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
-			(register_contract)
+		(register_contract)
+        (get_contract_info)
       )

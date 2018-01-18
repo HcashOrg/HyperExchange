@@ -104,5 +104,4 @@ FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)
 
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
 FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner)(owner_address)(owner_name)(code_printable));
-FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code),(owner_address),(create_time),(name),(contract_address)(storages));
 
