@@ -147,7 +147,7 @@ namespace graphene { namespace chain {
    typedef multi_index_container<
 	   contract_object,
 	   indexed_by<
-	   ordered_unique<tag<by_contract_obj_id>, member<object, object_id_type, &contract_object::id>>,
+	   ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
 	   ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
 	   >> contract_object_multi_index_type;
    typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;

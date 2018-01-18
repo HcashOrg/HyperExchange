@@ -80,18 +80,24 @@ namespace graphene {
 
         void database::store_contract(const contract_object & contract)
         {
-            contract_object obj = contract;
+            try {
             auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
             auto con = con_db.find(contract.contract_address);
             if (con == con_db.end())
             {
-                create<contract_object>([&](contract_object & obj) {
-                    obj = contract; });
+                create<contract_object>([contract](contract_object & obj) {
+                    obj.create_time = contract.create_time;
+                    obj.code = contract.code; 
+                    obj.name = contract.name;
+                    obj.owner_address = contract.owner_address;
+                    obj.contract_address = contract.contract_address;
+                });
             }
             else
             {
                 FC_ASSERT( false,"contract exsited");
             }
+            }FC_CAPTURE_AND_RETHROW((contract))
         }
 
         contract_object database::get_contract(const address & contract_address)
@@ -104,7 +110,7 @@ namespace graphene {
 
         contract_object database::get_contract(const contract_id_type & id)
         {
-            auto& index = get_index_type<contract_object_index>().indices().get<by_contract_obj_id>();
+            auto& index = get_index_type<contract_object_index>().indices().get<by_id>();
             auto itr = index.find(id);
             FC_ASSERT(itr != index.end());
             return *itr;
