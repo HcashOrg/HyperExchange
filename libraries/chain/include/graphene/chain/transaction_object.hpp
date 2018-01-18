@@ -152,3 +152,4 @@ FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object),
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
 FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(storage_name)(diff))
+FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code)(owner_address)(create_time)(name)(contract_address))

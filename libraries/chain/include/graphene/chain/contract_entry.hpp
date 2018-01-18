@@ -139,5 +139,4 @@ FC_REFLECT_DERIVED(graphene::chain::contract_object,
 (contract_address)(owner)(owner_address)(owner_name)(code_printable)
 )
 */
-FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code),(owner_address),(create_time),(name),(contract_address));
 

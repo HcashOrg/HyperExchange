@@ -603,6 +603,10 @@ class database_api
 
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
+
+
+      //contract 
+      contract_object get_contract_info(const string& contract_address)const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -723,4 +727,7 @@ FC_API(graphene::app::database_api,
 	(get_multisig_address_obj)
 	(get_multisig_account_pair)
 	(lookup_multisig_account_pair)
+
+    //contract
+     (get_contract_info)
 );
