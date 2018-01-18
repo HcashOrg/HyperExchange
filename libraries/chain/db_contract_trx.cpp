@@ -88,6 +88,7 @@ namespace graphene {
                     obj.name = contract.name;
                     obj.owner_address = contract.owner_address;
                     obj.contract_address = contract.contract_address;
+                    obj.storages = obj.storages;
                 });
             }
             else
