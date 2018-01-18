@@ -1978,5 +1978,6 @@ FC_API( graphene::wallet::wallet_api,
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(register_contract)
+		(invoke_contract)
         (get_contract_info)
       )

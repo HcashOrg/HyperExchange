@@ -91,8 +91,8 @@ namespace graphene {
 		}
 
 		struct common_contract_evaluator {
-			contract_register_evaluate* register_contract_evaluator;
-			contract_invoke_evaluate* invoke_contract_evaluator;
+			contract_register_evaluate* register_contract_evaluator = nullptr;
+			contract_invoke_evaluate* invoke_contract_evaluator = nullptr;
 		};
 
 		static common_contract_evaluator get_contract_evaluator(lua_State *L) {
@@ -187,13 +187,13 @@ namespace graphene {
 		void UvmChainApi::get_contract_address_by_name(lua_State *L, const char *name, char *address, size_t *address_size)
 		{
 			auto evaluator = get_contract_evaluator(L);
-			// TODO: change to get contract by name
-			auto code = get_contract_code_by_id(evaluator, std::string(name));
-			auto contract_info = get_contract_info_by_id(evaluator, std::string(name));
+			std::string contract_id = uvm::lua::lib::unwrap_any_contract_name(name);
+			auto code = get_contract_code_by_id(evaluator, contract_id);
+			auto contract_info = get_contract_info_by_id(evaluator, contract_id);
 
 			if (code)
 			{
-				string address_str = name;
+				string address_str = contract_id;
 				*address_size = address_str.length();
 				strncpy(address, address_str.c_str(), CONTRACT_ID_MAX_LENGTH - 1);
 				address[CONTRACT_ID_MAX_LENGTH - 1] = '\0';
@@ -248,7 +248,8 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 
 			auto evaluator = get_contract_evaluator(L);
-			auto code = get_contract_code_by_id(evaluator, std::string(name));
+			std::string contract_id = uvm::lua::lib::unwrap_any_contract_name(name);
+			auto code = get_contract_code_by_id(evaluator, contract_id);
 			if (code && (code->code.size() <= LUA_MODULE_BYTE_STREAM_BUF_SIZE))
 			{
 				return get_bytestream_from_code(L, *code);
@@ -276,12 +277,12 @@ namespace graphene {
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
 			auto evaluator = get_contract_evaluator(L);
-			auto code = get_contract_code_by_id(evaluator, std::string(contract_name));
+			std::string contract_id = uvm::lua::lib::unwrap_any_contract_name(contract_name);
+			auto code = get_contract_code_by_id(evaluator, contract_id);
 			if (!code)
 			{
 				return null_storage;
 			}
-			auto contract_id = std::string(contract_name); // TODO: change to contract address
 			return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name);
 		}
 
