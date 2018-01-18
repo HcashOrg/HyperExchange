@@ -140,8 +140,13 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
-			d.store_contract(new_contract);
-			//auto new_contract2 = d.get_contract(o.calculate_contract_id()); // FIXME: for debug
+			if (db().has_contract(new_contract.contract_address))
+			{
+				// TODO: 持久化应该只在块在链上时执行
+				return void_result();;
+			}
+			db().store_contract(new_contract);
+			auto new_contract2 = db().get_contract(o.calculate_contract_id()); // FIXME: for debug
 			
 			for (const auto &pair1 : contracts_storage_changes)
 			{
