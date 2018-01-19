@@ -68,6 +68,7 @@ namespace graphene {
                 new_contract.contract_address = o.calculate_contract_id();
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
+                new_contract.create_time = o.register_time;
                 
                 printf("11111111\n");
 

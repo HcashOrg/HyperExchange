@@ -24,7 +24,7 @@ namespace graphene {
 			gas_count_type init_cost; // contract init gas used
 			gas_price_type gas_price; // gas price of this contract transaction
 			address owner_addr;
-			fc::time_point     register_time;
+            time_point_sec     register_time;
 			address contract_id;
 			uvm::blockchain::Code  contract_code;
 

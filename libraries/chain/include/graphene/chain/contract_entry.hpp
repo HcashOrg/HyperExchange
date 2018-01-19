@@ -92,6 +92,7 @@ namespace graphene {
 			address owner_address;  //the owner address of the contract
 			string owner_name;  //the owner name of the contract
 			CodePrintAble code_printable; // code-related of contract
+            fc::time_point_sec createtime;
 		};
 
 		typedef uint64_t gas_price_type;
@@ -103,5 +104,5 @@ namespace graphene {
 FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));
 
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
-FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner)(owner_address)(owner_name)(code_printable));
+FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner)(owner_address)(owner_name)(code_printable)(createtime));
 
