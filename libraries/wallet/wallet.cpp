@@ -76,6 +76,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/storage.hpp>
+#include <graphene/chain/contract_object.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>

@@ -34,6 +34,7 @@
 #include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/chain/account_object.hpp>
+#include <graphene/chain/contract_object.hpp>
 #include <cctype>
 
 #include <cfenv>

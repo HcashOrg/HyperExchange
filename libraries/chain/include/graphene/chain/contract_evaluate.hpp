@@ -5,7 +5,7 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
-
+#include <graphene/chain/contract_object.hpp>
 #include <memory>
 #include <unordered_map>
 

@@ -60,6 +60,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
+#include <graphene/chain/contract_object.hpp>
 namespace graphene { namespace app {
 using net::item_hash_t;
 using net::item_id;
