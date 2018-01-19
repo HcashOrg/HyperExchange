@@ -76,6 +76,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/storage.hpp>
+#include <graphene/chain/contract_object.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1026,8 +1027,7 @@ public:
 		   auto contract_code = ContractHelper::load_contract_from_file(contract_filepath);
 		   contract_register_op.contract_code = contract_code;
 		   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
-		   contract_register_op.register_time = fc::time_point::now();
-
+		   contract_register_op.register_time = fc::time_point::now()+fc::seconds(1); 
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
 
 		   signed_transaction tx;
@@ -4680,6 +4680,7 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
     res.owner_address = cont.owner_address;
     res.id = cont.contract_address.operator fc::string();
     printf("new_contract   %s,%s\n", cont.contract_address.operator fc::string().c_str(), cont.owner_address.operator fc::string().c_str());
+    res.createtime=cont.create_time;
     return res;
 }
 

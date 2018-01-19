@@ -45,6 +45,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/chain/transaction_object.hpp>
+#include <graphene/chain/contract_object.hpp>
 #include <fc/api.hpp>
 #include <fc/optional.hpp>
 #include <fc/variant_object.hpp>

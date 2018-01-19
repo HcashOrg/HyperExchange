@@ -131,32 +131,10 @@ namespace graphene { namespace chain {
    > transaction_contract_storage_multi_index_type;
    typedef generic_index<transaction_contract_storage_diff_object, transaction_contract_storage_multi_index_type> transaction_contract_storage_diff_index;
 
-   class contract_object : public abstract_object<contract_object> {
-	public:
-		static const uint8_t space_id = protocol_ids;
-		static const uint8_t type_id = contract_object_type;
-
-		uvm::blockchain::Code code;
-		address owner_address;
-		time_point_sec create_time;
-		string name;
-		address contract_address;
-		std::map<std::string, std::vector<char>> storages;
-	};
-   struct by_contract_obj_id {};
-   typedef multi_index_container<
-	   contract_object,
-	   indexed_by<
-	   ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
-	   ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
-	   >> contract_object_multi_index_type;
-   typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
-
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id) )
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
 FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(contract_address)(storage_name)(diff))
-FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object), (code)(owner_address)(create_time)(name)(contract_address)(storages))
 

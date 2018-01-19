@@ -72,6 +72,7 @@
 #include <graphene/chain/guard_refund_balance_evaluator.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/contract.hpp>
+#include <graphene/chain/contract_object.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
