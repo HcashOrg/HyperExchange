@@ -138,7 +138,7 @@ namespace graphene { namespace chain {
 
 		uvm::blockchain::Code code;
 		address owner_address;
-		time_point create_time;
+		time_point_sec create_time;
 		string name;
 		address contract_address;
 		std::map<std::string, std::vector<char>> storages;

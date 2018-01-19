@@ -68,6 +68,7 @@ namespace graphene {
                 new_contract.contract_address = o.calculate_contract_id();
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
+				new_contract.create_time = origin_op.register_time;
                 
                 printf("11111111\n");
 
@@ -234,12 +235,12 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
-			if (db().has_contract(new_contract.contract_address))
+			if (d.has_contract(new_contract.contract_address))
 			{
 				// FIXME: 持久化应该只在块在链上时执行
 				return void_result();;
 			}
-			db().store_contract(new_contract);
+			d.store_contract(new_contract);
 			
 			for (const auto &pair1 : contracts_storage_changes)
 			{
@@ -251,7 +252,6 @@ namespace graphene {
 					const auto &storage_name = pair2.first;
 					const auto &change = pair2.second;
 					if (contract_id == new_contract_addr) {
-						// d.set_contract_storage_in_contract(new_contract, storage_name, change.after);
 						continue;
 					}
 					else {
@@ -265,7 +265,6 @@ namespace graphene {
 
 		void_result contract_invoke_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
-			// FIXME: 这里同步到块时才应该写入db
 			// commit contract result to db
 			for (const auto &pair1 : contracts_storage_changes)
 			{

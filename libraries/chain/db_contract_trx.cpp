@@ -73,7 +73,7 @@ namespace graphene {
 					o.contract_address = obj.contract_address;
 					o.diff = obj.diff;
 					o.storage_name = obj.storage_name;
-					o = obj;
+					o.trx_id = obj.trx_id;
 				});
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(diff));
 		}
