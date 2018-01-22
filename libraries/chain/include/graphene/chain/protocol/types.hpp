@@ -143,6 +143,7 @@ namespace graphene { namespace chain {
 	  contract_storage_diff_type,
 	  contract_storage_type,
 	  contract_object_type,
+      contract_balance_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
