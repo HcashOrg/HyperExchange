@@ -12,52 +12,51 @@ namespace graphene {
 		StorageDataType database::get_contract_storage(const address& contract_id, const string& name)
 		{
 			try {
-				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
-				auto itr = index.find(contract_id);
-				if (itr == index.end())
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto& storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				if (storage_iter == storage_index.end())
 				{
 					std::string null_jsonstr("null");
 					return StorageDataType(null_jsonstr);
 				}
-				auto &contract = *itr;
-				auto storage_itr = contract.storages.find(name);
-				if (storage_itr == contract.storages.end())
+				else
 				{
-					std::string null_jsonstr("null");
-					return StorageDataType(null_jsonstr);
+					const auto &storage_data = *storage_iter;
+					StorageDataType storage;
+					storage.storage_data = storage_data.storage_value;
+					return storage;
 				}
-				const auto &storage_data = storage_itr->second;
-				StorageDataType storage;
-				storage.storage_data = storage_data;
-				return storage;
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
 		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
-				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				/*auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 				auto itr = index.find(contract_id);
-				FC_ASSERT(itr != index.end());
-				auto &contract = *itr;
-				auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
-				auto con = con_db.find(contract.contract_address);
-				FC_ASSERT(con != con_db.end());
-				modify(contract, [&](contract_object& obj) {
-					obj.storages[name] = value.storage_data;
-				});
+				FC_ASSERT(itr != index.end());*/
+
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto& storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				if (storage_iter == storage_index.end()) {
+					create<contract_storage_object>([&](contract_storage_object & obj) {
+						obj.contract_address = contract_id;
+						obj.storage_name = name;
+						obj.storage_value = value.storage_data;
+					});
+				}
+				else {
+					modify(*storage_iter, [&](contract_storage_object& obj) {
+						obj.storage_value = value.storage_data;
+					});
+				}
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(value));
 		}
 
 		void database::set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value)
 		{
 			try {
-				auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
-				auto con = con_db.find(contract.contract_address);
-				FC_ASSERT(con != con_db.end());
-				modify(contract, [&](contract_object& obj) {
-					obj.storages[name] = value.storage_data;
-				});
+				set_contract_storage(contract.contract_address, name, value);
 			} FC_CAPTURE_AND_RETHROW((contract.contract_address)(name)(value));
 		}
 
@@ -92,7 +91,6 @@ namespace graphene {
                     obj.name = contract.name;
                     obj.owner_address = contract.owner_address;
                     obj.contract_address = contract.contract_address;
-                    obj.storages = contract.storages;
                 });
             }
             else
