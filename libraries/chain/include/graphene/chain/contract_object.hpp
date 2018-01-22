@@ -3,6 +3,7 @@
 #include <graphene/db/generic_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <graphene/chain/contract_entry.hpp>
+#include <graphene/chain/vesting_balance_object.hpp>
 namespace graphene {
     namespace chain {
         struct by_contract_id;
@@ -26,7 +27,6 @@ namespace graphene {
             ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
-
         class contract_balance_object : public abstract_object<contract_balance_object>
         {
         public:
