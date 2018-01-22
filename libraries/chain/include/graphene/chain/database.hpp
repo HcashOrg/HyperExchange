@@ -314,6 +314,9 @@ namespace graphene { namespace chain {
          contract_object get_contract(const contract_id_type& id);
 		 bool has_contract(const address& contract_address);
 
+         //contract_balance//
+         asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
+         void adjust_contract_balance(const address& addr, const asset& delta);
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();

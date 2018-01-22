@@ -282,6 +282,7 @@ void database::initialize_indexes()
    // contract
    add_index< primary_index<transaction_contract_storage_diff_index       > >();
    add_index<primary_index<contract_object_index>>();
+   add_index<primary_index<contract_balance_index>>();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)
