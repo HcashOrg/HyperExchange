@@ -151,28 +151,6 @@ namespace graphene {
 			database& d = db();
 			// commit contract result to db
 			auto new_contract_addr = string(new_contract.contract_address);
-			// if is new_contract storage change, put it directly, and add storage change diff
-			for (const auto &pair1 : contracts_storage_changes)
-			{
-				const auto &contract_id = pair1.first;
-				if (contract_id != new_contract_addr) {
-					continue;
-				}
-				address contract_addr(contract_id);
-				const auto &contract_storage_changes = pair1.second;
-				for (const auto &pair2 : contract_storage_changes)
-				{
-					const auto &storage_name = pair2.first;
-					const auto &change = pair2.second;
-					new_contract.storages[storage_name] = change.after.storage_data;
-					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
-				}
-			}
-			/*if (d.has_contract(new_contract.contract_address))
-			{
-				// FIXME: 持久化应该只在块在链上时执行
-				return void_result();;
-			}*/
 			d.store_contract(new_contract);
 			
 			for (const auto &pair1 : contracts_storage_changes)
@@ -184,12 +162,7 @@ namespace graphene {
 				{
 					const auto &storage_name = pair2.first;
 					const auto &change = pair2.second;
-					if (contract_id == new_contract_addr) {
-						continue;
-					}
-					else {
-						d.set_contract_storage(contract_addr, storage_name, change.after);
-					}
+					d.set_contract_storage(contract_addr, storage_name, change.after);
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}

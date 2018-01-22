@@ -17,7 +17,8 @@ namespace graphene {
             time_point_sec create_time;
             string name;
             address contract_address;
-            std::map<std::string, std::vector<char>> storages;
+			bool is_native_contract = false;
+			string native_contract_key; // key to find native contract code
         };
         struct by_contract_obj_id {};
         typedef multi_index_container<
@@ -27,6 +28,31 @@ namespace graphene {
             ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
+
+		class contract_storage_object : public abstract_object<contract_storage_object> {
+		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = contract_storage_object_type;
+
+			address contract_address;
+			string storage_name;
+			std::vector<char> storage_value;
+		};
+		struct by_contract_id_storage_name {};
+		typedef multi_index_container<
+			contract_storage_object,
+			indexed_by<
+			ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
+			ordered_unique< tag<by_contract_id_storage_name>,
+			composite_key<
+			contract_storage_object,
+			member<contract_storage_object, address, &contract_storage_object::contract_address>,
+			member<contract_storage_object, string, &contract_storage_object::storage_name>
+			>
+			>
+			>> contract_storage_object_multi_index_type;
+		typedef generic_index<contract_storage_object, contract_storage_object_multi_index_type> contract_storage_object_index;
+
         class contract_balance_object : public abstract_object<contract_balance_object>
         {
         public:
@@ -79,6 +105,8 @@ namespace graphene {
 }
 
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (code)(owner_address)(create_time)(name)(contract_address)(storages))
+    (code)(owner_address)(create_time)(name)(contract_address)(is_native_contract)(native_contract_key))
+FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
+	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
     (owner)(balance)(vesting_policy)(last_claim_date))

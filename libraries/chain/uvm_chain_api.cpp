@@ -283,7 +283,13 @@ namespace graphene {
 			{
 				return null_storage;
 			}
-			return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name);
+			try
+			{
+				return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name);
+			}
+			catch (fc::exception &e) {
+				return null_storage;
+			}
 		}
 
 		GluaStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name)
@@ -298,8 +304,14 @@ namespace graphene {
 			{
 				return null_storage;
 			}
-			auto storage_data = get_contract_storage_from_evaluator(evaluator, contract_id, name);
-			return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
+			try 
+			{
+				auto storage_data = get_contract_storage_from_evaluator(evaluator, contract_id, name);
+				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
+			}
+			catch (fc::exception &e) {
+				return null_storage;
+			}
 		}
 
 		static std::vector<char> json_to_chars(jsondiff::JsonValue json_value)
