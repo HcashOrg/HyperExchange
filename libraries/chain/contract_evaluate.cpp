@@ -19,20 +19,32 @@ namespace graphene {
 
 		using uvm::lua::api::global_uvm_chain_api;
 
+		static share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
+			// every 100 gas cost 1 min-precision base-asset
+			share_type fee = ((gas_count / 100) + ((gas_count % 100) == 0 ? 0 : 1)) * gas_price;
+			FC_ASSERT(fee >= 0);
+			return fee;
+		}
+
+		static share_type count_contract_register_fee(const uvm::blockchain::Code& code) {
+			return 10; // contract register fee
+		}
+
 		void_result contract_register_evaluate::do_evaluate(const operation_type& o) {
+			auto &d = db();
+			// check contract id unique
+			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 
 			if (!global_uvm_chain_api)
 				global_uvm_chain_api = new UvmChainApi();
 
-			// TODO: execute contract init api in pendingState
 			::blockchain::contract_engine::ContractEngineBuilder builder;
 			auto engine = builder.build();
 			int exception_code = 0;
 			string exception_msg;
 			try {
-
 				origin_op = o;
-				engine->set_caller((string)(o.owner_addr), (string)(o.owner_addr)); // FIXME: first is owner publickey
+				engine->set_caller(o.owner_pubkey.to_base58(), (string)(o.owner_addr));
 				engine->set_state_pointer_value("register_evaluate_state", this);
 				engine->clear_exceptions();
 				auto limit = o.init_cost;
@@ -52,16 +64,9 @@ namespace graphene {
 
 				gas_used = engine->gas_used();
 				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
+				auto register_fee = count_contract_register_fee(o.contract_code);
+				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 
-				//	ShareType required = get_amount_sum(exec_cost, eval_state._current_state->get_default_margin().amount);
-				//	required = get_amount_sum(required, register_fee);
-				//	required = get_amount_sum(required, transaction_fee.amount);
-
-				//	map<BalanceIdType, ShareType> withdraw_map;
-				//	withdraw_enough_balances(balances, required, withdraw_map);
-				//	eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
-				//	eval_state.p_result_trx.operations.push_back(DepositContractOperation(get_contract_id(), eval_state._current_state->get_default_margin(), deposit_contract_margin));//todo 保证金存入
-				
 				// TODO: withdraw from owner and deposit margin balance to contract
 
 
@@ -69,52 +74,21 @@ namespace graphene {
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
-                
-                printf("11111111\n");
 
 			}
 			catch (std::exception &e)
 			{
-				throw e; // TODO
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
 			}
-			/*catch (contract_run_out_of_money& e)
+			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-			if (!eval_state.evaluate_contract_testing)
-			{
-			if (eval_state.throw_exec_exception)
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
-
-			eval_state.p_result_trx.operations.resize(0);
-			eval_state.p_result_trx.push_transaction(eval_state.trx);
-			eval_state.p_result_trx.expiration = eval_state.trx.expiration;
-			map<BalanceIdType, ShareType> withdraw_map;
-			required = get_amount_sum(register_fee, transaction_fee.amount);
-			required = get_amount_sum(required, initcost.amount);
-
-			withdraw_enough_balances(balances, required, withdraw_map);
-			eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
+				// TODO: 扣除所有提供的手续费并打包
 			}
-			else
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_testing_money);
-
-			}
-			catch (const contract_error& e)
+			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-			if (!eval_state.evaluate_contract_testing)
-			{
-			if (eval_state.throw_exec_exception)
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_execute_error, (exception_msg));
-			Asset exec_cost = eval_state._current_state->get_amount(engine->gas_used());
-			std::map<BalanceIdType, ShareType> withdraw_map;
-			withdraw_enough_balances(balances, (exec_cost + eval_state.required_fees).amount, withdraw_map);
-			eval_state.p_result_trx.operations.resize(1);
-			eval_state.p_result_trx.expiration = eval_state.trx.expiration;
-			eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
 			}
-			else
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_execute_error_in_testing, (exception_msg));
-
-			}*/
 
 			return void_result();
 		}
@@ -124,7 +98,6 @@ namespace graphene {
 			if (!global_uvm_chain_api)
 				global_uvm_chain_api = new UvmChainApi();
 
-			// TODO: execute contract init api in pendingState
 			::blockchain::contract_engine::ContractEngineBuilder builder;
 			auto engine = builder.build();
 			int exception_code = 0;
@@ -132,7 +105,7 @@ namespace graphene {
 			try {
 
 				origin_op = o;
-				engine->set_caller((string)(o.caller_addr), (string)(o.caller_addr)); // FIXME: first is owner publickey
+				engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
 				engine->set_state_pointer_value("invoke_evaluate_state", this);
 				engine->clear_exceptions();
 				auto limit = o.invoke_cost;
@@ -148,68 +121,28 @@ namespace graphene {
 				}
 				catch (uvm::core::GluaException &e)
 				{
-					throw e; // TODO: change to other error type
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 				}
 
 				gas_used = engine->gas_used();
 				FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-
-				//	ShareType required = get_amount_sum(exec_cost, eval_state._current_state->get_default_margin().amount);
-				//	required = get_amount_sum(required, register_fee);
-				//	required = get_amount_sum(required, transaction_fee.amount);
-
-				//	map<BalanceIdType, ShareType> withdraw_map;
-				//	withdraw_enough_balances(balances, required, withdraw_map);
-				//	eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
-				//	eval_state.p_result_trx.operations.push_back(DepositContractOperation(get_contract_id(), eval_state._current_state->get_default_margin(), deposit_contract_margin));//todo 保证金存入
-
-				// TODO: withdraw from owner and deposit margin balance to contract
-
-				printf("invoke contract evaluated\n");
+				auto required = count_gas_fee(o.gas_price, gas_used);
+				// TODO: withdraw required gas fee from owner
 
 			}
 			catch (std::exception &e)
 			{
-				throw e; // TODO
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
 			}
-			/*catch (contract_run_out_of_money& e)
+			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-			if (!eval_state.evaluate_contract_testing)
-			{
-			if (eval_state.throw_exec_exception)
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
-
-			eval_state.p_result_trx.operations.resize(0);
-			eval_state.p_result_trx.push_transaction(eval_state.trx);
-			eval_state.p_result_trx.expiration = eval_state.trx.expiration;
-			map<BalanceIdType, ShareType> withdraw_map;
-			required = get_amount_sum(register_fee, transaction_fee.amount);
-			required = get_amount_sum(required, initcost.amount);
-
-			withdraw_enough_balances(balances, required, withdraw_map);
-			eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
+				// TODO: 扣除所有提供的手续费并打包
 			}
-			else
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_testing_money);
-
-			}
-			catch (const contract_error& e)
+			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-			if (!eval_state.evaluate_contract_testing)
-			{
-			if (eval_state.throw_exec_exception)
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_execute_error, (exception_msg));
-			Asset exec_cost = eval_state._current_state->get_amount(engine->gas_used());
-			std::map<BalanceIdType, ShareType> withdraw_map;
-			withdraw_enough_balances(balances, (exec_cost + eval_state.required_fees).amount, withdraw_map);
-			eval_state.p_result_trx.operations.resize(1);
-			eval_state.p_result_trx.expiration = eval_state.trx.expiration;
-			eval_state.p_result_trx.operations.push_back(BalancesWithdrawOperation(withdraw_map));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
 			}
-			else
-			FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_execute_error_in_testing, (exception_msg));
-
-			}*/
 
 			return void_result();
 		}
@@ -235,11 +168,11 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
-			if (d.has_contract(new_contract.contract_address))
+			/*if (d.has_contract(new_contract.contract_address))
 			{
 				// FIXME: 持久化应该只在块在链上时执行
 				return void_result();;
-			}
+			}*/
 			d.store_contract(new_contract);
 			
 			for (const auto &pair1 : contracts_storage_changes)

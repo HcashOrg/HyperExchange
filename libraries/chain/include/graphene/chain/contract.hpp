@@ -21,9 +21,10 @@ namespace graphene {
 			
 
 			asset fee; // transaction fee limit
-			gas_count_type init_cost; // contract init gas used
+			gas_count_type init_cost; // contract init limit
 			gas_price_type gas_price; // gas price of this contract transaction
 			address owner_addr;
+			fc::ecc::public_key owner_pubkey;
 			fc::time_point_sec     register_time;
 			address contract_id;
 			uvm::blockchain::Code  contract_code;
@@ -49,9 +50,10 @@ namespace graphene {
 
 
 			asset fee; // transaction fee limit
-			gas_count_type invoke_cost; // contract invoke gas used
+			gas_count_type invoke_cost; // contract invoke gas limit
 			gas_price_type gas_price; // gas price of this contract transaction
 			address caller_addr;
+			fc::ecc::public_key caller_pubkey;
 			address contract_id;
 			string contract_api;
 			string contract_arg;
@@ -85,6 +87,6 @@ namespace graphene {
 
 
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(register_time)(contract_id)(contract_code))
+FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(contract_id)(contract_api)(contract_arg))
+FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_api)(contract_arg))

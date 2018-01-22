@@ -1002,6 +1002,7 @@ public:
 
    address register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
+	   // TODO: register_contract_testing
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1012,12 +1013,12 @@ public:
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-		   auto owner = privkey.get_public_key();
+		   auto owner_pubkey = privkey.get_public_key();
 		   
 		   contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
-		   contract_register_op.fee.asset_id = asset_id_type(); // FIXME: base asset id
-		   contract_register_op.fee.amount = std::stoll(gas_limit);
+		   contract_register_op.init_cost = std::stoll(gas_limit);
 		   contract_register_op.owner_addr = acc_caller.addr;
+		   contract_register_op.owner_pubkey = owner_pubkey;
 
 		   std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
 		   FC_ASSERT(in.is_open());
@@ -1029,6 +1030,8 @@ public:
 		   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
 		   contract_register_op.register_time = fc::time_point::now()+fc::seconds(1); 
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
+		   contract_register_op.fee.amount = 0;
+		   contract_register_op.fee.asset_id = asset_id_type(0);
 
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_register_op);
@@ -1049,6 +1052,7 @@ public:
    signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
    {
 	   try {
+		   // TODO: invoke_contract_testing
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
 
@@ -1058,15 +1062,17 @@ public:
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-		   auto owner = privkey.get_public_key();
+		   auto caller_pubkey = privkey.get_public_key();
 
 		   contract_invoke_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
-		   contract_invoke_op.fee.asset_id = asset_id_type(); // FIXME: base asset id
-		   contract_invoke_op.fee.amount = std::stoll(gas_limit);
+		   contract_invoke_op.invoke_cost = std::stoll(gas_limit);
 		   contract_invoke_op.caller_addr = acc_caller.addr;
+		   contract_invoke_op.caller_pubkey = caller_pubkey;
 		   contract_invoke_op.contract_id = address(contract_address);
 		   contract_invoke_op.contract_api = contract_api;
 		   contract_invoke_op.contract_arg = contract_arg;
+		   contract_invoke_op.fee.amount = 0;
+		   contract_invoke_op.fee.asset_id = asset_id_type(0);
 
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);

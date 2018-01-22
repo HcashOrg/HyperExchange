@@ -97,12 +97,12 @@ namespace uvm
 		char* exception_msg = (char*)uvm::lua::lib::get_lua_state_value(_scope->L(), "exception_msg").string_value;
 		if (exception_code > 0)
 		{
-			/*if (exception_code == HSRCORE_API_LVM_LIMIT_OVER_ERROR)
-				FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
+			if (exception_code == UVM_API_LVM_LIMIT_OVER_ERROR)
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
 			else
-			{*/
+			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-			//}
+			}
 		}
 	}
 
@@ -115,12 +115,12 @@ namespace uvm
 		char* exception_msg = (char*)uvm::lua::lib::get_lua_state_value(_scope->L(), "exception_msg").string_value;
 		if (exception_code > 0)
 		{
-			/*if (exception_code == HSRCORE_API_LVM_LIMIT_OVER_ERROR)
-				FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
+			if (exception_code == UVM_API_LVM_LIMIT_OVER_ERROR)
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
 			else
-			{*/
+			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-			//}
+			}
 		}
 	}
 

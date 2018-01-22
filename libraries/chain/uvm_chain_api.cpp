@@ -57,7 +57,7 @@ namespace graphene {
 			//如果上次的exception code为uvm_API_LVM_LIMIT_OVER_ERROR, 不能被其他异常覆盖
 			//只有调用clear清理后，才能继续记录异常
 			int last_code = uvm::lua::lib::get_lua_state_value(L, "exception_code").int_value;
-			if (last_code != code && last_code != 0) // FIXME
+			if (last_code != code && last_code != 0)
 			{
 				return;
 			}

@@ -35,6 +35,8 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(read_events_fail, blockchain::contract_engine::uvm_exception, 34020, "read events fail");
 		FC_DECLARE_DERIVED_EXCEPTION(read_storage_name_fail, blockchain::contract_engine::uvm_exception, 34021, "read storage name fail");
 		FC_DECLARE_DERIVED_EXCEPTION(read_storage_type_fail, blockchain::contract_engine::uvm_exception, 34022, "read storage type fail");
+
+		FC_DECLARE_EXCEPTION(contract_error, 35000, "contract error");
 	}
 }
 

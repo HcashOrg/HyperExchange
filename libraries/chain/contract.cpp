@@ -17,9 +17,10 @@ namespace graphene {
 
 		void            contract_register_operation::validate()const
 		{
-			FC_ASSERT(fee.amount > 0);
-			FC_ASSERT(init_cost > 0);
-			FC_ASSERT(gas_price > 0);
+			FC_ASSERT(init_cost > 0 && init_cost <= BLOCKLINK_MAX_GAS_LIMIT);
+			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
+			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+			FC_ASSERT(contract_id == calculate_contract_id());
 		}
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
@@ -42,9 +43,9 @@ namespace graphene {
 
 		void            contract_invoke_operation::validate()const
 		{
-			FC_ASSERT(fee.amount > 0);
-			FC_ASSERT(invoke_cost > 0);
-			FC_ASSERT(gas_price > 0);
+			FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
+			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
+			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
 		}
 		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{

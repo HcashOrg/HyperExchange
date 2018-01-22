@@ -152,6 +152,9 @@
 
 #define GRAPHENE_PRODUCT_PER_ROUND							 10
 
+#define BLOCKLINK_MIN_GAS_PRICE                              0
+#define BLOCKLINK_MAX_GAS_LIMIT                              100000000
+
 /**
  *  Reserved Account IDs with special meaning
  */
