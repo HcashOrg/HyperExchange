@@ -12,11 +12,18 @@
 namespace graphene {
 	namespace chain {
 
+		struct contract_invoke_result
+		{
+			std::string api_result;
+			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> storage_changes;
+			// TODO: balance changes
+		};
+
 		struct contract_register_operation : public base_operation
 		{
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
-				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
+				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 			
 
@@ -45,7 +52,7 @@ namespace graphene {
 		{
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
-				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
+				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 
 
@@ -85,7 +92,7 @@ namespace graphene {
 	}
 }
 
-
+FC_REFLECT(graphene::chain::contract_invoke_result, (api_result)(storage_changes))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))

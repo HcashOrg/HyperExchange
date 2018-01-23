@@ -93,6 +93,50 @@ namespace graphene {
 			return void_result();
 		}
 
+		void_result native_contract_register_evaluate::do_evaluate(const operation_type& o) {
+			auto &d = db();
+			// check contract id unique
+			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
+
+			try {
+				FC_ASSERT(native_contract_finder::has_native_contract_with_key(o.native_contract_key));
+				auto native_contract = native_contract_finder::create_native_contract_by_key(o.native_contract_key, o.contract_id);
+				FC_ASSERT(native_contract);
+				auto invoke_result = native_contract->invoke("init", "");
+
+				gas_used = 1; // FIXME: native contract exec gas used
+				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
+				auto register_fee = 1; // FIXME: native contract register fee
+				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+
+				// TODO: withdraw from owner and deposit margin balance to contract
+
+				this->contracts_storage_changes = invoke_result.storage_changes;
+
+				new_contract.contract_address = o.calculate_contract_id();
+				new_contract.is_native_contract = true;
+				new_contract.native_contract_key = o.native_contract_key;
+				new_contract.owner_address = o.owner_addr;
+				new_contract.create_time = o.register_time;
+
+			}
+			catch (std::exception &e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
+			}
+			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
+				// TODO: 扣除所有提供的手续费并打包
+			}
+			catch (const ::blockchain::contract_engine::contract_error& e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
+			}
+
+			return void_result();
+		}
+
 		void_result contract_invoke_evaluate::do_evaluate(const operation_type& o) {
 
 			if (!global_uvm_chain_api)
@@ -150,9 +194,29 @@ namespace graphene {
 		void_result contract_register_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
 			// commit contract result to db
-			auto new_contract_addr = string(new_contract.contract_address);
 			d.store_contract(new_contract);
 			
+			for (const auto &pair1 : contracts_storage_changes)
+			{
+				const auto &contract_id = pair1.first;
+				address contract_addr(contract_id);
+				const auto &contract_storage_changes = pair1.second;
+				for (const auto &pair2 : contract_storage_changes)
+				{
+					const auto &storage_name = pair2.first;
+					const auto &change = pair2.second;
+					d.set_contract_storage(contract_addr, storage_name, change.after);
+					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
+				}
+			}
+			return void_result();
+		}
+
+		void_result native_contract_register_evaluate::do_apply(const operation_type& o) {
+			database& d = db();
+			// commit contract result to db
+			d.store_contract(new_contract);
+
 			for (const auto &pair1 : contracts_storage_changes)
 			{
 				const auto &contract_id = pair1.first;
@@ -192,6 +256,10 @@ namespace graphene {
 
 		}
 
+		void native_contract_register_evaluate::pay_fee() {
+
+		}
+
 		void contract_invoke_evaluate::pay_fee() {
 
 		}
@@ -203,6 +271,25 @@ namespace graphene {
 				auto contract_info = std::make_shared<GluaContractInfo>();
 				const auto &code = origin_op.contract_code;
 				for (const auto & api : code.abi) {
+					contract_info->contract_apis.push_back(api);
+				}
+				return contract_info;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<GluaContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
+		{
+			if (string(origin_op.contract_id) == contract_id)
+			{
+				auto contract_info = std::make_shared<GluaContractInfo>();
+				auto native_contract = native_contract_finder::create_native_contract_by_key(origin_op.native_contract_key, address(contract_id));
+				if (!native_contract)
+					return nullptr;
+				for (const auto & api : native_contract->apis()) {
 					contract_info->contract_apis.push_back(api);
 				}
 				return contract_info;
@@ -262,7 +349,19 @@ namespace graphene {
 			return origin_op.contract_id;
 		}
 
+		address native_contract_register_evaluate::origin_op_contract_id() const
+		{
+			return origin_op.contract_id;
+		}
+
 		StorageDataType contract_register_evaluate::get_storage(const string &contract_id, const string &storage_name) const
+		{
+			database& d = db();
+			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
+			return storage_data;
+		}
+
+		StorageDataType native_contract_register_evaluate::get_storage(const string &contract_id, const string &storage_name) const
 		{
 			database& d = db();
 			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);

@@ -105,6 +105,7 @@ add_library( graphene_chain
              contract_entry.cpp
              uvm_chain_api.cpp
              db_contract_trx.cpp
+             native_contract.cpp
 
              ${HEADERS}
              ${PROTOCOL_HEADERS}

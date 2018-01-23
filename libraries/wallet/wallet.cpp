@@ -75,6 +75,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
+#include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #ifndef WIN32
@@ -1047,6 +1048,49 @@ public:
 		   auto signed_tx = sign_transaction(tx, broadcast);
 		   return contract_register_op.contract_id;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
+   }
+
+   address register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
+   {
+	   // TODO: register_contract_testing
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   FC_ASSERT(is_valid_account_name(caller_account_name));
+
+		   native_contract_register_operation n_contract_register_op;
+
+		   //juge if the name has been registered in the chain
+		   auto acc_caller = get_account(caller_account_name);
+		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto owner_pubkey = privkey.get_public_key();
+
+		   n_contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   n_contract_register_op.init_cost = std::stoll(gas_limit);
+		   n_contract_register_op.owner_addr = acc_caller.addr;
+		   n_contract_register_op.owner_pubkey = owner_pubkey;
+
+		   FC_ASSERT(native_contract_finder::has_native_contract_with_key(native_contract_key));
+		   n_contract_register_op.native_contract_key = native_contract_key;
+		   n_contract_register_op.register_time = fc::time_point::now() + fc::seconds(1);
+		   n_contract_register_op.contract_id = n_contract_register_op.calculate_contract_id();
+		   n_contract_register_op.fee.amount = 0;
+		   n_contract_register_op.fee.asset_id = asset_id_type(0);
+
+		   signed_transaction tx;
+		   tx.operations.push_back(n_contract_register_op);
+		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
+		   set_operation_fees(tx, current_fees);
+
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(30));
+		   tx.validate();
+
+		   bool broadcast = true;
+		   auto signed_tx = sign_transaction(tx, broadcast);
+		   return n_contract_register_op.contract_id;
+	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(native_contract_key))
    }
 
    signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
@@ -4671,6 +4715,11 @@ signed_transaction wallet_api::approve_proposal(
 address wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
+}
+
+address wallet_api::register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
+{
+	return my->register_native_contract(caller_account_name, gas_price, gas_limit, native_contract_key);
 }
 
 signed_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)

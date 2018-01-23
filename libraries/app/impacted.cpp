@@ -25,6 +25,7 @@
 #include <graphene/chain/protocol/authority.hpp>
 #include <graphene/app/impacted.hpp>
 #include <graphene/chain/contract.hpp>
+#include <graphene/chain/native_contract.hpp>
 
 namespace graphene { namespace app {
 
@@ -231,6 +232,7 @@ struct get_impacted_account_visitor
    }
 
    void operator()(const contract_register_operation& op) {}
+   void operator()(const native_contract_register_operation& op) {}
    void operator()(const contract_invoke_operation& op) {}
    void operator()(const storage_operation& op) {}
 

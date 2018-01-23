@@ -73,6 +73,7 @@
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include <graphene/chain/native_contract.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -227,6 +228,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_update_multi_account_evaluator>();
 
    register_evaluator<contract_register_evaluate>();
+   register_evaluator<native_contract_register_evaluate>();
    register_evaluator<contract_invoke_evaluate>();
 }
 
