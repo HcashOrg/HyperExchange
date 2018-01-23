@@ -641,6 +641,15 @@ public:
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
    }
+   vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type)
+   {
+	   try {
+		   auto asset_obj = get_asset(chain_type);
+		   return _remote_db->list_guarantee_object(chain_type);
+
+	   }FC_CAPTURE_AND_RETHROW((chain_type))
+   }
+
    string create_crosschain_symbol(const string& symbol)
    {
 	   string config = (*_crosschain_manager)->get_config();
@@ -5013,6 +5022,10 @@ signed_transaction wallet_api::upgrade_account( string name, bool broadcast )
 signed_transaction wallet_api::create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
 {
 	return my->create_guarantee_order(account,asset_orign,asset_target,symbol, broadcast);
+}
+vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol)
+{
+	return my->list_guarantee_order(symbol);
 }
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,

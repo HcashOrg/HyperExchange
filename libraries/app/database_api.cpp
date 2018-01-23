@@ -158,6 +158,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
+	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -1523,6 +1524,18 @@ fc::optional<guard_member_object> database_api_impl::get_guard_member_by_account
    return {};
 }
 
+vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(const string& chain_type) const
+{
+	vector<optional<guarantee_object>> result;
+	const auto& idx = _db.get_index_type<guarantee_index>().indices().get<by_symbol>();
+	const auto& range = idx.equal_range(chain_type);
+	std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
+		result.emplace_back(obj);
+	});
+	return result;
+}
+
+
 map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
    return my->lookup_guard_member_accounts( lower_bound_name, limit ,formal);
@@ -2026,7 +2039,10 @@ optional<multisig_account_pair_object> database_api::lookup_multisig_account_pai
 {
 	return my->lookup_multisig_account_pair(id);
 }
-
+vector<optional<guarantee_object>> database_api::list_guarantee_object(const string& chain_type) const
+{
+	return my->list_guarantee_object(chain_type);
+}
 
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
