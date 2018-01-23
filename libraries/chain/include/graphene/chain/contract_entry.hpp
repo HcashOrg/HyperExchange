@@ -37,6 +37,7 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(read_storage_type_fail, blockchain::contract_engine::uvm_exception, 34022, "read storage type fail");
 
 		FC_DECLARE_EXCEPTION(contract_error, 35000, "contract error");
+        FC_DECLARE_DERIVED_EXCEPTION(contract_insufficient_balance, blockchain::contract_engine::contract_error, 35001, "contract insufficient balance");
 	}
 }
 

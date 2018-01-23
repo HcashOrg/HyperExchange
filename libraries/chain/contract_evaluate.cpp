@@ -375,5 +375,48 @@ namespace graphene {
 			return storage_data;
 		}
 
+        void contract_invoke_evaluate::transfer_to_address(const asset & amount, const address & to)
+        {
+            asset_id_type asset_id=amount.asset_id;
+            auto balance= contract_balances.find(asset_id);
+            if (balance == contract_balances.end())
+            {
+                auto res=contract_balances.insert(std::make_pair(asset_id,db().get_contract_balance(origin_op.contract_id, asset_id).amount));
+                if (res.second)
+                {
+                    balance = res.first;
+                }
+            }
+            if(balance->second<amount.amount)
+                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance,( "insufficient contract balance"));
+            auto withdraw_it = contract_withdraw.find(asset_id);
+            if (withdraw_it != contract_withdraw.end())
+            {
+                withdraw_it->second += amount.amount;
+            }
+            else
+            {
+                contract_withdraw.insert(std::make_pair(asset_id, amount.amount));
+            }
+            if (deposit_to_address.find(to) != deposit_to_address.end())
+                deposit_to_address[to] += amount;
+            else
+                deposit_to_address[to] = amount;
+            balance->second -= amount.amount;
+
+        }
+
+        void contract_invoke_evaluate::do_apply_balance()
+        {
+            for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
+            {
+                db().adjust_contract_balance(origin_op.contract_id, asset(0-to_withraw->second, to_withraw->first));
+            }
+            for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
+            {
+                db().adjust_balance(to_deposit->first,to_deposit->second);
+            }
+        }
+
 	}
 }
