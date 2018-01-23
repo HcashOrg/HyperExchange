@@ -149,6 +149,8 @@ const uint8_t multisig_account_pair_object::space_id;
 const uint8_t multisig_account_pair_object::type_id;
 const uint8_t crosschain_transaction_history_count_object::space_id;
 const uint8_t crosschain_transaction_history_count_object::type_id;
+const uint8_t guarantee_object::space_id;
+const uint8_t guarantee_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -267,6 +269,7 @@ void database::initialize_indexes()
    add_index< primary_index< buyback_index                                > >();
 
    add_index< primary_index< simple_index< fba_accumulator_object       > > >();
+   add_index <primary_index<guarantee_index                               > >();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

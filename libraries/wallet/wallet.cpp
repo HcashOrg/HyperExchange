@@ -619,7 +619,28 @@ public:
       }
 	  return account_object();
    }
+   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto acc = get_account(account);
+		   auto asset_obj = get_asset(symbol);
+		   gurantee_create_operation op;
+		   op.owner_addr = acc.addr;
+		   auto sys_asset = get_asset("LINK");
+		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
+		   auto target_asset = get_asset(symbol);
+		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount,target_asset.get_id());
+		   op.time = fc::time_point::now();
+		   op.symbol = symbol;
 
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
+   }
    string create_crosschain_symbol(const string& symbol)
    {
 	   string config = (*_crosschain_manager)->get_config();
@@ -4989,7 +5010,10 @@ signed_transaction wallet_api::upgrade_account( string name, bool broadcast )
 {
    return my->upgrade_account(name,broadcast);
 }
-
+signed_transaction wallet_api::create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
+{
+	return my->create_guarantee_order(account,asset_orign,asset_target,symbol, broadcast);
+}
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,
