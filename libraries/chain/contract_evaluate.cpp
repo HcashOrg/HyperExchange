@@ -57,7 +57,7 @@ namespace graphene {
 				{
 					engine->execute_contract_init_by_address((string)o.contract_id, "", nullptr);
 				}
-				catch (uvm::core::GluaException &e)
+				catch (uvm::core::UvmException &e)
 				{
 					throw e; // TODO: change to other error type
 				}
@@ -138,45 +138,63 @@ namespace graphene {
 		}
 
 		void_result contract_invoke_evaluate::do_evaluate(const operation_type& o) {
+			auto &d = db();
+			FC_ASSERT(d.has_contract(o.contract_id));
+			auto &contract = d.get_contract(o.contract_id);
 
-			if (!global_uvm_chain_api)
-				global_uvm_chain_api = new UvmChainApi();
-
-			::blockchain::contract_engine::ContractEngineBuilder builder;
-			auto engine = builder.build();
-			int exception_code = 0;
-			string exception_msg;
 			try {
-
-				origin_op = o;
-				engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
-				engine->set_state_pointer_value("invoke_evaluate_state", this);
-				engine->clear_exceptions();
-				auto limit = o.invoke_cost;
-				if (limit < 0 || limit == 0)
-					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
-
-				engine->set_gas_limit(limit);
-				contracts_storage_changes.clear();
-				std::string contract_result_str;
-				try
+				if (contract.is_native_contract)
 				{
-					engine->execute_contract_api_by_address((string)o.contract_id, o.contract_api, o.contract_arg, &contract_result_str);
+					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+					auto native_contract = native_contract_finder::create_native_contract_by_key(contract.native_contract_key, o.contract_id);
+					FC_ASSERT(native_contract);
+					auto invoke_result = native_contract->invoke(o.contract_api, o.contract_arg);
+
+					gas_used = 1; // FIXME: native contract exec gas used
+					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+					auto register_fee = 1; // FIXME: native contract register fee
+					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+					// TODO: withdraw required gas fee from owner
 				}
-				catch (uvm::core::GluaException &e)
+				else
 				{
-					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
+					if (!global_uvm_chain_api)
+						global_uvm_chain_api = new UvmChainApi();
+
+					::blockchain::contract_engine::ContractEngineBuilder builder;
+					auto engine = builder.build();
+					int exception_code = 0;
+				
+					origin_op = o;
+					engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
+					engine->set_state_pointer_value("invoke_evaluate_state", this);
+					engine->clear_exceptions();
+					auto limit = o.invoke_cost;
+					if (limit < 0 || limit == 0)
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+
+					engine->set_gas_limit(limit);
+					contracts_storage_changes.clear();
+					std::string contract_result_str;
+					try
+					{
+						engine->execute_contract_api_by_address((string)o.contract_id, o.contract_api, o.contract_arg, &contract_result_str);
+					}
+					catch (uvm::core::UvmException &e)
+					{
+						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
+					}
+
+					gas_used = engine->gas_used();
+					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+					auto required = count_gas_fee(o.gas_price, gas_used);
+					// TODO: withdraw required gas fee from owner
+
 				}
-
-				gas_used = engine->gas_used();
-				FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-				auto required = count_gas_fee(o.gas_price, gas_used);
-				// TODO: withdraw required gas fee from owner
-
 			}
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -185,7 +203,7 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
 			}
 
 			return void_result();
@@ -307,6 +325,16 @@ namespace graphene {
 				return nullptr;
 			auto contract_info = std::make_shared<GluaContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
+			if (contract.is_native_contract)
+			{
+				auto native_contract = native_contract_finder::create_native_contract_by_key(contract.native_contract_key, contract.contract_address);
+				if (!native_contract)
+					return nullptr;
+				for (const auto & api : native_contract->apis()) {
+					contract_info->contract_apis.push_back(api);
+				}
+				return contract_info;
+			}
 			const auto &code = contract.code;
 			for (const auto & api : code.abi) {
 				contract_info->contract_apis.push_back(api);
@@ -335,6 +363,7 @@ namespace graphene {
 				return nullptr;
 			auto contract_info = std::make_shared<GluaContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
+			// TODO: when contract is native contract
 			const auto &code = contract.code;
 			for (const auto & api : code.abi) {
 				contract_info->contract_apis.push_back(api);

@@ -9,7 +9,7 @@ namespace blockchain
 	namespace contract_engine
 	{
 
-		typedef GluaModuleByteStream VMModuleByteStream;
+		typedef UvmModuleByteStream VMModuleByteStream;
 
 		class ContractEngine
 		{

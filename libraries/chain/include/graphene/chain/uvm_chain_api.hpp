@@ -50,13 +50,13 @@ namespace graphene {
 
 			virtual int get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<GluaContractInfo> contract_info_ret);
 
-			virtual std::shared_ptr<GluaModuleByteStream> get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code);
+			virtual std::shared_ptr<UvmModuleByteStream> get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code);
 			/**
 			* load contract lua byte stream from uvm api
 			*/
-			virtual std::shared_ptr<GluaModuleByteStream> open_contract(lua_State *L, const char *name);
+			virtual std::shared_ptr<UvmModuleByteStream> open_contract(lua_State *L, const char *name);
 
-			virtual std::shared_ptr<GluaModuleByteStream> open_contract_by_address(lua_State *L, const char *address);
+			virtual std::shared_ptr<UvmModuleByteStream> open_contract_by_address(lua_State *L, const char *address);
 
 			/**
 			* get contract address/id from uvm by contract name
@@ -76,7 +76,7 @@ namespace graphene {
 			/**
 			* store contract lua module byte stream to uvm api
 			*/
-			//int save_contract(lua_State *L, const char *name, GluaModuleByteStream *stream);
+			//int save_contract(lua_State *L, const char *name, UvmModuleByteStream *stream);
 
 			/**
 			* register new storage name of contract to uvm

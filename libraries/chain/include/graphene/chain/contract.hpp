@@ -9,6 +9,9 @@
 #include <jsondiff/exceptions.h>
 #include <uvm/uvm_lib.h>
 
+#include <map>
+#include <unordered_map>
+
 namespace graphene {
 	namespace chain {
 
@@ -16,6 +19,8 @@ namespace graphene {
 		{
 			std::string api_result;
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> storage_changes;
+			std::unordered_map<address, std::unordered_map<unsigned_int, share_type>> contracts_balance_changes;
+            std::unordered_map<address, asset> deposit_to_address;
 			// TODO: balance changes
 		};
 
@@ -84,7 +89,7 @@ namespace graphene {
 			static int common_fwrite_stream(FILE* fp, const void* src_stream, int len);
 			static int common_fread_octets(FILE* fp, void* dst_stream, int len);
 			static std::string to_printable_hex(unsigned char chr);
-			static int save_code_to_file(const string& name, GluaModuleByteStream *stream, char* err_msg);
+			static int save_code_to_file(const string& name, UvmModuleByteStream *stream, char* err_msg);
 			static uvm::blockchain::Code load_contract_from_file(const fc::path &path);
 		};
 		
@@ -92,7 +97,7 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::chain::contract_invoke_result, (api_result)(storage_changes))
+FC_REFLECT(graphene::chain::contract_invoke_result, (api_result)(storage_changes)(contracts_balance_changes)(deposit_to_address))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))

@@ -29,6 +29,7 @@ namespace graphene {
 		contract_invoke_result demo_native_contract::invoke(const std::string& api_name, const std::string& api_arg) {
 			contract_invoke_result result;
 			printf("demo native contract called\n");
+			printf("api %s called with arg %s\n", api_name.c_str(), api_arg.c_str());
 			return result;
 		}
 

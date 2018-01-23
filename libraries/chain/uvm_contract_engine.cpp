@@ -126,7 +126,7 @@ namespace uvm
 
 	void GluaContractEngine::load_and_run_stream(void *stream)
 	{
-		uvm::lua::lib::run_compiled_bytestream(_scope->L(), (GluaModuleByteStream*)stream);
+		uvm::lua::lib::run_compiled_bytestream(_scope->L(), (UvmModuleByteStream*)stream);
 	}
 
 	std::shared_ptr<::blockchain::contract_engine::VMModuleByteStream> GluaContractEngine::get_bytestream_from_code(const uvm::blockchain::Code& code)

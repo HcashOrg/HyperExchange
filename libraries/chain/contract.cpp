@@ -134,15 +134,15 @@ else \
 			return string(tmp);
 		}
 
-		int ContractHelper::save_code_to_file(const string& name, GluaModuleByteStream *stream, char* err_msg)
+		int ContractHelper::save_code_to_file(const string& name, UvmModuleByteStream *stream, char* err_msg)
 		{
 			boost::uuids::detail::sha1 sha;
 			unsigned int digest[5];
 
-			GluaModuleByteStream* p_new_stream = new GluaModuleByteStream();
+			UvmModuleByteStream* p_new_stream = new UvmModuleByteStream();
 			if (NULL == p_new_stream)
 			{
-				strcpy(err_msg, "malloc GluaModuleByteStream fail");
+				strcpy(err_msg, "malloc UvmModuleByteStream fail");
 				return -1;
 			}
 			p_new_stream->is_bytes = stream->is_bytes;

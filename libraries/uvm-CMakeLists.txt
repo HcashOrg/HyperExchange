@@ -5,7 +5,6 @@ set(SOURCES src/uvm/lapi.cpp
     src/uvm/lbaselib.cpp
     src/uvm/lbitlib.cpp
     src/uvm/lcode.cpp
-    src/uvm/lcompile.cpp
     src/uvm/lcorolib.cpp
     src/uvm/lctype.cpp
     src/uvm/ldblib.cpp
@@ -30,7 +29,6 @@ set(SOURCES src/uvm/lapi.cpp
     src/uvm/loslib.cpp
     src/uvm/lparser.cpp
     src/uvm/lprefix.cpp
-    src/uvm/lrepl.cpp
     src/uvm/lstate.cpp
     src/uvm/lstring.cpp
     src/uvm/lstrlib.cpp
@@ -38,7 +36,6 @@ set(SOURCES src/uvm/lapi.cpp
     src/uvm/ltablib.cpp
     src/uvm/ltimelib.cpp
     src/uvm/ltm.cpp
-    src/uvm/lua.cpp
     src/uvm/lundump.cpp
     src/uvm/lutf8lib.cpp
     src/uvm/lvm.cpp
@@ -49,7 +46,6 @@ set(SOURCES src/uvm/lapi.cpp
     src/uvm/uvm_proto_info.cpp
     src/uvm/uvm_state_scope.cpp
     src/uvm/uvm_storage.cpp
-    src/uvm/uvm_structs.cpp
     src/uvm/uvm_tokenparser.cpp
 )
 

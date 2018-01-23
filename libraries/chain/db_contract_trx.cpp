@@ -91,6 +91,8 @@ namespace graphene {
                     obj.name = contract.name;
                     obj.owner_address = contract.owner_address;
                     obj.contract_address = contract.contract_address;
+					obj.is_native_contract = contract.is_native_contract;
+					obj.native_contract_key = contract.native_contract_key;
                 });
             }
             else

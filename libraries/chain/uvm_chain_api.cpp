@@ -214,11 +214,11 @@ namespace graphene {
 			return code ? true : false;
 		}
 
-		std::shared_ptr<GluaModuleByteStream> UvmChainApi::get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code)
+		std::shared_ptr<UvmModuleByteStream> UvmChainApi::get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code)
 		{
 			if (code.code.size() > LUA_MODULE_BYTE_STREAM_BUF_SIZE)
 				return nullptr;
-			auto p_luamodule = std::make_shared<GluaModuleByteStream>();
+			auto p_luamodule = std::make_shared<UvmModuleByteStream>();
 			p_luamodule->is_bytes = true;
 			p_luamodule->buff.resize(code.code.size());
 			memcpy(p_luamodule->buff.data(), code.code.data(), code.code.size());
@@ -243,7 +243,7 @@ namespace graphene {
 		/**
 		* load contract uvm byte stream from uvm api
 		*/
-		std::shared_ptr<GluaModuleByteStream> UvmChainApi::open_contract(lua_State *L, const char *name)
+		std::shared_ptr<UvmModuleByteStream> UvmChainApi::open_contract(lua_State *L, const char *name)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 
@@ -258,7 +258,7 @@ namespace graphene {
 			return nullptr;
 		}
 
-		std::shared_ptr<GluaModuleByteStream> UvmChainApi::open_contract_by_address(lua_State *L, const char *address)
+		std::shared_ptr<UvmModuleByteStream> UvmChainApi::open_contract_by_address(lua_State *L, const char *address)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			auto evaluator = get_contract_evaluator(L);
