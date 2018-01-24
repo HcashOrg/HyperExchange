@@ -59,8 +59,8 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
-            std::map<asset_id_type,share_type> contract_withdraw;
-            std::map<asset_id_type,share_type> contract_balances;
+            std::map<std::pair<address, asset_id_type>,share_type> contract_withdraw;
+            std::map<std::pair<address, asset_id_type>,share_type> contract_balances;
             std::map<address, asset> deposit_to_address;
 		public:
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
@@ -75,7 +75,7 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
-            void transfer_to_address(const asset& amount,const address& to);
+            void transfer_to_address(const address& contract,const asset& amount, const address& to);
             void do_apply_balance();
 		};
 
