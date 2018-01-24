@@ -1532,6 +1532,12 @@ vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(cons
 	std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
 		result.emplace_back(obj);
 	});
+	//sort result
+	std::sort(result.begin(), result.end(), [](optional<guarantee_object> a, optional<guarantee_object> b) {
+		auto price_a = price(a->asset_orign,a->asset_target);
+		auto price_b = price(b->asset_orign,b->asset_target);
+		return price_a < price_b;
+	});
 	return result;
 }
 

@@ -64,6 +64,20 @@ string database::to_pretty_string( const asset& a )const
    return a.asset_id(*this).amount_to_pretty_string(a.amount);
 }
 
+void database::adjust_guarantee(const guarantee_object_id_type id, const asset& target_asset)
+{
+	try {
+		auto& obj = get(id);
+		modify(obj, [&target_asset](guarantee_object& b) {
+			FC_ASSERT(b.finished == false);
+			FC_ASSERT(b.asset_finished + target_asset <= b.asset_target);
+			b.asset_finished += target_asset;
+			if (b.asset_finished == b.asset_target)
+				b.finished = true;
+		});
+	}FC_CAPTURE_AND_RETHROW((id)(target_asset))
+}
+
 void database::adjust_balance(address addr, asset delta, bool freeze )
 {
 	try {
