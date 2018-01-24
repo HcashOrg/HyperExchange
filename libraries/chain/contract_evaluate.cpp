@@ -69,7 +69,8 @@ namespace graphene {
 				auto register_fee = count_contract_register_fee(o.contract_code);
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 
-				// TODO: withdraw from owner and deposit margin balance to contract
+				gas_fees.push_back(asset(required, asset_id_type(0)));
+				// TODO: deposit margin balance to contract
 
 
                 new_contract.contract_address = o.calculate_contract_id();
@@ -110,8 +111,8 @@ namespace graphene {
 				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = 1; // FIXME: native contract register fee
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-
-				// TODO: withdraw from owner and deposit margin balance to contract
+				gas_fees.push_back(asset(required, asset_id_type(0)));
+				// TODO: deposit margin balance to contract
 
 				this->contracts_storage_changes = invoke_result.storage_changes;
 
@@ -156,7 +157,7 @@ namespace graphene {
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = 1; // FIXME: native contract register fee
 					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-					// TODO: withdraw required gas fee from owner
+					gas_fees.push_back(asset(required, asset_id_type(0)));
 				}
 				else
 				{
@@ -229,7 +230,7 @@ namespace graphene {
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = 1; // FIXME: native contract register fee
 					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-					// TODO: withdraw required gas fee from owner
+					gas_fees.push_back(asset(required, asset_id_type(0)));
 				}
 				else
 				{
@@ -263,8 +264,7 @@ namespace graphene {
 					gas_used = engine->gas_used();
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto required = count_gas_fee(o.gas_price, gas_used);
-					// TODO: withdraw required gas fee from owner
-
+					gas_fees.push_back(asset(required, asset_id_type(0)));
 				}
 			}
 			catch (std::exception &e)
@@ -302,6 +302,7 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+			do_apply_balance();
 			return void_result();
 		}
 
@@ -323,6 +324,7 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+			do_apply_fees_balance(o.owner_addr);
 			return void_result();
 		}
 
@@ -343,6 +345,7 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+			do_apply_balance();
 			return void_result();
 		}
 
@@ -368,6 +371,8 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+			do_apply_balance();
+
 			return void_result();
 		}
 
@@ -522,73 +527,13 @@ namespace graphene {
 			}
 			else
 			{
-				address contract_addr(contract_id);
-				if (!db().has_contract(contract_addr))
-					return nullptr;
-				auto contract_info = std::make_shared<GluaContractInfo>();
-				const auto &contract = db().get_contract(contract_addr);
-				// TODO: when contract is native contract
-				const auto &code = contract.code;
-				for (const auto & api : code.abi) {
-					contract_info->contract_apis.push_back(api);
-				}
-				auto ccode = std::make_shared<uvm::blockchain::Code>();
-				*ccode = code;
-				return ccode;
+				return get_contract_code_from_db_by_id(contract_id);
 			}
-		}
-
-		std::shared_ptr<uvm::blockchain::Code> contract_register_evaluate::get_contract_code_by_name(const string &contract_name) const
-		{
-			if (!db().has_contract_of_name(contract_name))
-				return nullptr;
-			if (contract_name.empty())
-				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
-			const auto &contract = db().get_contract_of_name(contract_name);
-			// TODO: when contract is native contract
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
-			auto ccode = std::make_shared<uvm::blockchain::Code>();
-			*ccode = code;
-			return ccode;
 		}
 
 		std::shared_ptr<uvm::blockchain::Code> contract_invoke_evaluate::get_contract_code_by_id(const string &contract_id) const
 		{
-			address contract_addr(contract_id);
-			if (!db().has_contract(contract_addr))
-				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
-			const auto &contract = db().get_contract(contract_addr);
-			// TODO: when contract is native contract
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
-			auto ccode = std::make_shared<uvm::blockchain::Code>();
-			*ccode = code;
-			return ccode;
-		}
-
-		std::shared_ptr<uvm::blockchain::Code> contract_invoke_evaluate::get_contract_code_by_name(const string &contract_name) const
-		{
-			if (!db().has_contract_of_name(contract_name))
-				return nullptr;
-			if (contract_name.empty())
-				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
-			const auto &contract = db().get_contract_of_name(contract_name);
-			// TODO: when contract is native contract
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
-			auto ccode = std::make_shared<uvm::blockchain::Code>();
-			*ccode = code;
-			return ccode;
+			return get_contract_code_from_db_by_id(contract_id);
 		}
 
 		// FIXME: duplicate code
@@ -609,24 +554,6 @@ namespace graphene {
 			return ccode;
 		}
 
-		std::shared_ptr<uvm::blockchain::Code> contract_upgrade_evaluate::get_contract_code_by_name(const string &contract_name) const
-		{
-			if (!db().has_contract_of_name(contract_name))
-				return nullptr;
-			if (contract_name.empty())
-				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
-			const auto &contract = db().get_contract_of_name(contract_name);
-			// TODO: when contract is native contract
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
-			auto ccode = std::make_shared<uvm::blockchain::Code>();
-			*ccode = code;
-			return ccode;
-		}
-
 		address contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
@@ -635,34 +562,6 @@ namespace graphene {
 		address native_contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
-		}
-
-		StorageDataType contract_register_evaluate::get_storage(const string &contract_id, const string &storage_name) const
-		{
-			database& d = db();
-			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
-			return storage_data;
-		}
-
-		StorageDataType native_contract_register_evaluate::get_storage(const string &contract_id, const string &storage_name) const
-		{
-			database& d = db();
-			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
-			return storage_data;
-		}
-
-		StorageDataType contract_invoke_evaluate::get_storage(const string &contract_id, const string &storage_name) const
-		{
-			database& d = db();
-			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
-			return storage_data;
-		}
-
-		StorageDataType contract_upgrade_evaluate::get_storage(const string &contract_id, const string &storage_name) const
-		{
-			database& d = db();
-			auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
-			return storage_data;
 		}
 
         void contract_invoke_evaluate::transfer_to_address(const address& contract, const asset & amount, const address & to)
@@ -696,8 +595,44 @@ namespace graphene {
 
         }
 
+		void contract_upgrade_evaluate::transfer_to_address(const address& contract, const asset & amount, const address & to)
+		{
+			std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
+			auto balance = contract_balances.find(index);
+			if (balance == contract_balances.end())
+			{
+				auto res = contract_balances.insert(std::make_pair(index, db().get_contract_balance(index.first, index.second).amount));
+				if (res.second)
+				{
+					balance = res.first;
+				}
+			}
+			if (balance->second<amount.amount)
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
+			auto withdraw_it = contract_withdraw.find(index);
+			if (withdraw_it != contract_withdraw.end())
+			{
+				withdraw_it->second += amount.amount;
+			}
+			else
+			{
+				contract_withdraw.insert(std::make_pair(index, amount.amount));
+			}
+			if (deposit_to_address.find(to) != deposit_to_address.end())
+				deposit_to_address[to] += amount;
+			else
+				deposit_to_address[to] = amount;
+			balance->second -= amount.amount;
+
+		}
+		void contract_register_evaluate::do_apply_balance()
+		{
+			do_apply_fees_balance(origin_op.owner_addr);
+		}
+
         void contract_invoke_evaluate::do_apply_balance()
         {
+			do_apply_fees_balance(origin_op.caller_addr);
             for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
             {
                 db().adjust_contract_balance(to_withraw->first.first, asset(0-to_withraw->second, to_withraw->first.second));
@@ -707,6 +642,19 @@ namespace graphene {
                 db().adjust_balance(to_deposit->first,to_deposit->second);
             }
         }
+
+		void contract_upgrade_evaluate::do_apply_balance()
+		{
+			do_apply_fees_balance(origin_op.caller_addr);
+			for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
+			{
+				db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+			}
+			for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
+			{
+				db().adjust_balance(to_deposit->first, to_deposit->second);
+			}
+		}
 
 	}
 }
