@@ -232,6 +232,7 @@ struct get_impacted_account_visitor
    }
 
    void operator()(const contract_register_operation& op) {}
+   void operator()(const contract_upgrade_operation& op) {}
    void operator()(const native_contract_register_operation& op) {}
    void operator()(const contract_invoke_operation& op) {}
    void operator()(const storage_operation& op) {}

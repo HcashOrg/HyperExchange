@@ -310,9 +310,12 @@ namespace graphene { namespace chain {
 
 
          void store_contract(const contract_object& contract);
+		 void update_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
+		 contract_object get_contract_of_name(const string& contract_name);
 		 bool has_contract(const address& contract_address);
+		 bool has_contract_of_name(const string& contract_name);
 
          //contract_balance//
          asset get_contract_balance(const address& addr,const asset_id_type& asset_id);

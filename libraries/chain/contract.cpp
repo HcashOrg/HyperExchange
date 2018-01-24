@@ -56,6 +56,24 @@ namespace graphene {
 			return core_fee_required;
 		}
 
+		void          contract_upgrade_operation::validate()const
+		{
+			FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
+			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
+			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+			FC_ASSERT(contract_name.length() >= 2 && contract_name.length() <= 30); // TODO: validate contract_name rule, eg. only letters and digits, underscoreed allowed; it can't start with digit. etc.
+			FC_ASSERT(contract_desc.length() <= 200);
+		}
+
+		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
+		{
+			// base fee
+			share_type core_fee_required = schedule.fee; // FIXME: contract base fee
+														 // bytes size fee
+			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
+			return core_fee_required;
+		}
+
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
 		{
 			int ret;

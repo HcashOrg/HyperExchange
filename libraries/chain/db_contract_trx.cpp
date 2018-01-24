@@ -90,6 +90,8 @@ namespace graphene {
                     obj.code = contract.code; 
                     obj.name = contract.name;
                     obj.owner_address = contract.owner_address;
+					obj.contract_name = contract.contract_name;
+					obj.contract_desc = contract.contract_desc;
                     obj.contract_address = contract.contract_address;
 					obj.is_native_contract = contract.is_native_contract;
 					obj.native_contract_key = contract.native_contract_key;
@@ -101,6 +103,32 @@ namespace graphene {
             }
             }FC_CAPTURE_AND_RETHROW((contract))
         }
+
+		void database::update_contract(const contract_object& contract)
+		{
+			try {
+				auto& con_db = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto con = con_db.find(contract.contract_address);
+				if (con != con_db.end())
+				{
+					modify(*con, [&](contract_object& obj) {
+						obj.create_time = contract.create_time;
+						obj.code = contract.code;
+						obj.name = contract.name;
+						obj.owner_address = contract.owner_address;
+						obj.contract_name = contract.contract_name;
+						obj.contract_desc = contract.contract_desc;
+						obj.contract_address = contract.contract_address;
+						obj.is_native_contract = contract.is_native_contract;
+						obj.native_contract_key = contract.native_contract_key;
+					});
+				}
+				else
+				{
+					FC_ASSERT(false, "contract not exsited");
+				}
+			}FC_CAPTURE_AND_RETHROW((contract))
+		}
 
         contract_object database::get_contract(const address & contract_address)
         {
@@ -118,10 +146,25 @@ namespace graphene {
             return *itr;
         }
 
+		contract_object database::get_contract_of_name(const string& contract_name)
+		{
+			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_name>();
+			auto itr = index.find(contract_name);
+			FC_ASSERT(itr != index.end());
+			return *itr;
+		}
+
 		bool database::has_contract(const address& contract_address)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 			auto itr = index.find(contract_address);
+			return itr != index.end();
+		}
+
+		bool database::has_contract_of_name(const string& contract_name)
+		{
+			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_name>();
+			auto itr = index.find(contract_name);
 			return itr != index.end();
 		}
 

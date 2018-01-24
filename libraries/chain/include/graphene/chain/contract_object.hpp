@@ -7,6 +7,8 @@
 namespace graphene {
     namespace chain {
         struct by_contract_id;
+
+		struct by_contract_name {};
         class contract_object : public abstract_object<contract_object> {
         public:
             static const uint8_t space_id = protocol_ids;
@@ -17,6 +19,8 @@ namespace graphene {
             time_point_sec create_time;
             string name;
             address contract_address;
+			string contract_name;
+			string contract_desc;
 			bool is_native_contract = false;
 			string native_contract_key; // key to find native contract code
         };
@@ -25,7 +29,8 @@ namespace graphene {
             contract_object,
             indexed_by<
             ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
-            ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>
+            ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>,
+			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
 
@@ -105,7 +110,7 @@ namespace graphene {
 }
 
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (code)(owner_address)(create_time)(name)(contract_address)(is_native_contract)(native_contract_key))
+    (code)(owner_address)(create_time)(name)(contract_address)(is_native_contract)(native_contract_key)(contract_name)(contract_desc))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),

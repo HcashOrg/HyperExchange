@@ -163,6 +163,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       //contract 
 
       contract_object get_contract_info(const string& contract_address)const ;
+	  contract_object get_contract_info_by_name(const string& contract_name) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -337,12 +338,23 @@ contract_object database_api::get_contract_info(const string& contract_address) 
 {
     return my->get_contract_info(contract_address);
 }
+contract_object database_api::get_contract_info_by_name(const string& contract_name) const
+{
+	return my->get_contract_info_by_name(contract_name);
+}
 contract_object database_api_impl::get_contract_info(const string& contract_address) const
 {
     try {
         auto res=  _db.get_contract(address(contract_address));
         return res;
     }FC_CAPTURE_AND_RETHROW((contract_address))
+}
+contract_object database_api_impl::get_contract_info_by_name(const string& contract_name) const
+{
+	try {
+		auto res = _db.get_contract_of_name(contract_name);
+		return res;
+	}FC_CAPTURE_AND_RETHROW((contract_name))
 }
 void database_api::set_pending_transaction_callback( std::function<void(const variant&)> cb )
 {

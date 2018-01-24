@@ -608,6 +608,7 @@ class database_api
 
       //contract 
       contract_object get_contract_info(const string& contract_address)const;
+	  contract_object get_contract_info_by_name(const string& contract_name)const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -731,4 +732,5 @@ FC_API(graphene::app::database_api,
 
     //contract
      (get_contract_info)
+	(get_contract_info_by_name)
 );
