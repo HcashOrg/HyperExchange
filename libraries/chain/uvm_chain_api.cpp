@@ -138,7 +138,7 @@ namespace graphene {
 
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(common_contract_evaluator evaluator, const string& contract_name) {
 			if (evaluator.register_contract_evaluator) {
-				return evaluator.register_contract_evaluator->get_contract_code_by_name(contract_name);
+ 				return evaluator.register_contract_evaluator->get_contract_code_by_name(contract_name);
 			}
 			else if (evaluator.invoke_contract_evaluator) {
 				return evaluator.invoke_contract_evaluator->get_contract_code_by_name(contract_name);
@@ -241,11 +241,12 @@ namespace graphene {
 		{
 			auto evaluator = get_contract_evaluator(L);
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
-			auto code = get_contract_code_by_name(evaluator, contract_name);
-			auto contract = get_contract_info_by_name(evaluator, contract_name);
-			if (code)
+			auto is_address = address::is_valid(contract_name) ? true : false;
+			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
+			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
+			if (code && !contract_addr.empty())
 			{
-				string address_str = string(contract.contract_address);
+				string address_str = contract_addr;
 				*address_size = address_str.length();
 				strncpy(address, address_str.c_str(), CONTRACT_ID_MAX_LENGTH - 1);
 				address[CONTRACT_ID_MAX_LENGTH - 1] = '\0';
