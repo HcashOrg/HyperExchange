@@ -62,9 +62,9 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
-            std::map<std::pair<address, asset_id_type>,share_type> contract_withdraw;
-            std::map<std::pair<address, asset_id_type>,share_type> contract_balances;
-            std::map<address, asset> deposit_to_address;
+            std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
+            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
+            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
 		public:
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:

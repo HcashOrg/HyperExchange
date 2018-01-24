@@ -688,10 +688,10 @@ namespace graphene {
             {
                 contract_withdraw.insert(std::make_pair(index, amount.amount));
             }
-            if (deposit_to_address.find(to) != deposit_to_address.end())
-                deposit_to_address[to] += amount;
+            if (deposit_to_address.find(index) != deposit_to_address.end())
+                deposit_to_address[index] += amount.amount;
             else
-                deposit_to_address[to] = amount;
+                deposit_to_address[index] = amount.amount;
             balance->second -= amount.amount;
 
         }
@@ -704,7 +704,7 @@ namespace graphene {
             }
             for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
             {
-                db().adjust_balance(to_deposit->first,to_deposit->second);
+                db().adjust_balance(to_deposit->first.first,asset(to_deposit->second, to_deposit->first.second));
             }
         }
 
