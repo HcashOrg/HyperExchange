@@ -52,6 +52,7 @@ namespace graphene { namespace chain {
 		 std::map<string,asset> lockbalance_total;
 		 share_type       pledge_weight = 100;
 		 uint8_t		  participation_rate = 100;
+		 
 
 		 optional<SecretHashType>        next_secret_hash;
 

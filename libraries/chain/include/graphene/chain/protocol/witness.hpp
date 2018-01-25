@@ -35,7 +35,7 @@ namespace graphene { namespace chain {
     */
    struct miner_create_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 4000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset             fee;
       /// The account which owns the miner. This account pays the fee for this operation.

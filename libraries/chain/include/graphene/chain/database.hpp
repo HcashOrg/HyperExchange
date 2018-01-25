@@ -248,6 +248,14 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
+		 void pay_miner(const miner_id_type& miner_id);
+
+
+		 void reset_current_collected_fee();
+
+		 void modify_current_collected_fee(share_type changed_fee);
+
+
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 
          //////////////////// db_getter.cpp ////////////////////
@@ -523,6 +531,7 @@ namespace graphene { namespace chain {
          vector<uint64_t>                  _witness_count_histogram_buffer;
          vector<uint64_t>                  _guard_count_histogram_buffer;
          uint64_t                          _total_voting_stake;
+		 share_type						   _total_collected_fee;
 
          flat_map<uint32_t,block_id_type>  _checkpoints;
 

@@ -152,6 +152,10 @@
 
 #define GRAPHENE_PRODUCT_PER_ROUND							 10
 
+#define GRAPHENE_MINER_PAY_RATIO							 40
+#define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 60
+#define GRAPHENE_ALL_MINER_PAY_RATIO						 100
+
 /**
  *  Reserved Account IDs with special meaning
  */

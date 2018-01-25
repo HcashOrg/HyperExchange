@@ -36,7 +36,7 @@ namespace graphene { namespace chain {
     */
    struct guard_member_create_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 3000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset                                 fee;
       /// The account which owns the committee_member. This account pays the fee for this operation.
@@ -111,7 +111,7 @@ namespace graphene { namespace chain {
    */
    struct guard_member_resign_operation : public base_operation
    {
-       struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+       struct fee_parameters_type { uint64_t fee = 3500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
        asset                                 fee;
        account_id_type                       guard_member_account;  //!< guard memeber to resign
