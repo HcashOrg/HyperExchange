@@ -302,6 +302,8 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+
+            do_apply_fees_balance(origin_op.owner_addr);
 			do_apply_balance();
 			return void_result();
 		}
@@ -345,6 +347,8 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+
+            do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
 			return void_result();
 		}
@@ -371,6 +375,7 @@ namespace graphene {
 					d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
 				}
 			}
+            do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
 
 			return void_result();
@@ -564,97 +569,102 @@ namespace graphene {
 			return origin_op.contract_id;
 		}
 
-        void contract_invoke_evaluate::transfer_to_address(const address& contract, const asset & amount, const address & to)
+
+        void_result contract_transfer_evaluate::do_evaluate(const operation_type & o)
         {
-            std::pair<address,asset_id_type> index=std::make_pair(contract,amount.asset_id);
-            auto balance= contract_balances.find(index);
-            if (balance == contract_balances.end())
-            {
-                auto res=contract_balances.insert(std::make_pair(index,db().get_contract_balance(index.first, index.second).amount));
-                if (res.second)
+            auto &d = db();
+            FC_ASSERT(d.has_contract(o.contract_id));
+            auto &contract = d.get_contract(o.contract_id);
+            
+            try {
+                if (contract.is_native_contract)
                 {
-                    balance = res.first;
+                    FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+                    auto native_contract = native_contract_finder::create_native_contract_by_key(contract.native_contract_key, o.contract_id);
+                    FC_ASSERT(native_contract);
+                    auto invoke_result = native_contract->invoke("on_deposit", fc::json::to_string(o.amount));
+
+                    gas_used = 1; // FIXME: native contract exec gas used
+                    FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+                    auto register_fee = 1; // FIXME: native contract register fee
+                    auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+                    gas_fees.push_back(asset(required, asset_id_type(0)));
+                }
+                else
+                {
+                    if (!global_uvm_chain_api)
+                        global_uvm_chain_api = new UvmChainApi();
+
+                    ::blockchain::contract_engine::ContractEngineBuilder builder;
+                    auto engine = builder.build();
+                    int exception_code = 0;
+
+                    origin_op = o;
+                    engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
+                    engine->set_state_pointer_value("invoke_evaluate_state", this);
+                    engine->clear_exceptions();
+                    auto limit = o.invoke_cost;
+                    if (limit < 0 || limit == 0)
+                        FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+
+                    engine->set_gas_limit(limit);
+                    contracts_storage_changes.clear();
+                    std::string contract_result_str;
+                    try
+                    {
+                        engine->execute_contract_api_by_address((string)o.contract_id, "on_deposit", fc::json::to_string(o.amount), &contract_result_str);
+                    }
+                    catch (uvm::core::UvmException &e)
+                    {
+                        FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
+                    }
+
+                    gas_used = engine->gas_used();
+                    FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+                    auto required = count_gas_fee(o.gas_price, gas_used);
+                    // TODO: withdraw required gas fee from owner
+
                 }
             }
-            if(balance->second<amount.amount)
-                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance,( "insufficient contract balance"));
-            auto withdraw_it = contract_withdraw.find(index);
-            if (withdraw_it != contract_withdraw.end())
+            catch (std::exception &e)
             {
-                withdraw_it->second += amount.amount;
+                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
             }
-            else
+            catch (::blockchain::contract_engine::contract_run_out_of_money& e)
             {
-                contract_withdraw.insert(std::make_pair(index, amount.amount));
+                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
+                // TODO: 扣除所有提供的手续费并打包
             }
-            if (deposit_to_address.find(index) != deposit_to_address.end())
-                deposit_to_address[index] += amount.amount;
-            else
-                deposit_to_address[index] = amount.amount;
-            balance->second -= amount.amount;
+            catch (const ::blockchain::contract_engine::contract_error& e)
+            {
+                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
+            }
 
+            return void_result();
         }
 
-		void contract_upgrade_evaluate::transfer_to_address(const address& contract, const asset & amount, const address & to)
-		{
-			std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
-			auto balance = contract_balances.find(index);
-			if (balance == contract_balances.end())
-			{
-				auto res = contract_balances.insert(std::make_pair(index, db().get_contract_balance(index.first, index.second).amount));
-				if (res.second)
-				{
-					balance = res.first;
-				}
-			}
-			if (balance->second<amount.amount)
-				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
-			auto withdraw_it = contract_withdraw.find(index);
-			if (withdraw_it != contract_withdraw.end())
-			{
-				withdraw_it->second += amount.amount;
-			}
-			else
-			{
-				contract_withdraw.insert(std::make_pair(index, amount.amount));
-			}
-			if (deposit_to_address.find(to) != deposit_to_address.end())
-				deposit_to_address[to] += amount;
-			else
-				deposit_to_address[to] = amount;
-			balance->second -= amount.amount;
-
-		}
-		void contract_register_evaluate::do_apply_balance()
-		{
-			do_apply_fees_balance(origin_op.owner_addr);
-		}
-
-        void contract_invoke_evaluate::do_apply_balance()
+        void_result contract_transfer_evaluate::do_apply(const operation_type & o)
         {
-			do_apply_fees_balance(origin_op.caller_addr);
-            for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
-            {
-                db().adjust_contract_balance(to_withraw->first.first, asset(0-to_withraw->second, to_withraw->first.second));
-            }
-            for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
-            {
-                db().adjust_balance(to_deposit->first.first,asset(to_deposit->second, to_deposit->first.second));
-            }
+            return void_result();
         }
 
-		void contract_upgrade_evaluate::do_apply_balance()
-		{
-			do_apply_fees_balance(origin_op.caller_addr);
-			for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
-			{
-				db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
-			}
-			for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
-			{
-				db().adjust_balance(to_deposit->first, to_deposit->second);
-			}
-		}
+        void contract_transfer_evaluate::pay_fee()
+        {
+        }
 
-	}
+        std::shared_ptr<GluaContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
+        {
+            return std::shared_ptr<GluaContractInfo>();
+        }
+
+        contract_object contract_transfer_evaluate::get_contract_by_name(const string & contract_name) const
+        {
+            return contract_object();
+        }
+
+        std::shared_ptr<uvm::blockchain::Code> contract_transfer_evaluate::get_contract_code_by_id(const string & contract_id) const
+        {
+            return std::shared_ptr<uvm::blockchain::Code>();
+        }
+}
 }

@@ -20,6 +20,10 @@ namespace graphene {
 		class contract_common_evaluate : public evaluator<DerivedEvaluator> {
 		protected:
 			std::vector<asset> gas_fees;
+
+            std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
+            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
+            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
 		public:
 			virtual ~contract_common_evaluate(){}
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const
@@ -72,6 +76,47 @@ namespace graphene {
 					// db().adjust_balance(caller_addr, fee_to_cost); // FIXME: now account have no money
 				}
 			}
+            void do_apply_balance()
+            {
+                for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
+                {
+                    db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+                }
+                for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
+                {
+                    db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
+                }
+            }
+            void transfer_to_address(const address& contract, const asset & amount, const address & to)
+            {
+                std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
+                auto balance = contract_balances.find(index);
+                if (balance == contract_balances.end())
+                {
+                    auto res = contract_balances.insert(std::make_pair(index, db().get_contract_balance(index.first, index.second).amount));
+                    if (res.second)
+                    {
+                        balance = res.first;
+                    }
+                }
+                if (balance->second<amount.amount)
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
+                auto withdraw_it = contract_withdraw.find(index);
+                if (withdraw_it != contract_withdraw.end())
+                {
+                    withdraw_it->second += amount.amount;
+                }
+                else
+                {
+                    contract_withdraw.insert(std::make_pair(index, amount.amount));
+                }
+                if (deposit_to_address.find(index) != deposit_to_address.end())
+                    deposit_to_address[index] += amount.amount;
+                else
+                    deposit_to_address[index] = amount.amount;
+                balance->second -= amount.amount;
+
+            }
 		};
 
 		class contract_register_evaluate :public contract_common_evaluate<contract_register_evaluate> {
@@ -94,7 +139,6 @@ namespace graphene {
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			address origin_op_contract_id() const;
-			void do_apply_balance();
 		};
 
 		class native_contract_register_evaluate :public contract_common_evaluate<native_contract_register_evaluate> {
@@ -122,9 +166,6 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
-            std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
-            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
-            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
 		public:
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:
@@ -138,17 +179,12 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
-            void transfer_to_address(const address& contract,const asset& amount, const address& to);
-            void do_apply_balance();
 		};
 
 		class contract_upgrade_evaluate : public contract_common_evaluate<contract_upgrade_evaluate> {
 		private:
 			gas_count_type gas_used;
 			contract_upgrade_operation origin_op;
-			std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
-			std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
-			std::map<address, asset> deposit_to_address;
 		public:
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:
@@ -162,9 +198,27 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
-			void transfer_to_address(const address& contract, const asset& amount, const address& to);
-			void do_apply_balance();
 		};
+
+        class contract_transfer_evaluate : public contract_common_evaluate<contract_transfer_evaluate> {
+        private:
+            gas_count_type gas_used;
+            transfer_contract_operation origin_op;
+
+        public:
+            std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
+        public:
+            typedef transfer_contract_operation operation_type;
+
+            void_result do_evaluate(const operation_type& o);
+            void_result do_apply(const operation_type& o);
+
+            virtual void pay_fee() override;
+
+            std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
+            contract_object get_contract_by_name(const string& contract_name) const;
+            std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
+        };
 
 	}
 }

@@ -123,7 +123,7 @@ namespace graphene {
             address caller_addr;
             fc::ecc::public_key caller_pubkey;
             address contract_id;
-
+            asset amount;
             extensions_type   extensions;
 
             address fee_payer()const { return caller_addr; }
@@ -161,4 +161,4 @@ FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fe
 FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc))
 
 FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id))
+FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount))
