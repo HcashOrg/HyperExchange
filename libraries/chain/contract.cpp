@@ -14,7 +14,6 @@ namespace graphene {
 
 		using namespace uvm::blockchain;
 
-
 		void            contract_register_operation::validate()const
 		{
 			FC_ASSERT(init_cost > 0 && init_cost <= BLOCKLINK_MAX_GAS_LIMIT);

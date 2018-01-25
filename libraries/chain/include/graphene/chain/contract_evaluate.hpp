@@ -20,8 +20,18 @@ namespace graphene {
 		class contract_common_evaluate : public evaluator<DerivedEvaluator> {
 		protected:
 			std::vector<asset> gas_fees;
+			std::shared_ptr<address> caller_address;
+			std::shared_ptr<fc::ecc::public_key> caller_pubkey;
 		public:
 			virtual ~contract_common_evaluate(){}
+			std::shared_ptr<address> get_caller_address() const
+			{
+				return caller_address;
+			}
+			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const
+			{
+				return caller_pubkey;
+			}
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const
 			{
 				database& d = db();

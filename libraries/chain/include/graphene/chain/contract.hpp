@@ -24,6 +24,24 @@ namespace graphene {
 			// TODO: balance changes
 		};
 
+		class contract_register_evaluate;
+		class contract_invoke_evaluate;
+		class contract_upgrade_evaluate;
+		class native_contract_register_evaluate;
+
+		struct common_contract_evaluator {
+			contract_register_evaluate* register_contract_evaluator = nullptr;
+			native_contract_register_evaluate* register_native_contract_evaluator = nullptr;
+			contract_invoke_evaluate* invoke_contract_evaluator = nullptr;
+			contract_upgrade_evaluate* upgrade_contract_evaluator = nullptr;
+
+			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
+			std::shared_ptr<address> get_caller_address() const;
+			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
+
+			static common_contract_evaluator get_contract_evaluator(lua_State *L);
+		};
+
 		struct contract_register_operation : public base_operation
 		{
 			struct fee_parameters_type {
