@@ -575,7 +575,7 @@ namespace graphene {
             auto &d = db();
             FC_ASSERT(d.has_contract(o.contract_id));
             auto &contract = d.get_contract(o.contract_id);
-            
+            deposit_to_contract(o.contract_id, o.amount);
             try {
                 if (contract.is_native_contract)
                 {
@@ -645,26 +645,70 @@ namespace graphene {
 
         void_result contract_transfer_evaluate::do_apply(const operation_type & o)
         {
+            database& d = db();
+            FC_ASSERT(d.has_contract(o.contract_id));
+            // commit contract result to db
+            for (const auto &pair1 : contracts_storage_changes)
+            {
+                const auto &contract_id = pair1.first;
+                address contract_addr(contract_id);
+                const auto &contract_storage_changes = pair1.second;
+                for (const auto &pair2 : contract_storage_changes)
+                {
+                    const auto &storage_name = pair2.first;
+                    const auto &change = pair2.second;
+                    d.set_contract_storage(contract_addr, storage_name, change.after);
+                    d.add_contract_storage_change(contract_addr, storage_name, change.storage_diff);
+                }
+            }
+
+            do_apply_fees_balance(origin_op.caller_addr);
+            do_apply_balance();
             return void_result();
         }
 
         void contract_transfer_evaluate::pay_fee()
         {
+
         }
 
         std::shared_ptr<GluaContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
         {
-            return std::shared_ptr<GluaContractInfo>();
+            address contract_addr(contract_id);
+            if (!db().has_contract(contract_addr))
+                return nullptr;
+            auto contract_info = std::make_shared<GluaContractInfo>();
+            const auto &contract = db().get_contract(contract_addr);
+            if (contract.is_native_contract)
+            {
+                auto native_contract = native_contract_finder::create_native_contract_by_key(contract.native_contract_key, contract.contract_address);
+                if (!native_contract)
+                    return nullptr;
+                for (const auto & api : native_contract->apis()) {
+                    contract_info->contract_apis.push_back(api);
+                }
+                return contract_info;
+            }
+            const auto &code = contract.code;
+            for (const auto & api : code.abi) {
+                contract_info->contract_apis.push_back(api);
+            }
+            return contract_info;
         }
 
         contract_object contract_transfer_evaluate::get_contract_by_name(const string & contract_name) const
         {
-            return contract_object();
+            FC_ASSERT(!contract_name.empty());
+            FC_ASSERT(db().has_contract_of_name(contract_name));
+            auto contract_info = std::make_shared<GluaContractInfo>();
+            const auto &contract = db().get_contract_of_name(contract_name);
+            // TODO: when contract is native contract
+            return contract;
         }
 
         std::shared_ptr<uvm::blockchain::Code> contract_transfer_evaluate::get_contract_code_by_id(const string & contract_id) const
         {
-            return std::shared_ptr<uvm::blockchain::Code>();
+            return get_contract_code_from_db_by_id(contract_id);
         }
 }
 }

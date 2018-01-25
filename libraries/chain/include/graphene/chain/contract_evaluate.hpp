@@ -71,7 +71,7 @@ namespace graphene {
                 share_type to_deposit = amount.amount;
                 auto index = std::make_pair(contract, amount.asset_id);
                 if (!db().has_contract(contract))
-                    FC_CAPTURE_AND_THROW(contract_not_exsited, (contract));
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
                 auto withdraw=contract_withdraw.find(index);
                 if(withdraw!= contract_withdraw.end())
                 {
