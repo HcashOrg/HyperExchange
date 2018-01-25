@@ -318,7 +318,7 @@ namespace graphene { namespace chain {
 	   std::string		 chain_type;
 	   std::string       new_address_hot;
 	   std::string       new_address_cold;
-	   multisig_account_pair_id_type    multisig_account_pair_object_id;
+	   multisig_account_pair_id_type    multisig_account_pair_object_id= multisig_account_pair_id_type();
    	   signature_type	 signature;
 
 	   //std::string get_tunnel_account()const { return bind_account; }

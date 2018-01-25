@@ -77,6 +77,7 @@ namespace graphene { namespace chain {
             asset_settle_operation,
             asset_global_settle_operation,
             asset_publish_feed_operation,
+			normal_asset_publish_feed_operation,
             miner_create_operation,
             witness_update_operation,
 	        miner_generate_multi_asset_operation,
@@ -126,7 +127,8 @@ namespace graphene { namespace chain {
 	   graphene::chain::native_contract_register_operation,
 	   contract_invoke_operation,
 	   storage_operation,
-	   transfer_contract_operation
+	   transfer_contract_operation,
+	        gurantee_create_operation
          > operation;
 
    /// @} // operations group

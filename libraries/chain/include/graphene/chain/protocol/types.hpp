@@ -169,7 +169,8 @@ namespace graphene { namespace chain {
       impl_budget_record_object_type,
       impl_special_authority_object_type,
       impl_buyback_object_type,
-      impl_fba_accumulator_object_type
+      impl_fba_accumulator_object_type,
+	  impl_guarantee_obj_type
    };
 
    //typedef fc::unsigned_int            object_id_type;
@@ -239,7 +240,7 @@ namespace graphene { namespace chain {
    class buyback_object;
    class fba_accumulator_object;
    class multisig_account_pair_object;
-   
+   class guarantee_object;
 
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
@@ -261,6 +262,7 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_buyback_object_type, buyback_object >                                    buyback_id_type;
    typedef object_id< implementation_ids, impl_fba_accumulator_object_type, fba_accumulator_object >                    fba_accumulator_id_type;
    typedef object_id< implementation_ids, impl_multisig_account_binding_object_type, multisig_account_pair_object >     multisig_account_pair_id_type;
+   typedef object_id< implementation_ids, impl_guarantee_obj_type, guarantee_object >     guarantee_object_id_type;
    typedef fc::array<char, GRAPHENE_MAX_ASSET_SYMBOL_LENGTH>    symbol_type;
    typedef fc::ripemd160                                        block_id_type;
    typedef fc::ripemd160                                        checksum_type;

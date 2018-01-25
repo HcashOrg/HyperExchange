@@ -35,7 +35,7 @@ namespace graphene { namespace chain {
     */
    struct miner_create_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 5000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 4000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
       asset             fee;
       /// The account which owns the miner. This account pays the fee for this operation.
@@ -77,7 +77,7 @@ namespace graphene { namespace chain {
    {
 	   struct fee_parameters_type
 	   {
-		   share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   share_type fee = share_type(0);
 	   };
 	   asset fee;
 	   miner_id_type miner;
@@ -92,6 +92,7 @@ namespace graphene { namespace chain {
 	   void get_required_authorities(vector<authority>& a)const {
 		   a.push_back(authority(1, miner_address, 1));
 	   }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
    };
 
    struct miner_merge_signatures_operation :public base_operation
@@ -110,6 +111,7 @@ namespace graphene { namespace chain {
 	   void get_required_authorities(vector<authority>& a)const {
 		   a.push_back(authority(1, miner_address, 1));
 	   }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
    };
 
    /// TODO: witness_resign_operation : public base_operation
@@ -123,7 +125,7 @@ FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
 
 FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_address_cold))
+FC_REFLECT(graphene::chain::miner_generate_multi_asset_operation, (fee)(miner)(chain_type)(miner_address)(multi_address_hot)(multi_redeemScript_hot)(multi_address_cold)(multi_redeemScript_cold))
 
 FC_REFLECT(graphene::chain::miner_merge_signatures_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::miner_merge_signatures_operation, (fee)(miner)(chain_type)(miner_address)(id))

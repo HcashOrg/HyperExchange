@@ -380,6 +380,42 @@ namespace graphene { namespace chain {
       void            validate()const;
    };
 
+
+
+   /**
+   * @brief Publish price feeds for market-issued assets
+   * @ingroup operations
+   *
+   * Price feed providers use this operation to publish their price feeds for market-issued assets. A price feed is
+   * used to tune the market for a particular market-issued asset. For each value in the feed, the median across all
+   * committee_member feeds for that asset is calculated and the market for the asset is configured with the median of that
+   * value.
+   *
+   * The feed in the operation contains three prices: a call price limit, a short price limit, and a settlement price.
+   * The call limit price is structured as (collateral asset) / (debt asset) and the short limit price is structured
+   * as (asset for sale) / (collateral asset). Note that the asset IDs are opposite to eachother, so if we're
+   * publishing a feed for USD, the call limit price will be CORE/USD and the short limit price will be USD/CORE. The
+   * settlement price may be flipped either direction, as long as it is a ratio between the market-issued asset and
+   * its collateral.
+   */
+   struct normal_asset_publish_feed_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+	   asset                  fee; ///< paid for by publisher
+	   account_id_type        publisher;
+	   address                publisher_addr;
+	   asset_id_type          asset_id; ///< asset for which the feed is published
+	   price_feed             feed;
+	   extensions_type        extensions;
+
+	   account_id_type fee_payer()const { return publisher; }
+	   void            validate()const;
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, publisher_addr, 1));
+	   }
+   };
+
    /**
     * @ingroup operations
     */
@@ -464,6 +500,23 @@ namespace graphene { namespace chain {
 	   }
    };
 
+   struct gurantee_create_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   address owner_addr;
+	   asset asset_origin;
+	   asset asset_target;
+	   string symbol;
+	   fc::time_point time;
+	   void            validate() const {};
+	   address         fee_payer()const { return owner_addr; }
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, owner_addr, 1));
+	   }
+   };
 
 } } // graphene::chain
 
@@ -504,10 +557,11 @@ FC_REFLECT( graphene::chain::asset_update_operation::fee_parameters_type, (fee)(
 FC_REFLECT( graphene::chain::asset_update_bitasset_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::asset_update_feed_producers_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::asset_publish_feed_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::normal_asset_publish_feed_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_issue_operation::fee_parameters_type, (fee)(price_per_kbyte) )
 FC_REFLECT( graphene::chain::asset_reserve_operation::fee_parameters_type, (fee) )
 FC_REFLECT(graphene::chain::asset_real_create_operation::fee_parameters_type, (fee))
-
+FC_REFLECT(graphene::chain::gurantee_create_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_create_operation,
             (fee)
             (issuer)
@@ -538,6 +592,8 @@ FC_REFLECT( graphene::chain::asset_update_feed_producers_operation,
           )
 FC_REFLECT( graphene::chain::asset_publish_feed_operation,
             (fee)(publisher)(asset_id)(feed)(extensions) )
+FC_REFLECT(graphene::chain::normal_asset_publish_feed_operation,
+	(fee)(publisher)(publisher_addr)(asset_id)(feed)(extensions))
 FC_REFLECT( graphene::chain::asset_settle_operation, (fee)(account)(amount)(extensions) )
 FC_REFLECT( graphene::chain::asset_settle_cancel_operation, (fee)(settlement)(account)(amount)(extensions) )
 FC_REFLECT( graphene::chain::asset_global_settle_operation, (fee)(issuer)(asset_to_settle)(settle_price)(extensions) )
@@ -548,3 +604,4 @@ FC_REFLECT( graphene::chain::asset_reserve_operation,
 
 FC_REFLECT( graphene::chain::asset_fund_fee_pool_operation, (fee)(from_account)(asset_id)(amount)(extensions) );
 FC_REFLECT(graphene::chain::asset_real_create_operation, (fee)(issuer)(symbol)(issuer_addr)(precision)(max_supply)(core_fee_paid)(extensions));
+FC_REFLECT(graphene::chain::gurantee_create_operation, (fee)(owner_addr)(asset_origin)(asset_target)(symbol)(time));

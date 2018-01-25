@@ -132,6 +132,17 @@ namespace graphene { namespace chain {
 
          optional<account_id_type> buyback_account;
 
+		 /// Feeds published for this asset. If issuer is not committee, the keys in this map are the feed publishing
+		 /// accounts; otherwise, the feed publishers are the currently active committee_members and witnesses and this map
+		 /// should be treated as an implementation detail. The timestamp on each feed is the time it was published.
+
+		 flat_map<account_id_type, pair<time_point_sec, price_feed>> feeds;
+		 /// This is the currently active price feed, calculated as the median of values from the currently active
+		 /// feeds.
+		 price_feed current_feed;
+
+		 time_point_sec current_feed_publication_time;
+
          asset_id_type get_id()const { return id; }
 
          void validate()const
@@ -158,6 +169,17 @@ namespace graphene { namespace chain {
          template<class DB>
          share_type reserved( const DB& db )const
          { return options.max_supply - dynamic_data(db).current_supply; }
+
+
+		 time_point_sec feed_expiration_time()const
+		 {
+			 return current_feed_publication_time + GRAPHENE_DEFAULT_PRICE_FEED_LIFETIME*30;
+		 }
+		 bool feed_is_expired(time_point_sec current_time)const
+		 {
+			 return feed_expiration_time() <= current_time;
+		 }
+		 void update_median_feeds(time_point_sec current_time);
    };
 
    /**
@@ -218,6 +240,21 @@ namespace graphene { namespace chain {
          void update_median_feeds(time_point_sec current_time);
    };
 
+
+   class guarantee_object :public abstract_object<guarantee_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_guarantee_obj_type;
+
+	   address owner_addr;
+	   string  chain_type;
+	   fc::time_point time;
+	   asset asset_orign;
+	   asset asset_target;
+	   asset asset_finished;
+	   bool finished;
+   };
    struct by_feed_expiration;
    typedef multi_index_container<
       asset_bitasset_data_object,
@@ -249,6 +286,24 @@ namespace graphene { namespace chain {
       >
    > asset_object_multi_index_type;
    typedef generic_index<asset_object, asset_object_multi_index_type> asset_index;
+   struct by_owner;
+   struct by_symbol_owner;
+   typedef multi_index_container<
+	   guarantee_object,
+	   indexed_by<
+	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   ordered_non_unique< tag<by_symbol>, member<guarantee_object, string, &guarantee_object::chain_type> >,
+	   ordered_non_unique< tag<by_owner>, member<guarantee_object, address, &guarantee_object::owner_addr> >,
+	   ordered_non_unique< tag<by_symbol_owner>,
+	                  composite_key< guarantee_object,
+	                                 member<guarantee_object, address, &guarantee_object::owner_addr>,
+	                                 member< guarantee_object, string, &guarantee_object::chain_type >
+	                               >
+	                     >
+                >
+   > guarantee_object_multi_index_type;
+   typedef generic_index<guarantee_object, guarantee_object_multi_index_type> guarantee_index;
+
 
 } } // graphene::chain
 
@@ -272,6 +327,19 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
                     (issuer)
                     (options)
                     (dynamic_asset_data_id)
+					(feeds)
+					(current_feed)
+					(current_feed_publication_time)
                     (bitasset_data_id)
                     (buyback_account)
                   )
+
+	FC_REFLECT_DERIVED(graphene::chain::guarantee_object, (graphene::db::object),
+	    (owner_addr)
+		(chain_type)
+		(time)
+		(asset_orign)
+		(asset_target)
+		(asset_finished)
+		(finished)
+	)

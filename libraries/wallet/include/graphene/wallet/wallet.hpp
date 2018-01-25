@@ -885,7 +885,7 @@ class wallet_api
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
+	  signed_transaction withdraw_cross_chain_transaction(string account_name,
 		  string amount,
 		  string asset_symbol,
 		  string crosschain_account,
@@ -1254,6 +1254,10 @@ class wallet_api
                                             price_feed feed,
                                             bool broadcast = false);
 
+	  signed_transaction publish_normal_asset_feed(string publishing_account,
+		  string symbol,
+		  price_feed feed,
+		  bool broadcast = false);
       /** Pay into the fee pool for the given asset.
        *
        * User-issued assets can optionally have a pool of the core asset which is 
@@ -1624,7 +1628,8 @@ class wallet_api
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
-	  std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction();
+	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
       /** Signs a transaction.
        *
@@ -1699,6 +1704,7 @@ class wallet_api
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
 	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
+	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1774,6 +1780,8 @@ class wallet_api
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
+	  signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
+	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1885,6 +1893,7 @@ FC_API( graphene::wallet::wallet_api,
         (update_bitasset)
         (update_asset_feed_producers)
         (publish_asset_feed)
+		(publish_normal_asset_feed)
         (issue_asset)
         (get_asset)
         (get_bitasset_data)
@@ -1970,6 +1979,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (update_guard_formal)
 		(get_account_lock_balance)
 		(get_guard_lock_balance)
+		(get_miner_lock_balance)
 		(refund_request)
 		(transfer_from_cold_to_hot)
 		(withdraw_from_link)
@@ -1978,6 +1988,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
 		(create_crosschain_symbol)
@@ -1997,4 +2008,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
+	    (list_guarantee_order)
       )

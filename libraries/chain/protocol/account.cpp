@@ -174,6 +174,7 @@ void account_options::validate() const
       else if ( id.type() == vote_id_type::committee && needed_committee )
          --needed_committee;
 
+   FC_ASSERT(miner_pledge_pay_back <= 10 && miner_pledge_pay_back >= 0);
    FC_ASSERT( needed_witnesses == 0 && needed_committee == 0,
               "May not specify fewer witnesses or committee members than the number voted for.");
 }
@@ -293,6 +294,8 @@ void account_transfer_operation::validate()const
 void account_bind_operation::validate()const
 {
 	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
+	if (!crosschain->valid_config())
+		return;
 	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_address, tunnel_signature));
 	//auto pub_key = fc::ecc::public_key(sig, d);
 	//FC_ASSERT( address());
@@ -301,6 +304,8 @@ void account_bind_operation::validate()const
 void account_unbind_operation::validate()const
 {
 	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
+	if (!crosschain->valid_config())
+		return;
 	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_address, tunnel_signature));
 }
 

@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <fc/smart_ref_impl.hpp>
-
+#include <iostream>
 namespace fc
 {
    // explicitly instantiate the smart_ref, gcc fails to instantiate it in some release builds
@@ -50,6 +50,7 @@ namespace graphene { namespace chain {
    fee_schedule fee_schedule::get_default()
    {
       fee_schedule result;
+	  std::cout << "fee parameter count: " << fee_parameters().count() << std::endl;
       for( int i = 0; i < fee_parameters().count(); ++i )
       {
          fee_parameters x; x.set_which(i);

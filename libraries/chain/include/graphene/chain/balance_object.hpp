@@ -40,13 +40,18 @@ namespace graphene { namespace chain {
             return is_vesting_balance()? vesting_policy->get_allowed_withdraw({balance, now, {}})
                                        : balance;
          }
-		 void adjust_balance(asset delta, fc::time_point_sec now)
+		 void adjust_balance(asset delta, fc::time_point_sec now,bool freeze = false)
 		 {
 			 balance += delta;
 			 last_claim_date = now;
+			 if (freeze)
+			 {
+				 frozen -= delta.amount;
+			 }
 		 }
          address owner;
          asset   balance;
+		 share_type   frozen;
          optional<linear_vesting_policy> vesting_policy;
          time_point_sec last_claim_date;
          asset_id_type asset_type()const { return balance.asset_id; }
@@ -76,4 +81,4 @@ namespace graphene { namespace chain {
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::balance_object, (graphene::db::object),
-                    (owner)(balance)(vesting_policy)(last_claim_date) )
+                    (owner)(balance)(frozen)(vesting_policy)(last_claim_date) )

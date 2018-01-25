@@ -155,6 +155,10 @@
 #define BLOCKLINK_MIN_GAS_PRICE                              0
 #define BLOCKLINK_MAX_GAS_LIMIT                              100000000
 
+#define GRAPHENE_MINER_PAY_RATIO							 40
+#define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 60
+#define GRAPHENE_ALL_MINER_PAY_RATIO						 100
+
 /**
  *  Reserved Account IDs with special meaning
  */

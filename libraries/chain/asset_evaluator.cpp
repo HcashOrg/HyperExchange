@@ -30,7 +30,7 @@
 #include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
 #include <graphene/chain/committee_member_object.hpp>
-
+#include <graphene/chain/balance_object.hpp>
 #include <functional>
 
 namespace graphene { namespace chain {
@@ -526,6 +526,57 @@ void_result asset_publish_feeds_evaluator::do_apply(const asset_publish_feed_ope
 
 
 
+void_result normal_asset_publish_feeds_evaluator::do_evaluate(const normal_asset_publish_feed_operation& o)
+{
+	try {
+		database& d = db();
+		
+		const asset_object& base = o.asset_id(d);
+		//Verify that this feed is for a market-issued asset and that asset is backed by the base
+
+		FC_ASSERT(o.feed.settlement_price.quote.asset_id == asset_id_type(0));
+
+		if (!o.feed.core_exchange_rate.is_null())
+		{
+			FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
+		}
+// 		if (!o.feed.core_exchange_rate.is_null())
+// 		{
+// 			FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
+// 		}
+		auto aa = d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher);
+		auto bb = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.count(o.publisher_addr);
+		auto cc = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.size();
+		
+		FC_ASSERT(d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher));
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result normal_asset_publish_feeds_evaluator::do_apply(const normal_asset_publish_feed_operation& o)
+{
+	try {
+
+		database& d = db();
+
+		const asset_object& base = o.asset_id(d);
+
+		auto old_feed = base.current_feed;
+		// Store medians for this asset
+		d.modify(base, [&o, &d](asset_object& a) {
+			a.feeds[o.publisher] = make_pair(d.head_block_time(), o.feed);
+			a.update_median_feeds(d.head_block_time());
+		});
+
+		return void_result();
+	} FC_CAPTURE_AND_RETHROW((o))
+}
+
+
+
+
+
 void_result asset_claim_fees_evaluator::do_evaluate( const asset_claim_fees_operation& o )
 { try {
    FC_ASSERT( db().head_block_time() > HARDFORK_413_TIME );
@@ -590,6 +641,45 @@ void_result asset_real_create_evaluator::do_apply(const asset_real_create_operat
 		assert(new_asset.id == next_asset_id);
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void_result gurantee_create_evaluator::do_evaluate(const gurantee_create_operation& o)
+{
+	try {
+		const auto& _db = db();
+		const auto& gran_index =_db.get_index_type<guarantee_index>().indices();
+		const auto& range = gran_index.get<by_symbol_owner>().equal_range(boost::make_tuple(o.owner_addr,o.symbol));
+		share_type frozen = 0;
+		std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
+			frozen += obj.asset_orign.amount;
+		});
+		//we need to check if this  is equal to the frozen assets
+		const auto& balances = _db.get_index_type<balance_index>().indices().get<by_owner>();
+		const auto balance_obj = balances.find(boost::make_tuple(o.owner_addr, o.asset_origin.asset_id));
+		FC_ASSERT(balance_obj != balances.end());
+		FC_ASSERT(balance_obj->balance >= o.asset_origin);
+		FC_ASSERT(balance_obj->frozen == frozen);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result gurantee_create_evaluator::do_apply(const gurantee_create_operation& o)
+{
+	try {
+		auto& _db = db();
+		_db.adjust_balance(o.owner_addr,-o.asset_origin,true);
+		
+		_db.create<guarantee_object>([&](guarantee_object& a) {
+			a.asset_finished = asset(0, o.asset_target.asset_id);
+			a.asset_orign = o.asset_origin;
+			a.asset_target = o.asset_target;
+			a.chain_type = o.symbol;
+			a.owner_addr = o.owner_addr;
+			a.time = o.time;
+			a.finished = false;
+		});
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 
 
 } } // graphene::chain

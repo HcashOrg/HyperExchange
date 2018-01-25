@@ -136,6 +136,17 @@ namespace graphene { namespace chain {
          std::map<std::pair<asset_id_type,asset_id_type>,price_feed> median_feed_values;
    };
 
+   class normal_asset_publish_feeds_evaluator : public evaluator<normal_asset_publish_feeds_evaluator>
+   {
+   public:
+	   typedef normal_asset_publish_feed_operation operation_type;
+
+	   void_result do_evaluate(const normal_asset_publish_feed_operation& o);
+	   void_result do_apply(const normal_asset_publish_feed_operation& o);
+
+	   std::map<std::pair<asset_id_type, asset_id_type>, price_feed> median_feed_values;
+   };
+
    class asset_claim_fees_evaluator : public evaluator<asset_claim_fees_evaluator>
    {
       public:
@@ -152,5 +163,11 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const asset_real_create_operation& o);
 	   void_result do_apply(const asset_real_create_operation& o);
    };
-
+   class gurantee_create_evaluator :public evaluator<gurantee_create_evaluator>
+   {
+   public:
+	   typedef gurantee_create_operation operation_type;
+	   void_result do_evaluate(const gurantee_create_operation& o);
+	   void_result do_apply(const gurantee_create_operation& o);
+   };
 } } // graphene::chain

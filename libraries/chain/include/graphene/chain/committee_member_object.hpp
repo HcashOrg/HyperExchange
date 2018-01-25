@@ -76,4 +76,4 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::guard_member_object, (graphene::db::object),
-                    (guard_member_account)(vote_id)(total_votes)(url)(formal) )
+                    (guard_member_account)(vote_id)(total_votes)(url)(guard_lock_balance)(formal) )

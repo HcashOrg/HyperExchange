@@ -176,8 +176,8 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	for (const miner_id_type& w : gpo.active_witnesses)
 	{
 		const auto& witness_obj = w(db);
-		total_weight += witness_obj.pledge_weight * witness_obj.participation_rate / 100;
-		temp_witnesses_weight.push_back(witness_obj.pledge_weight * witness_obj.participation_rate / 100);
+		total_weight += witness_obj.pledge_weight.value * witness_obj.participation_rate / 100;
+		temp_witnesses_weight.push_back(witness_obj.pledge_weight.value * witness_obj.participation_rate / 100);
 		temp_active_witnesses.push_back(w);
 	}
 	fc::sha256 rand_seed;
@@ -1051,7 +1051,9 @@ BOOST_FIXTURE_TEST_CASE( change_block_interval, database_fixture )
    BOOST_TEST_MESSAGE( "Updating proposal by signing with the committee_member private key" );
    {
       proposal_update_operation uop;
-      uop.fee_paying_account = GRAPHENE_TEMP_ACCOUNT;
+	  auto temp_account = get_account("4");
+	  uop.fee_paying_account = temp_account.addr;
+
       uop.active_approvals_to_add = {get_account("init0").get_id(), get_account("init1").get_id(),
                                      get_account("init2").get_id(), get_account("init3").get_id(),
                                      get_account("init4").get_id(), get_account("init5").get_id(),

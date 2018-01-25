@@ -623,6 +623,36 @@ public:
       }
 	  return account_object();
    }
+   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto acc = get_account(account);
+		   auto asset_obj = get_asset(symbol);
+		   gurantee_create_operation op;
+		   op.owner_addr = acc.addr;
+		   auto sys_asset = get_asset("LINK");
+		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
+		   auto target_asset = get_asset(symbol);
+		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount,target_asset.get_id());
+		   op.time = fc::time_point::now();
+		   op.symbol = symbol;
+
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
+   }
+   vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type)
+   {
+	   try {
+		   auto asset_obj = get_asset(chain_type);
+		   return _remote_db->list_guarantee_object(chain_type);
+
+	   }FC_CAPTURE_AND_RETHROW((chain_type))
+   }
 
    string create_crosschain_symbol(const string& symbol)
    {
@@ -1640,6 +1670,32 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (publishing_account)(symbol)(feed)(broadcast) ) }
 
+
+   signed_transaction publish_normal_asset_feed(string publishing_account,
+	   string symbol,
+	   price_feed feed,
+	   bool broadcast /* = false */)
+   {
+	   try {
+		   optional<asset_object> asset_to_update = find_asset(symbol);
+		   if (!asset_to_update)
+			   FC_THROW("No asset with that symbol exists!");
+
+		   normal_asset_publish_feed_operation publish_op;
+		   publish_op.publisher = get_account_id(publishing_account);
+		   publish_op.publisher_addr = get_account_addr(publishing_account);
+		   publish_op.asset_id = asset_to_update->id;
+		   publish_op.feed = feed;
+
+		   signed_transaction tx;
+		   tx.operations.push_back(publish_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+	   } FC_CAPTURE_AND_RETHROW((publishing_account)(symbol)(feed)(broadcast))
+   }
+
    signed_transaction fund_asset_fee_pool(string from,
                                           string symbol,
                                           string amount,
@@ -2216,6 +2272,7 @@ public:
 		   //get cold hot addresses according to given symbol
 		   //create muliti-trx for given symbol
 		   //return the relvent trx
+                   /*
 		   const address  cold_addr;
 		   const address  hot_addr;
 		   
@@ -2224,7 +2281,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   inface->initialize_config(fc::json::from_string(config).get_object());
 		   auto asset_obj = get_asset(symbol);
-		   auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
+		   const auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
 		   // TODO
 		   const auto& acct = get_account(account);
 
@@ -2237,8 +2294,8 @@ public:
 		   tx.operations.emplace_back(op);
 		   set_operation_fees(tx,get_global_properties().parameters.current_fees);
 		   tx.validate();
-
-		   return sign_transaction(tx,broadcast);
+                   */
+		   return signed_transaction();
 		   
 	   }FC_CAPTURE_AND_RETHROW((account)(amount)(symbol)(broadcast))
    }
@@ -2720,11 +2777,21 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
-   std::vector<signed_transaction> get_withdraw_crosschain_without_sign_transaction(){
-	   std::vector<signed_transaction> result;
+   std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type) {
+	   std::map<transaction_id_type, signed_transaction> result;
+	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction((transaction_stata)type, transaction_id_type());
+	   for (const auto& cct : cct_objs) {
+		   auto id = cct.real_transaction.id();
+		   result[id] = cct.real_transaction;
+	   }
+	   return result;
+   }
+   std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction(){
+	   std::map<transaction_id_type, signed_transaction> result;
 	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create,transaction_id_type());
 	   for (const auto& cct : cct_objs){
-		   result.push_back(cct.real_transaction);
+		   auto id = cct.real_transaction.id();
+		   result[id] = cct.real_transaction;
 	   }
 	   return result;
    }
@@ -2733,12 +2800,17 @@ public:
    {
 	   auto vec_objs = get_multi_address_obj(symbol,guard);
 	   optional<multisig_address_object> ret ;
+
 	   int max = 0;
+	   auto dynamic_props = get_dynamic_global_properties();
+	   auto head_num = dynamic_props.head_block_number;
 	   for (auto vec : vec_objs)
 	   {
 		   if (vec->multisig_account_pair_object_id == multisig_account_pair_id_type())
 			   continue;
 		   auto account_pair = get_multisig_account_pair(vec->multisig_account_pair_object_id);
+		   if (account_pair->effective_block_num > head_num)
+			   continue;
 		   if (max < account_pair->effective_block_num)
 		   {
 			   max = account_pair->effective_block_num;
@@ -2755,13 +2827,17 @@ public:
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
 		   for (const auto& trx : trxs) {
-			   auto id = trx.transaction_id.str();
+			   /*auto id = trx.transaction_id.str();
 			   std::cout << id << std::endl;
 			   auto op = trx.real_transaction.operations[0];
-			   std::cout << op.which() << std::endl;
-			   /*
+			   std::cout << op.which() << std::endl;*/
+			   
 			   auto operations = trx.real_transaction.operations;
 			   auto op = trx.real_transaction.operations[0];
+			   if (op.which() != operation::tag<graphene::chain::crosschain_withdraw_without_sign_operation>::value)
+			   {
+				   continue;
+			   }
 			   auto withop_without_sign = op.get<graphene::chain::crosschain_withdraw_without_sign_operation>();
 			   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
@@ -2783,7 +2859,6 @@ public:
 			   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
 			   transaction.validate();
 			   sign_transaction(transaction, true);
-			   */
 		   }
 	   }
 	   else{
@@ -2830,6 +2905,14 @@ public:
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   FC_ASSERT(guard_obj.valid(), "Guard is not exist");
 	   return _remote_db->get_guard_lock_balance(guard_obj->id);
+   }
+   std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const
+   {
+	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
+	   const account_object & account_obj = get_account(miner);
+	   const auto& miner_obj = _remote_db->get_miner_by_account(account_obj.get_id());
+	   FC_ASSERT(miner_obj.valid(), "Miner is not exist");
+	   return _remote_db->get_miner_lock_balance(miner_obj->id);
    }
    signed_transaction cancel_order(object_id_type order_id, bool broadcast = false)
    { try {
@@ -3505,7 +3588,7 @@ public:
    {
       proposal_update_operation update_op;
 
-      update_op.fee_paying_account = get_account(fee_paying_account).id;
+      update_op.fee_paying_account = get_account(fee_paying_account).addr;
       update_op.proposal = fc::variant(proposal_id).as<proposal_id_type>();
       // make sure the proposal exists
       get_object( update_op.proposal );
@@ -3929,6 +4012,9 @@ vector<asset> wallet_api::list_account_balances(const string& id)
 
 std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const string& miner)const {
 	return my->get_guard_lock_balance(miner);
+}
+std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
+	return my->get_miner_lock_balance(miner);
 }
 vector<asset> wallet_api::get_addr_balances(const string& addr)
 {
@@ -4408,7 +4494,10 @@ signed_transaction wallet_api::transfer_to_account(string from, string to, strin
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
-std::vector<signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
+std::map<transaction_id_type, signed_transaction> wallet_api::get_crosschain_transaction(int type) {
+	return my->get_crosschain_transaction(type);
+}
+std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
@@ -4508,6 +4597,13 @@ signed_transaction wallet_api::publish_asset_feed(string publishing_account,
                                                   bool broadcast /* = false */)
 {
    return my->publish_asset_feed(publishing_account, symbol, feed, broadcast);
+}
+signed_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
+	string symbol,
+	price_feed feed,
+	bool broadcast /* = false */)
+{
+	return my->publish_normal_asset_feed(publishing_account, symbol, feed, broadcast);
 }
 
 signed_transaction wallet_api::fund_asset_fee_pool(string from,
@@ -5229,7 +5325,14 @@ signed_transaction wallet_api::upgrade_account( string name, bool broadcast )
 {
    return my->upgrade_account(name,broadcast);
 }
-
+signed_transaction wallet_api::create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
+{
+	return my->create_guarantee_order(account,asset_orign,asset_target,symbol, broadcast);
+}
+vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol)
+{
+	return my->list_guarantee_order(symbol);
+}
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,
@@ -5839,7 +5942,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
 vesting_balance_object_with_info::vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now )
    : vesting_balance_object( vbo )
 {
-   allowed_withdraw = get_allowed_withdraw( now );
+   //allowed_withdraw = get_allowed_withdraw( now );
    allowed_withdraw_time = now;
 }
 

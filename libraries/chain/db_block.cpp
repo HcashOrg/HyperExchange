@@ -528,7 +528,7 @@ void database::_apply_block( const signed_block& next_block )
    uint32_t next_block_num = next_block.block_num();
    uint32_t skip = get_node_properties().skip_flags;
    _applied_ops.clear();
-
+   reset_current_collected_fee();
    FC_ASSERT( (skip & skip_merkle_check) || next_block.transaction_merkle_root == next_block.calculate_merkle_root(), "", ("next_block.transaction_merkle_root",next_block.transaction_merkle_root)("calc",next_block.calculate_merkle_root())("next_block",next_block)("id",next_block.id()) );
 
    const miner_object& signing_witness = validate_block_header(skip, next_block);
@@ -573,6 +573,7 @@ void database::_apply_block( const signed_block& next_block )
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
    
+   pay_miner(next_block.miner);
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
@@ -607,6 +608,10 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    auto& trx_idx = get_mutable_index_type<transaction_index>();
    const chain_id_type& chain_id = get_chain_id();
    auto trx_id = trx.id();
+   if(skip & skip_transaction_dupe_check) 
+      printf("the first is true\n");
+   if (trx_idx.indices().get<by_trx_id>().find(trx_id) != trx_idx.indices().get<by_trx_id>().end())
+      printf("it has exsit now ...%s, block:%d \n",trx_id.str().c_str(),trx.ref_block_num);
    FC_ASSERT( (skip & skip_transaction_dupe_check) ||
               trx_idx.indices().get<by_trx_id>().find(trx_id) == trx_idx.indices().get<by_trx_id>().end() );
    transaction_evaluation_state eval_state(this);

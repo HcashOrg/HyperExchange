@@ -29,16 +29,16 @@ namespace graphene{
 				if (o.contract_addr == address()) {
 					database& d = db();
 					const asset_object&   asset_type = o.lock_asset_id(d);
-					d.adjust_balance(o.lock_balance_addr, -o.lock_asset_amount);
+					d.adjust_balance(o.lock_balance_addr, asset(-o.lock_asset_amount,o.lock_asset_id));
 					d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account,asset(o.lock_asset_amount,o.lock_asset_id));
 					//optional<miner_object> itr = d.get(o.lockto_miner_account);
 					d.modify(d.get(o.lockto_miner_account), [o, asset_type](miner_object& b) {
-						auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+						auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 						if (map_lockbalance_total != b.lockbalance_total.end())	{
-							map_lockbalance_total->second += o.lock_asset_amount;
+							map_lockbalance_total->second += asset(o.lock_asset_amount, o.lock_asset_id);
 						}
 						else {
-							b.lockbalance_total[asset_type.symbol] = o.lock_asset_amount;
+							b.lockbalance_total[asset_type.symbol] = asset(o.lock_asset_amount, o.lock_asset_id);
 						}
 					});
 				}
@@ -72,17 +72,15 @@ namespace graphene{
 			if (o.foreclose_contract_addr == address()) {
 				const asset_object&   asset_type = o.foreclose_asset_id(d);
 				d.adjust_lock_balance(o.foreclose_miner_account, o.foreclose_account, asset(-o.foreclose_asset_amount,o.foreclose_asset_id));
-				d.adjust_balance(o.foreclose_addr, o.foreclose_asset_amount);
+				d.adjust_balance(o.foreclose_addr, asset(o.foreclose_asset_amount,o.foreclose_asset_id));
 
 				//optional<miner_object> itr = d.get(o.foreclose_miner_account);
 				d.modify(d.get(o.foreclose_miner_account), [o, asset_type](miner_object& b) {
-					auto& map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+					auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 					if (map_lockbalance_total != b.lockbalance_total.end()) {
-						map_lockbalance_total->second -= o.foreclose_asset_amount;
+						map_lockbalance_total->second -= asset(o.foreclose_asset_amount,o.foreclose_asset_id);
 					}
-					else {
-						b.lockbalance_total[asset_type.symbol] = o.foreclose_asset_amount;
-					}
+					
 				});
 			}
 			else {

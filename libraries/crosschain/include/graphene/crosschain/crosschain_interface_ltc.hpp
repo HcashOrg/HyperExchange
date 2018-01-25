@@ -1,12 +1,6 @@
-//#include <graphene/chain/protocol/types.hpp>
 #include <vector>
 #include <string>
 #include <graphene/crosschain/crosschain_impl.hpp>
-//#include <graphene/wallet/wallet.hpp>
-//#include <fc/io/fstream.hpp>
-//#include <fc/io/json.hpp>
-//#include <fc/crypto/aes.hpp>
-//#include <fc/crypto/elliptic.hpp>
 #include <fc/network/http/connection.hpp>
 
 
@@ -14,14 +8,14 @@ namespace graphene {
 	namespace crosschain {
 
 
-		class crosschain_interface_btc : public abstract_crosschain_interface
+		class crosschain_interface_ltc : public abstract_crosschain_interface
 		{
 		public:
-			crosschain_interface_btc()
+			crosschain_interface_ltc()
 			{
 				_connection = std::make_shared<fc::http::connection>();
 			}
-			virtual ~crosschain_interface_btc() {}
+			virtual ~crosschain_interface_ltc() {}
 			virtual bool valid_config();
 			virtual void initialize_config(fc::variant_object &json_config) override;
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) override;
@@ -59,7 +53,7 @@ namespace graphene {
 			fc::http::connection_ptr _connection;
 			std::string _rpc_method;
 			std::string _rpc_url;
-			const std::string chain_type = "BTC";
+			const std::string chain_type = "LTC";
 			fc::http::headers _rpc_headers;
 		};
 	}

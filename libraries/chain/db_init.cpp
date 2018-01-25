@@ -161,6 +161,9 @@ const uint8_t contract_storage_object::type_id;
 const uint8_t transaction_contract_storage_diff_object::space_id;
 const uint8_t transaction_contract_storage_diff_object::type_id;
 
+const uint8_t guarantee_object::space_id;
+const uint8_t guarantee_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -205,6 +208,7 @@ void database::initialize_evaluators()
    register_evaluator<override_transfer_evaluator>();
    register_evaluator<asset_fund_fee_pool_evaluator>();
    register_evaluator<asset_publish_feeds_evaluator>();
+   register_evaluator<normal_asset_publish_feeds_evaluator>();
    register_evaluator<proposal_create_evaluator>();
    register_evaluator<proposal_update_evaluator>();
    register_evaluator<proposal_delete_evaluator>();
@@ -289,6 +293,9 @@ void database::initialize_indexes()
    add_index<primary_index<contract_object_index>>();
    add_index<primary_index<contract_balance_index>>();
    add_index<primary_index<contract_storage_object_index>>();
+
+   add_index <primary_index<guarantee_index                               > >();
+
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)
@@ -715,6 +722,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 	  uop.owner_addr = get_account_address(member.owner_name);
 	  uop.formal = true;
 	  apply_operation(genesis_eval_state, uop);
+	  modify(get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& n) {
+		  n.active.account_auths[get_account_id(member.owner_name)] = 100;
+	  
+	  });
    });
 
    // Create initial workers

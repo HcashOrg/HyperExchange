@@ -248,7 +248,15 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
-		 void database::update_witness_random_seed(const SecretHashType& new_secret);
+		 void pay_miner(const miner_id_type& miner_id);
+
+
+		 void reset_current_collected_fee();
+
+		 void modify_current_collected_fee(share_type changed_fee);
+
+
+		 void update_witness_random_seed(const SecretHashType& new_secret);
 
          //////////////////// db_getter.cpp ////////////////////
 
@@ -295,7 +303,7 @@ namespace graphene { namespace chain {
 		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void combine_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
 		 void create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk);
-		 void database::adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
+		 void adjust_crosschain_transaction(transaction_id_type relate_transaction_id,
 			 transaction_id_type transaction_id,
 			 signed_transaction real_transaction,
 			 uint64_t op_type,
@@ -347,7 +355,13 @@ namespace graphene { namespace chain {
 		 * @param account ID of account whose balance should be adjusted
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
-		 void adjust_balance(address addr, asset delta);
+		 void adjust_balance(address addr, asset delta, bool freeze = false);
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
+		 void adjust_guarantee(const guarantee_object_id_type id, const asset& target_asset);
          /**
           * @brief Helper to make lazy deposit to CDD VBO.
           *
@@ -541,6 +555,7 @@ namespace graphene { namespace chain {
          vector<uint64_t>                  _witness_count_histogram_buffer;
          vector<uint64_t>                  _guard_count_histogram_buffer;
          uint64_t                          _total_voting_stake;
+		 share_type						   _total_collected_fee;
 
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
