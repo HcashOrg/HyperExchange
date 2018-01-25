@@ -1737,6 +1737,15 @@ class wallet_api
 	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
+      signed_transaction transfer_to_contract(string from,
+          string to,
+          string amount,
+          string asset_symbol,
+          const string& gas_price,
+          const string& gas_limit,
+          bool broadcast = false);
+
+      vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis
 
       /**
@@ -1986,4 +1995,6 @@ FC_API( graphene::wallet::wallet_api,
 		(upgrade_contract)
         (get_contract_info)
 		(get_simple_contract_info)
+		(transfer_to_contract)
+        (get_contract_balance)
       )

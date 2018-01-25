@@ -28,12 +28,14 @@ namespace graphene {
 		class contract_invoke_evaluate;
 		class contract_upgrade_evaluate;
 		class native_contract_register_evaluate;
+		class contract_transfer_evaluate;
 
 		struct common_contract_evaluator {
 			contract_register_evaluate* register_contract_evaluator = nullptr;
 			native_contract_register_evaluate* register_native_contract_evaluator = nullptr;
 			contract_invoke_evaluate* invoke_contract_evaluator = nullptr;
 			contract_upgrade_evaluate* upgrade_contract_evaluator = nullptr;
+			contract_transfer_evaluate* contract_transfer_evaluator = nullptr;
 
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
 			std::shared_ptr<address> get_caller_address() const;
@@ -127,6 +129,32 @@ namespace graphene {
 			}
 		};
 
+		struct transfer_contract_operation : public base_operation
+        {
+            struct fee_parameters_type {
+                uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+                uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
+            };
+
+
+            asset fee; // transaction fee limit
+            gas_count_type invoke_cost; // contract invoke gas limit
+            gas_price_type gas_price; // gas price of this contract transaction
+            address caller_addr;
+            fc::ecc::public_key caller_pubkey;
+            address contract_id;
+            asset amount;
+            extensions_type   extensions;
+
+            address fee_payer()const { return caller_addr; }
+            void            validate()const;
+            share_type      calculate_fee(const fee_parameters_type& k)const;
+            void get_required_authorities(vector<authority>& a)const
+            {
+                a.push_back(authority(1, caller_addr, 1));
+            }
+        };
+
 		class ContractHelper
 		{
 		public:
@@ -150,3 +178,5 @@ FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee
 FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_api)(contract_arg))
 FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc))
+FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (fee)(price_per_kbyte))
+FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount))

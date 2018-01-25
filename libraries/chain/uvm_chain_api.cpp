@@ -92,6 +92,9 @@ namespace graphene {
 			else if (evaluator.upgrade_contract_evaluator) {
 				return evaluator.upgrade_contract_evaluator->get_contract_code_by_id(contract_id);
 			}
+			else if (evaluator.contract_transfer_evaluator) {
+				return evaluator.contract_transfer_evaluator->get_contract_code_by_id(contract_id);
+			}
 			else {
 				return nullptr;
 			}
@@ -106,6 +109,9 @@ namespace graphene {
 			}
 			else if (evaluator.upgrade_contract_evaluator) {
 				return evaluator.upgrade_contract_evaluator->get_contract_code_by_name(contract_name);
+			}
+			else if (evaluator.contract_transfer_evaluator) {
+				return evaluator.contract_transfer_evaluator->get_contract_code_by_name(contract_name);
 			}
 			else {
 				return nullptr;
@@ -122,6 +128,9 @@ namespace graphene {
 			else if (evaluator.upgrade_contract_evaluator) {
 				evaluator.upgrade_contract_evaluator->contracts_storage_changes[contract_id] = changes;
 			}
+			else if (evaluator.contract_transfer_evaluator) {
+				evaluator.contract_transfer_evaluator->contracts_storage_changes[contract_id] = changes;
+			}
 		}
 
 		static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(common_contract_evaluator evaluator, const string& contract_id) {
@@ -134,6 +143,9 @@ namespace graphene {
 			else if (evaluator.upgrade_contract_evaluator) {
 				return evaluator.upgrade_contract_evaluator->get_contract_by_id(contract_id);
 			}
+			else if (evaluator.contract_transfer_evaluator) {
+				return evaluator.contract_transfer_evaluator->get_contract_by_id(contract_id);
+			}			
 			else {
 				return nullptr;
 			}
@@ -148,6 +160,9 @@ namespace graphene {
 			}
 			else if (evaluator.upgrade_contract_evaluator) {
 				return evaluator.upgrade_contract_evaluator->get_contract_by_name(contract_name);
+			}
+			else if (evaluator.contract_transfer_evaluator) {
+				return evaluator.contract_transfer_evaluator->get_contract_by_name(contract_name);
 			}
 			else {
 				FC_ASSERT(false);

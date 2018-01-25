@@ -609,6 +609,7 @@ class database_api
       //contract 
       contract_object get_contract_info(const string& contract_address)const;
 	  contract_object get_contract_info_by_name(const string& contract_name)const;
+      vector<asset> get_contract_balance(const address& contract_address) const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -731,6 +732,7 @@ FC_API(graphene::app::database_api,
 	(lookup_multisig_account_pair)
 
     //contract
-     (get_contract_info)
+    (get_contract_info)
 	(get_contract_info_by_name)
+    (get_contract_balance)
 );
