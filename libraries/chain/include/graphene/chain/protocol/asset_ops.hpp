@@ -500,6 +500,23 @@ namespace graphene { namespace chain {
 	   }
    };
 
+   struct gurantee_create_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   address owner_addr;
+	   asset asset_origin;
+	   asset asset_target;
+	   string symbol;
+	   fc::time_point time;
+	   void            validate() const {};
+	   address         fee_payer()const { return owner_addr; }
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, owner_addr, 1));
+	   }
+   };
 
 } } // graphene::chain
 
@@ -544,7 +561,7 @@ FC_REFLECT( graphene::chain::normal_asset_publish_feed_operation::fee_parameters
 FC_REFLECT( graphene::chain::asset_issue_operation::fee_parameters_type, (fee)(price_per_kbyte) )
 FC_REFLECT( graphene::chain::asset_reserve_operation::fee_parameters_type, (fee) )
 FC_REFLECT(graphene::chain::asset_real_create_operation::fee_parameters_type, (fee))
-
+FC_REFLECT(graphene::chain::gurantee_create_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_create_operation,
             (fee)
             (issuer)
@@ -587,3 +604,4 @@ FC_REFLECT( graphene::chain::asset_reserve_operation,
 
 FC_REFLECT( graphene::chain::asset_fund_fee_pool_operation, (fee)(from_account)(asset_id)(amount)(extensions) );
 FC_REFLECT(graphene::chain::asset_real_create_operation, (fee)(issuer)(symbol)(issuer_addr)(precision)(max_supply)(core_fee_paid)(extensions));
+FC_REFLECT(graphene::chain::gurantee_create_operation, (fee)(owner_addr)(asset_origin)(asset_target)(symbol)(time));

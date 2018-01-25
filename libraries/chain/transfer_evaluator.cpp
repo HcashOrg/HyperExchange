@@ -151,6 +151,8 @@ void_result asset_transfer_from_cold_to_hot_evaluator::do_evaluate(const asset_t
 		
 		auto& instance = crosschain::crosschain_manager::get_instance();
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
+		if (!crosschain_interface->valid_config())
+			return void_result();
 		FC_ASSERT(crosschain_interface->validate_other_trx(o.trx));
 	}FC_CAPTURE_AND_RETHROW((o))
 }

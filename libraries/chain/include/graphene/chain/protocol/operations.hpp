@@ -118,7 +118,8 @@ namespace graphene { namespace chain {
 	   graphene::chain::crosschain_withdraw_combine_sign_operation,
 	   graphene::chain::crosschain_withdraw_result_operation,
 	        guard_update_multi_account_operation,
-	        asset_real_create_operation
+	        asset_real_create_operation,
+	        gurantee_create_operation
          > operation;
 
    /// @} // operations group

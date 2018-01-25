@@ -106,6 +106,7 @@ struct get_impacted_account_visitor
    void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()(const asset_real_create_operation& op) {}
+   void operator()(const gurantee_create_operation& op) {}
    void operator()( const miner_create_operation& op )
    {
       _impacted.insert( op.miner_account );

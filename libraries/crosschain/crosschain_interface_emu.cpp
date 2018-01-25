@@ -7,9 +7,10 @@ namespace graphene {
 	namespace crosschain {
 
 
-
-
-
+		bool crosschain_interface_emu::valid_config()
+		{
+			return true;
+		}
 		void crosschain_interface_emu::initialize_config(fc::variant_object &json_config)
 		{
 			config = json_config;

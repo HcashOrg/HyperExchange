@@ -53,7 +53,7 @@ namespace graphene {
 
 			// Initialize with a JSON object.
 			virtual void initialize_config(fc::variant_object &json_config) = 0;
-
+			virtual bool valid_config() = 0;
 			// Create a wallet with given name and optional protect-password.
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) =0;
 
@@ -125,7 +125,6 @@ namespace graphene {
 
 			// Recover wallet.
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
-
 
 		};
 	}

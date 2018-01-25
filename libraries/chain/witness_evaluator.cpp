@@ -111,6 +111,8 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		FC_ASSERT(symbol_addrs_cold.size()==guard_ids.size() && symbol_addrs_hot.size()==guard_ids.size());
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
+		if (!crosschain_interface->valid_config())
+			return void_result();
 		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2 / 3));
 		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2 / 3));
 
@@ -171,7 +173,6 @@ void_result miner_merge_signatures_evaluator::do_evaluate(const miner_merge_sign
 		//need to evalute the correction of the crosschain trx
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		auto crosschain_interface = instance.get_crosschain_handle("EMU");
-
 
 	}FC_CAPTURE_AND_RETHROW((o))
 }

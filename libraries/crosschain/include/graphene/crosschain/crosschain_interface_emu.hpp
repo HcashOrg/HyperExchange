@@ -42,6 +42,7 @@ namespace graphene {
 			virtual ~crosschain_interface_emu() {}
 
 			virtual void initialize_config(fc::variant_object &json_config) override ;
+			virtual bool valid_config() override;
 			virtual bool create_wallet(std::string wallet_name, std::string wallet_passprase) override ;
 			virtual bool unlock_wallet(std::string wallet_name, std::string wallet_passprase, uint32_t duration) override ;
 			virtual bool open_wallet(string wallet_name) override ;
