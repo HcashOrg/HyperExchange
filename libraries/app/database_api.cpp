@@ -380,7 +380,10 @@ void database_api::cancel_all_subscriptions()
 {
    my->cancel_all_subscriptions();
 }
-
+vector<asset> database_api::get_contract_balance(const address & contract_address) const
+{
+    return vector<asset>();
+}
 void database_api_impl::cancel_all_subscriptions()
 {
    set_subscribe_callback( std::function<void(const fc::variant&)>(), true);

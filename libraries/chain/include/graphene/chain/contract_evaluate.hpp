@@ -20,7 +20,7 @@ namespace graphene {
 		class contract_common_evaluate : public evaluator<DerivedEvaluator> {
 		protected:
 			std::vector<asset> gas_fees;
-
+            gas_count_type gas_used;
             std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
             std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
@@ -66,6 +66,18 @@ namespace graphene {
 				*ccode = code;
 				return ccode;
 			}
+            void add_gas_fee(const asset& fee)
+            {
+                for (auto fee_it : gas_fees)
+                {
+                    if (fee_it.asset_id == fee.asset_id)
+                    {
+                        fee_it.amount += fee.amount;
+                        return;
+                    }   
+                }
+                gas_fees.push_back(fee);
+            }
             void deposit_to_contract(const address& contract, const asset& amount)
             {
                 share_type to_deposit = amount.amount;
@@ -293,7 +305,6 @@ namespace graphene {
 
         class contract_transfer_evaluate : public contract_common_evaluate<contract_transfer_evaluate> {
         private:
-            gas_count_type gas_used;
             transfer_contract_operation origin_op;
 
         public:
@@ -304,7 +315,6 @@ namespace graphene {
             void_result do_evaluate(const operation_type& o);
             void_result do_apply(const operation_type& o);
 
-            virtual void pay_fee() override;
 
             std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
             contract_object get_contract_by_name(const string& contract_name) const;

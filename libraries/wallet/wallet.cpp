@@ -1174,7 +1174,47 @@ public:
 		   return signed_tx;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address)(contract_name)(contract_desc))
    }
-   
+   signed_transaction transfer_to_contract(string from,
+       string to,
+       string amount,
+       string asset_symbol,
+       const string& gas_price,
+       const string& gas_limit,
+       bool broadcast = false)
+   {
+       // TODO: invoke_contract_testing
+       FC_ASSERT(!self.is_locked());
+       FC_ASSERT(is_valid_account_name(from));
+
+       transfer_contract_operation transfer_to_contract_op;
+
+       //juge if the name has been registered in the chain
+       auto acc_caller = get_account(from);
+       FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+       auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+       auto caller_pubkey = privkey.get_public_key();
+
+       transfer_to_contract_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+       transfer_to_contract_op.invoke_cost = std::stoll(gas_limit);
+       transfer_to_contract_op.caller_addr = acc_caller.addr;
+       transfer_to_contract_op.caller_pubkey = caller_pubkey;
+       transfer_to_contract_op.contract_id = address(to);
+       transfer_to_contract_op.fee.amount = 0;
+       transfer_to_contract_op.fee.asset_id = asset_id_type(0);
+
+       signed_transaction tx;
+       tx.operations.push_back(transfer_to_contract_op);
+       auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
+       set_operation_fees(tx, current_fees);
+
+       auto dyn_props = get_dynamic_global_properties();
+       tx.set_reference_block(dyn_props.head_block_id);
+       tx.set_expiration(dyn_props.time + fc::seconds(30));
+       tx.validate();
+
+       auto signed_tx = sign_transaction(tx, broadcast);
+       return signed_tx;
+   }
    signed_transaction register_account(string name,
                                        public_key_type owner,
                                        public_key_type active,
@@ -4828,6 +4868,16 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	res.description = cont.contract_desc;;
 	res.createtime = cont.create_time;
 	return res;
+}
+
+signed_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& gas_price, const string& gas_limit, bool broadcast)
+{
+    return my->transfer_to_contract(from, to,amount, asset_symbol, gas_price, gas_limit,broadcast);
+}
+
+vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
+{
+    return vector<asset>();
 }
 
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)

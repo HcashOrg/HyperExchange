@@ -601,7 +601,7 @@ namespace graphene {
 
                     origin_op = o;
                     engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
-                    engine->set_state_pointer_value("invoke_evaluate_state", this);
+                    engine->set_state_pointer_value("transfer_evaluate_state", this);
                     engine->clear_exceptions();
                     auto limit = o.invoke_cost;
                     if (limit < 0 || limit == 0)
@@ -667,10 +667,7 @@ namespace graphene {
             return void_result();
         }
 
-        void contract_transfer_evaluate::pay_fee()
-        {
 
-        }
 
         std::shared_ptr<GluaContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
         {
