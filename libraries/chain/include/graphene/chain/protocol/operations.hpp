@@ -125,7 +125,8 @@ namespace graphene { namespace chain {
 	   contract_upgrade_operation,
 	   graphene::chain::native_contract_register_operation,
 	   contract_invoke_operation,
-	   storage_operation
+	   storage_operation,
+	   transfer_contract_operation
          > operation;
 
    /// @} // operations group

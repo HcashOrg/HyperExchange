@@ -40,7 +40,7 @@ namespace graphene {
 			id.addr = fc::ripemd160::hash(enc.result());
 			return id;
 		}
-
+        
 		void            contract_invoke_operation::validate()const
 		{
 			FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
@@ -73,6 +73,22 @@ namespace graphene {
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
 			return core_fee_required;
 		}
+
+        void            transfer_contract_operation::validate()const
+        {
+            FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
+            // FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
+            FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+        }
+        share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
+        {
+            FC_ASSERT(false, "NOT implemented");
+            // base fee
+            share_type core_fee_required = schedule.fee; // FIXME: contract base fee
+                                                         // bytes size fee
+           // core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
+            return core_fee_required;
+        }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
 		{
