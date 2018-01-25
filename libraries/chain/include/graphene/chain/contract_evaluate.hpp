@@ -24,6 +24,7 @@ namespace graphene {
             std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
             std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
+            std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
 		public:
 			virtual ~contract_common_evaluate(){}
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const
@@ -65,6 +66,39 @@ namespace graphene {
 				*ccode = code;
 				return ccode;
 			}
+            void deposit_to_contract(const address& contract, const asset& amount)
+            {
+                share_type to_deposit = amount.amount;
+                auto index = std::make_pair(contract, amount.asset_id);
+                if (!db().has_contract(contract))
+                    FC_CAPTURE_AND_THROW(contract_not_exsited, (contract));
+                auto withdraw=contract_withdraw.find(index);
+                if(withdraw!= contract_withdraw.end())
+                {
+                    if (withdraw->second >= to_deposit)
+                    {
+                        withdraw->second -= to_deposit;
+                        to_deposit = 0;
+                    }
+                    else
+                    {
+                        to_deposit -= withdraw->second;
+                        withdraw->second = 0;
+                    }
+                }
+                if (to_deposit == 0)
+                    return;
+                auto deposit = deposit_contract.find(index);
+                if (deposit == deposit_contract.end())
+                {
+                    auto res = deposit_contract.insert(std::make_pair(index, 0));
+                    if (res.second)
+                    {
+                        deposit = res.first;
+                    }
+                }
+                deposit_contract[index] += to_deposit;
+            }
 			void do_apply_fees_balance(const address& caller_addr)
 			{
 				for (auto fee : gas_fees)
@@ -78,6 +112,10 @@ namespace graphene {
 			}
             void do_apply_balance()
             {
+                for (auto to_contract = deposit_contract.begin(); to_contract != deposit_contract.end(); to_contract++)
+                {
+                    db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
+                }
                 for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
                 {
                     db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
@@ -89,6 +127,10 @@ namespace graphene {
             }
             void transfer_to_address(const address& contract, const asset & amount, const address & to)
             {
+                //withdraw
+                share_type to_withdraw = amount.amount;
+                if (!db().has_contract(contract))
+                    FC_CAPTURE_AND_THROW(contract_not_exsited, (contract));
                 std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
                 auto balance = contract_balances.find(index);
                 if (balance == contract_balances.end())
@@ -99,23 +141,72 @@ namespace graphene {
                         balance = res.first;
                     }
                 }
-                if (balance->second<amount.amount)
-                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
-                auto withdraw_it = contract_withdraw.find(index);
-                if (withdraw_it != contract_withdraw.end())
+                share_type all_balance = balance->second;
+                auto deposit = deposit_contract.find(index);
+                if (deposit != deposit_contract.end())
                 {
-                    withdraw_it->second += amount.amount;
+                    if (deposit->second >= to_withdraw)
+                    {
+                        deposit->second -= to_withdraw;
+                        to_withraw = 0;
+                    }
+                    else
+                    {
+                        to_withdraw -= deposit->second;
+                        deposit->second = 0;
+                    }
+                }
+                auto withdraw= contract_withdraw.find(index);
+                if (withdraw != contract_withdraw.end())
+                {
+                    withdraw->second += to_withdraw;
                 }
                 else
                 {
-                    contract_withdraw.insert(std::make_pair(index, amount.amount));
+                    contract_withdraw.insert(std::make_pair(index, to_withdraw));
                 }
+                if (balance->second<withdraw->second)
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
+
+                //deposit
                 if (deposit_to_address.find(index) != deposit_to_address.end())
                     deposit_to_address[index] += amount.amount;
                 else
                     deposit_to_address[index] = amount.amount;
                 balance->second -= amount.amount;
 
+            }
+            share_type get_contract_balance(const address& contract, const asset_id_type& asset_id)
+            {
+                //balance= db_balance+deposit-withdraw
+                share_type running_balance;
+                //db_balance
+                std::pair<address, asset_id_type> index = std::make_pair(contract, asset_id);
+                auto balance = contract_balances.find(index);
+                if (balance == contract_balances.end())
+                {
+                    auto res = contract_balances.insert(std::make_pair(index, db().get_contract_balance(index.first, index.second).amount));
+                    if (res.second)
+                    {
+                        balance = res.first;
+                    }
+                }
+                running_balance = balance->second;
+
+                //deposit
+                auto deposit = deposit_contract.find(index);
+                if (deposit != deposit_contract.end())
+                {
+                    running_balance += deposit->second;
+                }
+
+                //withdraw
+                auto withdraw = contract_withdraw.find(index);
+                if (withdraw != contract_withdraw.end())
+                {
+                    running_balance -= withdraw->second;
+                }
+                return running_balance;
             }
 		};
 

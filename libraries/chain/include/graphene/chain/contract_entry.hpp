@@ -38,6 +38,7 @@ namespace blockchain
 
 		FC_DECLARE_EXCEPTION(contract_error, 35000, "contract error");
         FC_DECLARE_DERIVED_EXCEPTION(contract_insufficient_balance, blockchain::contract_engine::contract_error, 35001, "contract insufficient balance");
+        FC_DECLARE_DERIVED_EXCEPTION(contract_not_exsited, blockchain::contract_engine::contract_error, 35002, "contract not exsited");
 	}
 }
 
