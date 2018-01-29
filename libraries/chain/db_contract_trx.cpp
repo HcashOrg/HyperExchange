@@ -60,22 +60,39 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract.contract_address)(name)(value));
 		}
 
-		void database::add_contract_storage_change(const address& contract_id, const string& name, const StorageDataType &diff)
+		void database::add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff)
 		{
 			try {
 				transaction_contract_storage_diff_object obj;
 				obj.contract_address = contract_id;
 				obj.storage_name = name;
 				obj.diff = diff.storage_data;
-				auto& con_db = get_index_type<transaction_contract_storage_diff_index>().indices().get<by_contract_id>();
-				auto con = con_db.find(contract_id);
+				obj.trx_id = trx_id;
 				create<transaction_contract_storage_diff_object>([&](transaction_contract_storage_diff_object & o) {
 					o.contract_address = obj.contract_address;
 					o.diff = obj.diff;
 					o.storage_name = obj.storage_name;
 					o.trx_id = obj.trx_id;
 				});
-			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(diff));
+			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
+		}
+
+		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg)
+		{
+			try {
+				contract_event_notify_object obj;
+				obj.trx_id = trx_id;
+				obj.contract_address = contract_id;
+				obj.event_name = event_name;
+				obj.event_arg = event_arg;
+				auto& conn_db = get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
+				create<contract_event_notify_object>([&](contract_event_notify_object & o) {
+					o.contract_address = obj.contract_address;
+					o.trx_id = obj.trx_id;
+					o.event_name = obj.event_name;
+					o.event_arg = obj.event_arg;
+				});
+			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(event_name)(event_arg));
 		}
 
         void database::store_contract(const contract_object & contract)

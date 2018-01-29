@@ -25,6 +25,7 @@ namespace graphene {
 			std::shared_ptr<fc::ecc::public_key> caller_pubkey;
 
             gas_count_type gas_used;
+			contract_invoke_result invoke_contract_result;
             std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
             std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
@@ -172,6 +173,18 @@ namespace graphene {
                         db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
                 }
             }
+			transaction_id_type get_current_trx_id() const
+			{
+				return trx_state->_trx->id();
+			}
+			void do_apply_contract_event_notifies()
+			{
+				auto trx_id = get_current_trx_id();
+				for (const auto &obj : invoke_contract_result.events)
+				{
+					db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg);
+				}
+			}
             void transfer_to_address(const address& contract, const asset & amount, const address & to)
             {
                 //withdraw
