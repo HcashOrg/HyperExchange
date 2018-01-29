@@ -75,7 +75,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       fc::variant_object get_config()const;
       chain_id_type get_chain_id()const;
       dynamic_global_property_object get_dynamic_global_properties()const;
-
+	  local_property_object get_local_properties() const;
+	  void set_guarantee_id(guarantee_object_id_type id);
       // Keys
       vector<vector<account_id_type>> get_key_references( vector<public_key_type> key )const;
      bool is_public_key_registered(string public_key) const;
@@ -497,10 +498,27 @@ dynamic_global_property_object database_api::get_dynamic_global_properties()cons
 {
    return my->get_dynamic_global_properties();
 }
-
+local_property_object database_api::get_local_properties() const
+{
+	return my->get_local_properties();
+}
+void database_api::set_guarantee_id(guarantee_object_id_type id)
+{
+	return my->set_guarantee_id(id);
+}
 dynamic_global_property_object database_api_impl::get_dynamic_global_properties()const
 {
    return _db.get(dynamic_global_property_id_type());
+}
+local_property_object database_api_impl::get_local_properties() const
+{
+	return _db.get(local_property_id_type());
+}
+void database_api_impl::set_guarantee_id(guarantee_object_id_type id)
+{
+	_db.modify(_db.get(local_property_id_type()), [&id](local_property_object obj) {
+		obj.guarantee_id = id;
+	});
 }
 
 //////////////////////////////////////////////////////////////////////

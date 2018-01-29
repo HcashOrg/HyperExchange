@@ -52,7 +52,6 @@ namespace graphene { namespace chain {
          vector<guard_member_id_type>   active_committee_members; // updated once per maintenance interval
          flat_set<miner_id_type>          active_witnesses; // updated once per maintenance interval
 		 vector<guard_member_id_type> pledge_insufficient_committee_members; // updated once per maintenance interval 
-		 
          // n.b. witness scheduling is done by witness_schedule object
    };
 
@@ -125,6 +124,16 @@ namespace graphene { namespace chain {
             maintenance_flag = 0x01
          };
    };
+
+   class local_property_object : public abstract_object<local_property_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_local_property_object_type;
+	   guarantee_object_id_type guarantee_id;
+   };
+
+
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::db::object),
@@ -151,3 +160,6 @@ FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::obje
                     (active_committee_members)
                     (active_witnesses)
                   )
+	FC_REFLECT_DERIVED(graphene::chain::local_property_object, (graphene::db::object),
+		(guarantee_id)
+	)
