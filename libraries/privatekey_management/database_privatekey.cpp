@@ -98,7 +98,7 @@ namespace graphene {
 
 				_key_index.seekg(0, _key_index.end);
 				if (_key_index.tellg() <= int64_t(index_pos))
-					FC_THROW_EXCEPTION(fc::key_not_found_exception, "key ${id} not contained in privatekey database", ("id", id));
+					FC_THROW_EXCEPTION(fc::key_not_found_exception, "key ${id} not contained in privatekey database", ("id", key_data.id));
 
 				_key_index.seekg(index_pos);
 				_key_index.read((char *)&e, sizeof(e));
@@ -110,7 +110,7 @@ namespace graphene {
 					_key_index.seekp(sizeof(e)*(key_data.id -  1));
 					_key_index.write((char *)&e, sizeof(e));
 				}
-			}FC_THROW_EXCEPTION( (key_data.id) )
+			}FC_CAPTURE_AND_RETHROW( (key_data.id) )
 			
 
 

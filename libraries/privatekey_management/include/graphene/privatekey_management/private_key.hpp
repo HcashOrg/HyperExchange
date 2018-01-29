@@ -17,15 +17,15 @@ namespace graphene {
 	namespace privatekey_management {
 
 
-		class crosschain_privatekey
-		{
-		public:
-			crosschain_privatekey() {}
-
-		private:
-			fc::ecc::private_key  key;
-
-		};
+// 		class crosschain_privatekey
+// 		{
+// 		public:
+// 			crosschain_privatekey() {}
+// 
+// 		private:
+// 			fc::ecc::private_key  key;
+// 
+// 		};
 
 	struct crosschain_privatekey
 	{
