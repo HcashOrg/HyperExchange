@@ -26,6 +26,7 @@
 #include <graphene/chain/global_property_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/witness_schedule_object.hpp>
+#include <graphene/chain/protocol/asset.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <iostream>
 
@@ -109,6 +110,90 @@ void database::update_witness_random_seed(const SecretHashType& new_secret)
 }
 
 
+void database::reset_current_collected_fee()
+{
+	_total_collected_fee = 0;
+}
+
+void database::modify_current_collected_fee(share_type changed_fee)
+{
+	_total_collected_fee += changed_fee;
+}
+
+void database::pay_miner(const miner_id_type& miner_id)
+{
+	// find current account lockbalance
+	try {
+		const global_property_object& gpo = get_global_properties();
+		const auto& dgp = get_dynamic_global_properties();
+
+		auto cache_datas = dgp.current_round_lockbalance_cache;
+		auto miner_obj = get(miner_id);
+		if (cache_datas.count(miner_id) > 0)
+		{
+			auto& one_data = cache_datas[miner_id];
+			share_type all_pledge = miner_obj.pledge_weight;
+			auto all_paid = gpo.parameters.miner_pay_per_block;
+			all_paid += _total_collected_fee;
+			auto miner_account_obj = get(miner_obj.miner_account);
+
+			auto pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
+			share_type all_pledge_paid = 0;
+			for (auto one_pledge : one_data)
+			{
+				
+				auto price_obj = dgp.current_price_feed.at(one_pledge.lock_asset_id);
+
+				if (one_pledge.lock_asset_id == asset_id_type(0))
+				{
+					boost::multiprecision::int128_t cal_end = one_pledge.lock_asset_amount.value;
+					boost::multiprecision::int128_t amount_cal_end = pledge_pay_amount.value * cal_end / all_pledge.value;
+					int64_t end_value = int64_t(amount_cal_end);
+					all_pledge_paid += end_value;
+
+					//todo lock balance contract reward
+					if (one_pledge.lock_balance_contract_addr != address())
+					{
+						continue;
+					}
+					auto lock_account = get(one_pledge.lock_balance_account);
+					adjust_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+				}
+				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
+				{
+					boost::multiprecision::int128_t cal_middle = boost::multiprecision::int128_t(one_pledge.lock_asset_amount.value) * boost::multiprecision::int128_t(price_obj.settlement_price.quote.amount.value);
+					boost::multiprecision::int128_t cal_end = cal_middle / boost::multiprecision::int128_t(price_obj.settlement_price.base.amount.value);
+					//end value
+
+					boost::multiprecision::int128_t amount_cal_end = pledge_pay_amount.value * cal_end / all_pledge.value;
+					int64_t end_value = int64_t(amount_cal_end);
+					all_pledge_paid += end_value;
+					if (one_pledge.lock_balance_contract_addr != address())
+					{
+						continue;
+					}
+					auto lock_account = get(one_pledge.lock_balance_account);
+					adjust_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+
+
+				}
+			}
+
+			adjust_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)));
+		}
+		else
+		{
+			auto miner_account_obj = get(miner_obj.miner_account);
+			auto all_paid = gpo.parameters.miner_pay_per_block;
+			all_paid += _total_collected_fee;
+			adjust_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
+		}
+		
+
+	} FC_CAPTURE_AND_RETHROW()
+}
+
+
 void database::update_miner_schedule()
 {
 	const witness_schedule_object& wso = witness_schedule_id_type()(*this);
@@ -166,6 +251,9 @@ void database::update_miner_schedule()
 			}
 
 
+			
+
+
 			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
@@ -206,6 +294,47 @@ void database::update_miner_schedule()
 			});
 
 		}
+		auto all_lockbalance = get_index_type<lockbalance_index>().indices();
+		const witness_schedule_object& wso_back = witness_schedule_id_type()(*this);
+		std::map<miner_id_type, std::vector<lockbalance_object>> temp_lockbalance_cache;
+		std::map<asset_id_type, price_feed> temp_lockbalance_price_feed;
+		
+		for (const lockbalance_object& one_lockbalance : all_lockbalance)
+		{
+			auto miner_id = std::find(wso_back.current_shuffled_miners.begin(), wso_back.current_shuffled_miners.end(), one_lockbalance.lockto_miner_account);
+			if (miner_id != wso_back.current_shuffled_miners.end())
+			{
+				std::vector<lockbalance_object> temp_locks;
+				if (temp_lockbalance_cache.count(*miner_id))
+				{
+					temp_locks = temp_lockbalance_cache[*miner_id];
+				}
+				temp_locks.push_back(one_lockbalance);
+				temp_lockbalance_cache[*miner_id] = temp_locks;
+				if (temp_lockbalance_price_feed.count(one_lockbalance.lock_asset_id) ==0)
+				{
+					temp_lockbalance_price_feed[one_lockbalance.lock_asset_id] = get(one_lockbalance.lock_asset_id).current_feed;
+				}
+				
+
+			}
+		}
+
+		//current_price_feed
+		modify(dgp, [&](dynamic_global_property_object& _dgp)
+		{
+			_dgp.current_price_feed = temp_lockbalance_price_feed;
+
+		});
+		modify(dgp, [&](dynamic_global_property_object& _dgp)
+		{
+			_dgp.current_round_lockbalance_cache = temp_lockbalance_cache;
+
+		});
+
+
+		
+		
 	}	FC_CAPTURE_AND_RETHROW((block_num))
 
 		

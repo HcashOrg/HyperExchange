@@ -107,10 +107,10 @@ void database::update_signing_miner(const miner_object& signing_witness, const s
 
    share_type miner_pay = std::min( gpo.parameters.miner_pay_per_block, dpo.miner_budget );
 
-   modify( dpo, [&]( dynamic_global_property_object& _dpo )
-   {
-      _dpo.miner_budget -= miner_pay;
-   } );
+   /*  modify( dpo, [&]( dynamic_global_property_object& _dpo )
+	 {
+		_dpo.miner_budget -= miner_pay;
+	 } );*/
 
    deposit_miner_pay( signing_witness, miner_pay );
 

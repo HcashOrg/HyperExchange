@@ -132,7 +132,7 @@ namespace graphene { namespace chain {
     */
    struct fill_order_operation : public base_operation
    {
-      struct fee_parameters_type {};
+	   struct fee_parameters_type { uint64_t fee = 0; };
 
       fill_order_operation(){}
       fill_order_operation( object_id_type o, account_id_type a, asset p, asset r, asset f )
@@ -164,7 +164,7 @@ FC_REFLECT( graphene::chain::limit_order_create_operation::fee_parameters_type, 
 FC_REFLECT( graphene::chain::limit_order_cancel_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::call_order_update_operation::fee_parameters_type, (fee) )
 /// THIS IS THE ONLY VIRTUAL OPERATION THUS FAR... 
-FC_REFLECT( graphene::chain::fill_order_operation::fee_parameters_type,  )
+FC_REFLECT( graphene::chain::fill_order_operation::fee_parameters_type, (fee) )
 
 
 FC_REFLECT( graphene::chain::limit_order_create_operation,(fee)(seller)(amount_to_sell)(min_to_receive)(expiration)(fill_or_kill)(extensions))

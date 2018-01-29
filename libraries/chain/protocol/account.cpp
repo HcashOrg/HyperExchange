@@ -174,6 +174,7 @@ void account_options::validate() const
       else if ( id.type() == vote_id_type::committee && needed_committee )
          --needed_committee;
 
+   FC_ASSERT(miner_pledge_pay_back <= 10 && miner_pledge_pay_back >= 0);
    FC_ASSERT( needed_witnesses == 0 && needed_committee == 0,
               "May not specify fewer witnesses or committee members than the number voted for.");
 }
