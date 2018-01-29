@@ -470,49 +470,48 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			//printf("contract transfer from %s to %s, asset[%s] amount %ld\n", contract_address, to_address, asset_type, amount_str);
 			//return true;
-
+            address f_addr;
+            address t_addr;
+            try {
+                f_addr = address(contract_address);
+            }
+            catch (...)
+            {
+                return -3;
+            }
+            try {
+                t_addr = address(to_address);
+            }
+            catch (...)
+            {
+                return -4;
+            }
 			if (amount <= 0)
 				return -6;
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-			// TODO
-			/*
-			string to_addr;
-			string to_sub;
-			wallet::Wallet::accountsplit(to_address, to_addr, to_sub);
-
-			try
-			{
-				if (!Address::is_valid(contract_address, CONTRACT_ADDRESS_PREFIX))
-					return -3;
-				if (!Address::is_valid(to_addr, TIV_ADDRESS_PREFIX))
-					return -4;
-
-				eval_state_ptr->transfer_asset_from_contract(amount, asset_type,
-					Address(contract_address, AddressType::contract_address), Address(to_addr, AddressType::tic_address));
-
-				eval_state_ptr->_contract_balance_remain -= amount;
-
-			}
-			catch (const fc::exception& err)
-			{
-				switch (err.code())
-				{
-				case 31302:
-					return -2;
-				case 31003: //unknown balance entry
-					return -5;
-				case 31004:
-					return -5;
-				default:
-					L->force_stopping = true;
-					L->exit_code = LUA_API_INTERNAL_ERROR;
-					return -1;
-				}
-			}
-
+            try {
+                if (evaluator.invoke_contract_evaluator)
+                {
+                    asset transfer_amount = evaluator.invoke_contract_evaluator->asset_from_sting(asset_type, "0");
+                    transfer_amount.amount = amount;
+                    evaluator.invoke_contract_evaluator->transfer_to_address(f_addr, transfer_amount,t_addr);
+                }
+                else if (evaluator.contract_transfer_evaluator)
+                {
+                    asset transfer_amount = evaluator.contract_transfer_evaluator->asset_from_sting(asset_type, "0");
+                    transfer_amount.amount = amount;
+                    evaluator.contract_transfer_evaluator->transfer_to_address(f_addr, transfer_amount, t_addr);
+                }
+            }
+            catch (blockchain::contract_engine::invalid_asset_symbol& e)
+            {
+                return -1;//
+            }
+            catch (blockchain::contract_engine::contract_insufficient_balance& e)
+            {
+                return -2;
+            }
 			return 0;
-			*/
-			return -1;
 		}
 
 		lua_Integer UvmChainApi::transfer_from_contract_to_public_account(lua_State *L, const char *contract_address, const char *to_account_name,

@@ -63,6 +63,19 @@ namespace graphene {
 				*ccode = code;
 				return ccode;
 			}
+            asset asset_from_sting(const string& symbol,const string& amount)
+            {
+                auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_symbol>();
+                auto asset_symbol_itr = asset_indx.find(symbol);
+                if (asset_symbol_itr == asset_indx.end())
+                {
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_asset_symbol,(symbol));
+                }
+                else
+                {
+                    return asset_symbol_itr->amount_from_string(amount);
+                }
+            }
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_from_db_by_id(const string &contract_id) const
 			{
 				address contract_addr(contract_id);
@@ -90,6 +103,13 @@ namespace graphene {
                     }   
                 }
                 gas_fees.push_back(fee);
+            }
+            void undo_balance_contract_effected()
+            {
+                contract_withdraw.clear();
+                contract_balances.clear();
+                deposit_to_address.clear();
+                deposit_contract.clear();
             }
             void deposit_to_contract(const address& contract, const asset& amount)
             {
@@ -139,15 +159,18 @@ namespace graphene {
             {
                 for (auto to_contract = deposit_contract.begin(); to_contract != deposit_contract.end(); to_contract++)
                 {
-                    db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
+                    if(to_contract->second!=0)
+                        db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
                 }
                 for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
-                {
-                    db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+                {   
+                    if (to_withraw->second != 0)
+                        db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
                 }
                 for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
                 {
-                    db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
+                    if (to_deposit->second != 0)
+                        db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
                 }
             }
 			transaction_id_type get_current_trx_id() const
@@ -167,7 +190,7 @@ namespace graphene {
                 //withdraw
                 share_type to_withdraw = amount.amount;
                 if (!db().has_contract(contract))
-                    FC_CAPTURE_AND_THROW(contract_not_exsited, (contract));
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
                 std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
                 auto balance = contract_balances.find(index);
                 if (balance == contract_balances.end())
@@ -182,10 +205,22 @@ namespace graphene {
                 auto deposit = deposit_contract.find(index);
                 if (deposit != deposit_contract.end())
                 {
+                    all_balance += deposit->second;
+                }
+                auto withdraw= contract_withdraw.find(index);
+                if (withdraw != contract_withdraw.end())
+                {
+                    all_balance -= withdraw->second;
+                }
+                if(all_balance<to_withdraw)
+                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
+
+                if (deposit != deposit_contract.end())
+                {
                     if (deposit->second >= to_withdraw)
                     {
                         deposit->second -= to_withdraw;
-                        to_withraw = 0;
+                        to_withdraw = 0;
                     }
                     else
                     {
@@ -193,7 +228,6 @@ namespace graphene {
                         deposit->second = 0;
                     }
                 }
-                auto withdraw= contract_withdraw.find(index);
                 if (withdraw != contract_withdraw.end())
                 {
                     withdraw->second += to_withdraw;
@@ -202,16 +236,13 @@ namespace graphene {
                 {
                     contract_withdraw.insert(std::make_pair(index, to_withdraw));
                 }
-                if (balance->second<withdraw->second)
-                    FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
 
                 //deposit
+                index.first = to;
                 if (deposit_to_address.find(index) != deposit_to_address.end())
                     deposit_to_address[index] += amount.amount;
                 else
                     deposit_to_address[index] = amount.amount;
-                balance->second -= amount.amount;
-
             }
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id)
             {

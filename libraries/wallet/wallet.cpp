@@ -1217,7 +1217,9 @@ public:
        FC_ASSERT(is_valid_account_name(from));
 
        transfer_contract_operation transfer_to_contract_op;
-
+       fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+       FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+       asset transfer_asset=asset_obj->amount_from_string(amount);
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
        FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
@@ -1231,6 +1233,7 @@ public:
        transfer_to_contract_op.contract_id = address(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
+       transfer_to_contract_op.amount = transfer_asset;
 
        signed_transaction tx;
        tx.operations.push_back(transfer_to_contract_op);
@@ -4973,7 +4976,7 @@ signed_transaction wallet_api::transfer_to_contract(string from, string to, stri
 
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
 {
-    return vector<asset>();
+    return my->_remote_db->get_contract_balance(address(contract_address));
 }
 
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)

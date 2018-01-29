@@ -238,6 +238,7 @@ void database::initialize_evaluators()
    register_evaluator<native_contract_register_evaluate>();
    register_evaluator<contract_invoke_evaluate>();
    register_evaluator<contract_upgrade_evaluate>();
+   register_evaluator<contract_transfer_evaluate>();
 }
 
 void database::initialize_indexes()
