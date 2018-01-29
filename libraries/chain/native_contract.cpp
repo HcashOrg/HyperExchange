@@ -54,6 +54,16 @@ namespace graphene {
 			return storage_changes[storage_name].after;
 		}
 
+		void abstract_native_contract::emit_event(const address& contract_address, const string& event_name, const string& event_arg)
+		{
+			FC_ASSERT(!event_name.empty());
+			contract_event_notify_info info;
+			info.contract_address = contract_address;
+			info.event_name = event_name;
+			info.event_arg;
+			_contract_invoke_result.events.push_back(info);
+		}
+
 		std::string demo_native_contract::contract_key() const
 		{
 			return demo_native_contract::native_contract_key();
@@ -97,6 +107,7 @@ namespace graphene {
 		}
 
 		static const string not_inited_state_of_token_contract = "NOT_INITED";
+		static const string common_state_of_token_contract = "COMMON";
 
 		contract_invoke_result token_native_contract::init_api(const std::string& api_name, const std::string& api_arg)
 		{
@@ -130,6 +141,13 @@ namespace graphene {
 			auto state_storage = get_contract_storage(contract_id, string("state"));
 			auto state = jsondiff::json_loads(state_storage.as<string>());
 			return state.as_string();
+		}
+
+		jsondiff::JsonObject token_native_contract::get_storage_users()
+		{
+			auto users_storage = get_contract_storage(contract_id, string("users"));
+			auto users = jsondiff::json_loads(users_storage.as<string>());
+			return users.as<jsondiff::JsonObject>();
 		}
 
 		static bool is_numeric(std::string number)
@@ -174,7 +192,7 @@ namespace graphene {
 			std::vector<int64_t> allowed_precisions = { 1,10,100,1000,10000,100000,1000000,10000000,100000000 };
 			if(std::find(allowed_precisions.begin(), allowed_precisions.end(), precision) == allowed_precisions.end())
 				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, precision must be any one of [1,10,100,1000,10000,100000,1000000,10000000,100000000]");
-			set_contract_storage(contract_id, string("state"), string("\"") + "COMMON" + "\"");
+			set_contract_storage(contract_id, string("state"), string("\"") + common_state_of_token_contract + "\"");
 			set_contract_storage(contract_id, string("precision"), string("") + std::to_string(precision));
 			set_contract_storage(contract_id, string("supply"), string("") + std::to_string(supply));
 			set_contract_storage(contract_id, string("name"), string("\"") + name + "\"");
@@ -183,6 +201,46 @@ namespace graphene {
 			auto caller_addr = string(*_evaluate.get_caller_address());
 			users[caller_addr] = supply;
 			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+			emit_event(contract_id, "Inited", supply_str);
+			return _contract_invoke_result;
+		}
+
+		contract_invoke_result token_native_contract::transfer_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow transfer");
+			std::vector<string> parsed_args;
+			boost::split(parsed_args, api_arg, boost::is_any_of(","));
+			if (parsed_args.size() < 2)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, need format: toAddress,amount(with precision, integer)");
+			string to_address = parsed_args[0];
+			boost::trim(to_address);
+			if(!address::is_valid(to_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, to address format error");
+			string amount_str = parsed_args[1];
+			boost::trim(amount_str);
+			if(!is_integral(amount_str))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+			int64_t amount = std::stoll(amount_str);
+			if(amount <= 0)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+			
+			string from_addr = string(*_evaluate.get_caller_address()); // FIXME: when get from_address, caller maybe other contract
+			auto users = get_storage_users();
+			if(users.find(from_addr)==users.end() || users[from_addr].as_int64()<amount)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "you have not enoungh amount to transfer out");
+			auto from_addr_remain = users[from_addr].as_int64() - amount;
+			if (from_addr_remain > 0)
+				users[from_addr] = from_addr_remain;
+			else
+				users.erase(from_addr);
+			users[to_address] = users[to_address].as_int64() + amount;
+			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+			jsondiff::JsonObject event_arg;
+			event_arg["from"] = from_addr;
+			event_arg["to"] = to_address;
+			event_arg["amount"] = amount;
+			emit_event(contract_id, "Transfer", jsondiff::json_dumps(event_arg));
 			return _contract_invoke_result;
 		}
 

@@ -31,6 +31,7 @@ namespace graphene {
 
 			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
 			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
+			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
 		};
 
 		// FIXME: remove the demo native contract
@@ -67,13 +68,12 @@ namespace graphene {
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
 			string check_admin();
 			string get_storage_state();
+			jsondiff::JsonObject get_storage_users();
 
 			contract_invoke_result init_api(const std::string& api_name, const std::string& api_arg);
 			// TODO
 			contract_invoke_result init_token_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
+			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result transfer_from_api(const std::string& api_name, const std::string& api_arg) {
 				return _contract_invoke_result;
 			}

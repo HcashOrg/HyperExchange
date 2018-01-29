@@ -115,7 +115,7 @@ namespace graphene { namespace chain {
    public:
 	   static const uint8_t space_id = protocol_ids;
 	   static const uint8_t type_id = contract_storage_diff_type;
-	   std::string trx_id; // FIXME
+	   transaction_id_type trx_id;
 	   address contract_address;
 	   std::string storage_name;
 	   std::vector<char> diff;

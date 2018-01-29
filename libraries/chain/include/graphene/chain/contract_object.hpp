@@ -23,6 +23,7 @@ namespace graphene {
 			string contract_desc;
 			bool is_native_contract = false;
 			string native_contract_key; // key to find native contract code
+
         };
         struct by_contract_obj_id {};
         typedef multi_index_container<
@@ -106,6 +107,28 @@ namespace graphene {
         * @ingroup object_index
         */
         using contract_balance_index = generic_index<contract_balance_object, contract_balance_multi_index_type>;
+
+		class contract_event_notify_object : public abstract_object<contract_event_notify_object>
+		{
+		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = contract_event_notify_object_type;
+
+			address contract_address;
+			string event_name;
+			string event_arg;
+			transaction_id_type trx_id;
+		};
+
+		using contract_event_notify_multi_index_type = multi_index_container<
+			contract_event_notify_object,
+			indexed_by<
+			ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+			ordered_non_unique<tag<by_contract_id>, member<contract_event_notify_object, address, &contract_event_notify_object::contract_address>>
+			>
+		>;
+		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;
+
     }
 }
 
@@ -115,3 +138,5 @@ FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::obje
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
     (owner)(balance)(vesting_policy)(last_claim_date))
+FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
+	(contract_address)(event_name)(event_arg)(trx_id))
