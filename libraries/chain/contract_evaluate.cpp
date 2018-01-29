@@ -679,12 +679,14 @@ namespace graphene {
             FC_ASSERT(d.has_contract(o.contract_id));
             auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
-            try {
+            if(contract.code.abi.find("on_deposit")!= contract.code.abi.end())
+            {
+                try {
                 if (contract.is_native_contract)
                 {
                     FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
-					common_contract_evaluator evaluator;
-					evaluator.contract_transfer_evaluator = this;
+                    common_contract_evaluator evaluator;
+                    evaluator.contract_transfer_evaluator = this;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(evaluator, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
                     auto invoke_result = native_contract->invoke("on_deposit", fc::json::to_string(o.amount));
@@ -728,6 +730,7 @@ namespace graphene {
                     FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
                     auto required = count_gas_fee(o.gas_price, gas_used);
                     // TODO: withdraw required gas fee from owner
+                    gas_fees.push_back(required);
 
                 }
             }
@@ -744,7 +747,7 @@ namespace graphene {
             {
                 FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
             }
-
+        }
             return void_result();
         }
 
@@ -767,7 +770,8 @@ namespace graphene {
                 }
             }
 
-            do_apply_fees_balance(origin_op.caller_addr);
+            do_apply_fees_balance(o.caller_addr);
+            d.adjust_balance(o.caller_addr, asset(0, o.amount.asset_id) - o.amount);
             do_apply_balance();
             return void_result();
         }

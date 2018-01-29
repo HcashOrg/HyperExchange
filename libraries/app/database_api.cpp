@@ -163,7 +163,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       //contract 
       contract_object get_contract_info(const string& contract_address)const ;
 	  contract_object get_contract_info_by_name(const string& contract_name) const;
-
+      vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
    //private:
       template<typename T>
@@ -357,6 +357,19 @@ contract_object database_api_impl::get_contract_info_by_name(const string& contr
 		return res;
 	}FC_CAPTURE_AND_RETHROW((contract_name))
 }
+vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
+{
+    vector<asset> res;
+    auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
+    for (auto it : db)
+    {
+        if (it.owner == contract_address)
+        {
+            res.push_back(it.balance);
+        }
+    }
+    return res;
+}
 void database_api::set_pending_transaction_callback( std::function<void(const variant&)> cb )
 {
    my->set_pending_transaction_callback( cb );
@@ -383,7 +396,7 @@ void database_api::cancel_all_subscriptions()
 }
 vector<asset> database_api::get_contract_balance(const address & contract_address) const
 {
-    return vector<asset>();
+    return my->get_contract_balance(contract_address);
 }
 void database_api_impl::cancel_all_subscriptions()
 {

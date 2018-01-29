@@ -40,7 +40,6 @@ namespace graphene {
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
 			std::shared_ptr<address> get_caller_address() const;
 			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
-
 			static common_contract_evaluator get_contract_evaluator(lua_State *L);
 		};
 

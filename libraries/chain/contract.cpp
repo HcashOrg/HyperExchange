@@ -81,12 +81,7 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            FC_ASSERT(false, "NOT implemented");
-            // base fee
-            share_type core_fee_required = schedule.fee; // FIXME: contract base fee
-                                                         // bytes size fee
-           // core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
-            return core_fee_required;
+            return 0;
         }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
