@@ -52,7 +52,7 @@ namespace graphene { namespace privatekey_management {
 
 	std::string  get_ltc_wif_key(fc::ecc::private_key& priv_key)
 	{
-		fc::sha256& secret = priv_key.get_secret();
+		/*fc::sha256& secret = priv_key.get_secret();
 
 		const size_t size_of_data_to_hash = sizeof(secret) + 1 ;
 		const size_t size_of_hash_bytes = 4;
@@ -66,8 +66,23 @@ namespace graphene { namespace privatekey_management {
 		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
 		digest = fc::sha256::hash(digest);
 		memcpy(data + size_of_data_to_hash + 1, (char*)&digest, size_of_hash_bytes);
+		return fc::to_base58(data, sizeof(data));*/
+
+		fc::sha256& secret = priv_key.get_secret();
+
+		const size_t size_of_data_to_hash = sizeof(secret) + 1;
+		const size_t size_of_hash_bytes = 4;
+		char data[size_of_data_to_hash + size_of_hash_bytes];
+		data[0] = (char)0xB0;
+		memcpy(&data[1], (char*)&secret, sizeof(secret));
+		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
+		digest = fc::sha256::hash(digest);
+		memcpy(data + size_of_data_to_hash, (char*)&digest, size_of_hash_bytes);
 		return fc::to_base58(data, sizeof(data));
+
+
 	}
+
 
 
 	std::string  get_ltc_address(fc::ecc::private_key& priv_key)
@@ -87,6 +102,7 @@ namespace graphene { namespace privatekey_management {
 
 	fc::optional<fc::ecc::private_key>  import_ltc_private_key(std::string& wif_key)
 	{
+/*
 		std::vector<char> wif_bytes;
 		try
 		{
@@ -99,7 +115,7 @@ namespace graphene { namespace privatekey_management {
 		if (wif_bytes.size() < 5)
 			return fc::optional<fc::ecc::private_key>();
 
-// 		printf("the size is  %d\n", wif_bytes.size());
+		printf("the size is  %d\n", wif_bytes.size());
 
 		std::vector<char> key_bytes(wif_bytes.begin() + 1, wif_bytes.end() - 5);
 
@@ -111,7 +127,9 @@ namespace graphene { namespace privatekey_management {
 			memcmp((char*)&check2, wif_bytes.data() + wif_bytes.size() - 4, 4) == 0)
 			return key;
 
-		return fc::optional<fc::ecc::private_key>();
+		return fc::optional<fc::ecc::private_key>();*/
+
+		return graphene::utilities::wif_to_key(wif_key);
 
 	}
 
