@@ -143,11 +143,32 @@ namespace graphene {
 			return state.as_string();
 		}
 
+		int64_t token_native_contract::get_storage_supply()
+		{
+			auto supply_storage = get_contract_storage(contract_id, string("supply"));
+			auto supply = jsondiff::json_loads(supply_storage.as<string>());
+			return supply.as_int64();
+		}
+		int64_t token_native_contract::get_storage_precision()
+		{
+			auto precision_storage = get_contract_storage(contract_id, string("precision"));
+			auto precision = jsondiff::json_loads(precision_storage.as<string>());
+			return precision.as_int64();
+		}
+
 		jsondiff::JsonObject token_native_contract::get_storage_users()
 		{
 			auto users_storage = get_contract_storage(contract_id, string("users"));
 			auto users = jsondiff::json_loads(users_storage.as<string>());
 			return users.as<jsondiff::JsonObject>();
+		}
+
+		int64_t token_native_contract::get_balance_of_user(const string& owner_addr)
+		{
+			const auto& users = get_storage_users();
+			if (users.find(owner_addr) == users.end())
+				return 0;
+			return users[owner_addr].as_int64();
 		}
 
 		static bool is_numeric(std::string number)
@@ -202,6 +223,43 @@ namespace graphene {
 			users[caller_addr] = supply;
 			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
 			emit_event(contract_id, "Inited", supply_str);
+			return _contract_invoke_result;
+		}
+
+		contract_invoke_result token_native_contract::balance_of_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow transfer");
+			std::string owner_addr = api_arg;
+			if(!address::is_valid(owner_addr))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "owner address is not valid address format");
+			auto amount = get_balance_of_user(owner_addr);
+			printf("amount: %ld\n", amount); // FIXME: remove it
+			_contract_invoke_result.api_result = std::to_string(amount);
+			return _contract_invoke_result;
+		}
+
+		contract_invoke_result token_native_contract::state_api(const std::string& api_name, const std::string& api_arg)
+		{
+			auto state = get_storage_state();
+			printf("state: %s\n", state.c_str()); // FIXME: remove it
+			_contract_invoke_result.api_result = state;
+			return _contract_invoke_result;
+		}
+
+
+		contract_invoke_result token_native_contract::supply_api(const std::string& api_name, const std::string& api_arg)
+		{
+			auto supply = get_storage_supply();
+			printf("supply: %ld\n", supply); // FIXME: remove it
+			_contract_invoke_result.api_result = std::to_string(supply);
+			return _contract_invoke_result;
+		}
+		contract_invoke_result token_native_contract::precision_api(const std::string& api_name, const std::string& api_arg)
+		{
+			auto precision = get_storage_precision();
+			printf("precision: %ld\n", precision); // FIXME: remove it
+			_contract_invoke_result.api_result = std::to_string(precision);
 			return _contract_invoke_result;
 		}
 

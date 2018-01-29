@@ -68,18 +68,24 @@ namespace graphene {
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
 			string check_admin();
 			string get_storage_state();
+			int64_t get_storage_supply();
+			int64_t get_storage_precision();
 			jsondiff::JsonObject get_storage_users();
+			int64_t get_balance_of_user(const string& owner_addr);
 
 			contract_invoke_result init_api(const std::string& api_name, const std::string& api_arg);
-			// TODO
 			contract_invoke_result init_token_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result balance_of_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg);
+
+			// TODO
 			contract_invoke_result transfer_from_api(const std::string& api_name, const std::string& api_arg) {
 				return _contract_invoke_result;
 			}
-			contract_invoke_result balance_of_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
+			
 			contract_invoke_result approve_api(const std::string& api_name, const std::string& api_arg) {
 				return _contract_invoke_result;
 			}
@@ -87,15 +93,6 @@ namespace graphene {
 				return _contract_invoke_result;
 			}
 			contract_invoke_result allApproved_from_user_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
-			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
-			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
-			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg) {
 				return _contract_invoke_result;
 			}
 		};
