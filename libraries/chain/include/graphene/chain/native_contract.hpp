@@ -71,7 +71,9 @@ namespace graphene {
 			int64_t get_storage_supply();
 			int64_t get_storage_precision();
 			jsondiff::JsonObject get_storage_users();
+			jsondiff::JsonObject get_storage_allowed();
 			int64_t get_balance_of_user(const string& owner_addr);
+			std::string get_from_address();
 
 			contract_invoke_result init_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result init_token_api(const std::string& api_name, const std::string& api_arg);
@@ -80,21 +82,19 @@ namespace graphene {
 			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg);
-
-			// TODO
-			contract_invoke_result transfer_from_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
+			// 授权另一个用户可以从自己的余额中提现
+			// arg format : spenderAddress, amount(with precision)
+			contract_invoke_result approve_api(const std::string& api_name, const std::string& api_arg);
+			// spender用户从授权人授权的金额中发起转账
+			// arg format : fromAddress, toAddress, amount(with precision)
+			contract_invoke_result transfer_from_api(const std::string& api_name, const std::string& api_arg);
+			// 查询一个用户被另外某个用户授权的金额
+			// arg format : spenderAddress, authorizerAddress
+			contract_invoke_result approved_balance_from_api(const std::string& api_name, const std::string& api_arg);
+			// 查询用户授权给其他人的所有金额
+			// arg format : fromAddress
+			contract_invoke_result all_approved_from_user_api(const std::string& api_name, const std::string& api_arg);
 			
-			contract_invoke_result approve_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
-			contract_invoke_result approved_balance_from_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
-			contract_invoke_result allApproved_from_user_api(const std::string& api_name, const std::string& api_arg) {
-				return _contract_invoke_result;
-			}
 		};
 
 		class native_contract_finder

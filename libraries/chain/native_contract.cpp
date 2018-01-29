@@ -163,12 +163,24 @@ namespace graphene {
 			return users.as<jsondiff::JsonObject>();
 		}
 
+		jsondiff::JsonObject token_native_contract::get_storage_allowed()
+		{
+			auto allowed_storage = get_contract_storage(contract_id, string("allowed"));
+			auto allowed = jsondiff::json_loads(allowed_storage.as<string>());
+			return allowed.as<jsondiff::JsonObject>();
+		}
+
 		int64_t token_native_contract::get_balance_of_user(const string& owner_addr)
 		{
 			const auto& users = get_storage_users();
 			if (users.find(owner_addr) == users.end())
 				return 0;
 			return users[owner_addr].as_int64();
+		}
+
+		std::string token_native_contract::get_from_address()
+		{
+			return string(*_evaluate.get_caller_address()); // FIXME: when get from_address, caller maybe other contract
 		}
 
 		static bool is_numeric(std::string number)
@@ -263,6 +275,58 @@ namespace graphene {
 			return _contract_invoke_result;
 		}
 
+		contract_invoke_result token_native_contract::approved_balance_from_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow this api");
+			auto allowed = get_storage_allowed();
+			std::vector<string> parsed_args;
+			boost::split(parsed_args, api_arg, boost::is_any_of(","));
+			if (parsed_args.size() < 2)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, need format: spenderAddress, authorizerAddress");
+			string spender_address = parsed_args[0];
+			boost::trim(spender_address);
+			if (!address::is_valid(spender_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, spender address format error");
+			string authorizer_address = parsed_args[1];
+			boost::trim(authorizer_address);
+			if (!address::is_valid(authorizer_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, authorizer address format error");
+			int64_t approved_amount = 0;
+			if (allowed.find(authorizer_address) != allowed.end())
+			{
+				jsondiff::JsonObject allowed_data = jsondiff::json_loads(allowed[authorizer_address].as_string()).as<jsondiff::JsonObject>();
+				if (allowed_data.find(spender_address) != allowed_data.end())
+				{
+					approved_amount = allowed_data[spender_address].as_int64();
+				}
+			}
+
+			printf("approved amount: %ld\n", approved_amount); // FIXME: remove it
+			_contract_invoke_result.api_result = std::to_string(approved_amount);
+			return _contract_invoke_result;
+		}
+		contract_invoke_result token_native_contract::all_approved_from_user_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow this api");
+			auto allowed = get_storage_allowed();
+			string from_address = api_arg;
+			boost::trim(from_address);
+			if (!address::is_valid(from_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, from address format error");
+			
+			jsondiff::JsonObject allowed_data;
+			if (allowed.find(from_address) != allowed.end())
+			{
+				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
+			}
+			auto allowed_data_str = jsondiff::json_dumps(allowed_data);
+			printf("approved amount: %s\n", allowed_data_str.c_str()); // FIXME: remove it
+			_contract_invoke_result.api_result = allowed_data_str;
+			return _contract_invoke_result;
+		}
+
 		contract_invoke_result token_native_contract::transfer_api(const std::string& api_name, const std::string& api_arg)
 		{
 			if (get_storage_state() != common_state_of_token_contract)
@@ -283,7 +347,7 @@ namespace graphene {
 			if(amount <= 0)
 				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
 			
-			string from_addr = string(*_evaluate.get_caller_address()); // FIXME: when get from_address, caller maybe other contract
+			string from_addr = get_from_address();
 			auto users = get_storage_users();
 			if(users.find(from_addr)==users.end() || users[from_addr].as_int64()<amount)
 				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "you have not enoungh amount to transfer out");
@@ -302,6 +366,111 @@ namespace graphene {
 			return _contract_invoke_result;
 		}
 
+		contract_invoke_result token_native_contract::approve_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow approve");
+			std::vector<string> parsed_args;
+			boost::split(parsed_args, api_arg, boost::is_any_of(","));
+			if (parsed_args.size() < 2)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, need format: spenderAddress, amount(with precision, integer)");
+			string spender_address = parsed_args[0];
+			boost::trim(spender_address);
+			if (!address::is_valid(spender_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, spender address format error");
+			string amount_str = parsed_args[1];
+			boost::trim(amount_str);
+			if (!is_integral(amount_str))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+			int64_t amount = std::stoll(amount_str);
+			if (amount <= 0)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+			auto allowed = get_storage_allowed();
+			jsondiff::JsonObject allowed_data;
+			std::string contract_caller = get_from_address();
+			if (allowed.find(contract_caller) == allowed.end())
+				allowed_data = jsondiff::JsonObject();
+			else
+			{
+				allowed_data = jsondiff::json_loads(allowed[contract_caller].as_string()).as<jsondiff::JsonObject>();
+			}
+			allowed_data[spender_address] = amount;
+			allowed[contract_caller] = jsondiff::json_dumps(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), jsondiff::json_dumps(allowed));
+			jsondiff::JsonObject event_arg;
+			event_arg["from"] = contract_caller;
+			event_arg["spender"] = spender_address;
+			event_arg["amount"] = amount;
+			emit_event(contract_id, "Approved", jsondiff::json_dumps(event_arg));
+			return _contract_invoke_result;
+		}
+
+		contract_invoke_result token_native_contract::transfer_from_api(const std::string& api_name, const std::string& api_arg)
+		{
+			if (get_storage_state() != common_state_of_token_contract)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "this token contract state doesn't allow transferFrom");
+			std::vector<string> parsed_args;
+			boost::split(parsed_args, api_arg, boost::is_any_of(","));
+			if (parsed_args.size() < 3)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, need format:fromAddress, toAddress, amount(with precision, integer)");
+			string from_address = parsed_args[0];
+			boost::trim(from_address);
+			if (!address::is_valid(from_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, from address format error");
+			string to_address = parsed_args[1];
+			boost::trim(to_address);
+			if (!address::is_valid(to_address))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, to address format error");
+			string amount_str = parsed_args[2];
+			boost::trim(amount_str);
+			if (!is_integral(amount_str))
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+			int64_t amount = std::stoll(amount_str);
+			if (amount <= 0)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "argument format error, amount must be positive integer");
+
+			auto users = get_storage_users();
+			auto allowed = get_storage_allowed();
+			if (get_balance_of_user(from_address) < amount)
+			{
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "fromAddress not have enough token to withdraw");
+			}
+			jsondiff::JsonObject allowed_data;
+			if (allowed.find(from_address) == allowed.end())
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "not enough approved amount to withdraw");
+			else
+			{
+				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
+			}
+			auto contract_caller = get_from_address();
+			if(allowed_data.find(contract_caller)==allowed_data.end())
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "not enough approved amount to withdraw");
+			auto approved_amount = allowed_data[contract_caller].as_int64();
+			if(approved_amount < amount)
+				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "not enough approved amount to withdraw");
+			auto from_addr_remain = users[from_address].as_int64() - amount;
+			if (from_addr_remain > 0)
+				users[from_address] = from_addr_remain;
+			else
+				users.erase(from_address);
+			users[to_address] = users[to_address].as_int64() + amount;
+			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+							
+			allowed_data[contract_caller] = approved_amount - amount;
+			if (allowed_data[contract_caller].as_int64() == 0)
+				allowed_data.erase(contract_caller);
+			allowed[from_address] = jsondiff::json_dumps(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), jsondiff::json_dumps(allowed));
+									
+			jsondiff::JsonObject event_arg;
+			event_arg["from"] = from_address;
+			event_arg["to"] = to_address;
+			event_arg["amount"] = amount;
+			emit_event(contract_id, "Transfer", jsondiff::json_dumps(event_arg));
+			
+			return _contract_invoke_result;
+		}
+
 		contract_invoke_result token_native_contract::invoke(const std::string& api_name, const std::string& api_arg) {
 			std::map<std::string, std::function<contract_invoke_result(const std::string&, const std::string&)>> apis = {
 				{"init", std::bind(&token_native_contract::init_api, this, std::placeholders::_1, std::placeholders::_2)},
@@ -311,6 +480,7 @@ namespace graphene {
 				{"balanceOf", std::bind(&token_native_contract::balance_of_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"approve", std::bind(&token_native_contract::approve_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"approvedBalanceFrom", std::bind(&token_native_contract::approved_balance_from_api, this, std::placeholders::_1, std::placeholders::_2)},
+				{"allApprovedFromUser", std::bind(&token_native_contract::all_approved_from_user_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"state", std::bind(&token_native_contract::state_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"supply", std::bind(&token_native_contract::supply_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"precision", std::bind(&token_native_contract::precision_api, this, std::placeholders::_1, std::placeholders::_2)}
