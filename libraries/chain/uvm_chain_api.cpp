@@ -82,40 +82,55 @@ namespace graphene {
 			return 0; // FIXME: need fill by uvm api
 		}
 
+
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
-			if (evaluator) {
-				return evaluator->get_contract_code_by_id(contract_id);
-			}
-            return nullptr;
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_code_by_id(contract_id);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
 		 }
 
-		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
-			if (evaluator) {
- 				return evaluator->get_contract_code_by_name(contract_name);
-			}
-		    return nullptr;
-		}
+        static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_code_by_name(contract_name);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
 
-		static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
-			if (evaluator) {
-                evaluator->contracts_storage_changes[contract_id] = changes;
-			}
-		}
+        static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
+            try {
+                if (evaluator) {
+                    evaluator->contracts_storage_changes[contract_id] = changes;
+                }
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
+        static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_by_id(contract_id);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
 
-		static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
-			if (evaluator) {
-				return evaluator->get_contract_by_id(contract_id);
-			}
-			return nullptr;
-		}
+        static contract_object get_contract_info_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_by_name(contract_name);
+                }
+                FC_ASSERT(false);
+                return contract_object();
+            }FC_CAPTURE_AND_LOG((contract_object()))
+       
+        }
 
-		static contract_object get_contract_info_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
-			if (evaluator) {
-				return evaluator->get_contract_by_name(contract_name);
-			}
-            FC_ASSERT(false);
-			return contract_object();
-		}
+
+
+
 
 		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
 		{
@@ -149,7 +164,7 @@ namespace graphene {
 		{
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
-			auto is_address = address::is_valid(contract_name) ? true : false;
+			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
 			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
 			if (code && !contract_addr.empty())
@@ -728,7 +743,7 @@ namespace graphene {
 		bool UvmChainApi::is_valid_address(lua_State *L, const char *address_str)
 		{
 			std::string addr(address_str);
-			return address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX); // TODO: or contract address or other address format
+			return address::is_valid(addr);
 		}
 		const char* UvmChainApi::get_system_asset_symbol(lua_State *L)
 		{

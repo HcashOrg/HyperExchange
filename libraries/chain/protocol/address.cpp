@@ -31,9 +31,9 @@ namespace graphene {
   namespace chain {
    address::address(){}
 
-   address::address( const std::string& base58str )
+   address::address( const std::string& base58str, const char *prefix_str)
    {
-      std::string prefix( GRAPHENE_ADDRESS_PREFIX );
+      std::string prefix(prefix_str);
       FC_ASSERT( is_valid( base58str, prefix ), "${str}", ("str",base58str) );
 
       std::vector<char> v = fc::from_base58( base58str.substr( prefix.size() ) );
@@ -42,6 +42,8 @@ namespace graphene {
 
    bool address::is_valid( const std::string& base58str, const std::string& prefix )
    {
+	   if (prefix.empty())
+		   return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX) || is_valid(base58str, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
       const size_t prefix_len = prefix.size();
       if( base58str.size() <= prefix_len )
           return false;
@@ -73,6 +75,15 @@ namespace graphene {
        addr = fc::ripemd160::hash( fc::sha512::hash( dat.data, sizeof( dat ) ) );
    }
 
+   std::string address::address_to_string(const char *prefix) const
+   {
+	   fc::array<char, 24> bin_addr;
+	   memcpy((char*)&bin_addr, (char*)&addr, sizeof(addr));
+	   auto checksum = fc::ripemd160::hash((char*)&addr, sizeof(addr));
+	   memcpy(((char*)&bin_addr) + 20, (char*)&checksum._hash[0], 4);
+	   return prefix + fc::to_base58(bin_addr.data, sizeof(bin_addr));
+   }
+
    address::address( const pts_address& ptsaddr )
    {
        addr = fc::ripemd160::hash( (char*)&ptsaddr, sizeof( ptsaddr ) );
@@ -90,11 +101,7 @@ namespace graphene {
 
    address::operator std::string()const
    {
-        fc::array<char,24> bin_addr;
-        memcpy( (char*)&bin_addr, (char*)&addr, sizeof( addr ) );
-        auto checksum = fc::ripemd160::hash( (char*)&addr, sizeof( addr ) );
-        memcpy( ((char*)&bin_addr)+20, (char*)&checksum._hash[0], 4 );
-        return GRAPHENE_ADDRESS_PREFIX + fc::to_base58( bin_addr.data, sizeof( bin_addr ) );
+	   return address_to_string(GRAPHENE_ADDRESS_PREFIX);
    }
 
 } } // namespace graphene::chain

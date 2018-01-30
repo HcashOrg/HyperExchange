@@ -55,7 +55,13 @@ namespace graphene {
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
 			std::shared_ptr<address> get_caller_address() const;
 			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
+
 			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
+
+			void transfer_to_address(const address& contract, const asset & amount, const address & to);
+			asset asset_from_sting(const string& symbol,const string& amount);
+
+
 		};
 
 		struct contract_register_operation : public base_operation

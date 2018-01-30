@@ -76,6 +76,32 @@ namespace graphene {
 				return upgrade_contract_evaluator->get_caller_pubkey();
 			FC_ASSERT(false);
 		}
+		void common_contract_evaluator::transfer_to_address(const address& contract, const asset & amount, const address & to)
+		{
+			if (register_contract_evaluator)
+				register_contract_evaluator->transfer_to_address(contract, amount, to);
+			else if (register_native_contract_evaluator)
+				register_native_contract_evaluator->transfer_to_address(contract, amount, to);
+			else if (invoke_contract_evaluator)
+				invoke_contract_evaluator->transfer_to_address(contract, amount, to);
+			else if (upgrade_contract_evaluator)
+				upgrade_contract_evaluator->transfer_to_address(contract, amount, to);
+			else
+				FC_ASSERT(false);
+		}
+
+		asset common_contract_evaluator::asset_from_sting(const string& symbol, const string& amount)
+		{
+			if (register_contract_evaluator)
+				return register_contract_evaluator->asset_from_sting(symbol, amount);
+			if (register_native_contract_evaluator)
+				return register_native_contract_evaluator->asset_from_sting(symbol, amount);
+			if (invoke_contract_evaluator)
+				return invoke_contract_evaluator->asset_from_sting(symbol, amount);
+			if (upgrade_contract_evaluator)
+				return upgrade_contract_evaluator->asset_from_sting(symbol, amount);
+			FC_ASSERT(false);
+		}
 
         contract_common_evaluate* common_contract_evaluator::get_contract_evaluator(lua_State *L) {
 			auto register_contract_evaluator = get_register_contract_evaluator(L);
