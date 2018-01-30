@@ -156,30 +156,25 @@ namespace graphene {
 			FC_ASSERT(false);
 		}
 
-		common_contract_evaluator common_contract_evaluator::get_contract_evaluator(lua_State *L) {
-			common_contract_evaluator evaluator;
+        contract_common_evaluate* common_contract_evaluator::get_contract_evaluator(lua_State *L) {
 			auto register_contract_evaluator = get_register_contract_evaluator(L);
 			if (register_contract_evaluator) {
-				evaluator.register_contract_evaluator = register_contract_evaluator;
-				return evaluator;
+                return register_contract_evaluator;
 			}
 			auto invoke_contract_evaluator = get_invoke_contract_evaluator(L);
 			if (invoke_contract_evaluator) {
-				evaluator.invoke_contract_evaluator = invoke_contract_evaluator;
-				return evaluator;
+                return invoke_contract_evaluator;
 			}
 			auto upgrade_contract_evaluator = get_upgrade_contract_evaluator(L);
 			if (upgrade_contract_evaluator) {
-				evaluator.upgrade_contract_evaluator = upgrade_contract_evaluator;
-				return evaluator;
+                return upgrade_contract_evaluator;
 			}
 			auto contract_transfer_evaluator = get_contract_transfer_evaluator(L);
 			if (contract_transfer_evaluator) {
-				evaluator.contract_transfer_evaluator = contract_transfer_evaluator;
-				return evaluator;
+				return contract_transfer_evaluator;
 			}
 			FC_ASSERT(false);
-			return evaluator;
+			return nullptr;
 		}
 
 
@@ -223,7 +218,7 @@ namespace graphene {
 				contracts_storage_changes.clear();
 				try
 				{
-					engine->execute_contract_init_by_address((string)o.contract_id, "", nullptr);
+					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
 				}
 				catch (uvm::core::UvmException &e)
 				{
@@ -355,7 +350,7 @@ namespace graphene {
 					std::string contract_result_str;
 					try
 					{
-						engine->execute_contract_api_by_address((string)o.contract_id, o.contract_api, o.contract_arg, &contract_result_str);
+						engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), o.contract_api, o.contract_arg, &contract_result_str);
 					}
 					catch (uvm::core::UvmException &e)
 					{
@@ -433,7 +428,7 @@ namespace graphene {
 					std::string contract_result_str;
 					try
 					{
-						engine->execute_contract_api_by_address((string)o.contract_id, "on_upgrade", o.contract_name, &contract_result_str);
+						engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_upgrade", o.contract_name, &contract_result_str);
 					}
 					catch (uvm::core::UvmException &e)
 					{
@@ -582,7 +577,7 @@ namespace graphene {
 
 		std::shared_ptr<GluaContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			if (string(origin_op.contract_id) == contract_id)
+			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto contract_info = std::make_shared<GluaContractInfo>();
 				const auto &code = origin_op.contract_code;
@@ -599,7 +594,7 @@ namespace graphene {
 
 		std::shared_ptr<GluaContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			if (string(origin_op.contract_id) == contract_id)
+			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto contract_info = std::make_shared<GluaContractInfo>();
 				common_contract_evaluator evaluator;
@@ -713,7 +708,7 @@ namespace graphene {
 
 		std::shared_ptr<uvm::blockchain::Code> contract_register_evaluate::get_contract_code_by_id(const string &contract_id) const
 		{
-			if (string(origin_op.contract_id) == contract_id)
+			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto code = std::make_shared<uvm::blockchain::Code>();
 				*code = origin_op.contract_code;
@@ -733,7 +728,7 @@ namespace graphene {
 		// FIXME: duplicate code
 		std::shared_ptr<uvm::blockchain::Code> contract_upgrade_evaluate::get_contract_code_by_id(const string &contract_id) const
 		{
-			address contract_addr(contract_id);
+			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
 			auto contract_info = std::make_shared<GluaContractInfo>();
@@ -830,7 +825,7 @@ namespace graphene {
                     std::string contract_result_str;
                     try
                     {
-                        engine->execute_contract_api_by_address((string)o.contract_id, "on_deposit", fc::json::to_string(o.amount), &contract_result_str);
+                        engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit", fc::json::to_string(o.amount), &contract_result_str);
                     }
                     catch (uvm::core::UvmException &e)
                     {
@@ -895,7 +890,7 @@ namespace graphene {
 
         std::shared_ptr<GluaContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
         {
-            address contract_addr(contract_id);
+            address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!db().has_contract(contract_addr))
                 return nullptr;
             auto contract_info = std::make_shared<GluaContractInfo>();
@@ -984,7 +979,7 @@ namespace graphene {
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_from_db_by_id(const string & contract_id) const
         {
-            address contract_addr(contract_id);
+            address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
             auto contract_info = std::make_shared<GluaContractInfo>();
@@ -1190,5 +1185,8 @@ namespace graphene {
 			 info.event_arg = event_arg;
 			 invoke_contract_result.events.push_back(info);
 		 }
+
+         inline std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_id(const string & contract_id) const { return nullptr; }
+
 }
 }

@@ -82,108 +82,55 @@ namespace graphene {
 			return 0; // FIXME: need fill by uvm api
 		}
 
-		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(common_contract_evaluator evaluator, const string& contract_id) {
-			try {
-				if (evaluator.register_contract_evaluator) {
-					return evaluator.register_contract_evaluator->get_contract_code_by_id(contract_id);
-				}
-				else if (evaluator.invoke_contract_evaluator) {
-					return evaluator.invoke_contract_evaluator->get_contract_code_by_id(contract_id);
-				}
-				else if (evaluator.upgrade_contract_evaluator) {
-					return evaluator.upgrade_contract_evaluator->get_contract_code_by_id(contract_id);
-				}
-				else if (evaluator.contract_transfer_evaluator) {
-					return evaluator.contract_transfer_evaluator->get_contract_code_by_id(contract_id);
-				}
-				else {
-					return nullptr;
-				}
-			}
-			FC_CAPTURE_AND_LOG( (nullptr) )
+
+		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_code_by_id(contract_id);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
 		 }
 
-		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(common_contract_evaluator evaluator, const string& contract_name) {
-			try {
-				if (evaluator.register_contract_evaluator) {
-					return evaluator.register_contract_evaluator->get_contract_code_by_name(contract_name);
-				}
-				else if (evaluator.invoke_contract_evaluator) {
-					return evaluator.invoke_contract_evaluator->get_contract_code_by_name(contract_name);
-				}
-				else if (evaluator.upgrade_contract_evaluator) {
-					return evaluator.upgrade_contract_evaluator->get_contract_code_by_name(contract_name);
-				}
-				else if (evaluator.contract_transfer_evaluator) {
-					return evaluator.contract_transfer_evaluator->get_contract_code_by_name(contract_name);
-				}
-				else {
-					return nullptr;
-				}
-			}
-			FC_CAPTURE_AND_LOG((nullptr))
-		}
+        static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_code_by_name(contract_name);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
 
-		static void put_contract_storage_changes_to_evaluator(common_contract_evaluator evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
-			try {
-				if (evaluator.register_contract_evaluator) {
-					evaluator.register_contract_evaluator->contracts_storage_changes[contract_id] = changes;
-				}
-				else if (evaluator.invoke_contract_evaluator) {
-					evaluator.invoke_contract_evaluator->contracts_storage_changes[contract_id] = changes;
-				}
-				else if (evaluator.upgrade_contract_evaluator) {
-					evaluator.upgrade_contract_evaluator->contracts_storage_changes[contract_id] = changes;
-				}
-				else if (evaluator.contract_transfer_evaluator) {
-					evaluator.contract_transfer_evaluator->contracts_storage_changes[contract_id] = changes;
-				}
-			}
-			FC_CAPTURE_AND_LOG((0))
-		}
+        static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
+            try {
+                if (evaluator) {
+                    evaluator->contracts_storage_changes[contract_id] = changes;
+                }
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
+        static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_by_id(contract_id);
+                }
+                return nullptr;
+            }FC_CAPTURE_AND_LOG((nullptr))
+        }
 
-		static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(common_contract_evaluator evaluator, const string& contract_id) {
-			try {
-				if (evaluator.register_contract_evaluator) {
-					return evaluator.register_contract_evaluator->get_contract_by_id(contract_id);
-				}
-				else if (evaluator.invoke_contract_evaluator) {
-					return evaluator.invoke_contract_evaluator->get_contract_by_id(contract_id);
-				}
-				else if (evaluator.upgrade_contract_evaluator) {
-					return evaluator.upgrade_contract_evaluator->get_contract_by_id(contract_id);
-				}
-				else if (evaluator.contract_transfer_evaluator) {
-					return evaluator.contract_transfer_evaluator->get_contract_by_id(contract_id);
-				}
-				else {
-					return nullptr;
-				}
-			}
-			FC_CAPTURE_AND_LOG((nullptr))
-		}
+        static contract_object get_contract_info_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
+            try {
+                if (evaluator) {
+                    return evaluator->get_contract_by_name(contract_name);
+                }
+                FC_ASSERT(false);
+                return contract_object();
+            }FC_CAPTURE_AND_LOG((contract_object()))
+       
+        }
 
-		static contract_object get_contract_info_by_name(common_contract_evaluator evaluator, const string& contract_name) {
-			try {
-				if (evaluator.register_contract_evaluator) {
-					return evaluator.register_contract_evaluator->get_contract_by_name(contract_name);
-				}
-				else if (evaluator.invoke_contract_evaluator) {
-					return evaluator.invoke_contract_evaluator->get_contract_by_name(contract_name);
-				}
-				else if (evaluator.upgrade_contract_evaluator) {
-					return evaluator.upgrade_contract_evaluator->get_contract_by_name(contract_name);
-				}
-				else if (evaluator.contract_transfer_evaluator) {
-					return evaluator.contract_transfer_evaluator->get_contract_by_name(contract_name);
-				}
-				else {
-					FC_ASSERT(false);
-					return contract_object();
-				}
-			}
-			FC_CAPTURE_AND_LOG((contract_object()))
-		}
+
+
+
 
 		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
 		{
@@ -336,7 +283,7 @@ namespace graphene {
 			}
 			try 
 			{
-				auto storage_data = evaluator.get_storage(contract_id, name);
+				auto storage_data = evaluator->get_storage(contract_id, name);
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
 			}
 			catch (fc::exception &e) {
@@ -488,7 +435,7 @@ namespace graphene {
             address f_addr;
             address t_addr;
             try {
-                f_addr = address(contract_address);
+                f_addr = address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             }
             catch (...)
             {
@@ -505,9 +452,10 @@ namespace graphene {
 				return -6;
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
             try {
-				asset transfer_amount = evaluator.asset_from_sting(asset_type, "0");
-				transfer_amount.amount = amount;
-				evaluator.transfer_to_address(f_addr, transfer_amount, t_addr);
+
+                asset transfer_amount = evaluator->asset_from_sting(asset_type, "0");
+                transfer_amount.amount = amount;
+                evaluator->transfer_to_address(f_addr, transfer_amount,t_addr);
             }
             catch (blockchain::contract_engine::invalid_asset_symbol& e)
             {
@@ -542,7 +490,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
             address c_addr;
             try {
-                c_addr = address(contract_address);
+                c_addr = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             }
             catch (...)
             {
@@ -552,16 +500,8 @@ namespace graphene {
 
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
                 try {
-                    if (evaluator.invoke_contract_evaluator)
-                    {
-                        asset transfer_amount = evaluator.invoke_contract_evaluator->asset_from_sting(asset_symbol, "0");
-                        return evaluator.invoke_contract_evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
-                    }
-                    else if (evaluator.contract_transfer_evaluator)
-                    {
-                        asset transfer_amount = evaluator.contract_transfer_evaluator->asset_from_sting(asset_symbol, "0");
-                        return evaluator.contract_transfer_evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
-                    }
+                    asset transfer_amount = evaluator->asset_from_sting(asset_symbol, "0");
+                    return evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
                 }
                 catch (blockchain::contract_engine::invalid_asset_symbol& e)
                 {
@@ -597,7 +537,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				auto fee = evaluator.origin_op_fee();
+				auto fee = evaluator->origin_op_fee();
 				return fee.value;
 			}
 			catch (fc::exception e)
@@ -613,7 +553,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				return evaluator.get_db()->head_block_time().sec_since_epoch();
+				return evaluator->get_db().head_block_time().sec_since_epoch();
 			}
 			catch (fc::exception e)
 			{
@@ -627,8 +567,8 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				const auto d = evaluator.get_db();
-				const auto& block = d->fetch_block_by_id(d->head_block_id());
+				const auto& d = evaluator->get_db();
+				const auto& block = d.fetch_block_by_id(d.head_block_id());
 				auto hash = block->digest();
 				return hash._hash[3] % (1 << 31 - 1);
 			}
@@ -645,7 +585,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				return evaluator.get_current_trx_id().str();
+				return evaluator->get_current_trx_id().str();
 			}
 			catch (fc::exception e)
 			{
@@ -661,7 +601,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				return evaluator.get_db()->head_block_num();
+				return evaluator->get_db().head_block_num();
 			}
 			catch (fc::exception e)
 			{
@@ -676,8 +616,8 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				const auto& d = evaluator.get_db();
-				auto target = d->head_block_num() + next;
+				const auto& d = evaluator->get_db();
+				auto target = d.head_block_num() + next;
 				if (target < next)
 					return 0;
 				return target;
@@ -699,10 +639,10 @@ namespace graphene {
 				if (num <= 1)
 					return -2;
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				const auto& d = evaluator.get_db();
-				if (d->head_block_num() < num)
+				const auto& d = evaluator->get_db();
+				if (d.head_block_num() < num)
 					return -1;
-				const auto& block = d->fetch_block_by_number(num);
+				const auto& block = d.fetch_block_by_number(num);
 				auto hash = block->digest();
 				return hash._hash[3] % (1 << 31 - 1);
 			}
@@ -721,7 +661,7 @@ namespace graphene {
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
 				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-				evaluator.emit_event(contract_addr, string(event_name), string(event_param));
+				evaluator->emit_event(contract_addr, string(event_name), string(event_param));
 			}
 			catch (const fc::exception&)
 			{

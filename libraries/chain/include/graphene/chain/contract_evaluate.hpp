@@ -25,11 +25,15 @@ namespace graphene {
 
             gas_count_type gas_used;
 			contract_invoke_result invoke_contract_result;
+            //balances
             std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
             std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
-		public:
+            //storages
+        public:
+            std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
+
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
             std::shared_ptr<address> get_caller_address() const;
@@ -50,6 +54,9 @@ namespace graphene {
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
 			virtual share_type origin_op_fee() const = 0;
+            virtual  std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const=0;
+            virtual contract_object get_contract_by_name(const string& contract_name) const=0;
+            virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;;
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
@@ -57,8 +64,6 @@ namespace graphene {
 			gas_count_type gas_used;
 			contract_register_operation origin_op;
 			contract_object new_contract;
-		public:
-			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:
             contract_register_evaluate():contract_common_evaluate(this){}
 			typedef contract_register_operation operation_type;
@@ -82,8 +87,6 @@ namespace graphene {
 			contract_object new_contract;
 		public:
             native_contract_register_evaluate(): contract_common_evaluate(this) {}
-			// TODO: change to contract_invoke_result type
-			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:
 			typedef native_contract_register_operation operation_type;
 
@@ -102,9 +105,7 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
-		public:
-			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
-		public:
+    	public:
 			typedef contract_invoke_operation operation_type;
             contract_invoke_evaluate() : contract_common_evaluate(this) {}
 			void_result do_evaluate(const operation_type& o);
@@ -122,8 +123,6 @@ namespace graphene {
 		private:
 			gas_count_type gas_used;
 			contract_upgrade_operation origin_op;
-		public:
-			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
 		public:
 			typedef contract_upgrade_operation operation_type;
 
@@ -143,8 +142,6 @@ namespace graphene {
         private:
             transfer_contract_operation origin_op;
 
-        public:
-            std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
         public:
             typedef transfer_contract_operation operation_type;
 

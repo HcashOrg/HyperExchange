@@ -15,7 +15,6 @@
 
 namespace graphene {
 	namespace chain {
-
 		struct contract_event_notify_info
 		{
 			address contract_address;
@@ -45,6 +44,7 @@ namespace graphene {
 		class contract_transfer_evaluate;
 
 		class database;
+        class contract_common_evaluate;
 
 		struct common_contract_evaluator {
 			contract_register_evaluate* register_contract_evaluator = nullptr;
@@ -56,6 +56,9 @@ namespace graphene {
 			StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
 			std::shared_ptr<address> get_caller_address() const;
 			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
+
+			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
+
 			void transfer_to_address(const address& contract, const asset & amount, const address & to);
 			asset asset_from_sting(const string& symbol,const string& amount);
 			transaction_id_type get_current_trx_id() const;
@@ -63,7 +66,7 @@ namespace graphene {
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
 			share_type origin_op_fee() const;
 
-			static common_contract_evaluator get_contract_evaluator(lua_State *L);
+
 		};
 
 		struct contract_register_operation : public base_operation
