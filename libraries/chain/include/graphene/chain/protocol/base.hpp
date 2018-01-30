@@ -96,7 +96,7 @@ namespace graphene { namespace chain {
       void validate()const{}
 
       static uint64_t calculate_data_fee( uint64_t bytes, uint64_t price_per_kbyte );
-	  guarantee_object_id_type guarantee_id = guarantee_object_id_type();
+	  guarantee_object_id_type get_guarantee_id()const  { return guarantee_object_id_type(); }
    };
 
    /**
@@ -123,4 +123,3 @@ namespace graphene { namespace chain {
 FC_REFLECT_TYPENAME( graphene::chain::operation_result )
 FC_REFLECT_TYPENAME( graphene::chain::future_extensions )
 FC_REFLECT( graphene::chain::void_result, )
-FC_REFLECT(graphene::chain::base_operation, (guarantee_id))

@@ -136,7 +136,7 @@ namespace graphene { namespace chain {
                                             vector<authority>&  other );
 
    void operation_validate( const operation& op );
-
+  
    /**
     *  @brief necessary to support nested operations inside the proposal_create_operation
     */

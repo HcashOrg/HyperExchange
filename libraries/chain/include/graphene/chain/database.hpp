@@ -338,6 +338,13 @@ namespace graphene { namespace chain {
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
 		 void adjust_balance(address addr, asset delta, bool freeze = false);
+
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
+		 void adjust_frozen(address addr, asset delta);
 		 /**
 		 * @brief Adjust a particular account's balance in a given asset by a delta
 		 * @param account ID of account whose balance should be adjusted

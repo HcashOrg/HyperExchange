@@ -158,4 +158,14 @@ database& generic_evaluator::db()const { return trx_state->db(); }
 	   db().adjust_balance(fee_payer, fee_from_account);
    }
 
+   void generic_evaluator::db_adjust_guarantee(const guarantee_object_id_type id, asset fee_from_account)
+   {
+	   db().adjust_guarantee(id, fee_from_account);
+   }
+
+   guarantee_object generic_evaluator::db_get_guarantee(const guarantee_object_id_type id)
+   {
+	   return db().get(id);
+   }
+
 } }

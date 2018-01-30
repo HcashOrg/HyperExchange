@@ -650,6 +650,20 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
 
+   void set_guarantee_id(const guarantee_object_id_type id)
+   {
+	   try {
+		   _remote_db->set_guarantee_id(id);
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+
+   local_property_object get_local_properties()
+   {
+	   try {
+		   return _remote_db->get_local_properties();
+	   }FC_CAPTURE_AND_RETHROW()
+   }
+
    string create_crosschain_symbol(const string& symbol)
    {
 	   string config = (*_crosschain_manager)->get_config();
@@ -2478,7 +2492,8 @@ public:
             /// the transaction will be rejected if the transaction validates without requiring
             /// all signatures provided
          }
-
+		 // need to check guarantee orders
+		 auto local_obj = get_local_properties();
          graphene::chain::transaction_id_type this_transaction_id = tx.id();
          auto iter = _recently_generated_transactions.find(this_transaction_id);
          if (iter == _recently_generated_transactions.end())
@@ -5027,6 +5042,17 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol);
 }
+
+void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
+{
+	return my->set_guarantee_id(id);
+}
+
+local_property_object wallet_api::get_local_properties()
+{
+	return my->get_local_properties();
+}
+
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,
