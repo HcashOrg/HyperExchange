@@ -66,7 +66,7 @@ namespace graphene {
 			virtual void pay_fee();
 
 			database& db()const;
-
+            const transaction_evaluation_state* get_trx_eval_state() const;
 			//void check_required_authorities(const operation& op);
 		protected:
 			/**
