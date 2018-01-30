@@ -44,6 +44,8 @@ namespace graphene {
 		class native_contract_register_evaluate;
 		class contract_transfer_evaluate;
 
+		class database;
+
 		struct common_contract_evaluator {
 			contract_register_evaluate* register_contract_evaluator = nullptr;
 			native_contract_register_evaluate* register_native_contract_evaluator = nullptr;
@@ -56,6 +58,10 @@ namespace graphene {
 			std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
 			void transfer_to_address(const address& contract, const asset & amount, const address & to);
 			asset asset_from_sting(const string& symbol,const string& amount);
+			transaction_id_type get_current_trx_id() const;
+			database* get_db() const;
+			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
+			share_type origin_op_fee() const;
 
 			static common_contract_evaluator get_contract_evaluator(lua_State *L);
 		};

@@ -103,6 +103,59 @@ namespace graphene {
 			FC_ASSERT(false);
 		}
 
+		transaction_id_type common_contract_evaluator::get_current_trx_id() const
+		{
+			if (register_contract_evaluator)
+				return register_contract_evaluator->get_current_trx_id();
+			if (register_native_contract_evaluator)
+				return register_native_contract_evaluator->get_current_trx_id();
+			if (invoke_contract_evaluator)
+				return invoke_contract_evaluator->get_current_trx_id();
+			if (upgrade_contract_evaluator)
+				return upgrade_contract_evaluator->get_current_trx_id();
+			FC_ASSERT(false);
+		}
+
+		database* common_contract_evaluator::get_db() const
+		{
+			if (register_contract_evaluator)
+				return &register_contract_evaluator->get_db();
+			if (register_native_contract_evaluator)
+				return &register_native_contract_evaluator->get_db();
+			if (invoke_contract_evaluator)
+				return &invoke_contract_evaluator->get_db();
+			if (upgrade_contract_evaluator)
+				return &upgrade_contract_evaluator->get_db();
+			FC_ASSERT(false);
+		}
+
+		void common_contract_evaluator::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
+		{
+			if (register_contract_evaluator)
+				register_contract_evaluator->emit_event(contract_addr, event_name, event_arg);
+			else if (register_native_contract_evaluator)
+				register_native_contract_evaluator->emit_event(contract_addr, event_name, event_arg);
+			else if (invoke_contract_evaluator)
+				invoke_contract_evaluator->emit_event(contract_addr, event_name, event_arg);
+			else if (upgrade_contract_evaluator)
+				upgrade_contract_evaluator->emit_event(contract_addr, event_name, event_arg);
+			else
+				FC_ASSERT(false);
+		}
+
+		share_type common_contract_evaluator::origin_op_fee() const
+		{
+			if (register_contract_evaluator)
+				return register_contract_evaluator->origin_op_fee();
+			if (register_native_contract_evaluator)
+				return register_native_contract_evaluator->origin_op_fee();
+			if (invoke_contract_evaluator)
+				return invoke_contract_evaluator->origin_op_fee();
+			if (upgrade_contract_evaluator)
+				return upgrade_contract_evaluator->origin_op_fee();
+			FC_ASSERT(false);
+		}
+
 		common_contract_evaluator common_contract_evaluator::get_contract_evaluator(lua_State *L) {
 			common_contract_evaluator evaluator;
 			auto register_contract_evaluator = get_register_contract_evaluator(L);
@@ -147,10 +200,10 @@ namespace graphene {
 			auto &d = db();
 			// check contract id unique
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
-
+			
 			if (!global_uvm_chain_api)
 				global_uvm_chain_api = new UvmChainApi();
-
+			
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
 			::blockchain::contract_engine::ContractEngineBuilder builder;
@@ -185,7 +238,7 @@ namespace graphene {
 				gas_fees.push_back(asset(required, asset_id_type(0)));
 				// TODO: deposit margin balance to contract
 
-
+				
                 new_contract.contract_address = o.calculate_contract_id();
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
@@ -700,6 +753,31 @@ namespace graphene {
 			return origin_op.contract_id;
 		}
 
+		share_type contract_register_evaluate::origin_op_fee() const
+		{
+			return calculate_fee_for_operation(origin_op);
+		}
+
+		share_type native_contract_register_evaluate::origin_op_fee() const
+		{
+			return calculate_fee_for_operation(origin_op);
+		}
+
+		share_type contract_invoke_evaluate::origin_op_fee() const
+		{
+			return calculate_fee_for_operation(origin_op);
+		}
+
+		share_type contract_upgrade_evaluate::origin_op_fee() const
+		{
+			return calculate_fee_for_operation(origin_op);
+		}
+
+		share_type contract_transfer_evaluate::origin_op_fee() const
+		{
+			return calculate_fee_for_operation(origin_op);
+		}
+
 		address native_contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
@@ -1104,5 +1182,13 @@ namespace graphene {
             }
             return running_balance;
         }
+		 void contract_common_evaluate::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
+		 {
+			 contract_event_notify_info info;
+			 info.contract_address = contract_addr;
+			 info.event_name = event_name;
+			 info.event_arg = event_arg;
+			 invoke_contract_result.events.push_back(info);
+		 }
 }
 }
