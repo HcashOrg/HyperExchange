@@ -77,30 +77,25 @@ namespace graphene {
 			FC_ASSERT(false);
 		}
 
-		common_contract_evaluator common_contract_evaluator::get_contract_evaluator(lua_State *L) {
-			common_contract_evaluator evaluator;
+        contract_common_evaluate* common_contract_evaluator::get_contract_evaluator(lua_State *L) {
 			auto register_contract_evaluator = get_register_contract_evaluator(L);
 			if (register_contract_evaluator) {
-				evaluator.register_contract_evaluator = register_contract_evaluator;
-				return evaluator;
+                return register_contract_evaluator;
 			}
 			auto invoke_contract_evaluator = get_invoke_contract_evaluator(L);
 			if (invoke_contract_evaluator) {
-				evaluator.invoke_contract_evaluator = invoke_contract_evaluator;
-				return evaluator;
+                return invoke_contract_evaluator;
 			}
 			auto upgrade_contract_evaluator = get_upgrade_contract_evaluator(L);
 			if (upgrade_contract_evaluator) {
-				evaluator.upgrade_contract_evaluator = upgrade_contract_evaluator;
-				return evaluator;
+                return upgrade_contract_evaluator;
 			}
 			auto contract_transfer_evaluator = get_contract_transfer_evaluator(L);
 			if (contract_transfer_evaluator) {
-				evaluator.contract_transfer_evaluator = contract_transfer_evaluator;
-				return evaluator;
+				return contract_transfer_evaluator;
 			}
 			FC_ASSERT(false);
-			return evaluator;
+			return nullptr;
 		}
 
 
@@ -1078,5 +1073,6 @@ namespace graphene {
             }
             return running_balance;
         }
+         inline std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_id(const string & contract_id) const { return nullptr; }
 }
 }
