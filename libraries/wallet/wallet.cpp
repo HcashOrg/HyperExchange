@@ -4976,7 +4976,7 @@ signed_transaction wallet_api::transfer_to_contract(string from, string to, stri
 
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
 {
-    return my->_remote_db->get_contract_balance(address(contract_address));
+    return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
 
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)

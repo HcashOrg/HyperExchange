@@ -435,7 +435,7 @@ namespace graphene {
             address f_addr;
             address t_addr;
             try {
-                f_addr = address(contract_address);
+                f_addr = address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             }
             catch (...)
             {
@@ -490,7 +490,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
             address c_addr;
             try {
-                c_addr = address(contract_address);
+                c_addr = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             }
             catch (...)
             {
