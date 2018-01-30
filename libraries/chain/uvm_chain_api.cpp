@@ -534,39 +534,37 @@ namespace graphene {
 		int64_t UvmChainApi::get_contract_balance_amount(lua_State *L, const char *contract_address, const char* asset_symbol)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+            address c_addr;
+            try {
+                c_addr = address(contract_address);
+            }
+            catch (...)
+            {
+                return -2;
+            }
 			try {
+
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				uvm::blockchain::ChainInterface* cur_state;
-				if (!eval_state_ptr || (cur_state = eval_state_ptr->_current_state) == NULL)
-				{
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				}
-
-				const auto asset_rec = cur_state->get_asset_entry(asset_symbol);
-				if (!asset_rec.valid() || asset_rec->id != 0)
-				{
-					FC_CAPTURE_AND_THROW(unknown_asset_id, ("Only TV Allowed"));
-				}
-
-				BalanceIdType contract_balance_id = cur_state->get_balanceid(Address(contract_address, AddressType::contract_address), WithdrawBalanceTypes::withdraw_contract_type);
-				oBalanceEntry balance_entry = cur_state->get_balance_entry(contract_balance_id);
-
-				//if (!balance_entry.valid())
-				//    FC_CAPTURE_AND_THROW(unknown_balance_entry, ("Get balance entry failed"));
-
-				if (!balance_entry.valid())
-					return 0;
-
-				oAssetEntry asset_entry = cur_state->get_asset_entry(balance_entry->asset_id());
-				if (!asset_entry.valid() || asset_entry->id != 0)
-					FC_CAPTURE_AND_THROW(unknown_asset_id, ("asset error"));
-
-				Asset asset = balance_entry->get_spendable_balance(cur_state->now());
-
-				return asset.amount;
-				*/
+                try {
+                    if (evaluator.invoke_contract_evaluator)
+                    {
+                        asset transfer_amount = evaluator.invoke_contract_evaluator->asset_from_sting(asset_symbol, "0");
+                        return evaluator.invoke_contract_evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
+                    }
+                    else if (evaluator.contract_transfer_evaluator)
+                    {
+                        asset transfer_amount = evaluator.contract_transfer_evaluator->asset_from_sting(asset_symbol, "0");
+                        return evaluator.contract_transfer_evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
+                    }
+                }
+                catch (blockchain::contract_engine::invalid_asset_symbol& e)
+                {
+                    return -1;//
+                }
+                catch (blockchain::contract_engine::contract_not_exsited& e)
+                {
+                    return -3;//
+                }
 				return 0;
 			}
 			catch (const fc::exception& e)

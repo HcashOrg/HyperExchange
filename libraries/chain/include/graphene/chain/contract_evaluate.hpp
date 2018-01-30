@@ -152,7 +152,7 @@ namespace graphene {
 					asset fee_to_cost;
 					fee_to_cost.asset_id = fee.asset_id;
 					fee_to_cost.amount = -fee.amount;
-					// db().adjust_balance(caller_addr, fee_to_cost); // FIXME: now account have no money
+					db().adjust_balance(caller_addr, fee_to_cost); // FIXME: now account have no money
 				}
 			}
             void do_apply_balance()

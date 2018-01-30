@@ -737,7 +737,7 @@ namespace graphene {
                     FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
                     auto required = count_gas_fee(o.gas_price, gas_used);
                     // TODO: withdraw required gas fee from owner
-                    gas_fees.push_back(required);
+                    gas_fees.push_back(asset(required, asset_id_type(0)));
 
                 }
             }
@@ -747,8 +747,10 @@ namespace graphene {
             }
             catch (::blockchain::contract_engine::contract_run_out_of_money& e)
             {
-                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
-                // TODO: 扣除所有提供的手续费并打包
+                undo_balance_contract_effected();
+                auto required = count_gas_fee(o.gas_price, o.invoke_cost);
+                // TODO: withdraw required gas fee from owner
+                gas_fees.push_back(asset(required, asset_id_type(0)));
             }
             catch (const ::blockchain::contract_engine::contract_error& e)
             {
