@@ -83,91 +83,106 @@ namespace graphene {
 		}
 
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(common_contract_evaluator evaluator, const string& contract_id) {
-			if (evaluator.register_contract_evaluator) {
-				return evaluator.register_contract_evaluator->get_contract_code_by_id(contract_id);
+			try {
+				if (evaluator.register_contract_evaluator) {
+					return evaluator.register_contract_evaluator->get_contract_code_by_id(contract_id);
+				}
+				else if (evaluator.invoke_contract_evaluator) {
+					return evaluator.invoke_contract_evaluator->get_contract_code_by_id(contract_id);
+				}
+				else if (evaluator.upgrade_contract_evaluator) {
+					return evaluator.upgrade_contract_evaluator->get_contract_code_by_id(contract_id);
+				}
+				else if (evaluator.contract_transfer_evaluator) {
+					return evaluator.contract_transfer_evaluator->get_contract_code_by_id(contract_id);
+				}
+				else {
+					return nullptr;
+				}
 			}
-			else if (evaluator.invoke_contract_evaluator) {
-				return evaluator.invoke_contract_evaluator->get_contract_code_by_id(contract_id);
-			}
-			else if (evaluator.upgrade_contract_evaluator) {
-				return evaluator.upgrade_contract_evaluator->get_contract_code_by_id(contract_id);
-			}
-			else if (evaluator.contract_transfer_evaluator) {
-				return evaluator.contract_transfer_evaluator->get_contract_code_by_id(contract_id);
-			}
-			else {
-				return nullptr;
-			}
+			FC_CAPTURE_AND_LOG( (nullptr) )
 		 }
 
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(common_contract_evaluator evaluator, const string& contract_name) {
-			if (evaluator.register_contract_evaluator) {
- 				return evaluator.register_contract_evaluator->get_contract_code_by_name(contract_name);
+			try {
+				if (evaluator.register_contract_evaluator) {
+					return evaluator.register_contract_evaluator->get_contract_code_by_name(contract_name);
+				}
+				else if (evaluator.invoke_contract_evaluator) {
+					return evaluator.invoke_contract_evaluator->get_contract_code_by_name(contract_name);
+				}
+				else if (evaluator.upgrade_contract_evaluator) {
+					return evaluator.upgrade_contract_evaluator->get_contract_code_by_name(contract_name);
+				}
+				else if (evaluator.contract_transfer_evaluator) {
+					return evaluator.contract_transfer_evaluator->get_contract_code_by_name(contract_name);
+				}
+				else {
+					return nullptr;
+				}
 			}
-			else if (evaluator.invoke_contract_evaluator) {
-				return evaluator.invoke_contract_evaluator->get_contract_code_by_name(contract_name);
-			}
-			else if (evaluator.upgrade_contract_evaluator) {
-				return evaluator.upgrade_contract_evaluator->get_contract_code_by_name(contract_name);
-			}
-			else if (evaluator.contract_transfer_evaluator) {
-				return evaluator.contract_transfer_evaluator->get_contract_code_by_name(contract_name);
-			}
-			else {
-				return nullptr;
-			}
+			FC_CAPTURE_AND_LOG((nullptr))
 		}
 
 		static void put_contract_storage_changes_to_evaluator(common_contract_evaluator evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
-			if (evaluator.register_contract_evaluator) {
-				evaluator.register_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+			try {
+				if (evaluator.register_contract_evaluator) {
+					evaluator.register_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+				}
+				else if (evaluator.invoke_contract_evaluator) {
+					evaluator.invoke_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+				}
+				else if (evaluator.upgrade_contract_evaluator) {
+					evaluator.upgrade_contract_evaluator->contracts_storage_changes[contract_id] = changes;
+				}
+				else if (evaluator.contract_transfer_evaluator) {
+					evaluator.contract_transfer_evaluator->contracts_storage_changes[contract_id] = changes;
+				}
 			}
-			else if (evaluator.invoke_contract_evaluator) {
-				evaluator.invoke_contract_evaluator->contracts_storage_changes[contract_id] = changes;
-			}
-			else if (evaluator.upgrade_contract_evaluator) {
-				evaluator.upgrade_contract_evaluator->contracts_storage_changes[contract_id] = changes;
-			}
-			else if (evaluator.contract_transfer_evaluator) {
-				evaluator.contract_transfer_evaluator->contracts_storage_changes[contract_id] = changes;
-			}
+			FC_CAPTURE_AND_LOG((0))
 		}
 
 		static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(common_contract_evaluator evaluator, const string& contract_id) {
-			if (evaluator.register_contract_evaluator) {
-				return evaluator.register_contract_evaluator->get_contract_by_id(contract_id);
+			try {
+				if (evaluator.register_contract_evaluator) {
+					return evaluator.register_contract_evaluator->get_contract_by_id(contract_id);
+				}
+				else if (evaluator.invoke_contract_evaluator) {
+					return evaluator.invoke_contract_evaluator->get_contract_by_id(contract_id);
+				}
+				else if (evaluator.upgrade_contract_evaluator) {
+					return evaluator.upgrade_contract_evaluator->get_contract_by_id(contract_id);
+				}
+				else if (evaluator.contract_transfer_evaluator) {
+					return evaluator.contract_transfer_evaluator->get_contract_by_id(contract_id);
+				}
+				else {
+					return nullptr;
+				}
 			}
-			else if (evaluator.invoke_contract_evaluator) {
-				return evaluator.invoke_contract_evaluator->get_contract_by_id(contract_id);
-			}
-			else if (evaluator.upgrade_contract_evaluator) {
-				return evaluator.upgrade_contract_evaluator->get_contract_by_id(contract_id);
-			}
-			else if (evaluator.contract_transfer_evaluator) {
-				return evaluator.contract_transfer_evaluator->get_contract_by_id(contract_id);
-			}			
-			else {
-				return nullptr;
-			}
+			FC_CAPTURE_AND_LOG((nullptr))
 		}
 
 		static contract_object get_contract_info_by_name(common_contract_evaluator evaluator, const string& contract_name) {
-			if (evaluator.register_contract_evaluator) {
-				return evaluator.register_contract_evaluator->get_contract_by_name(contract_name);
+			try {
+				if (evaluator.register_contract_evaluator) {
+					return evaluator.register_contract_evaluator->get_contract_by_name(contract_name);
+				}
+				else if (evaluator.invoke_contract_evaluator) {
+					return evaluator.invoke_contract_evaluator->get_contract_by_name(contract_name);
+				}
+				else if (evaluator.upgrade_contract_evaluator) {
+					return evaluator.upgrade_contract_evaluator->get_contract_by_name(contract_name);
+				}
+				else if (evaluator.contract_transfer_evaluator) {
+					return evaluator.contract_transfer_evaluator->get_contract_by_name(contract_name);
+				}
+				else {
+					FC_ASSERT(false);
+					return contract_object();
+				}
 			}
-			else if (evaluator.invoke_contract_evaluator) {
-				return evaluator.invoke_contract_evaluator->get_contract_by_name(contract_name);
-			}
-			else if (evaluator.upgrade_contract_evaluator) {
-				return evaluator.upgrade_contract_evaluator->get_contract_by_name(contract_name);
-			}
-			else if (evaluator.contract_transfer_evaluator) {
-				return evaluator.contract_transfer_evaluator->get_contract_by_name(contract_name);
-			}
-			else {
-				FC_ASSERT(false);
-				return contract_object();
-			}
+			FC_CAPTURE_AND_LOG((contract_object()))
 		}
 
 		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
@@ -202,7 +217,7 @@ namespace graphene {
 		{
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
-			auto is_address = address::is_valid(contract_name) ? true : false;
+			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
 			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
 			if (code && !contract_addr.empty())
@@ -490,18 +505,9 @@ namespace graphene {
 				return -6;
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
             try {
-                if (evaluator.invoke_contract_evaluator)
-                {
-                    asset transfer_amount = evaluator.invoke_contract_evaluator->asset_from_sting(asset_type, "0");
-                    transfer_amount.amount = amount;
-                    evaluator.invoke_contract_evaluator->transfer_to_address(f_addr, transfer_amount,t_addr);
-                }
-                else if (evaluator.contract_transfer_evaluator)
-                {
-                    asset transfer_amount = evaluator.contract_transfer_evaluator->asset_from_sting(asset_type, "0");
-                    transfer_amount.amount = amount;
-                    evaluator.contract_transfer_evaluator->transfer_to_address(f_addr, transfer_amount, t_addr);
-                }
+				asset transfer_amount = evaluator.asset_from_sting(asset_type, "0");
+				transfer_amount.amount = amount;
+				evaluator.transfer_to_address(f_addr, transfer_amount, t_addr);
             }
             catch (blockchain::contract_engine::invalid_asset_symbol& e)
             {
@@ -799,7 +805,7 @@ namespace graphene {
 		bool UvmChainApi::is_valid_address(lua_State *L, const char *address_str)
 		{
 			std::string addr(address_str);
-			return address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX); // TODO: or contract address or other address format
+			return address::is_valid(addr);
 		}
 		const char* UvmChainApi::get_system_asset_symbol(lua_State *L)
 		{

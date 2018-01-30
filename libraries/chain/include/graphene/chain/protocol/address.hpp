@@ -52,15 +52,17 @@ namespace graphene { namespace chain {
    {
       public:
        address(); ///< constructs empty / null address
-       explicit address( const std::string& base58str );   ///< converts to binary, validates checksum
+       explicit address(const std::string& base58str, const char *prefix_str = GRAPHENE_ADDRESS_PREFIX);   ///< converts to binary, validates checksum
        address( const fc::ecc::public_key& pub ); ///< converts to binary
        explicit address( const fc::ecc::public_key_data& pub ); ///< converts to binary
        address( const pts_address& pub ); ///< converts to binary
        address( const public_key_type& pubkey );
 
-       static bool is_valid( const std::string& base58str, const std::string& prefix = GRAPHENE_ADDRESS_PREFIX );
+       static bool is_valid( const std::string& base58str, const std::string& prefix = "");
 
        explicit operator std::string()const; ///< converts to base58 + checksum
+
+	   std::string address_to_string(const char *prefix= GRAPHENE_ADDRESS_PREFIX) const;
 
        friend size_t hash_value( const address& v ) { 
           const void* tmp = static_cast<const void*>(v.addr._hash+2);

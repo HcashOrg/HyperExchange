@@ -1031,7 +1031,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
 
-   address register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+   string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
 	   // TODO: register_contract_testing
 	   try {
@@ -1076,11 +1076,11 @@ public:
 
 		   bool broadcast = true;
 		   auto signed_tx = sign_transaction(tx, broadcast);
-		   return contract_register_op.contract_id;
+		   return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
 
-   address register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
+   string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
    {
 	   // TODO: register_contract_testing
 	   try {
@@ -1119,7 +1119,7 @@ public:
 
 		   bool broadcast = true;
 		   auto signed_tx = sign_transaction(tx, broadcast);
-		   return n_contract_register_op.contract_id;
+		   return n_contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(native_contract_key))
    }
 
@@ -1142,7 +1142,7 @@ public:
 		   contract_invoke_op.invoke_cost = std::stoll(gas_limit);
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
-		   contract_invoke_op.contract_id = address(contract_address);
+		   contract_invoke_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 		   contract_invoke_op.contract_api = contract_api;
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
@@ -1183,7 +1183,7 @@ public:
 		   contract_upgrade_op.invoke_cost = std::stoll(gas_limit);
 		   contract_upgrade_op.caller_addr = acc_caller.addr;
 		   contract_upgrade_op.caller_pubkey = caller_pubkey;
-		   contract_upgrade_op.contract_id = address(contract_address);
+		   contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 		   contract_upgrade_op.contract_name = contract_name;
 		   contract_upgrade_op.contract_desc = contract_desc;
 		   contract_upgrade_op.fee.amount = 0;
@@ -1230,7 +1230,7 @@ public:
        transfer_to_contract_op.invoke_cost = std::stoll(gas_limit);
        transfer_to_contract_op.caller_addr = acc_caller.addr;
        transfer_to_contract_op.caller_pubkey = caller_pubkey;
-       transfer_to_contract_op.contract_id = address(to);
+       transfer_to_contract_op.contract_id = address(to, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
@@ -4892,12 +4892,12 @@ signed_transaction wallet_api::approve_proposal(
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
 
-address wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+std::string wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
 }
 
-address wallet_api::register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
+std::string wallet_api::register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
 {
 	return my->register_native_contract(caller_account_name, gas_price, gas_limit, native_contract_key);
 }
