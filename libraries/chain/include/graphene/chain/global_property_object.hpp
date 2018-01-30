@@ -135,6 +135,7 @@ namespace graphene { namespace chain {
 	   static const uint8_t space_id = implementation_ids;
 	   static const uint8_t type_id = impl_local_property_object_type;
 	   guarantee_object_id_type guarantee_id;
+	   vector<string> symbols;
    };
 
 
@@ -168,4 +169,5 @@ FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::obje
                   )
 	FC_REFLECT_DERIVED(graphene::chain::local_property_object, (graphene::db::object),
 		(guarantee_id)
+		(symbols)
 	)
