@@ -151,6 +151,7 @@ const uint8_t crosschain_transaction_history_count_object::space_id;
 const uint8_t crosschain_transaction_history_count_object::type_id;
 const uint8_t guarantee_object::space_id;
 const uint8_t guarantee_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -217,6 +218,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_real_create_evaluator>();
    register_evaluator<miner_generate_multi_asset_evaluator>();
    register_evaluator<guard_update_multi_account_evaluator>();
+   register_evaluator<gurantee_create_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -259,6 +261,7 @@ void database::initialize_indexes()
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
+   add_index< primary_index<simple_index<local_property_object  >> >();
    add_index< primary_index<simple_index<account_statistics_object       >> >();
    add_index< primary_index<simple_index<asset_dynamic_data_object       >> >();
    add_index< primary_index<flat_index<  block_summary_object            >> >();
@@ -449,7 +452,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
-
+   create<local_property_object>([&](local_property_object& p) {
+	   p.guarantee_id = guarantee_object_id_type();
+	   p.symbols.clear();
+   });
    create<chain_property_object>([&](chain_property_object& p)
    {
       p.chain_id = chain_id;
