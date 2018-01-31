@@ -4925,7 +4925,7 @@ signed_transaction wallet_api::upgrade_contract(const string& caller_account_nam
 ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name))
+	if (address::is_valid(contract_address_or_name,GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 	{
 		contract_address = contract_address_or_name;
 	}
