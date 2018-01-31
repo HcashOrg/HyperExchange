@@ -230,7 +230,6 @@ namespace graphene {
 				auto register_fee = count_contract_register_fee(o.contract_code);
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 
-				gas_fees.push_back(asset(required, asset_id_type(0)));
 				// TODO: deposit margin balance to contract
 
 				
@@ -278,7 +277,7 @@ namespace graphene {
 				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = 1; // FIXME: native contract register fee
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-				gas_fees.push_back(asset(required, asset_id_type(0)));
+				//gas_fees.push_back(asset(required, asset_id_type(0)));
 				// TODO: deposit margin balance to contract
 
 				this->contracts_storage_changes = invoke_result.storage_changes;
@@ -331,7 +330,7 @@ namespace graphene {
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = 1; // FIXME: native contract register fee
 					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-					gas_fees.push_back(asset(required, asset_id_type(0)));
+					//gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = o.invoke_cost*o.gas_price - required;
 				}
 				else
@@ -415,7 +414,7 @@ namespace graphene {
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = 1; // FIXME: native contract register fee
 					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-					gas_fees.push_back(asset(required, asset_id_type(0)));
+					//gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = o.invoke_cost*o.gas_price - required;
 				}
 				else
@@ -450,7 +449,7 @@ namespace graphene {
 					gas_used = engine->gas_used();
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto required = count_gas_fee(o.gas_price, gas_used);
-					gas_fees.push_back(asset(required, asset_id_type(0)));
+					//gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = o.invoke_cost*o.gas_price - required;
 				}
 			}
@@ -495,7 +494,7 @@ namespace graphene {
 				}
 			}
 			do_apply_contract_event_notifies();
-            do_apply_fees_balance(origin_op.owner_addr);
+            //do_apply_fees_balance(origin_op.owner_addr);
 			do_apply_balance();
 			return void_result();
 		}
@@ -518,7 +517,7 @@ namespace graphene {
 					d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
 				}
 			}
-			do_apply_fees_balance(o.owner_addr);
+			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
 			return void_result();
 		}
@@ -542,7 +541,7 @@ namespace graphene {
 				}
 			}
 			do_apply_contract_event_notifies();
-            do_apply_fees_balance(origin_op.caller_addr);
+            //do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
 			return void_result();
 		}
@@ -571,7 +570,7 @@ namespace graphene {
 				}
 			}
 			do_apply_contract_event_notifies();
-            do_apply_fees_balance(origin_op.caller_addr);
+            //do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
 
 			return void_result();
@@ -830,7 +829,7 @@ namespace graphene {
                     FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
                     auto register_fee = 1; // FIXME: native contract register fee
                     auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-                    gas_fees.push_back(asset(required, asset_id_type(0)));
+                    //gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = o.invoke_cost*o.gas_price - required;
                 }
                 else
@@ -1031,18 +1030,18 @@ namespace graphene {
             *ccode = code;
             return ccode;
         }
-        void contract_common_evaluate::add_gas_fee(const asset & fee)
-        {
-            for (auto fee_it : gas_fees)
-            {
-                if (fee_it.asset_id == fee.asset_id)
-                {
-                    fee_it.amount += fee.amount;
-                    return;
-                }
-            }
-            gas_fees.push_back(fee);
-        }
+        //void contract_common_evaluate::add_gas_fee(const asset & fee)
+        //{
+        //    for (auto fee_it : gas_fees)
+        //    {
+        //        if (fee_it.asset_id == fee.asset_id)
+        //        {
+        //            fee_it.amount += fee.amount;
+        //            return;
+        //        }
+        //    }
+        //    gas_fees.push_back(fee);
+        //}
         void contract_common_evaluate::undo_balance_contract_effected()
         {
             contract_withdraw.clear();
@@ -1083,17 +1082,17 @@ namespace graphene {
             }
             deposit_contract[index] += to_deposit;
         }
-        void contract_common_evaluate::do_apply_fees_balance(const address & caller_addr)
-        {
-            for (auto fee : gas_fees)
-            {
-                FC_ASSERT(fee.amount >= 0);
-                asset fee_to_cost;
-                fee_to_cost.asset_id = fee.asset_id;
-                fee_to_cost.amount = -fee.amount;
-                get_db().adjust_balance(caller_addr, fee_to_cost); // FIXME: now account have no money
-            }
-        }
+        //void contract_common_evaluate::do_apply_fees_balance(const address & caller_addr)
+        //{
+        //    for (auto fee : gas_fees)
+        //    {
+        //        FC_ASSERT(fee.amount >= 0);
+        //        asset fee_to_cost;
+        //        fee_to_cost.asset_id = fee.asset_id;
+        //        fee_to_cost.amount = -fee.amount;
+        //        get_db().adjust_balance(caller_addr, fee_to_cost); // FIXME: now account have no money
+        //    }
+        //}
         void contract_common_evaluate::do_apply_balance()
         {
             for (auto to_contract = deposit_contract.begin(); to_contract != deposit_contract.end(); to_contract++)

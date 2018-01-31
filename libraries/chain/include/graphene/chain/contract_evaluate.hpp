@@ -18,7 +18,7 @@ namespace graphene {
 	namespace chain {
 		class contract_common_evaluate  {
 		protected:
-			std::vector<asset> gas_fees;
+			//std::vector<asset> gas_fees;
             generic_evaluator* gen_eval=nullptr;
 			std::shared_ptr<address> caller_address;
 			std::shared_ptr<fc::ecc::public_key> caller_pubkey;
@@ -45,10 +45,10 @@ namespace graphene {
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(const string &contract_name) const;
             asset asset_from_sting(const string& symbol, const string& amount);
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_from_db_by_id(const string &contract_id) const;
-            void add_gas_fee(const asset& fee);
+            //void add_gas_fee(const asset& fee);
             void undo_balance_contract_effected();
             void deposit_to_contract(const address& contract, const asset& amount);
-            void do_apply_fees_balance(const address& caller_addr);
+            //void do_apply_fees_balance(const address& caller_addr);
             void do_apply_balance();
             transaction_id_type get_current_trx_id() const;
             void do_apply_contract_event_notifies();
