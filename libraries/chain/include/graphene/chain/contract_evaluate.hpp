@@ -56,7 +56,8 @@ namespace graphene {
 			virtual share_type origin_op_fee() const = 0;
             virtual  std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const=0;
             virtual contract_object get_contract_by_name(const string& contract_name) const=0;
-            virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;;
+            virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
+			string get_api_result() const;
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{

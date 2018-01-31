@@ -42,9 +42,12 @@ namespace graphene {
         
 		void            contract_invoke_operation::validate()const
 		{
-			FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
-			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
-			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+			if (!offline)
+			{
+				FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
+				// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
+				FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+			}
 		}
 		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{

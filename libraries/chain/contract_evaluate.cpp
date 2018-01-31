@@ -323,7 +323,8 @@ namespace graphene {
 					this->contracts_storage_changes = invoke_result.storage_changes;
 					this->invoke_contract_result = invoke_result;
 					gas_used = 1; // FIXME: native contract exec gas used
-					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+					if (!o.offline)
+						FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = 1; // FIXME: native contract register fee
 					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 					gas_fees.push_back(asset(required, asset_id_type(0)));
@@ -342,7 +343,7 @@ namespace graphene {
 					engine->set_state_pointer_value("invoke_evaluate_state", this);
 					engine->clear_exceptions();
 					auto limit = o.invoke_cost;
-					if (limit < 0 || limit == 0)
+					if (!offline && (limit < 0 || limit == 0))
 						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 
 					engine->set_gas_limit(limit);
@@ -358,7 +359,8 @@ namespace graphene {
 					}
 
 					gas_used = engine->gas_used();
-					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+					if(!offline)
+						FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto required = count_gas_fee(o.gas_price, gas_used);
 					// TODO: withdraw required gas fee from owner
 
@@ -377,6 +379,8 @@ namespace graphene {
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
 			}
+			if (o.offline)
+				throw ::blockchain::contract_engine::contract_api_result_error(get_api_result());
 
 			return void_result();
 		}
@@ -1187,6 +1191,11 @@ namespace graphene {
 		 }
 
          inline std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_id(const string & contract_id) const { return nullptr; }
+
+		 string contract_common_evaluate::get_api_result() const
+		 {
+			 return invoke_contract_result.api_result;
+		 }
 
 }
 }
