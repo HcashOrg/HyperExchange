@@ -43,6 +43,7 @@ namespace graphene {
 		class native_contract_register_evaluate;
 		class contract_transfer_evaluate;
 
+		class database;
         class contract_common_evaluate;
 
 		struct common_contract_evaluator {
@@ -60,6 +61,10 @@ namespace graphene {
 
 			void transfer_to_address(const address& contract, const asset & amount, const address & to);
 			asset asset_from_sting(const string& symbol,const string& amount);
+			transaction_id_type get_current_trx_id() const;
+			database* get_db() const;
+			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
+			share_type origin_op_fee() const;
 
 
 		};

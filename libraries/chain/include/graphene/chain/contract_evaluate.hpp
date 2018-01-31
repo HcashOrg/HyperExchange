@@ -54,6 +54,8 @@ namespace graphene {
             void do_apply_contract_event_notifies();
             void transfer_to_address(const address& contract, const asset & amount, const address & to);
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
+			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
+			virtual share_type origin_op_fee() const = 0;
             virtual  std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const=0;
             virtual contract_object get_contract_by_name(const string& contract_name) const=0;
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;;
@@ -65,9 +67,6 @@ namespace graphene {
 			gas_count_type gas_used;
 			contract_register_operation origin_op;
 			contract_object new_contract;
-		public:
-			// TODO: change to contract_invoke_result type
-
 		public:
             contract_register_evaluate():contract_common_evaluate(this){}
 			typedef contract_register_operation operation_type;
@@ -81,6 +80,7 @@ namespace graphene {
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			address origin_op_contract_id() const;
+			virtual share_type origin_op_fee() const;
 		};
 
 		class native_contract_register_evaluate :public evaluator<native_contract_register_evaluate>, public contract_common_evaluate {
@@ -101,6 +101,7 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			contract_object get_contract_by_name(const string& contract_name) const;
 			address origin_op_contract_id() const;
+			virtual share_type origin_op_fee() const;
 		};
 
 		class contract_invoke_evaluate : public evaluator<contract_invoke_evaluate>, public contract_common_evaluate {
@@ -118,6 +119,7 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
+			virtual share_type origin_op_fee() const;
 		};
 
 		class contract_upgrade_evaluate : public evaluator<contract_upgrade_evaluate>, public contract_common_evaluate {
@@ -136,6 +138,7 @@ namespace graphene {
 			std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
+			virtual share_type origin_op_fee() const;
 		};
 
         class contract_transfer_evaluate : public evaluator<contract_transfer_evaluate>, public contract_common_evaluate {
@@ -153,6 +156,7 @@ namespace graphene {
             std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
             contract_object get_contract_by_name(const string& contract_name) const;
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
+			virtual share_type origin_op_fee() const;
         };
 
 	}

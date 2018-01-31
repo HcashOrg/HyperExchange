@@ -245,7 +245,7 @@ namespace graphene {
 				return get_bytestream_from_code(L, *code);
 			}
 
-			return NULL;
+			return nullptr;
 		}
 
 		GluaStorageValue UvmChainApi::get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name)
@@ -537,21 +537,8 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				ChainInterface*  db_interface = NULL;
-				if (!eval_state_ptr || !(db_interface = eval_state_ptr->_current_state))
-				{
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				}
-
-				Asset  fee = eval_state_ptr->_current_state->get_transaction_fee();
-				oAssetEntry ass_res = db_interface->get_asset_entry(fee.asset_id);
-				if (!ass_res.valid() || ass_res->precision == 0)
-					return -1;
-				return fee.amount;
-				*/
-				return 0;
+				auto fee = evaluator->origin_op_fee();
+				return fee.value;
 			}
 			catch (fc::exception e)
 			{
@@ -566,17 +553,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO;
-				/*
-				uvm::blockchain::ChainInterface* cur_state;
-				if (!eval_state_ptr || !(cur_state = eval_state_ptr->_current_state))
-				{
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				}
-				fc::time_point_sec time_stamp = cur_state->get_head_block_timestamp();
-				return time_stamp.sec_since_epoch();
-				*/
-				return 0;
+				return evaluator->get_db().head_block_time().sec_since_epoch();
 			}
 			catch (fc::exception e)
 			{
@@ -590,17 +567,10 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				uvm::blockchain::ChainInterface* cur_state;
-				if (!eval_state_ptr || !(cur_state = eval_state_ptr->_current_state))
-				{
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				}
-
-				return eval_state_ptr->p_result_trx.id().hash(cur_state->get_current_random_seed())._hash[2];
-				*/
-				return 0;
+				const auto& d = evaluator->get_db();
+				const auto& block = d.fetch_block_by_id(d.head_block_id());
+				auto hash = block->digest();
+				return hash._hash[3] % (1 << 31 - 1);
 			}
 			catch (fc::exception e)
 			{
@@ -615,13 +585,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				if (!eval_state_ptr)
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				return eval_state_ptr->trx.id().str();
-				*/
-				return "";
+				return evaluator->get_current_trx_id().str();
 			}
 			catch (fc::exception e)
 			{
@@ -637,13 +601,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				if (!eval_state_ptr || !eval_state_ptr->_current_state)
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				return eval_state_ptr->_current_state->get_head_block_num();
-				*/
-				return 0;
+				return evaluator->get_db().head_block_num();
 			}
 			catch (fc::exception e)
 			{
@@ -658,17 +616,11 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				if (!eval_state_ptr || !eval_state_ptr->_current_state)
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-
-				uint32_t target = eval_state_ptr->_current_state->get_head_block_num() + next;
+				const auto& d = evaluator->get_db();
+				auto target = d.head_block_num() + next;
 				if (target < next)
 					return 0;
 				return target;
-				*/
-				return 0;
 			}
 			catch (fc::exception e)
 			{
@@ -687,27 +639,12 @@ namespace graphene {
 				if (num <= 1)
 					return -2;
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				uvm::blockchain::ChainInterface* cur_state;
-				if (!eval_state_ptr || !(cur_state = eval_state_ptr->_current_state))
-					FC_CAPTURE_AND_THROW(lua_executor_internal_error, (""));
-				if (cur_state->get_head_block_num() < num)
+				const auto& d = evaluator->get_db();
+				if (d.head_block_num() < num)
 					return -1;
-				BlockIdType id = cur_state->get_block_id(num);
-				BlockHeader _header = cur_state->get_block_header(id);
-				SecretHashType _hash = _header.previous_secret;
-				auto default_id = BlockIdType();
-				for (int i = 0; i < 50; i++)
-				{
-					if ((id = _header.previous) == default_id)
-						break;
-					_header = cur_state->get_block_header(id);
-					_hash = _hash.hash(_header.previous_secret);
-				}
-				return _hash._hash[3] % (1 << 31 - 1);
-				*/
-				return 0;
+				const auto& block = d.fetch_block_by_number(num);
+				auto hash = block->digest();
+				return hash._hash[3] % (1 << 31 - 1);
 			}
 			catch (const fc::exception& e)
 			{
@@ -723,14 +660,8 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
-				// TODO
-				/*
-				if (evaluator == NULL)
-					FC_CAPTURE_AND_THROW(uvm_executor_internal_error, (""));
-
-				EventOperation event_op(Address(contract_id, AddressType::contract_address), std::string(event_name), std::string(event_param));
-				eval_state_ptr->p_result_trx.push_event_operation(event_op);
-				*/
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+				evaluator->emit_event(contract_addr, string(event_name), string(event_param));
 			}
 			catch (const fc::exception&)
 			{
