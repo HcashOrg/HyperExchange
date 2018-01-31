@@ -1984,6 +1984,7 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_crosschain_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
+		(create_guarantee_order)
 	    (list_guarantee_order)
 		(get_local_properties)
 		(set_guarantee_id)
