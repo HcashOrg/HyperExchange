@@ -527,6 +527,7 @@ namespace graphene {
 			// base fee
 			share_type core_fee_required = schedule.fee;
 			core_fee_required += calculate_data_fee(100, schedule.price_per_kbyte); // FIXME: native contract base fee
+            core_fee_required += init_cost*gas_price;
 			return core_fee_required;
 		}
 		address native_contract_register_operation::calculate_contract_id() const

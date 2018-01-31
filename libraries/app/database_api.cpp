@@ -346,7 +346,7 @@ contract_object database_api::get_contract_info_by_name(const string& contract_n
 contract_object database_api_impl::get_contract_info(const string& contract_address) const
 {
     try {
-        auto res=  _db.get_contract(address(contract_address));
+        auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
         return res;
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
