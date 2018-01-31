@@ -52,6 +52,17 @@ const dynamic_global_property_object&database::get_dynamic_global_properties() c
    return get( dynamic_global_property_id_type() );
 }
 
+void database::set_local_properties_for_chain_type(const string& chain_type)
+{
+	modify(get(local_property_id_type()), [&](local_property_object& obj) {
+		obj.symbols.push_back(chain_type);
+	});
+}
+local_property_object database::get_local_properties() const
+{
+	return get(local_property_id_type());
+}
+
 const fee_schedule&  database::current_fee_schedule()const
 {
    return get_global_properties().parameters.current_fees;

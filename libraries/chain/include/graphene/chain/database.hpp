@@ -265,6 +265,8 @@ namespace graphene { namespace chain {
          const chain_property_object&           get_chain_properties()const;
          const global_property_object&          get_global_properties()const;
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
+		 void     set_local_properties_for_chain_type(const string& chain_type);
+		 local_property_object                  get_local_properties()const;
          const node_property_object&            get_node_properties()const;
          const fee_schedule&                    current_fee_schedule()const;
 
@@ -357,6 +359,13 @@ namespace graphene { namespace chain {
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
 		 void adjust_balance(address addr, asset delta, bool freeze = false);
+
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
+		 void adjust_frozen(address addr, asset delta);
 		 /**
 		 * @brief Adjust a particular account's balance in a given asset by a delta
 		 * @param account ID of account whose balance should be adjusted

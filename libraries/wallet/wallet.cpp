@@ -623,28 +623,7 @@ public:
       }
 	  return account_object();
    }
-   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
-   {
-	   try {
-		   FC_ASSERT(!is_locked());
-		   auto acc = get_account(account);
-		   auto asset_obj = get_asset(symbol);
-		   gurantee_create_operation op;
-		   op.owner_addr = acc.addr;
-		   auto sys_asset = get_asset("LINK");
-		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
-		   auto target_asset = get_asset(symbol);
-		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount,target_asset.get_id());
-		   op.time = fc::time_point::now();
-		   op.symbol = symbol;
-
-		   signed_transaction trx;
-		   trx.operations.push_back(op);
-		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
-		   trx.validate();
-		   return sign_transaction(trx, broadcast);
-	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
-   }
+ 
    vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type)
    {
 	   try {
@@ -652,6 +631,20 @@ public:
 		   return _remote_db->list_guarantee_object(chain_type);
 
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
+   }
+
+   void set_guarantee_id(const guarantee_object_id_type id)
+   {
+	   try {
+		   _remote_db->set_guarantee_id(id);
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+
+   local_property_object get_local_properties()
+   {
+	   try {
+		   return _remote_db->get_local_properties();
+	   }FC_CAPTURE_AND_RETHROW()
    }
 
    string create_crosschain_symbol(const string& symbol)
@@ -1403,7 +1396,28 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (name) ) }
 
+   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto acc = get_account(account);
+		   auto asset_obj = get_asset(symbol);
+		   gurantee_create_operation op;
+		   op.owner_addr = acc.addr;
+		   auto sys_asset = get_asset("LNK");
+		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
+		   auto target_asset = get_asset(symbol);
+		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount, target_asset.get_id());
+		   op.time = string(fc::time_point::now());
+		   op.symbol = symbol;
 
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
+   }
    // This function generates derived keys starting with index 0 and keeps incrementing
    // the index until it finds a key that isn't registered in the block chain.  To be
    // safer, it continues checking for a few more keys to make sure there wasn't a short gap
@@ -2769,7 +2783,6 @@ public:
             /// the transaction will be rejected if the transaction validates without requiring
             /// all signatures provided
          }
-
          graphene::chain::transaction_id_type this_transaction_id = tx.id();
          auto iter = _recently_generated_transactions.find(this_transaction_id);
          if (iter == _recently_generated_transactions.end())
@@ -2799,7 +2812,6 @@ public:
             throw;
          }
       }
-	  std::cout << tx.id().str() << std::endl;
       return tx;
    }
 
@@ -5422,6 +5434,17 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol);
 }
+
+void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
+{
+	return my->set_guarantee_id(id);
+}
+
+local_property_object wallet_api::get_local_properties()
+{
+	return my->get_local_properties();
+}
+
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,

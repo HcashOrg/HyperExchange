@@ -1783,6 +1783,8 @@ class wallet_api
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
 	  signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
+	  void set_guarantee_id(const guarantee_object_id_type id);
+	  local_property_object get_local_properties();
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2010,5 +2012,8 @@ FC_API( graphene::wallet::wallet_api,
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
+		(create_guarantee_order)
 	    (list_guarantee_order)
+		(get_local_properties)
+		(set_guarantee_id)
       )
