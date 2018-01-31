@@ -23,6 +23,8 @@ namespace graphene {
 			std::shared_ptr<address> caller_address;
 			std::shared_ptr<fc::ecc::public_key> caller_pubkey;
 
+            share_type total_fee;
+            share_type unspent_fee;
             gas_count_type gas_used;
 			contract_invoke_result invoke_contract_result;
             //balances
@@ -55,6 +57,7 @@ namespace graphene {
             virtual  std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const=0;
             virtual contract_object get_contract_by_name(const string& contract_name) const=0;
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;;
+            
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
@@ -145,8 +148,8 @@ namespace graphene {
             contract_transfer_evaluate() : contract_common_evaluate(this) {}
             void_result do_evaluate(const operation_type& o);
             void_result do_apply(const operation_type& o);
-
-
+            void pay_fee();
+            
             std::shared_ptr<GluaContractInfo> get_contract_by_id(const string &contract_id) const;
             contract_object get_contract_by_name(const string& contract_name) const;
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;

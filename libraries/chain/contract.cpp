@@ -81,7 +81,7 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            return 0;
+            return invoke_cost*gas_price;
         }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)

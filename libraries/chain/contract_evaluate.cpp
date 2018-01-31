@@ -707,8 +707,11 @@ namespace graphene {
             FC_ASSERT(d.has_contract(o.contract_id));
             auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
+            this->caller_address = std::make_shared<address>(o.caller_addr);
+            this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             if(contract.code.abi.find("on_deposit")!= contract.code.abi.end())
             {
+                total_fee = o.invoke_cost*o.gas_price;
                 try {
                 if (contract.is_native_contract)
                 {
@@ -756,10 +759,10 @@ namespace graphene {
 
                     gas_used = engine->gas_used();
                     FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-                    auto required = count_gas_fee(o.gas_price, gas_used);
+                    auto required = count_gas_fee(o.gas_price,gas_used);
                     // TODO: withdraw required gas fee from owner
-                    gas_fees.push_back(asset(required, asset_id_type(0)));
-
+   //                 o.fee = asset(required, asset_id_type(0));
+                    unspent_fee = o.invoke_cost*o.gas_price-required;
                 }
             }
             catch (std::exception &e)
@@ -801,11 +804,15 @@ namespace graphene {
                 }
             }
 
-			do_apply_contract_event_notifies();            
-			do_apply_fees_balance(o.caller_addr);
-            d.adjust_balance(o.caller_addr, asset(0, o.amount.asset_id) - o.amount);
+			do_apply_contract_event_notifies();       
             do_apply_balance();
             return void_result();
+        }
+
+        void contract_transfer_evaluate::pay_fee()
+        {
+            db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+            db().modify_current_collected_fee(total_fee-unspent_fee);
         }
 
 
@@ -1100,5 +1107,6 @@ namespace graphene {
             return running_balance;
         }
          inline std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_id(const string & contract_id) const { return nullptr; }
+
 }
 }
