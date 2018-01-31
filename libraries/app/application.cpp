@@ -387,7 +387,7 @@ namespace detail {
 					 auto fd = instance.get_crosschain_handle(chain_type);
 					 if (fd != nullptr)
 						 fd->initialize_config(config_var);
-					 _chain_db->set_local_properties_for_chain_type(chain_type);
+					 //_chain_db->set_local_properties_for_chain_type(chain_type);
 				 }
 				 _self->set_crosschain_manager_config(config);
 			 }
