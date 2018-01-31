@@ -510,7 +510,7 @@ namespace graphene { namespace chain {
 	   asset asset_origin;
 	   asset asset_target;
 	   string symbol;
-	   fc::time_point time;
+	   string time;
 	   void            validate() const {};
 	   address         fee_payer()const { return owner_addr; }
 	   void get_required_authorities(vector<authority>& a)const {

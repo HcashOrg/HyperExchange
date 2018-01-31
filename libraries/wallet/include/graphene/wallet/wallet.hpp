@@ -1740,6 +1740,7 @@ class wallet_api
 	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
 	  std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
 	  signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+	  string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
@@ -1782,6 +1783,8 @@ class wallet_api
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
 	  signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
+	  void set_guarantee_id(const guarantee_object_id_type id);
+	  local_property_object get_local_properties();
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2003,10 +2006,14 @@ FC_API( graphene::wallet::wallet_api,
 		(register_contract)
 		(register_native_contract)
 		(invoke_contract)
+		(invoke_contract_offline)
 		(upgrade_contract)
         (get_contract_info)
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
+		(create_guarantee_order)
 	    (list_guarantee_order)
+		(get_local_properties)
+		(set_guarantee_id)
       )

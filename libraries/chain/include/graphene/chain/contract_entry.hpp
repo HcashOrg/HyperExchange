@@ -7,6 +7,7 @@
 
 #include <uvm/uvm_lib.h>
 #include <fc/exception/exception.hpp>
+#include <exception>
 //#include <graphene/chain/protocol/operations.hpp>
 
 
@@ -41,6 +42,15 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(contract_api_not_found, blockchain::contract_engine::contract_error, 35002, "contract api not found");
         FC_DECLARE_DERIVED_EXCEPTION(contract_not_exsited, blockchain::contract_engine::contract_error, 35003, "contract not exsited");
         FC_DECLARE_DERIVED_EXCEPTION(invalid_asset_symbol, blockchain::contract_engine::contract_error, 35004, "invalid asset symbol");
+
+		class contract_api_result_error : public std::exception
+		{
+		private:
+			std::string _api_result;
+		public:
+			contract_api_result_error(const std::string& api_result) : _api_result(api_result) {}
+			virtual const char* what() const { return _api_result.c_str(); }
+		};
 	}
 }
 

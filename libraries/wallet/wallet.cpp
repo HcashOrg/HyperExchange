@@ -623,28 +623,7 @@ public:
       }
 	  return account_object();
    }
-   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
-   {
-	   try {
-		   FC_ASSERT(!is_locked());
-		   auto acc = get_account(account);
-		   auto asset_obj = get_asset(symbol);
-		   gurantee_create_operation op;
-		   op.owner_addr = acc.addr;
-		   auto sys_asset = get_asset("LINK");
-		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
-		   auto target_asset = get_asset(symbol);
-		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount,target_asset.get_id());
-		   op.time = fc::time_point::now();
-		   op.symbol = symbol;
-
-		   signed_transaction trx;
-		   trx.operations.push_back(op);
-		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
-		   trx.validate();
-		   return sign_transaction(trx, broadcast);
-	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
-   }
+ 
    vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type)
    {
 	   try {
@@ -652,6 +631,20 @@ public:
 		   return _remote_db->list_guarantee_object(chain_type);
 
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
+   }
+
+   void set_guarantee_id(const guarantee_object_id_type id)
+   {
+	   try {
+		   _remote_db->set_guarantee_id(id);
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+
+   local_property_object get_local_properties()
+   {
+	   try {
+		   return _remote_db->get_local_properties();
+	   }FC_CAPTURE_AND_RETHROW()
    }
 
    string create_crosschain_symbol(const string& symbol)
@@ -1126,7 +1119,6 @@ public:
    signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
    {
 	   try {
-		   // TODO: invoke_contract_testing
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
 
@@ -1162,6 +1154,77 @@ public:
 		   auto signed_tx = sign_transaction(tx, broadcast);
 		   return signed_tx;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address)(contract_api)(contract_arg))
+   }
+
+   string invoke_contract_offline(const string& caller_account_name, const string& contract_address, const string& contract_api, const string& contract_arg)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   FC_ASSERT(is_valid_account_name(caller_account_name));
+
+		   contract_invoke_operation contract_invoke_op;
+
+		   //juge if the name has been registered in the chain
+		   auto acc_caller = get_account(caller_account_name);
+		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto caller_pubkey = privkey.get_public_key();
+
+		   contract_invoke_op.gas_price = 0;
+		   contract_invoke_op.invoke_cost = 0;
+		   contract_invoke_op.offline = true;
+		   contract_invoke_op.caller_addr = acc_caller.addr;
+		   contract_invoke_op.caller_pubkey = caller_pubkey;
+		   contract_invoke_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		   contract_invoke_op.contract_api = contract_api;
+		   contract_invoke_op.contract_arg = contract_arg;
+		   contract_invoke_op.fee.amount = 0;
+		   contract_invoke_op.fee.asset_id = asset_id_type(0);
+
+		   signed_transaction tx;
+		   tx.operations.push_back(contract_invoke_op);
+		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
+		   set_operation_fees(tx, current_fees);
+
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(30));
+		   tx.validate();
+
+		   bool broadcast = true;
+		   try
+		   {
+			   auto signed_tx = sign_transaction(tx, broadcast, true);
+		   }
+		   catch (fc::exception& e)
+		   {
+			   // FIXME: 更好地获取到offline调用合约API的返回值
+			   auto detail = e.to_detail_string();
+			   auto estr = e.to_string();
+			   auto elog = e.get_log();
+			   std::string double_result;
+			   for (const auto elog_item : elog) {
+				   const auto& data = elog_item.get_data();
+				   for (auto it = data.begin(); it != data.end(); it++)
+				   {
+					   auto data_value = it->value();
+					   if (data_value.is_string())
+					   {
+						   double_result = data_value.as_string();
+					   }
+				   }
+			   }
+			   if (double_result.length() >= 2)
+				{
+					std::string offline_result = double_result.substr(0, double_result.length() / 2);
+					if (offline_result.find_last_of(":") + 2 == offline_result.length())
+						offline_result = offline_result.substr(0, offline_result.find_last_of(":"));
+					return offline_result;
+				}
+			   return detail;
+		   }
+		   return "some error happened, not api result get";
+	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address)(contract_api)(contract_arg))
    }
 
    signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
@@ -1333,7 +1396,28 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (name) ) }
 
+   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto acc = get_account(account);
+		   auto asset_obj = get_asset(symbol);
+		   gurantee_create_operation op;
+		   op.owner_addr = acc.addr;
+		   auto sys_asset = get_asset("LNK");
+		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
+		   auto target_asset = get_asset(symbol);
+		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount, target_asset.get_id());
+		   op.time = string(fc::time_point::now());
+		   op.symbol = symbol;
 
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
+   }
    // This function generates derived keys starting with index 0 and keeps incrementing
    // the index until it finds a key that isn't registered in the block chain.  To be
    // safer, it continues checking for a few more keys to make sure there wasn't a short gap
@@ -2584,7 +2668,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_modify)(desired_number_of_witnesses)(desired_number_of_committee_members)(broadcast) ) }
 
-   signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
+   signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false, bool ignore_error_log=false)
    {
 	   
 	   
@@ -2699,7 +2783,6 @@ public:
             /// the transaction will be rejected if the transaction validates without requiring
             /// all signatures provided
          }
-
          graphene::chain::transaction_id_type this_transaction_id = tx.id();
          auto iter = _recently_generated_transactions.find(this_transaction_id);
          if (iter == _recently_generated_transactions.end())
@@ -2724,11 +2807,11 @@ public:
          }
          catch (const fc::exception& e)
          {
-            elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()) );
+			if(!ignore_error_log)
+				elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()) );
             throw;
          }
       }
-	  std::cout << tx.id().str() << std::endl;
       return tx;
    }
 
@@ -4905,7 +4988,7 @@ std::string wallet_api::register_native_contract(const string& caller_account_na
 signed_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name))
+	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 	{
 		contract_address = contract_address_or_name;
 	}
@@ -4917,6 +5000,21 @@ signed_transaction wallet_api::invoke_contract(const string& caller_account_name
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
 
+string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
+{
+	std::string contract_address;
+	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+	{
+		contract_address = contract_address_or_name;
+	}
+	else {
+
+		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		contract_address = string(cont.contract_address);
+	}
+	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
+}
+
 signed_transaction wallet_api::upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
 {
 	return my->upgrade_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_name, contract_desc);
@@ -4925,7 +5023,7 @@ signed_transaction wallet_api::upgrade_contract(const string& caller_account_nam
 ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name,GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 	{
 		contract_address = contract_address_or_name;
 	}
@@ -4949,7 +5047,7 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name))
+	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 	{
 		contract_address = contract_address_or_name;
 	}
@@ -5336,6 +5434,17 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol);
 }
+
+void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
+{
+	return my->set_guarantee_id(id);
+}
+
+local_property_object wallet_api::get_local_properties()
+{
+	return my->get_local_properties();
+}
+
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,

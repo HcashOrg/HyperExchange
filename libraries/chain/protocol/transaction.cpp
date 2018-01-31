@@ -27,7 +27,8 @@
 #include <fc/bitutil.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <algorithm>
-
+#include <iostream>
+#include <fc/crypto/base58.hpp>
 namespace graphene { namespace chain {
 
 digest_type processed_transaction::merkle_digest()const
@@ -49,6 +50,7 @@ digest_type transaction::sig_digest( const chain_id_type& chain_id )const
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );
    fc::raw::pack( enc, *this );
+   auto ret = enc.result();
    return enc.result();
 }
 
