@@ -79,7 +79,15 @@ namespace graphene {
 		*/
 		int UvmChainApi::check_contract_api_instructions_over_limit(lua_State *L)
 		{
-			return 0; // FIXME: need fill by uvm api
+			try {
+				auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
+				if (evaluator) {
+					auto gas_limit = evaluator->get_gas_limit();
+					auto gas_count = uvm::lua::lib::get_lua_state_instructions_executed_count(L);
+					return gas_count > gas_limit;
+				}
+				return 0;
+			}FC_CAPTURE_AND_LOG((0))
 		}
 
 

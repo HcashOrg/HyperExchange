@@ -10,14 +10,18 @@
 namespace graphene {
 	namespace chain {
 		class native_contract_register_evaluate;
+		class contract_common_evaluate;
+
+		const share_type native_contract_register_fee = 10* GRAPHENE_BLOCKCHAIN_PRECISION;
+
 		class abstract_native_contract
 		{
 		protected:
-			common_contract_evaluator _evaluate;
+			contract_common_evaluate* _evaluate;
 			address contract_id;
 			contract_invoke_result _contract_invoke_result;
 		public:
-			abstract_native_contract(common_contract_evaluator evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
+			abstract_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
 			// unique key to identify native contract
@@ -28,6 +32,12 @@ namespace graphene {
 			virtual std::set<std::string> events() const = 0;
 
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg) = 0;
+
+			virtual gas_count_type gas_count_for_api_invoke(const std::string& api_name) const
+			{
+				return 100; // now all native api call requires 100 gas count
+			}
+			bool has_api(const string& api_name);
 
 			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
 			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
@@ -40,7 +50,7 @@ namespace graphene {
 		public:
 			static std::string native_contract_key() { return "demo"; }
 
-			demo_native_contract(common_contract_evaluator evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
+			demo_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
 			virtual ~demo_native_contract() {}
 			virtual std::string contract_key() const;
 			virtual address contract_address() const;
@@ -56,7 +66,7 @@ namespace graphene {
 		public:
 			static std::string native_contract_key() { return "token"; }
 
-			token_native_contract(common_contract_evaluator evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
+			token_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
 			virtual ~token_native_contract() {}
 
 			virtual std::string contract_key() const;
@@ -101,7 +111,7 @@ namespace graphene {
 		{
 		public:
 			static bool has_native_contract_with_key(const std::string& key);
-			static shared_ptr<abstract_native_contract> create_native_contract_by_key(common_contract_evaluator evaluate, const std::string& key, const address& contract_address);
+			static shared_ptr<abstract_native_contract> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
 
 		};
 

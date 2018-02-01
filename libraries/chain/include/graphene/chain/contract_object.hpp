@@ -95,6 +95,7 @@ namespace graphene {
             contract_balance_object,
             indexed_by<
             ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+			ordered_non_unique< tag<by_contract_id>, member< contract_balance_object, address, &contract_balance_object::owner > >,
             ordered_non_unique< tag<by_owner>, composite_key<
             contract_balance_object,
             member<contract_balance_object, address, &contract_balance_object::owner>,

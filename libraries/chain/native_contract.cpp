@@ -19,7 +19,7 @@ namespace graphene {
 			{
 				StorageDataChangeType change;
 				change.after = value;
-				const auto &before = _evaluate.get_storage(string(contract_address), storage_name);
+				const auto &before = _evaluate->get_storage(string(contract_address), storage_name);
 				jsondiff::JsonDiff differ;
 				auto before_json_str = before.as<string>();
 				auto after_json_str = change.after.as<string>();
@@ -44,12 +44,12 @@ namespace graphene {
 		{
 			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
 			{
-				return _evaluate.get_storage(string(contract_address), storage_name);
+				return _evaluate->get_storage(string(contract_address), storage_name);
 			}
 			std::unordered_map<std::string, StorageDataChangeType>& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
-				return _evaluate.get_storage(string(contract_address), storage_name);
+				return _evaluate->get_storage(string(contract_address), storage_name);
 			}
 			return storage_changes[storage_name].after;
 		}
@@ -64,6 +64,12 @@ namespace graphene {
 			_contract_invoke_result.events.push_back(info);
 		}
 
+		bool abstract_native_contract::has_api(const string& api_name)
+		{
+			const auto& api_names = apis();
+			return api_names.find(api_name) != api_names.end();
+		}
+
 		std::string demo_native_contract::contract_key() const
 		{
 			return demo_native_contract::native_contract_key();
@@ -72,7 +78,7 @@ namespace graphene {
 			return contract_id;
 		}
 		std::set<std::string> demo_native_contract::apis() const {
-			return { "init", "hello" };
+			return { "init", "hello", "contract_balance", "withdraw", "on_deposit" };
 		}
 		std::set<std::string> demo_native_contract::offline_apis() const {
 			return {};
@@ -85,6 +91,16 @@ namespace graphene {
 			contract_invoke_result result;
 			printf("demo native contract called\n");
 			printf("api %s called with arg %s\n", api_name.c_str(), api_arg.c_str());
+			if (api_name == "contract_balance")
+			{
+				auto system_asset_id = _evaluate->asset_from_sting(string(GRAPHENE_SYMBOL), string("0")).asset_id;
+				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
+				result.api_result = std::to_string(balance.value);
+			}
+			else if (api_name == "withdraw")
+			{
+				// TODO: with balance from contract
+			}
 			return result;
 		}
 
@@ -117,7 +133,7 @@ namespace graphene {
 			set_contract_storage(contract_id, string("users"), string("{}"));
 			set_contract_storage(contract_id, string("allowed"), string("{}"));
 			set_contract_storage(contract_id, string("state"), string("\"") + not_inited_state_of_token_contract + "\"");
-			auto caller_addr = _evaluate.get_caller_address();
+			auto caller_addr = _evaluate->get_caller_address();
 			FC_ASSERT(caller_addr);
 			set_contract_storage(contract_id, string("admin"), jsondiff::json_dumps(string(*caller_addr)));
 			set_contract_storage(contract_id, string("users"), string("{}"));
@@ -126,7 +142,7 @@ namespace graphene {
 
 		string token_native_contract::check_admin()
 		{
-			auto caller_addr = _evaluate.get_caller_address();
+			auto caller_addr = _evaluate->get_caller_address();
 			if (!caller_addr)
 				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "only admin can call this api");
 			auto admin_storage = get_contract_storage(contract_id, string("admin"));
@@ -180,7 +196,7 @@ namespace graphene {
 
 		std::string token_native_contract::get_from_address()
 		{
-			return string(*_evaluate.get_caller_address()); // FIXME: when get from_address, caller maybe other contract
+			return string(*(_evaluate->get_caller_address())); // FIXME: when get from_address, caller maybe other contract
 		}
 
 		static bool is_numeric(std::string number)
@@ -231,7 +247,7 @@ namespace graphene {
 			set_contract_storage(contract_id, string("name"), string("\"") + name + "\"");
 
 			jsondiff::JsonObject users;
-			auto caller_addr = string(*_evaluate.get_caller_address());
+			auto caller_addr = string(*(_evaluate->get_caller_address()));
 			users[caller_addr] = supply;
 			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
 			emit_event(contract_id, "Inited", supply_str);
@@ -246,7 +262,6 @@ namespace graphene {
 			if(!address::is_valid(owner_addr))
 				FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "owner address is not valid address format");
 			auto amount = get_balance_of_user(owner_addr);
-			printf("amount: %ld\n", amount); // FIXME: remove it
 			_contract_invoke_result.api_result = std::to_string(amount);
 			return _contract_invoke_result;
 		}
@@ -254,7 +269,6 @@ namespace graphene {
 		contract_invoke_result token_native_contract::state_api(const std::string& api_name, const std::string& api_arg)
 		{
 			auto state = get_storage_state();
-			printf("state: %s\n", state.c_str()); // FIXME: remove it
 			_contract_invoke_result.api_result = state;
 			return _contract_invoke_result;
 		}
@@ -263,14 +277,12 @@ namespace graphene {
 		contract_invoke_result token_native_contract::supply_api(const std::string& api_name, const std::string& api_arg)
 		{
 			auto supply = get_storage_supply();
-			printf("supply: %ld\n", supply); // FIXME: remove it
 			_contract_invoke_result.api_result = std::to_string(supply);
 			return _contract_invoke_result;
 		}
 		contract_invoke_result token_native_contract::precision_api(const std::string& api_name, const std::string& api_arg)
 		{
 			auto precision = get_storage_precision();
-			printf("precision: %ld\n", precision); // FIXME: remove it
 			_contract_invoke_result.api_result = std::to_string(precision);
 			return _contract_invoke_result;
 		}
@@ -302,7 +314,6 @@ namespace graphene {
 				}
 			}
 
-			printf("approved amount: %ld\n", approved_amount); // FIXME: remove it
 			_contract_invoke_result.api_result = std::to_string(approved_amount);
 			return _contract_invoke_result;
 		}
@@ -322,7 +333,6 @@ namespace graphene {
 				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
 			}
 			auto allowed_data_str = jsondiff::json_dumps(allowed_data);
-			printf("approved amount: %s\n", allowed_data_str.c_str()); // FIXME: remove it
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;
 		}
@@ -498,7 +508,7 @@ namespace graphene {
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
-		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(common_contract_evaluator evaluate, const std::string& key, const address& contract_address)
+		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
 		{
 			if (key == demo_native_contract::native_contract_key())
 			{
@@ -526,7 +536,7 @@ namespace graphene {
 		{
 			// base fee
 			share_type core_fee_required = schedule.fee;
-			core_fee_required += calculate_data_fee(100, schedule.price_per_kbyte); // FIXME: native contract base fee
+			core_fee_required += calculate_data_fee(100, schedule.price_per_kbyte); // native contract base fee
             core_fee_required += init_cost*gas_price;
 			return core_fee_required;
 		}

@@ -26,6 +26,7 @@ namespace graphene {
             share_type total_fee;
             share_type unspent_fee;
             gas_count_type gas_used;
+			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
             //balances
             std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
@@ -60,6 +61,7 @@ namespace graphene {
             virtual contract_object get_contract_by_name(const string& contract_name) const=0;
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			string get_api_result() const;
+			gas_count_type get_gas_limit() const;
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{

@@ -194,13 +194,13 @@ namespace graphene {
             {
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (addr));
             }
-            
+
             auto& bal_idx = get_index_type<contract_balance_index>();
             const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
             //subscribe_to_item(addr);
             auto itr = by_owner_idx.find(boost::make_tuple(addr, asset_id));
             asset result(0, asset_id);
-            if (itr == by_owner_idx.end()&&itr->owner == addr)
+            if (itr != by_owner_idx.end() && itr->owner == addr)
             {
                 result += (*itr).balance;
             }
