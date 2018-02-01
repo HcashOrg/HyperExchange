@@ -25,6 +25,8 @@
 #include <graphene/chain/protocol/base.hpp>
 #include <graphene/chain/protocol/memo.hpp>
 
+#include <uvm/uvm_lib.h>
+
 namespace graphene { namespace chain {
 
    /**

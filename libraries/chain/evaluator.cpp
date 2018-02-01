@@ -40,6 +40,11 @@
 namespace graphene { namespace chain {
 database& generic_evaluator::db()const { return trx_state->db(); }
 
+const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() const
+{
+    return trx_state;
+}
+
    operation_result generic_evaluator::start_evaluate( transaction_evaluation_state& eval_state, const operation& op, bool apply )
    { try {
       trx_state   = &eval_state;

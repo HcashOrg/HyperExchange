@@ -1736,6 +1736,25 @@ class wallet_api
       void network_add_nodes( const vector<string>& nodes );
       vector< variant > network_get_connected_peers();
 
+	  // contract wallet apis
+	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+	  std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
+	  signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+	  string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
+      ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
+	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
+      signed_transaction transfer_to_contract(string from,
+          string to,
+          string amount,
+          string asset_symbol,
+          const string& gas_price,
+          const string& gas_limit,
+          bool broadcast = false);
+
+      vector<asset> get_contract_balance(const string& contract_address) const;
+      // end contract wallet apis
+
       /**
        *  Used to transfer from one set of blinded balances to another
        */
@@ -1984,6 +2003,15 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_crosschain_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
+		(register_contract)
+		(register_native_contract)
+		(invoke_contract)
+		(invoke_contract_offline)
+		(upgrade_contract)
+        (get_contract_info)
+		(get_simple_contract_info)
+		(transfer_to_contract)
+        (get_contract_balance)
 		(create_guarantee_order)
 	    (list_guarantee_order)
 		(get_local_properties)

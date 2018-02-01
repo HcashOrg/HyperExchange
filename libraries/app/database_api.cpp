@@ -34,6 +34,7 @@
 #include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/chain/account_object.hpp>
+#include <graphene/chain/contract_object.hpp>
 #include <cctype>
 
 #include <cfenv>
@@ -159,6 +160,11 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
+
+      //contract 
+      contract_object get_contract_info(const string& contract_address)const ;
+	  contract_object get_contract_info_by_name(const string& contract_name) const;
+      vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
    //private:
       template<typename T>
@@ -330,7 +336,41 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-
+contract_object database_api::get_contract_info(const string& contract_address) const
+{
+    return my->get_contract_info(contract_address);
+}
+contract_object database_api::get_contract_info_by_name(const string& contract_name) const
+{
+	return my->get_contract_info_by_name(contract_name);
+}
+contract_object database_api_impl::get_contract_info(const string& contract_address) const
+{
+    try {
+        auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+        return res;
+    }FC_CAPTURE_AND_RETHROW((contract_address))
+}
+contract_object database_api_impl::get_contract_info_by_name(const string& contract_name) const
+{
+	try {
+		auto res = _db.get_contract_of_name(contract_name);
+		return res;
+	}FC_CAPTURE_AND_RETHROW((contract_name))
+}
+vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
+{
+    vector<asset> res;
+    auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
+    for (auto it : db)
+    {
+        if (it.owner == contract_address)
+        {
+            res.push_back(it.balance);
+        }
+    }
+    return res;
+}
 void database_api::set_pending_transaction_callback( std::function<void(const variant&)> cb )
 {
    my->set_pending_transaction_callback( cb );
@@ -355,7 +395,10 @@ void database_api::cancel_all_subscriptions()
 {
    my->cancel_all_subscriptions();
 }
-
+vector<asset> database_api::get_contract_balance(const address & contract_address) const
+{
+    return my->get_contract_balance(contract_address);
+}
 void database_api_impl::cancel_all_subscriptions()
 {
    set_subscribe_callback( std::function<void(const fc::variant&)>(), true);

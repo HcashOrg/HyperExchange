@@ -9,6 +9,8 @@
 #include <graphene/chain/confidential_object.hpp>
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/contract.hpp>
+#include <graphene/chain/native_contract.hpp>
 
 using namespace fc;
 using namespace graphene::chain;
@@ -213,6 +215,12 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.account_id );
    }
+   void operator()(const contract_register_operation& op) {}
+   void operator()(const contract_upgrade_operation& op) {}
+   void operator()(const native_contract_register_operation& op) {}
+   void operator()(const contract_invoke_operation& op) {}
+   void operator()(const storage_operation& op) {}
+   void operator()(const transfer_contract_operation& op) {}
 
 };
 

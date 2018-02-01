@@ -66,7 +66,7 @@ namespace graphene {
 			virtual void pay_fee();
 
 			database& db()const;
-
+            const transaction_evaluation_state* get_trx_eval_state() const;
 			//void check_required_authorities(const operation& op);
 		protected:
 			/**
@@ -122,6 +122,7 @@ namespace graphene {
 			void db_adjust_balance(const address& fee_payer, asset fee_from_account);
 			asset                            fee_from_account;
 			share_type                       core_fee_paid;
+            share_type                       unused_contract_fee=0;
 			const account_object*            fee_paying_account = nullptr;
 			const account_statistics_object* fee_paying_account_statistics = nullptr;
 			const asset_object*              fee_asset = nullptr;
@@ -158,7 +159,6 @@ namespace graphene {
 			{
 				auto* eval = static_cast<DerivedEvaluator*>(this);
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
-
 				prepare_fee(op.fee_payer(), op.fee);
 				if (!trx_state->skip_fee_schedule_check)
 				{
@@ -178,11 +178,11 @@ namespace graphene {
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
 
 				convert_fee();
-				//pay_fee();
+				pay_fee();
 				auto result = eval->do_apply(op);
 				if (op.get_guarantee_id() == guarantee_object_id_type())
 				{
-					//db_adjust_balance(op.fee_payer(), -fee_from_account);
+					db_adjust_balance(op.fee_payer(), -fee_from_account);
 				}
 				else
 				{
