@@ -43,7 +43,6 @@ set(SOURCES src/uvm/lapi.cpp
     src/uvm/uvm_api_types.cpp
     src/uvm/uvm_lib.cpp
     src/uvm/uvm_lutil.cpp
-    src/uvm/uvm_proto_info.cpp
     src/uvm/uvm_state_scope.cpp
     src/uvm/uvm_storage.cpp
     src/uvm/uvm_tokenparser.cpp

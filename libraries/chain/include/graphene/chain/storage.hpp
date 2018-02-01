@@ -26,8 +26,8 @@ namespace graphene {
 			{
 				return fc::raw::unpack<StorageType>(storage_data);
 			}
-			static StorageDataType get_storage_data_from_lua_storage(const GluaStorageValue& lua_storage);
-			static GluaStorageValue create_lua_storage_from_storage_data(lua_State *L, const StorageDataType& storage_data);
+			static StorageDataType get_storage_data_from_lua_storage(const UvmStorageValue& lua_storage);
+			static UvmStorageValue create_lua_storage_from_storage_data(lua_State *L, const StorageDataType& storage_data);
 		};
 
 

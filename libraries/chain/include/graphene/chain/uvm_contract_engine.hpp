@@ -8,13 +8,13 @@ namespace uvm
 {
 	using namespace graphene::chain;
 
-	class GluaContractEngine : public ::blockchain::contract_engine::ContractEngine
+	class UvmContractEngine : public ::blockchain::contract_engine::ContractEngine
 	{
 	private:
-		std::shared_ptr<uvm::lua::lib::GluaStateScope> _scope;
+		std::shared_ptr<uvm::lua::lib::UvmStateScope> _scope;
 	public:
-		GluaContractEngine(bool use_contract=true);
-		virtual ~GluaContractEngine();
+		UvmContractEngine(bool use_contract=true);
+		virtual ~UvmContractEngine();
 
 		virtual bool has_gas_limit() const;
 		virtual int64_t gas_limit() const;

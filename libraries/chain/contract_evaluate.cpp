@@ -606,11 +606,11 @@ namespace graphene {
             db().modify_current_collected_fee(total_fee - unspent_fee);
 		}
 
-		std::shared_ptr<GluaContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
+		std::shared_ptr<UvmContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
 			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
-				auto contract_info = std::make_shared<GluaContractInfo>();
+				auto contract_info = std::make_shared<UvmContractInfo>();
 				const auto &code = origin_op.contract_code;
 				for (const auto & api : code.abi) {
 					contract_info->contract_apis.push_back(api);
@@ -623,11 +623,11 @@ namespace graphene {
 			}
 		}
 
-		std::shared_ptr<GluaContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
+		std::shared_ptr<UvmContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
 			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
-				auto contract_info = std::make_shared<GluaContractInfo>();
+				auto contract_info = std::make_shared<UvmContractInfo>();
 				common_contract_evaluator evaluator;
 				evaluator.register_native_contract_evaluator = const_cast<native_contract_register_evaluate*>(this);
 				auto native_contract = native_contract_finder::create_native_contract_by_key(evaluator, origin_op.native_contract_key, address(contract_id));
@@ -648,18 +648,18 @@ namespace graphene {
 		{
 			FC_ASSERT(!contract_name.empty());
 			FC_ASSERT(db().has_contract_of_name(contract_name));
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract_of_name(contract_name);
 			// TODO: when contract is native contract
 			return contract;
 		}
 
-		std::shared_ptr<GluaContractInfo> contract_invoke_evaluate::get_contract_by_id(const string &contract_id) const
+		std::shared_ptr<UvmContractInfo> contract_invoke_evaluate::get_contract_by_id(const string &contract_id) const
 		{
 			address contract_addr(contract_id);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
 			if (contract.is_native_contract)
 			{
@@ -684,19 +684,19 @@ namespace graphene {
 		{
 			FC_ASSERT(!contract_name.empty());
 			FC_ASSERT(db().has_contract_of_name(contract_name));
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract_of_name(contract_name);
 			// TODO: when contract is native contract
 			return contract;
 		}
 
 		// FIXME: duplicate code
-		std::shared_ptr<GluaContractInfo> contract_upgrade_evaluate::get_contract_by_id(const string &contract_id) const
+		std::shared_ptr<UvmContractInfo> contract_upgrade_evaluate::get_contract_by_id(const string &contract_id) const
 		{
 			address contract_addr(contract_id);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
 			if (contract.is_native_contract)
 			{
@@ -721,7 +721,7 @@ namespace graphene {
 		{
 			FC_ASSERT(!contract_name.empty());
 			FC_ASSERT(db().has_contract_of_name(contract_name));
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract_of_name(contract_name);
 			// TODO: when contract is native contract
 			return contract;
@@ -731,7 +731,7 @@ namespace graphene {
 		{
 			FC_ASSERT(!contract_name.empty());
 			FC_ASSERT(db().has_contract_of_name(contract_name));
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract_of_name(contract_name);
 			// TODO: when contract is native contract
 			return contract;
@@ -762,7 +762,7 @@ namespace graphene {
 			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
-			auto contract_info = std::make_shared<GluaContractInfo>();
+			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
 			// TODO: when contract is native contract
 			const auto &code = contract.code;
@@ -931,12 +931,12 @@ namespace graphene {
 
 
 
-        std::shared_ptr<GluaContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
+        std::shared_ptr<UvmContractInfo> contract_transfer_evaluate::get_contract_by_id(const string & contract_id) const
         {
             address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!db().has_contract(contract_addr))
                 return nullptr;
-            auto contract_info = std::make_shared<GluaContractInfo>();
+            auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = db().get_contract(contract_addr);
             if (contract.is_native_contract)
             {
@@ -961,7 +961,7 @@ namespace graphene {
         {
             FC_ASSERT(!contract_name.empty());
             FC_ASSERT(db().has_contract_of_name(contract_name));
-            auto contract_info = std::make_shared<GluaContractInfo>();
+            auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = db().get_contract_of_name(contract_name);
             // TODO: when contract is native contract
             return contract;
@@ -996,7 +996,7 @@ namespace graphene {
                 return nullptr;
             if (contract_name.empty())
                 return nullptr;
-            auto contract_info = std::make_shared<GluaContractInfo>();
+            auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract_of_name(contract_name);
             // TODO: when contract is native contract
             const auto &code = contract.code;
@@ -1025,7 +1025,7 @@ namespace graphene {
             address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
-            auto contract_info = std::make_shared<GluaContractInfo>();
+            auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract(contract_addr);
             // TODO: when contract is native contract
             const auto &code = contract.code;

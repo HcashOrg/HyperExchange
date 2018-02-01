@@ -10,7 +10,7 @@
 namespace graphene {
 	namespace chain {
 
-		class UvmChainApi : public uvm::lua::api::IGluaChainApi
+		class UvmChainApi : public uvm::lua::api::IUvmChainApi
 		{
 		public:
 			/**
@@ -46,9 +46,9 @@ namespace graphene {
 			* @param contract_info_ret this api save the contract's api name array here if found, this var will be free by this api
 			* @return TRUE(1 or not 0) if success, FALSE(0) if failed
 			*/
-			virtual int get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret);
+			virtual int get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<UvmContractInfo> contract_info_ret);
 
-			virtual int get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<GluaContractInfo> contract_info_ret);
+			virtual int get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<UvmContractInfo> contract_info_ret);
 
 			virtual std::shared_ptr<UvmModuleByteStream> get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code);
 			/**
@@ -86,11 +86,11 @@ namespace graphene {
 			/**
 			* directly get storage value from uvm
 			*/
-			//void free_contract_storage(lua_State *L, GluaStorageValue* storage);
+			//void free_contract_storage(lua_State *L, UvmStorageValue* storage);
 
-			virtual GluaStorageValue get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name);
+			virtual UvmStorageValue get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name);
 
-			virtual GluaStorageValue get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name);
+			virtual UvmStorageValue get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name);
 
 			/**
 			* after lua merge storage changes in lua_State, use the function to store the merged changes of storage to uvm
@@ -102,13 +102,13 @@ namespace graphene {
 			* lua_State被释放的时候需要释放所有对象池中所有对象
 			* 返回值是glua中用来操作这个对象的句柄/指针，目前只能是对象地址本身，以lightuserdata的形式存在于glua中
 			*/
-			virtual intptr_t register_object_in_pool(lua_State *L, intptr_t object_addr, GluaOutsideObjectTypes type);
+			virtual intptr_t register_object_in_pool(lua_State *L, intptr_t object_addr, UvmOutsideObjectTypes type);
 
 			/**
 			* 判断某个对象(register_object_in_pool的返回对象，一般实现为对象的内存地址)是否是关联lua_State中某个类型的对象池中的对象（从而可以判断是否可以强制转换)
 			* 如果找到，返回对象地址，否则返回0
 			*/
-			virtual intptr_t is_object_in_pool(lua_State *L, intptr_t object_key, GluaOutsideObjectTypes type);
+			virtual intptr_t is_object_in_pool(lua_State *L, intptr_t object_key, UvmOutsideObjectTypes type);
 
 			/**
 			* 释放lua_State关联的所有外部对象池中的对象已经对象池本身
@@ -140,7 +140,9 @@ namespace graphene {
 			virtual void emit(lua_State *L, const char* contract_id, const char* event_name, const char* event_param);
 
 			virtual bool is_valid_address(lua_State *L, const char *address_str);
+			virtual bool is_valid_contract_address(lua_State *L, const char *address_str);
 			virtual const char *get_system_asset_symbol(lua_State *L);
+			virtual uint64_t get_system_asset_precision(lua_State *L);
 		};
 	}
 }

@@ -62,14 +62,14 @@ namespace graphene {
 				return;
 			}
 
-			GluaStateValue val_code;
+			UvmStateValue val_code;
 			val_code.int_value = code;
 
-			GluaStateValue val_msg;
+			UvmStateValue val_msg;
 			val_msg.string_value = msg;
 
-			uvm::lua::lib::set_lua_state_value(L, "exception_code", val_code, GluaStateValueType::LUA_STATE_VALUE_INT);
-			uvm::lua::lib::set_lua_state_value(L, "exception_msg", val_msg, GluaStateValueType::LUA_STATE_VALUE_STRING);
+			uvm::lua::lib::set_lua_state_value(L, "exception_code", val_code, UvmStateValueType::LUA_STATE_VALUE_INT);
+			uvm::lua::lib::set_lua_state_value(L, "exception_msg", val_msg, UvmStateValueType::LUA_STATE_VALUE_STRING);
 		}
 
 		/**
@@ -108,7 +108,7 @@ namespace graphene {
                 }
             }FC_CAPTURE_AND_LOG((nullptr))
         }
-        static std::shared_ptr<GluaContractInfo> get_contract_info_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
+        static std::shared_ptr<UvmContractInfo> get_contract_info_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
             try {
                 if (evaluator) {
                     return evaluator->get_contract_by_id(contract_id);
@@ -132,7 +132,7 @@ namespace graphene {
 
 
 
-		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<GluaContractInfo> contract_info_ret)
+		int UvmChainApi::get_stored_contract_info(lua_State *L, const char *name, std::shared_ptr<UvmContractInfo> contract_info_ret)
 		{
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
 			auto code = get_contract_code_by_name(evaluator, std::string(name));
@@ -145,7 +145,7 @@ namespace graphene {
 			return get_stored_contract_info_by_address(L, addr_str.c_str(), contract_info_ret);
 		}
 
-		int UvmChainApi::get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<GluaContractInfo> contract_info_ret)
+		int UvmChainApi::get_stored_contract_info_by_address(lua_State *L, const char *address, std::shared_ptr<UvmContractInfo> contract_info_ret)
 		{
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
 			auto code = get_contract_code_by_id(evaluator, std::string(address));
@@ -248,9 +248,9 @@ namespace graphene {
 			return nullptr;
 		}
 
-		GluaStorageValue UvmChainApi::get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name)
+		UvmStorageValue UvmChainApi::get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name)
 		{
-			GluaStorageValue null_storage;
+			UvmStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
@@ -269,9 +269,9 @@ namespace graphene {
 			}
 		}
 
-		GluaStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name)
+		UvmStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name)
 		{
-			GluaStorageValue null_storage;
+			UvmStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
@@ -339,21 +339,21 @@ namespace graphene {
 			return true;
 		}
 
-		intptr_t UvmChainApi::register_object_in_pool(lua_State *L, intptr_t object_addr, GluaOutsideObjectTypes type)
+		intptr_t UvmChainApi::register_object_in_pool(lua_State *L, intptr_t object_addr, UvmOutsideObjectTypes type)
 		{
 			auto node = uvm::lua::lib::get_lua_state_value_node(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY);
 			// Map<type, Map<object_key, object_addr>>
-			std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
-			if (node.type == GluaStateValueType::LUA_STATE_VALUE_nullptr)
+			std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
+			if (node.type == UvmStateValueType::LUA_STATE_VALUE_nullptr)
 			{
-				node.type = GluaStateValueType::LUA_STATE_VALUE_POINTER;
-				object_pools = new std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>>();
+				node.type = UvmStateValueType::LUA_STATE_VALUE_POINTER;
+				object_pools = new std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>>();
 				node.value.pointer_value = (void*)object_pools;
 				uvm::lua::lib::set_lua_state_value(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY, node.value, node.type);
 			}
 			else
 			{
-				object_pools = (std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
+				object_pools = (std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
 			}
 			if (object_pools->find(type) == object_pools->end())
 			{
@@ -365,18 +365,18 @@ namespace graphene {
 			return object_key;
 		}
 
-		intptr_t UvmChainApi::is_object_in_pool(lua_State *L, intptr_t object_key, GluaOutsideObjectTypes type)
+		intptr_t UvmChainApi::is_object_in_pool(lua_State *L, intptr_t object_key, UvmOutsideObjectTypes type)
 		{
 			auto node = uvm::lua::lib::get_lua_state_value_node(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY);
 			// Map<type, Map<object_key, object_addr>>
-			std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
-			if (node.type == GluaStateValueType::LUA_STATE_VALUE_nullptr)
+			std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
+			if (node.type == UvmStateValueType::LUA_STATE_VALUE_nullptr)
 			{
 				return 0;
 			}
 			else
 			{
-				object_pools = (std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
+				object_pools = (std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
 			}
 			if (object_pools->find(type) == object_pools->end())
 			{
@@ -390,12 +390,12 @@ namespace graphene {
 		{
 			auto node = uvm::lua::lib::get_lua_state_value_node(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY);
 			// Map<type, Map<object_key, object_addr>>
-			std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
-			if (node.type == GluaStateValueType::LUA_STATE_VALUE_nullptr)
+			std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *object_pools = nullptr;
+			if (node.type == UvmStateValueType::LUA_STATE_VALUE_nullptr)
 			{
 				return;
 			}
-			object_pools = (std::map<GluaOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
+			object_pools = (std::map<UvmOutsideObjectTypes, std::shared_ptr<std::map<intptr_t, intptr_t>>> *) node.value.pointer_value;
 			// TODO: 对于object_pools中不同类型的对象，分别释放
 			for (const auto &p : *object_pools)
 			{
@@ -409,9 +409,9 @@ namespace graphene {
 						continue;
 					switch (type)
 					{
-					case GluaOutsideObjectTypes::OUTSIDE_STREAM_STORAGE_TYPE:
+					case UvmOutsideObjectTypes::OUTSIDE_STREAM_STORAGE_TYPE:
 					{
-						auto stream = (uvm::lua::lib::GluaByteStream*) object_addr;
+						auto stream = (uvm::lua::lib::UvmByteStream*) object_addr;
 						delete stream;
 					} break;
 					default: {
@@ -421,9 +421,9 @@ namespace graphene {
 				}
 			}
 			delete object_pools;
-			GluaStateValue null_state_value;
+			UvmStateValue null_state_value;
 			null_state_value.int_value = 0;
-			uvm::lua::lib::set_lua_state_value(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY, null_state_value, GluaStateValueType::LUA_STATE_VALUE_nullptr);
+			uvm::lua::lib::set_lua_state_value(L, GLUA_OUTSIDE_OBJECT_POOLS_KEY, null_state_value, UvmStateValueType::LUA_STATE_VALUE_nullptr);
 		}
 
 		lua_Integer UvmChainApi::transfer_from_contract_to_address(lua_State *L, const char *contract_address, const char *to_address,
@@ -676,9 +676,19 @@ namespace graphene {
 			std::string addr(address_str);
 			return address::is_valid(addr);
 		}
+		bool UvmChainApi::is_valid_contract_address(lua_State *L, const char *address_str)
+		{
+			std::string addr(address_str);
+			return address::is_valid(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		}
 		const char* UvmChainApi::get_system_asset_symbol(lua_State *L)
 		{
 			return GRAPHENE_SYMBOL;
+		}
+
+		uint64_t UvmChainApi::get_system_asset_precision(lua_State *L)
+		{
+			return GRAPHENE_BLOCKCHAIN_PRECISION;
 		}
 
 	}

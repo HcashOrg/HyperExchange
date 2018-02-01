@@ -7,7 +7,7 @@ namespace blockchain
 {
 	namespace contract_engine
 	{
-		typedef ::uvm::GluaContractEngine ActiveContractEngine;
+		typedef ::uvm::UvmContractEngine ActiveContractEngine;
 
 		class ContractEngineBuilder
 		{
