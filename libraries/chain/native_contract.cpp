@@ -99,7 +99,11 @@ namespace graphene {
 			}
 			else if (api_name == "withdraw")
 			{
-				// TODO: with balance from contract
+				auto system_asset_id = _evaluate->asset_from_sting(string(GRAPHENE_SYMBOL), string("0")).asset_id;
+				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
+				if(balance.value <= 0)
+					FC_THROW_EXCEPTION(blockchain::contract_engine::contract_error, "can't withdraw because of empty balance");
+				_evaluate->transfer_to_address(contract_id, balance, *(_evaluate->get_caller_address()));
 			}
 			return result;
 		}
