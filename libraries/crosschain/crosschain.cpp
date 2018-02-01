@@ -34,6 +34,10 @@ namespace graphene {
 				}
 			}
 		}
+		bool crosschain_manager::contain_crosschain_handles(const std::string& symbol)
+		{
+			return crosschain_handles.count(symbol)>=1;
+		}
 	}
 }
 

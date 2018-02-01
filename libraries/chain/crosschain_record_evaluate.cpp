@@ -5,6 +5,8 @@ namespace graphene {
 	namespace chain {
 		void_result crosschain_record_evaluate::do_evaluate(const crosschain_record_operation& o) {
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.cross_chain_trx.asset_symbol))
+				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
@@ -59,6 +61,8 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_result_evaluate::do_evaluate(const crosschain_withdraw_result_operation& o) {
             auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.cross_chain_trx.asset_symbol))
+				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
@@ -77,7 +81,9 @@ namespace graphene {
 
 		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
-                        auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+            auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.asset_symbol))
+				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
@@ -117,6 +123,8 @@ namespace graphene {
 			db().adjust_crosschain_transaction(trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_with_sign_operation>::value), withdraw_combine_trx_create);
 			
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.asset_symbol))
+				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
