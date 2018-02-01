@@ -110,6 +110,8 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		const auto& guard_ids = db().get_global_properties().active_committee_members;
 		FC_ASSERT(symbol_addrs_cold.size()==guard_ids.size() && symbol_addrs_hot.size()==guard_ids.size());
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		if (!instance.contain_crosschain_handles(o.chain_type))
+			return void_result();
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 		if (!crosschain_interface->valid_config())
 			return void_result();

@@ -18,7 +18,7 @@ namespace graphene {
 				static crosschain_manager mgr;
 				return mgr;
 			}
-
+			bool contain_crosschain_handles(const std::string& symbol);
 			abstract_crosschain_interface * get_crosschain_handle(const std::string &name);
 	   private:
 			std::map<std::string, abstract_crosschain_interface *> crosschain_handles;

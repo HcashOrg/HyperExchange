@@ -402,7 +402,8 @@ public:
         _remote_db(rapi->database()),
         _remote_net_broadcast(rapi->network_broadcast()),
         _remote_hist(rapi->history()),
-	   _crosschain_manager(rapi->crosschain_config())
+	   _crosschain_manager(rapi->crosschain_config()),
+	   _guarantee_id(optional<guarantee_object_id_type>())
    {
       chain_id_type remote_chain_id = _remote_db->get_chain_id();
       if( remote_chain_id != _chain_id )
@@ -632,7 +633,7 @@ public:
    void set_guarantee_id(const guarantee_object_id_type id)
    {
 	   try {
-		   _remote_db->set_guarantee_id(id);
+		   _guarantee_id = id;
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
 
@@ -647,7 +648,6 @@ public:
    {
 	   string config = (*_crosschain_manager)->get_config();
 	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-	  
 	   auto fd = instance.get_crosschain_handle(symbol);
 	   fd->initialize_config(fc::json::from_string(config).get_object());
 	   return fd->create_normal_account("");
@@ -3604,6 +3604,7 @@ public:
    optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
    optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
+   optional<guarantee_object_id_type>    _guarantee_id;
 
    static_variant_map _operation_which_map = create_static_variant_map< operation >();
 
