@@ -33,12 +33,10 @@ namespace graphene {
             std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
             std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
-            //storages
         public:
-            std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> contracts_storage_changes;
-
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
+			void set_contract_storage_changes(const string& contract_id, const std::unordered_map<std::string, StorageDataChangeType>& changes);
             std::shared_ptr<address> get_caller_address() const;
             std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
             database& get_db() const;
@@ -62,6 +60,8 @@ namespace graphene {
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			string get_api_result() const;
 			gas_count_type get_gas_limit() const;
+
+			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{

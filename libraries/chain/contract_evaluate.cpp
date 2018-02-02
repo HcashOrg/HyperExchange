@@ -35,7 +35,7 @@ namespace graphene {
 			return (contract_transfer_evaluate*)uvm::lua::lib::get_lua_state_value(L, "transfer_evaluate_state").pointer_value;
 		}
 
-        contract_common_evaluate* common_contract_evaluator::get_contract_evaluator(lua_State *L) {
+        contract_common_evaluate* contract_common_evaluate::get_contract_evaluator(lua_State *L) {
 			auto register_contract_evaluator = get_register_contract_evaluator(L);
 			if (register_contract_evaluator) {
                 return register_contract_evaluator;
@@ -94,7 +94,7 @@ namespace graphene {
 					FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 				gas_limit = limit;
 				engine->set_gas_limit(limit);
-				contracts_storage_changes.clear();
+				invoke_contract_result.storage_changes.clear();
 				try
 				{
 					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
@@ -160,7 +160,6 @@ namespace graphene {
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 				// TODO: deposit margin balance to contract
 
-				this->contracts_storage_changes = invoke_result.storage_changes;
 				this->invoke_contract_result = invoke_result;
 
 				new_contract.contract_address = o.calculate_contract_id();
@@ -205,7 +204,6 @@ namespace graphene {
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
 					auto invoke_result = native_contract->invoke(o.contract_api, o.contract_arg);
-					this->contracts_storage_changes = invoke_result.storage_changes;
 					this->invoke_contract_result = invoke_result;
 					gas_used = native_contract->gas_count_for_api_invoke(o.contract_api);
 					if (!o.offline)
@@ -233,7 +231,7 @@ namespace graphene {
 						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
-					contracts_storage_changes.clear();
+					invoke_contract_result.storage_changes.clear();
 					std::string contract_result_str;
 					try
 					{
@@ -294,7 +292,6 @@ namespace graphene {
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
 					auto invoke_result = native_contract->invoke("on_upgrade", o.contract_name);
-					this->contracts_storage_changes = invoke_result.storage_changes;
 					this->invoke_contract_result = invoke_result;
 					gas_used = native_contract->gas_count_for_api_invoke("on_upgrade");
 					FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
@@ -321,7 +318,7 @@ namespace graphene {
 						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
-					contracts_storage_changes.clear();
+					invoke_contract_result.storage_changes.clear();
 					std::string contract_result_str;
 					try
 					{
@@ -365,7 +362,7 @@ namespace graphene {
 			// commit contract result to db
 			d.store_contract(new_contract);
 			auto trx_id = get_current_trx_id();
-			for (const auto &pair1 : contracts_storage_changes)
+			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
 				address contract_addr(contract_id);
@@ -389,7 +386,7 @@ namespace graphene {
 			// commit contract result to db
 			d.store_contract(new_contract);
 			auto trx_id = get_current_trx_id();
-			for (const auto &pair1 : contracts_storage_changes)
+			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
 				address contract_addr(contract_id);
@@ -412,7 +409,7 @@ namespace graphene {
 			FC_ASSERT(d.has_contract(o.contract_id));
 			auto trx_id = get_current_trx_id();
 			// commit contract result to db
-			for (const auto &pair1 : contracts_storage_changes)
+			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
 				address contract_addr(contract_id);
@@ -441,7 +438,7 @@ namespace graphene {
 			d.update_contract(contract);
 			auto trx_id = get_current_trx_id();
 			// commit contract result to db
-			for (const auto &pair1 : contracts_storage_changes)
+			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
 				address contract_addr(contract_id);
@@ -739,7 +736,7 @@ namespace graphene {
 							FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 						gas_limit = limit;
 						engine->set_gas_limit(limit);
-						contracts_storage_changes.clear();
+						invoke_contract_result.storage_changes.clear();
 						std::string contract_result_str;
 						try
 						{
@@ -784,7 +781,7 @@ namespace graphene {
             FC_ASSERT(d.has_contract(o.contract_id));
             // commit contract result to db
 			auto trx_id = get_current_trx_id();
-            for (const auto &pair1 : contracts_storage_changes)
+            for (const auto &pair1 : invoke_contract_result.storage_changes)
             {
                 const auto &contract_id = pair1.first;
                 address contract_addr(contract_id);
@@ -855,6 +852,11 @@ namespace graphene {
         {
         }
         contract_common_evaluate::~contract_common_evaluate() {}
+
+		void contract_common_evaluate::set_contract_storage_changes(const string& contract_id, const std::unordered_map<std::string, StorageDataChangeType>& changes)
+		{
+			invoke_contract_result.storage_changes[contract_id] = changes;
+		}
          std::shared_ptr<address> contract_common_evaluate::get_caller_address() const
         {
             return caller_address;

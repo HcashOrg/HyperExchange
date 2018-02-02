@@ -37,22 +37,6 @@ namespace graphene {
 			// TODO: balance changes
 		};
 
-		class contract_register_evaluate;
-		class contract_invoke_evaluate;
-		class contract_upgrade_evaluate;
-		class native_contract_register_evaluate;
-		class contract_transfer_evaluate;
-
-		class database;
-        class contract_common_evaluate;
-
-		struct common_contract_evaluator {
-
-			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
-
-
-		};
-
 		struct contract_register_operation : public base_operation
 		{
 			struct fee_parameters_type {
