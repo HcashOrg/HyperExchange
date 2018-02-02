@@ -26,15 +26,22 @@ namespace graphene {
 		{
 			std::string api_result;
 			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> storage_changes;	
-			std::unordered_map<address, std::unordered_map<unsigned_int, share_type>> contracts_balance_changes;	  // FIXME: remove it
 				
-			/*std::map<address, asset_id_type>, share_type> contract_withdraw;		
-            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
-            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
-            std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;*/
+			std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
+			std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
+			std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
+			std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
 
 			std::vector<contract_event_notify_info> events;
-			// TODO: balance changes
+
+			void clear() {
+				api_result.clear();
+				storage_changes.clear();
+				contract_withdraw.clear();
+				contract_balances.clear();
+				deposit_to_address.clear();
+				deposit_contract.clear();
+			}
 		};
 
 		struct contract_register_operation : public base_operation
@@ -165,8 +172,6 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::chain::contract_event_notify_info, (contract_address)(event_name)(event_arg))
-FC_REFLECT(graphene::chain::contract_invoke_result, (api_result)(storage_changes)(contracts_balance_changes)(events))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))

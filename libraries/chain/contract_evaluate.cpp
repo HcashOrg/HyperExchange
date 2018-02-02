@@ -56,9 +56,6 @@ namespace graphene {
 			return nullptr;
 		}
 
-
-		// FIXME: duplicate code
-
 		static share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
 			// every 100 gas cost 1 min-precision base-asset
 			share_type fee = ((gas_count / 100) + ((gas_count % 100) == 0 ? 0 : 1)) * gas_price;
@@ -94,7 +91,7 @@ namespace graphene {
 					FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 				gas_limit = limit;
 				engine->set_gas_limit(limit);
-				invoke_contract_result.storage_changes.clear();
+				invoke_contract_result.clear();
 				try
 				{
 					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
@@ -118,19 +115,21 @@ namespace graphene {
                 new_contract.create_time = o.register_time;
                 unspent_fee = o.init_cost*o.gas_price - required;
 			}
-			catch (std::exception &e)
-			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-				undo_balance_contract_effected();
+				undo_contract_effected();
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
 			}
+			catch (std::exception &e)
+			{
+				undo_contract_effected();
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+			}
+			
 
 			return void_result();
 		}
@@ -169,18 +168,18 @@ namespace graphene {
 				new_contract.create_time = o.register_time;
                 unspent_fee = o.init_cost*o.gas_price - required;
 			}
-			catch (std::exception &e)
-			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
-			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-				undo_balance_contract_effected();
+				undo_contract_effected();
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
+			}
+			catch (std::exception &e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
 			return void_result();
@@ -251,18 +250,18 @@ namespace graphene {
 
 				}
 			}
-			catch (std::exception &e)
-			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
-			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-				undo_balance_contract_effected();
+				undo_contract_effected();
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
+			}
+			catch (std::exception &e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 			if (o.offline)
 				throw ::blockchain::contract_engine::contract_api_result_error(get_api_result());
@@ -336,18 +335,18 @@ namespace graphene {
                     unspent_fee = o.invoke_cost*o.gas_price - required;
 				}
 			}
-			catch (std::exception &e)
-			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
-			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
-				undo_balance_contract_effected();
+				undo_contract_effected();
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
+			}
+			catch (std::exception &e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
             }
             else
@@ -562,7 +561,6 @@ namespace graphene {
 			return contract;
 		}
 
-		// FIXME: duplicate code
 		std::shared_ptr<UvmContractInfo> contract_upgrade_evaluate::get_contract_by_id(const string &contract_id) const
 		{
 			address contract_addr(contract_id);
@@ -626,22 +624,9 @@ namespace graphene {
 			return get_contract_code_from_db_by_id(contract_id);
 		}
 
-		// FIXME: duplicate code
 		std::shared_ptr<uvm::blockchain::Code> contract_upgrade_evaluate::get_contract_code_by_id(const string &contract_id) const
 		{
-			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-			if (!db().has_contract(contract_addr))
-				return nullptr;
-			auto contract_info = std::make_shared<UvmContractInfo>();
-			const auto &contract = db().get_contract(contract_addr);
-			// TODO: when contract is native contract
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
-			auto ccode = std::make_shared<uvm::blockchain::Code>();
-			*ccode = code;
-			return ccode;
+			return get_contract_code_from_db_by_id(contract_id);
 		}
 
 		address contract_register_evaluate::origin_op_contract_id() const
@@ -736,7 +721,7 @@ namespace graphene {
 							FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
 						gas_limit = limit;
 						engine->set_gas_limit(limit);
-						invoke_contract_result.storage_changes.clear();
+						invoke_contract_result.clear();
 						std::string contract_result_str;
 						try
 						{
@@ -758,19 +743,19 @@ namespace graphene {
 					}
                 }
             }
-            catch (std::exception &e)
-            {
-                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
-            }
             catch (::blockchain::contract_engine::contract_run_out_of_money& e)
             {
-                undo_balance_contract_effected();
+				undo_contract_effected();
                 unspent_fee = 0;
             }
             catch (const ::blockchain::contract_engine::contract_error& e)
             {
                 FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
             }
+			catch (std::exception &e)
+			{
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
+			}
 
             return void_result();
         }
@@ -930,12 +915,9 @@ namespace graphene {
         //    }
         //    gas_fees.push_back(fee);
         //}
-        void contract_common_evaluate::undo_balance_contract_effected()
+        void contract_common_evaluate::undo_contract_effected()
         {
-            contract_withdraw.clear();
-            contract_balances.clear();
-            deposit_to_address.clear();
-            deposit_contract.clear();
+			invoke_contract_result.clear();
         }
         void contract_common_evaluate::deposit_to_contract(const address & contract, const asset & amount)
         {
@@ -943,8 +925,8 @@ namespace graphene {
             auto index = std::make_pair(contract, amount.asset_id);
             if (!get_db().has_contract(contract))
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
-            auto withdraw = contract_withdraw.find(index);
-            if (withdraw != contract_withdraw.end())
+            auto withdraw = invoke_contract_result.contract_withdraw.find(index);
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
             {
                 if (withdraw->second >= to_deposit)
                 {
@@ -959,16 +941,16 @@ namespace graphene {
             }
             if (to_deposit == 0)
                 return;
-            auto deposit = deposit_contract.find(index);
-            if (deposit == deposit_contract.end())
+            auto deposit = invoke_contract_result.deposit_contract.find(index);
+            if (deposit == invoke_contract_result.deposit_contract.end())
             {
-                auto res = deposit_contract.insert(std::make_pair(index, 0));
+                auto res = invoke_contract_result.deposit_contract.insert(std::make_pair(index, 0));
                 if (res.second)
                 {
                     deposit = res.first;
                 }
             }
-            deposit_contract[index] += to_deposit;
+			invoke_contract_result.deposit_contract[index] += to_deposit;
         }
         //void contract_common_evaluate::do_apply_fees_balance(const address & caller_addr)
         //{
@@ -983,17 +965,17 @@ namespace graphene {
         //}
         void contract_common_evaluate::do_apply_balance()
         {
-            for (auto to_contract = deposit_contract.begin(); to_contract != deposit_contract.end(); to_contract++)
+            for (auto to_contract = invoke_contract_result.deposit_contract.begin(); to_contract != invoke_contract_result.deposit_contract.end(); to_contract++)
             {
                 if (to_contract->second != 0)
                     get_db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
             }
-            for (auto to_withraw = contract_withdraw.begin(); to_withraw != contract_withdraw.end(); to_withraw++)
+            for (auto to_withraw = invoke_contract_result.contract_withdraw.begin(); to_withraw != invoke_contract_result.contract_withdraw.end(); to_withraw++)
             {
                 if (to_withraw->second != 0)
                     get_db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
             }
-            for (auto to_deposit = deposit_to_address.begin(); to_deposit != deposit_to_address.end(); to_deposit++)
+            for (auto to_deposit = invoke_contract_result.deposit_to_address.begin(); to_deposit != invoke_contract_result.deposit_to_address.end(); to_deposit++)
             {
                 if (to_deposit->second != 0)
                     get_db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
@@ -1018,30 +1000,30 @@ namespace graphene {
             if (!get_db().has_contract(contract))
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
             std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
-            auto balance = contract_balances.find(index);
-            if (balance == contract_balances.end())
+            auto balance = invoke_contract_result.contract_balances.find(index);
+            if (balance == invoke_contract_result.contract_balances.end())
             {
-                auto res = contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
+                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
                 if (res.second)
                 {
                     balance = res.first;
                 }
             }
             share_type all_balance = balance->second;
-            auto deposit = deposit_contract.find(index);
-            if (deposit != deposit_contract.end())
+            auto deposit = invoke_contract_result.deposit_contract.find(index);
+            if (deposit != invoke_contract_result.deposit_contract.end())
             {
                 all_balance += deposit->second;
             }
-            auto withdraw = contract_withdraw.find(index);
-            if (withdraw != contract_withdraw.end())
+            auto withdraw = invoke_contract_result.contract_withdraw.find(index);
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
             {
                 all_balance -= withdraw->second;
             }
             if (all_balance<to_withdraw)
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
 
-            if (deposit != deposit_contract.end())
+            if (deposit != invoke_contract_result.deposit_contract.end())
             {
                 if (deposit->second >= to_withdraw)
                 {
@@ -1054,21 +1036,21 @@ namespace graphene {
                     deposit->second = 0;
                 }
             }
-            if (withdraw != contract_withdraw.end())
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
             {
                 withdraw->second += to_withdraw;
             }
             else
             {
-                contract_withdraw.insert(std::make_pair(index, to_withdraw));
+				invoke_contract_result.contract_withdraw.insert(std::make_pair(index, to_withdraw));
             }
 
             //deposit
             index.first = to;
-            if (deposit_to_address.find(index) != deposit_to_address.end())
-                deposit_to_address[index] += amount.amount;
+            if (invoke_contract_result.deposit_to_address.find(index) != invoke_contract_result.deposit_to_address.end())
+				invoke_contract_result.deposit_to_address[index] += amount.amount;
             else
-                deposit_to_address[index] = amount.amount;
+				invoke_contract_result.deposit_to_address[index] = amount.amount;
         }
          share_type contract_common_evaluate::get_contract_balance(const address & contract, const asset_id_type & asset_id)
         {
@@ -1076,10 +1058,10 @@ namespace graphene {
             share_type running_balance;
             //db_balance
             std::pair<address, asset_id_type> index = std::make_pair(contract, asset_id);
-            auto balance = contract_balances.find(index);
-            if (balance == contract_balances.end())
+            auto balance = invoke_contract_result.contract_balances.find(index);
+            if (balance == invoke_contract_result.contract_balances.end())
             {
-                auto res = contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
+                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
                 if (res.second)
                 {
                     balance = res.first;
@@ -1088,15 +1070,15 @@ namespace graphene {
             running_balance = balance->second;
 
             //deposit
-            auto deposit = deposit_contract.find(index);
-            if (deposit != deposit_contract.end())
+            auto deposit = invoke_contract_result.deposit_contract.find(index);
+            if (deposit != invoke_contract_result.deposit_contract.end())
             {
                 running_balance += deposit->second;
             }
 
             //withdraw
-            auto withdraw = contract_withdraw.find(index);
-            if (withdraw != contract_withdraw.end())
+            auto withdraw = invoke_contract_result.contract_withdraw.find(index);
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
             {
                 running_balance -= withdraw->second;
             }
