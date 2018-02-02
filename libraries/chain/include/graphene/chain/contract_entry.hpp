@@ -42,6 +42,7 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(contract_api_not_found, blockchain::contract_engine::contract_error, 35002, "contract api not found");
         FC_DECLARE_DERIVED_EXCEPTION(contract_not_exsited, blockchain::contract_engine::contract_error, 35003, "contract not exsited");
         FC_DECLARE_DERIVED_EXCEPTION(invalid_asset_symbol, blockchain::contract_engine::contract_error, 35004, "invalid asset symbol");
+		FC_DECLARE_DERIVED_EXCEPTION(invalid_contract_gas_limit, blockchain::contract_engine::contract_error, 35005, "invalid contract gas limit");
 
 		class contract_api_result_error : public std::exception
 		{

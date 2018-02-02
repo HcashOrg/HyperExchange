@@ -62,7 +62,7 @@ namespace graphene {
 		static share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
 			// every 100 gas cost 1 min-precision base-asset
 			share_type fee = ((gas_count / 100) + ((gas_count % 100) == 0 ? 0 : 1)) * gas_price;
-			FC_ASSERT(fee >= 0);
+			FC_ASSERT(fee >= 0, "gas fee wrong");
 			return fee;
 		}
 
@@ -91,7 +91,7 @@ namespace graphene {
 				engine->clear_exceptions();
 				auto limit = o.init_cost;
 				if (limit < 0 || limit == 0)
-					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+					FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 				gas_limit = limit;
 				engine->set_gas_limit(limit);
 				contracts_storage_changes.clear();

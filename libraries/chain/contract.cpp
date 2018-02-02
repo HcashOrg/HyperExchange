@@ -20,6 +20,9 @@ namespace graphene {
 			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
 			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
 			FC_ASSERT(contract_id == calculate_contract_id());
+            FC_ASSERT(owner_addr != address());
+            FC_ASSERT(address(owner_pubkey) == owner_addr);
+            FC_ASSERT(contract_id != address());
 		}
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
@@ -45,6 +48,10 @@ namespace graphene {
 		{
 			if (!offline)
 			{
+                FC_ASSERT(caller_addr != address());
+                FC_ASSERT(address(caller_pubkey) == caller_addr);
+                FC_ASSERT(contract_id != address());
+
 				FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 				// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
 				FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
@@ -67,6 +74,9 @@ namespace graphene {
 			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
 			FC_ASSERT(contract_name.length() >= 2 && contract_name.length() <= 30); // TODO: validate contract_name rule, eg. only letters and digits, underscoreed allowed; it can't start with digit. etc.
 			FC_ASSERT(contract_desc.length() <= 200);
+            FC_ASSERT(caller_addr != address());
+            FC_ASSERT(address(caller_pubkey) == caller_addr);
+            FC_ASSERT(contract_id != address());
 		}
 
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
@@ -84,6 +94,10 @@ namespace graphene {
             FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
             // FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
             FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
+            FC_ASSERT(caller_addr!=address());
+            FC_ASSERT(address(caller_pubkey) == caller_addr);
+            FC_ASSERT(contract_id != address());
+            FC_ASSERT(amount.amount>0);
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
