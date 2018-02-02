@@ -170,4 +170,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const gurantee_create_operation& o);
 	   void_result do_apply(const gurantee_create_operation& o);
    };
+
+   class gurantee_cancel_evaluator :public evaluator<gurantee_cancel_evaluator>
+   {
+   public:
+	   typedef gurantee_cancel_operation operation_type;
+	   void_result do_evaluate(const gurantee_cancel_operation& o);
+	   void_result do_apply(const gurantee_cancel_operation& o);
+   };
+
 } } // graphene::chain

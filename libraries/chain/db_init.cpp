@@ -240,6 +240,7 @@ void database::initialize_evaluators()
    register_evaluator<contract_upgrade_evaluate>();
    register_evaluator<contract_transfer_evaluate>();
    register_evaluator<gurantee_create_evaluator>();
+   register_evaluator<gurantee_cancel_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -613,6 +613,7 @@ class database_api
       vector<asset> get_contract_balance(const address& contract_address) const;
 
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
+	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 
    private:
       std::shared_ptr< database_api_impl > my;
@@ -740,6 +741,6 @@ FC_API(graphene::app::database_api,
     (get_contract_info)
 	(get_contract_info_by_name)
     (get_contract_balance)
-
+	(get_gurantee_object)
 	(list_guarantee_object)
 );
