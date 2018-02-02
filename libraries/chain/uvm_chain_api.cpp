@@ -481,6 +481,12 @@ namespace graphene {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			auto evaluator = common_contract_evaluator::get_contract_evaluator(L);
+            auto to_addr=evaluator->get_db().get_account_address(to_account_name);
+            if (to_addr == address())
+            {
+                return -4;
+            }
+            return transfer_from_contract_to_address(L, contract_address, to_addr.address_to_string().c_str(), asset_type, amount);
 			// TODO
 			/*
 			if (!eval_state_ptr->_current_state->is_valid_account_name(to_account_name))
@@ -490,6 +496,7 @@ namespace graphene {
 				return -7;
 			return transfer_from_contract_to_address(L, contract_address, acc_entry->owner_address().AddressToString().c_str(), asset_type, amount);
 			*/
+
 			return -1;
 		}
 

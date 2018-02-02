@@ -331,6 +331,10 @@ namespace graphene { namespace chain {
          //contract_balance//
          asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
          void adjust_contract_balance(const address& addr, const asset& delta);
+
+         //get account address by account name
+         address get_account_address(const string& name);
+
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
