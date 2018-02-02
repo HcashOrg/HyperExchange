@@ -241,6 +241,17 @@ namespace graphene {
 
             }FC_CAPTURE_AND_RETHROW((addr)(delta))
         }
+        address database::get_account_address(const string& name)
+        {
+            auto& db = get_index_type<account_index>().indices().get<by_name>();
+            auto it = db.find(name);
+            if (it != db.end())
+            {
+                return it->addr;
+            }
+            return address();
+        }
+
 
 	}
 }
