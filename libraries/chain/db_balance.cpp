@@ -75,7 +75,6 @@ void database::adjust_guarantee(const guarantee_object_id_type id, const asset& 
 			if (b.asset_finished == b.asset_target)
 				b.finished = true;
 		});
-		adjust_frozen(obj.owner_addr,-target_asset);
 	}FC_CAPTURE_AND_RETHROW((id)(target_asset))
 }
 

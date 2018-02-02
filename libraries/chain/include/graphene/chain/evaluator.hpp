@@ -120,6 +120,7 @@ namespace graphene {
 			void db_adjust_guarantee(const guarantee_object_id_type id, asset fee_from_account);
 			guarantee_object db_get_guarantee(const guarantee_object_id_type id);
 			void db_adjust_balance(const address& fee_payer, asset fee_from_account);
+			void db_adjust_frozen(const address& fee_payer, asset fee_from_account);
 			asset                            fee_from_account;
 			share_type                       core_fee_paid;
             share_type                       unused_contract_fee=0;
@@ -182,7 +183,7 @@ namespace graphene {
 				auto result = eval->do_apply(op);
 				if (!op.get_guarantee_id().valid())
 				{
-					db_adjust_balance(op.fee_payer(), -fee_from_account);
+					//db_adjust_balance(op.fee_payer(), -fee_from_account);
 				}
 				else
 				{
@@ -190,8 +191,10 @@ namespace graphene {
 					auto guarantee_obj = db_get_guarantee(*op.get_guarantee_id());
 					price p(guarantee_obj.asset_orign,guarantee_obj.asset_target);
 					auto fee_need_pay = fee_from_account * p;
-					db_adjust_balance(op.fee_payer(), -fee_need_pay);
+					//db_adjust_balance(op.fee_payer(), -fee_need_pay);
+					db_adjust_frozen(guarantee_obj.owner_addr,fee_from_account);
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
+					//db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
 				}
 
 				return result;
