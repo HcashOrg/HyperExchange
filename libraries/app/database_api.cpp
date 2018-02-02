@@ -166,6 +166,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  contract_object get_contract_info_by_name(const string& contract_name) const;
       vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
+	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -1601,7 +1602,19 @@ vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(cons
 	});
 	return result;
 }
+optional<guarantee_object> database_api_impl::get_gurantee_object(const guarantee_object_id_type id) const
+{
+	auto& gurantee_idx = _db.get_index_type<guarantee_index>().indices();
+	auto& gurantee_objs = gurantee_idx.get<by_id>();
 
+	auto ret = gurantee_objs.find(id);
+	if (ret != gurantee_objs.end())
+	{
+		return *ret;
+	}
+		
+	return optional<guarantee_object>();
+}
 
 map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
@@ -2110,6 +2123,11 @@ vector<optional<guarantee_object>> database_api::list_guarantee_object(const str
 {
 	return my->list_guarantee_object(chain_type);
 }
+optional<guarantee_object> database_api::get_gurantee_object(const guarantee_object_id_type id) const
+{
+	return my->get_gurantee_object(id);
+}
+
 
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);

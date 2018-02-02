@@ -371,6 +371,14 @@ namespace graphene { namespace chain {
 		 * @param account ID of account whose balance should be adjusted
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
+		 void cancel_frozen(address addr,asset_id_type id);
+
+
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
 		 void adjust_guarantee(const guarantee_object_id_type id, const asset& target_asset);
          /**
           * @brief Helper to make lazy deposit to CDD VBO.

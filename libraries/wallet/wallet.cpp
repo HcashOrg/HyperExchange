@@ -1423,6 +1423,26 @@ public:
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
    }
+   signed_transaction cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
+   {
+	   try {
+		   auto guarantee_obj = _remote_db->get_gurantee_object(id);
+		   FC_ASSERT(guarantee_obj.valid());
+
+		   gurantee_cancel_operation op;
+		   op.owner_addr = guarantee_obj->owner_addr;
+		   op.cancel_guarantee_id = guarantee_obj->id;
+
+		   signed_transaction trx;
+		   trx.operations.push_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((id)(broadcast))
+   }
+
+
    // This function generates derived keys starting with index 0 and keeps incrementing
    // the index until it finds a key that isn't registered in the block chain.  To be
    // safer, it continues checking for a few more keys to make sure there wasn't a short gap
@@ -5436,6 +5456,11 @@ signed_transaction wallet_api::create_guarantee_order(const string& account, con
 {
 	return my->create_guarantee_order(account,asset_orign,asset_target,symbol, broadcast);
 }
+signed_transaction wallet_api::cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
+{
+	return my->cancel_guarantee_order(id,broadcast);
+}
+
 vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol)
 {
 	return my->list_guarantee_order(symbol);

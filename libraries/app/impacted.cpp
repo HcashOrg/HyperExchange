@@ -190,6 +190,7 @@ struct get_impacted_account_visitor
    void operator()(const guard_update_multi_account_operation& op) {}
    void operator()( const balance_claim_operation& op ) {}
    void operator() (const gurantee_create_operation& op) {}
+   void operator() (const gurantee_cancel_operation& op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );
