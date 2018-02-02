@@ -96,7 +96,7 @@ namespace graphene { namespace chain {
       void validate()const{}
 
       static uint64_t calculate_data_fee( uint64_t bytes, uint64_t price_per_kbyte );
-	  guarantee_object_id_type get_guarantee_id()const  { return guarantee_object_id_type(); }
+	  optional<guarantee_object_id_type> get_guarantee_id()const  { return optional<guarantee_object_id_type>(); }
    };
 
    /**

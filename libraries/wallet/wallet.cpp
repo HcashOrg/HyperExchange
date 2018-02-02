@@ -640,7 +640,12 @@ public:
 		   _guarantee_id = id;
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
-
+   optional<guarantee_object_id_type> get_guarantee_id()
+   {
+	   auto id = _guarantee_id;
+	   _guarantee_id = optional<guarantee_object_id_type>();
+	   return id;
+   }
    local_property_object get_local_properties()
    {
 	   try {
@@ -3168,7 +3173,7 @@ public:
 		   xfer_op.from_addr = iter.find(from)->addr;
 		   xfer_op.to_addr = address(to);
 		   xfer_op.amount = asset_obj->amount_from_string(amount);
-
+		   xfer_op.guarantee_id=*get_guarantee_id();
 		   if (memo.size())
 		   {
 			   xfer_op.memo = memo_data();

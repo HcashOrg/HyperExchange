@@ -51,6 +51,7 @@ namespace graphene { namespace chain {
       };
 
       asset            fee;
+	  optional<guarantee_object_id_type> guarantee_id;
       /// Account to transfer asset from
       account_id_type  from;
       /// Account to transfer asset to
@@ -74,6 +75,7 @@ namespace graphene { namespace chain {
 	  {
 		  a.push_back(authority(1, from_addr, 1));
 	  }
+	  optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
    };
 
    /**
@@ -151,7 +153,7 @@ FC_REFLECT(graphene::chain::transfer_operation::fee_parameters_type, (fee)(price
 FC_REFLECT(graphene::chain::override_transfer_operation::fee_parameters_type, (fee)(price_per_kbyte))
 
 FC_REFLECT(graphene::chain::override_transfer_operation, (fee)(issuer)(from)(to)(amount)(memo)(extensions))
-FC_REFLECT(graphene::chain::transfer_operation, (fee)(from)(to)(from_addr)(to_addr)(amount)(memo)(extensions))
+FC_REFLECT(graphene::chain::transfer_operation, (fee)(guarantee_id)(from)(to)(from_addr)(to_addr)(amount)(memo)(extensions))
 
 FC_REFLECT(graphene::chain::asset_transfer_from_cold_to_hot_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::asset_transfer_from_cold_to_hot_operation, (fee)(addr)(chain_type)(trx))
