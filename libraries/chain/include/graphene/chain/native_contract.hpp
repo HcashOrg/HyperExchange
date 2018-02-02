@@ -12,7 +12,9 @@ namespace graphene {
 		class native_contract_register_evaluate;
 		class contract_common_evaluate;
 
-		const share_type native_contract_register_fee = 10* GRAPHENE_BLOCKCHAIN_PRECISION;
+		const share_type native_contract_register_fee = 1000;
+
+#define THROW_CONTRACT_ERROR(...) FC_ASSERT(false, __VA_ARGS__)
 
 		class abstract_native_contract
 		{
