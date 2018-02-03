@@ -6,6 +6,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/crypto/sha256.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 
@@ -13,6 +14,85 @@ namespace graphene {
 	namespace chain {
 
 		using namespace uvm::blockchain;
+		using namespace jsondiff;
+
+		void contract_invoke_result::clear()
+		{
+			api_result.clear();
+			storage_changes.clear();
+			contract_withdraw.clear();
+			contract_balances.clear();
+			deposit_to_address.clear();
+			deposit_contract.clear();
+		}
+
+		string contract_invoke_result::ordered_digest() const
+		{
+			JsonArray result_array;
+			result_array.push_back(api_result);
+
+			JsonArray storage_changes_json_array;
+			for (auto it = storage_changes.cbegin(); it != storage_changes.cend(); it++)
+			{
+				for (auto it2 = it->second.cbegin(); it2 != it->second.cend(); it2++)
+				{
+					JsonArray item;
+					item.push_back(it->first);
+					item.push_back(it2->first);
+					item.push_back(fc::sha256(it2->second.after.storage_data.data(), it2->second.after.storage_data.size()).str());
+					item.push_back(fc::sha256(it2->second.storage_diff.storage_data.data(), it2->second.storage_diff.storage_data.size()).str());
+					storage_changes_json_array.push_back(item);
+				}
+			}
+			result_array.push_back(storage_changes_json_array);
+
+			JsonArray contract_withdraw_array;
+			for (auto it = contract_withdraw.cbegin(); it != contract_withdraw.cend(); it++)
+			{
+				JsonArray item;
+				item.push_back(it->first.first.address_to_string());
+				item.push_back(uint64_t(it->first.second));
+				item.push_back(it->second.value);
+				contract_withdraw_array.push_back(item);
+			}
+			result_array.push_back(contract_withdraw_array);
+
+			JsonArray contract_balances_array;
+			for (auto it = contract_balances.cbegin(); it != contract_balances.cend(); it++)
+			{
+				JsonArray item;
+				item.push_back(it->first.first.address_to_string());
+				item.push_back(uint64_t(it->first.second));
+				item.push_back(it->second.value);
+				contract_balances_array.push_back(item);
+			}
+			result_array.push_back(contract_balances_array);
+
+			JsonArray deposit_to_address_array;
+			for (auto it = deposit_to_address.cbegin(); it != deposit_to_address.cend(); it++)
+			{
+				JsonArray item;
+				item.push_back(it->first.first.address_to_string());
+				item.push_back(uint64_t(it->first.second));
+				item.push_back(it->second.value);
+				deposit_to_address_array.push_back(item);
+			}
+			result_array.push_back(deposit_to_address_array);
+
+			JsonArray deposit_contract_array;
+			for (auto it = deposit_contract.cbegin(); it != deposit_contract.cend(); it++)
+			{
+				JsonArray item;
+				item.push_back(it->first.first.address_to_string());
+				item.push_back(uint64_t(it->first.second));
+				item.push_back(it->second.value);
+				deposit_contract_array.push_back(item);
+			}
+			result_array.push_back(deposit_contract_array);
+
+			auto array_json_str = json_dumps(result_array);
+			return fc::sha256(array_json_str.c_str(), array_json_str.size()).str();
+		}
 
 		void            contract_register_operation::validate()const
 		{
@@ -27,7 +107,7 @@ namespace graphene {
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee; // FIXME: contract base fee
+			share_type core_fee_required = schedule.fee;
 			// bytes size fee
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
             core_fee_required += init_cost*gas_price;
@@ -60,8 +140,7 @@ namespace graphene {
 		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee; // FIXME: contract base fee
-														 // bytes size fee
+			share_type core_fee_required = schedule.fee;
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
             core_fee_required += invoke_cost*gas_price;
 			return core_fee_required;
@@ -82,8 +161,7 @@ namespace graphene {
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee; // FIXME: contract base fee
-														 // bytes size fee
+			share_type core_fee_required = schedule.fee;
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
             core_fee_required += invoke_cost*gas_price;
 			return core_fee_required;

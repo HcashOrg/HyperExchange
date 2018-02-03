@@ -64,6 +64,8 @@ namespace graphene { namespace chain {
 
 	   std::string address_to_string(const char *prefix= GRAPHENE_ADDRESS_PREFIX) const;
 
+	   std::string address_to_contract_string() const;
+
        friend size_t hash_value( const address& v ) { 
           const void* tmp = static_cast<const void*>(v.addr._hash+2);
 

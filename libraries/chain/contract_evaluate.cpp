@@ -838,7 +838,7 @@ namespace graphene {
         }
         contract_common_evaluate::~contract_common_evaluate() {}
 
-		void contract_common_evaluate::set_contract_storage_changes(const string& contract_id, const std::unordered_map<std::string, StorageDataChangeType>& changes)
+		void contract_common_evaluate::set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes)
 		{
 			invoke_contract_result.storage_changes[contract_id] = changes;
 		}

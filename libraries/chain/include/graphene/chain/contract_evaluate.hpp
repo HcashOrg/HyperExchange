@@ -13,6 +13,7 @@
 #include <graphene/chain/database.hpp>
 #include <memory>
 #include <unordered_map>
+#include <map>
 
 namespace graphene {
 	namespace chain {
@@ -30,7 +31,7 @@ namespace graphene {
         public:
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
-			void set_contract_storage_changes(const string& contract_id, const std::unordered_map<std::string, StorageDataChangeType>& changes);
+			void set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes);
             std::shared_ptr<address> get_caller_address() const;
             std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
             database& get_db() const;

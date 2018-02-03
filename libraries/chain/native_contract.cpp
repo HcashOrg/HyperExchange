@@ -1,5 +1,6 @@
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
+#include <graphene/utilities/ordered_json.hpp>
 
 #include <boost/algorithm/string.hpp>
 
@@ -9,7 +10,7 @@ namespace graphene {
 		{
 			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
 			{
-				_contract_invoke_result.storage_changes[string(contract_address)] = std::unordered_map<std::string, StorageDataChangeType>();
+				_contract_invoke_result.storage_changes[string(contract_address)] = contract_storage_changes_type();
 			}
 			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
 			if (storage_changes.find(storage_name) == storage_changes.end())
@@ -21,7 +22,7 @@ namespace graphene {
 				auto before_json_str = before.as<string>();
 				auto after_json_str = change.after.as<string>();
 				auto diff = differ.diff_by_string(before_json_str, after_json_str);
-				change.storage_diff = jsondiff::json_dumps(diff->value());
+				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
 				storage_changes[storage_name] = change;
 			}
 			else
@@ -34,7 +35,7 @@ namespace graphene {
 				auto before_json_str = before.as<string>();
 				auto after_json_str = after.as<string>();
 				auto diff = differ.diff_by_string(before_json_str, after_json_str);
-				change.storage_diff = jsondiff::json_dumps(diff->value());
+				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
 			}
 		}
 		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const string& storage_name)
@@ -43,7 +44,7 @@ namespace graphene {
 			{
 				return _evaluate->get_storage(string(contract_address), storage_name);
 			}
-			std::unordered_map<std::string, StorageDataChangeType>& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
+			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				return _evaluate->get_storage(string(contract_address), storage_name);
@@ -136,7 +137,7 @@ namespace graphene {
 			set_contract_storage(contract_id, string("state"), string("\"") + not_inited_state_of_token_contract + "\"");
 			auto caller_addr = _evaluate->get_caller_address();
 			FC_ASSERT(caller_addr);
-			set_contract_storage(contract_id, string("admin"), jsondiff::json_dumps(string(*caller_addr)));
+			set_contract_storage(contract_id, string("admin"), graphene::utilities::json_ordered_dumps(string(*caller_addr)));
 			set_contract_storage(contract_id, string("users"), string("{}"));
 			return _contract_invoke_result;
 		}
@@ -250,7 +251,7 @@ namespace graphene {
 			jsondiff::JsonObject users;
 			auto caller_addr = string(*(_evaluate->get_caller_address()));
 			users[caller_addr] = supply;
-			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
 			emit_event(contract_id, "Inited", supply_str);
 			return _contract_invoke_result;
 		}
@@ -333,7 +334,7 @@ namespace graphene {
 			{
 				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
 			}
-			auto allowed_data_str = jsondiff::json_dumps(allowed_data);
+			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data);
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;
 		}
@@ -368,12 +369,12 @@ namespace graphene {
 			else
 				users.erase(from_addr);
 			users[to_address] = users[to_address].as_int64() + amount;
-			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = from_addr;
 			event_arg["to"] = to_address;
 			event_arg["amount"] = amount;
-			emit_event(contract_id, "Transfer", jsondiff::json_dumps(event_arg));
+			emit_event(contract_id, "Transfer", graphene::utilities::json_ordered_dumps(event_arg));
 			return _contract_invoke_result;
 		}
 
@@ -406,13 +407,13 @@ namespace graphene {
 				allowed_data = jsondiff::json_loads(allowed[contract_caller].as_string()).as<jsondiff::JsonObject>();
 			}
 			allowed_data[spender_address] = amount;
-			allowed[contract_caller] = jsondiff::json_dumps(allowed_data);
-			set_contract_storage(contract_id, string("allowed"), jsondiff::json_dumps(allowed));
+			allowed[contract_caller] = graphene::utilities::json_ordered_dumps(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), graphene::utilities::json_ordered_dumps(allowed));
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = contract_caller;
 			event_arg["spender"] = spender_address;
 			event_arg["amount"] = amount;
-			emit_event(contract_id, "Approved", jsondiff::json_dumps(event_arg));
+			emit_event(contract_id, "Approved", graphene::utilities::json_ordered_dumps(event_arg));
 			return _contract_invoke_result;
 		}
 
@@ -467,19 +468,19 @@ namespace graphene {
 			else
 				users.erase(from_address);
 			users[to_address] = users[to_address].as_int64() + amount;
-			set_contract_storage(contract_id, string("users"), jsondiff::json_dumps(users));
+			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
 							
 			allowed_data[contract_caller] = approved_amount - amount;
 			if (allowed_data[contract_caller].as_int64() == 0)
 				allowed_data.erase(contract_caller);
-			allowed[from_address] = jsondiff::json_dumps(allowed_data);
-			set_contract_storage(contract_id, string("allowed"), jsondiff::json_dumps(allowed));
+			allowed[from_address] = graphene::utilities::json_ordered_dumps(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), graphene::utilities::json_ordered_dumps(allowed));
 									
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = from_address;
 			event_arg["to"] = to_address;
 			event_arg["amount"] = amount;
-			emit_event(contract_id, "Transfer", jsondiff::json_dumps(event_arg));
+			emit_event(contract_id, "Transfer", graphene::utilities::json_ordered_dumps(event_arg));
 			
 			return _contract_invoke_result;
 		}

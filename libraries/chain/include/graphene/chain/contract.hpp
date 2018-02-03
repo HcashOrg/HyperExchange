@@ -22,26 +22,45 @@ namespace graphene {
 			string event_arg;
 		};
 
+		struct comparator_for_contract_invoke_result_balance {
+			bool operator() (const std::pair<address, asset_id_type>& x, const std::pair<address, asset_id_type>& y) const
+			{
+				string x_addr_str = x.first.address_to_string();
+				string y_addr_str = y.first.address_to_string();
+				if (x_addr_str < y_addr_str) {
+					return true;
+				}
+				if (x_addr_str > y_addr_str) {
+					return false;
+				}
+				return (int64_t)x.second.instance < (int64_t)(y.second.instance);
+			}
+		};
+
+		struct comparator_for_string {
+			bool operator() (const string& x, const string& y) const
+			{
+				return x < y;
+			}
+		};
+
+		typedef std::map<std::string, StorageDataChangeType, comparator_for_string> contract_storage_changes_type;
+
 		struct contract_invoke_result
 		{
 			std::string api_result;
-			std::unordered_map<std::string, std::unordered_map<std::string, StorageDataChangeType>> storage_changes;	
+			std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
 				
-			std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
-			std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
-			std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
-			std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
+			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_withdraw;
+			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_balances;
+			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_to_address;
+			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
 
 			std::vector<contract_event_notify_info> events;
 
-			void clear() {
-				api_result.clear();
-				storage_changes.clear();
-				contract_withdraw.clear();
-				contract_balances.clear();
-				deposit_to_address.clear();
-				deposit_contract.clear();
-			}
+			void clear();
+			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
+			string ordered_digest() const;
 		};
 
 		struct contract_register_operation : public base_operation

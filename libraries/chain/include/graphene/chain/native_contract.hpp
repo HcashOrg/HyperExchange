@@ -63,6 +63,9 @@ namespace graphene {
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
 		};
 
+		// native合约的storage的json dumps和遍历都必须是确定性的
+
+		// this is native contract for token
 		class token_native_contract : public abstract_native_contract
 		{
 		public:

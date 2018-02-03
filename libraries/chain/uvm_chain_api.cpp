@@ -109,7 +109,7 @@ namespace graphene {
             }FC_CAPTURE_AND_LOG((nullptr))
         }
 
-        static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, std::unordered_map<std::string, StorageDataChangeType> changes) {
+        static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, const contract_storage_changes_type& changes) {
             try {
                 if (evaluator) {
 					evaluator->set_contract_storage_changes(contract_id, changes);
@@ -316,7 +316,7 @@ namespace graphene {
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
 				// commit change to evaluator
-				std::unordered_map<std::string, StorageDataChangeType> contract_storage_change;
+				contract_storage_changes_type contract_storage_change;
 				std::string contract_id = all_con_chg_iter->first;
 				ContractChangesMap contract_change = *(all_con_chg_iter->second);
 
