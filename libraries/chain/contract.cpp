@@ -39,8 +39,8 @@ namespace graphene {
 					JsonArray item;
 					item.push_back(it->first);
 					item.push_back(it2->first);
-					item.push_back(fc::sha256(it2->second.after.storage_data.data(), it2->second.after.storage_data.size()).str());
-					item.push_back(fc::sha256(it2->second.storage_diff.storage_data.data(), it2->second.storage_diff.storage_data.size()).str());
+					item.push_back(fc::sha256::hash(it2->second.after.storage_data.data(), it2->second.after.storage_data.size()).str());
+					item.push_back(fc::sha256::hash(it2->second.storage_diff.storage_data.data(), it2->second.storage_diff.storage_data.size()).str());
 					storage_changes_json_array.push_back(item);
 				}
 			}
@@ -91,7 +91,7 @@ namespace graphene {
 			result_array.push_back(deposit_contract_array);
 
 			auto array_json_str = json_dumps(result_array);
-			return fc::sha256(array_json_str.c_str(), array_json_str.size()).str();
+			return fc::sha256::hash(array_json_str.c_str(), array_json_str.size()).str();
 		}
 
 		void            contract_register_operation::validate()const

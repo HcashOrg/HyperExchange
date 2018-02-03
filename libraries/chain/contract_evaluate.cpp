@@ -67,7 +67,7 @@ namespace graphene {
 			return 10; // contract register fee
 		}
 
-		void_result contract_register_evaluate::do_evaluate(const operation_type& o) {
+		string contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			// check contract id unique
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
@@ -107,7 +107,6 @@ namespace graphene {
 				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
 
 				// TODO: deposit margin balance to contract
-
 				
                 new_contract.contract_address = o.calculate_contract_id();
                 new_contract.code = o.contract_code;
@@ -129,12 +128,11 @@ namespace graphene {
 				undo_contract_effected();
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
 			}
-			
 
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result native_contract_register_evaluate::do_evaluate(const operation_type& o) {
+		string native_contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			// check contract id unique
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
@@ -182,10 +180,10 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result contract_invoke_evaluate::do_evaluate(const operation_type& o) {
+		string contract_invoke_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
 			auto &contract = d.get_contract(o.contract_id);
@@ -266,10 +264,10 @@ namespace graphene {
 			if (o.offline)
 				throw ::blockchain::contract_engine::contract_api_result_error(get_api_result());
 
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result contract_upgrade_evaluate::do_evaluate(const operation_type& o) {
+		string contract_upgrade_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
@@ -353,10 +351,10 @@ namespace graphene {
             {
                 unspent_fee = o.invoke_cost*o.gas_price;
             }
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result contract_register_evaluate::do_apply(const operation_type& o) {
+		string contract_register_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
@@ -377,10 +375,10 @@ namespace graphene {
 			do_apply_contract_event_notifies();
             //do_apply_fees_balance(origin_op.owner_addr);
 			do_apply_balance();
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result native_contract_register_evaluate::do_apply(const operation_type& o) {
+		string native_contract_register_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
@@ -400,10 +398,10 @@ namespace graphene {
 			}
 			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result contract_invoke_evaluate::do_apply(const operation_type& o) {
+		string contract_invoke_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
 			auto trx_id = get_current_trx_id();
@@ -424,10 +422,10 @@ namespace graphene {
 			do_apply_contract_event_notifies();
             //do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
-		void_result contract_upgrade_evaluate::do_apply(const operation_type& o) {
+		string contract_upgrade_evaluate::do_apply(const operation_type& o) {
 			database& d = db();
 			// save contract name
 			FC_ASSERT(d.has_contract(o.contract_id));
@@ -454,7 +452,7 @@ namespace graphene {
             //do_apply_fees_balance(origin_op.caller_addr);
 			do_apply_balance();
 
-			return void_result();
+			return invoke_contract_result.ordered_digest();
 		}
 
 		void contract_register_evaluate::pay_fee() {
@@ -665,7 +663,7 @@ namespace graphene {
 		}
 
 
-        void_result contract_transfer_evaluate::do_evaluate(const operation_type & o)
+        string contract_transfer_evaluate::do_evaluate(const operation_type & o)
         {
             auto &d = db();
             FC_ASSERT(d.has_contract(o.contract_id));
@@ -757,10 +755,10 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-            return void_result();
+            return invoke_contract_result.ordered_digest();
         }
 
-        void_result contract_transfer_evaluate::do_apply(const operation_type & o)
+        string contract_transfer_evaluate::do_apply(const operation_type & o)
         {
             database& d = db();
             FC_ASSERT(d.has_contract(o.contract_id));
@@ -783,7 +781,7 @@ namespace graphene {
 			do_apply_contract_event_notifies();       
             do_apply_balance();
             db_adjust_balance(o.caller_addr,asset(-o.amount.amount,o.amount.asset_id));
-            return void_result();
+            return invoke_contract_result.ordered_digest();
         }
 
         void contract_transfer_evaluate::pay_fee()

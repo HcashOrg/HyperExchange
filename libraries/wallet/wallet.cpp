@@ -100,6 +100,7 @@ public:
    std::string operator()(const void_result& x) const;
    std::string operator()(const object_id_type& oid);
    std::string operator()(const asset& a);
+   std::string operator()(const string& a);
 };
 
 // BLOCK  TRX  OP  VOP
@@ -4051,6 +4052,11 @@ std::string operation_result_printer::operator()(const object_id_type& oid)
 std::string operation_result_printer::operator()(const asset& a)
 {
    return _wallet.get_asset(a.asset_id).amount_to_pretty_string(a);
+}
+
+std::string operation_result_printer::operator()(const string& a)
+{
+	return a;
 }
 
 }}}

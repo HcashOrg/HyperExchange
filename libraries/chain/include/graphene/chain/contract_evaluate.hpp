@@ -68,8 +68,8 @@ namespace graphene {
             contract_register_evaluate():contract_common_evaluate(this){}
 			typedef contract_register_operation operation_type;
 
-			void_result do_evaluate(const operation_type& o);
-			void_result do_apply(const operation_type& o);
+			string do_evaluate(const operation_type& o);
+			string do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -90,8 +90,8 @@ namespace graphene {
 		public:
 			typedef native_contract_register_operation operation_type;
 
-			void_result do_evaluate(const operation_type& o);
-			void_result do_apply(const operation_type& o);
+			string do_evaluate(const operation_type& o);
+			string do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -108,8 +108,8 @@ namespace graphene {
     	public:
 			typedef contract_invoke_operation operation_type;
             contract_invoke_evaluate() : contract_common_evaluate(this) {}
-			void_result do_evaluate(const operation_type& o);
-			void_result do_apply(const operation_type& o);
+			string do_evaluate(const operation_type& o);
+			string do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -127,8 +127,8 @@ namespace graphene {
 			typedef contract_upgrade_operation operation_type;
 
             contract_upgrade_evaluate() : contract_common_evaluate(this) {}
-			void_result do_evaluate(const operation_type& o);
-			void_result do_apply(const operation_type& o);
+			string do_evaluate(const operation_type& o);
+			string do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -146,8 +146,8 @@ namespace graphene {
             typedef transfer_contract_operation operation_type;
 
             contract_transfer_evaluate() : contract_common_evaluate(this) {}
-            void_result do_evaluate(const operation_type& o);
-            void_result do_apply(const operation_type& o);
+            string do_evaluate(const operation_type& o);
+            string do_apply(const operation_type& o);
             void pay_fee();
             
             std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
