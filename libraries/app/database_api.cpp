@@ -1606,8 +1606,12 @@ vector<variant> database_api_impl::lookup_vote_ids( const vector<vote_id_type>& 
          case vote_id_type::committee:
          {
             auto itr = committee_idx.find( id );
-            if( itr != committee_idx.end() )
-               result.emplace_back( variant( *itr ) );
+			if (itr != committee_idx.end())
+			{
+				if(itr->formal)
+					result.emplace_back(variant(*itr));
+			}
+               
             else
                result.emplace_back( variant() );
             break;

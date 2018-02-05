@@ -224,7 +224,7 @@ void database::update_miner_schedule()
 				
 				modify(get(w), [&](miner_object& miner_obj) 
 				{
-					miner_obj.pledge_weight = 100;
+					miner_obj.pledge_weight = 100 * (miner_obj.total_produced + 1);
 					for (auto& one_lock_balance : miner_obj.lockbalance_total)
 					{
 						const auto& asset_obj = one_lock_balance.second.asset_id(*this);
