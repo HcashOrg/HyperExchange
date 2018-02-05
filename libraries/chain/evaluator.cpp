@@ -40,6 +40,11 @@
 namespace graphene { namespace chain {
 database& generic_evaluator::db()const { return trx_state->db(); }
 
+const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() const
+{
+    return trx_state;
+}
+
    operation_result generic_evaluator::start_evaluate( transaction_evaluation_state& eval_state, const operation& op, bool apply )
    { try {
       trx_state   = &eval_state;
@@ -156,6 +161,19 @@ database& generic_evaluator::db()const { return trx_state->db(); }
    void generic_evaluator::db_adjust_balance(const address& fee_payer, asset fee_from_account)
    {
 	   db().adjust_balance(fee_payer, fee_from_account);
+   }
+   void generic_evaluator::db_adjust_frozen(const address& fee_payer, asset fee_from_account)
+   {
+	   db().adjust_frozen(fee_payer, fee_from_account);
+   }
+   void generic_evaluator::db_adjust_guarantee(const guarantee_object_id_type id, asset fee_from_account)
+   {
+	   db().adjust_guarantee(id, fee_from_account);
+   }
+
+   guarantee_object generic_evaluator::db_get_guarantee(const guarantee_object_id_type id)
+   {
+	   return db().get(id);
    }
 
 } }

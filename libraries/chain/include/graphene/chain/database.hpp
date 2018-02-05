@@ -265,6 +265,8 @@ namespace graphene { namespace chain {
          const chain_property_object&           get_chain_properties()const;
          const global_property_object&          get_global_properties()const;
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
+		 void     set_local_properties_for_chain_type(const string& chain_type);
+		 local_property_object                  get_local_properties()const;
          const node_property_object&            get_node_properties()const;
          const fee_schedule&                    current_fee_schedule()const;
 
@@ -310,6 +312,29 @@ namespace graphene { namespace chain {
 			 transaction_stata trx_state);
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
+		 //////contract//////
+		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
+		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
+		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
+		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg);
+
+
+         void store_contract(const contract_object& contract);
+		 void update_contract(const contract_object& contract);
+         contract_object get_contract(const address& contract_address);
+         contract_object get_contract(const contract_id_type& id);
+		 contract_object get_contract_of_name(const string& contract_name);
+		 bool has_contract(const address& contract_address);
+		 bool has_contract_of_name(const string& contract_name);
+
+         //contract_balance//
+         asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
+         void adjust_contract_balance(const address& addr, const asset& delta);
+
+         //get account address by account name
+         address get_account_address(const string& name);
+
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
@@ -338,6 +363,21 @@ namespace graphene { namespace chain {
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
 		 void adjust_balance(address addr, asset delta, bool freeze = false);
+
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
+		 void adjust_frozen(address addr, asset delta);
+		 /**
+		 * @brief Adjust a particular account's balance in a given asset by a delta
+		 * @param account ID of account whose balance should be adjusted
+		 * @param delta Asset ID and amount to adjust balance by
+		 */
+		 void cancel_frozen(address addr,asset_id_type id);
+
+
 		 /**
 		 * @brief Adjust a particular account's balance in a given asset by a delta
 		 * @param account ID of account whose balance should be adjusted

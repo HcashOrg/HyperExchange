@@ -41,6 +41,7 @@
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/future.hpp>
 #include <graphene/crosschain/crosschain.hpp>
+#include <graphene/chain/contract_object.hpp>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)

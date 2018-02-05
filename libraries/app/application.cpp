@@ -83,6 +83,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
+#include <graphene/chain/contract_object.hpp>
 namespace graphene { namespace app {
 using net::item_hash_t;
 using net::item_id;
@@ -386,6 +387,7 @@ namespace detail {
 					 auto fd = instance.get_crosschain_handle(chain_type);
 					 if (fd != nullptr)
 						 fd->initialize_config(config_var);
+					 //_chain_db->set_local_properties_for_chain_type(chain_type);
 				 }
 				 _self->set_crosschain_manager_config(config);
 			 }

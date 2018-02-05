@@ -34,6 +34,7 @@
 #include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/chain/account_object.hpp>
+#include <graphene/chain/contract_object.hpp>
 #include <cctype>
 
 #include <cfenv>
@@ -75,7 +76,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       fc::variant_object get_config()const;
       chain_id_type get_chain_id()const;
       dynamic_global_property_object get_dynamic_global_properties()const;
-
+	  local_property_object get_local_properties() const;
+	  void set_guarantee_id(guarantee_object_id_type id);
       // Keys
       vector<vector<account_id_type>> get_key_references( vector<public_key_type> key )const;
      bool is_public_key_registered(string public_key) const;
@@ -158,7 +160,13 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
+
+      //contract 
+      contract_object get_contract_info(const string& contract_address)const ;
+	  contract_object get_contract_info_by_name(const string& contract_name) const;
+      vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
+	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -329,7 +337,41 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-
+contract_object database_api::get_contract_info(const string& contract_address) const
+{
+    return my->get_contract_info(contract_address);
+}
+contract_object database_api::get_contract_info_by_name(const string& contract_name) const
+{
+	return my->get_contract_info_by_name(contract_name);
+}
+contract_object database_api_impl::get_contract_info(const string& contract_address) const
+{
+    try {
+        auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+        return res;
+    }FC_CAPTURE_AND_RETHROW((contract_address))
+}
+contract_object database_api_impl::get_contract_info_by_name(const string& contract_name) const
+{
+	try {
+		auto res = _db.get_contract_of_name(contract_name);
+		return res;
+	}FC_CAPTURE_AND_RETHROW((contract_name))
+}
+vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
+{
+    vector<asset> res;
+    auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
+    for (auto it : db)
+    {
+        if (it.owner == contract_address)
+        {
+            res.push_back(it.balance);
+        }
+    }
+    return res;
+}
 void database_api::set_pending_transaction_callback( std::function<void(const variant&)> cb )
 {
    my->set_pending_transaction_callback( cb );
@@ -354,7 +396,10 @@ void database_api::cancel_all_subscriptions()
 {
    my->cancel_all_subscriptions();
 }
-
+vector<asset> database_api::get_contract_balance(const address & contract_address) const
+{
+    return my->get_contract_balance(contract_address);
+}
 void database_api_impl::cancel_all_subscriptions()
 {
    set_subscribe_callback( std::function<void(const fc::variant&)>(), true);
@@ -497,10 +542,27 @@ dynamic_global_property_object database_api::get_dynamic_global_properties()cons
 {
    return my->get_dynamic_global_properties();
 }
-
+local_property_object database_api::get_local_properties() const
+{
+	return my->get_local_properties();
+}
+void database_api::set_guarantee_id(guarantee_object_id_type id)
+{
+	return my->set_guarantee_id(id);
+}
 dynamic_global_property_object database_api_impl::get_dynamic_global_properties()const
 {
    return _db.get(dynamic_global_property_id_type());
+}
+local_property_object database_api_impl::get_local_properties() const
+{
+	return _db.get(local_property_id_type());
+}
+void database_api_impl::set_guarantee_id(guarantee_object_id_type id)
+{
+	_db.modify(_db.get(local_property_id_type()), [&id](local_property_object obj) {
+		obj.guarantee_id = id;
+	});
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1540,7 +1602,19 @@ vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(cons
 	});
 	return result;
 }
+optional<guarantee_object> database_api_impl::get_gurantee_object(const guarantee_object_id_type id) const
+{
+	auto& gurantee_idx = _db.get_index_type<guarantee_index>().indices();
+	auto& gurantee_objs = gurantee_idx.get<by_id>();
 
+	auto ret = gurantee_objs.find(id);
+	if (ret != gurantee_objs.end())
+	{
+		return *ret;
+	}
+		
+	return optional<guarantee_object>();
+}
 
 map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
@@ -2053,6 +2127,11 @@ vector<optional<guarantee_object>> database_api::list_guarantee_object(const str
 {
 	return my->list_guarantee_object(chain_type);
 }
+optional<guarantee_object> database_api::get_gurantee_object(const guarantee_object_id_type id) const
+{
+	return my->get_gurantee_object(id);
+}
+
 
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);

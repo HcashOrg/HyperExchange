@@ -13,3 +13,6 @@ install( TARGETS
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
+if(MSVC)
+  set_source_files_properties( main.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+endif(MSVC)

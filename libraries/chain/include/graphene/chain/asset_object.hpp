@@ -249,7 +249,7 @@ namespace graphene { namespace chain {
 
 	   address owner_addr;
 	   string  chain_type;
-	   fc::time_point time;
+	   string time;
 	   asset asset_orign;
 	   asset asset_target;
 	   asset asset_finished;

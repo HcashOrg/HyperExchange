@@ -49,6 +49,12 @@ namespace graphene { namespace chain {
 				 frozen -= delta.amount;
 			 }
 		 }
+
+		 void adjust_frozen(asset delta)
+		 {
+			 frozen += delta.amount;
+		 }
+
          address owner;
          asset   balance;
 		 share_type   frozen;

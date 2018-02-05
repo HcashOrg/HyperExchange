@@ -70,6 +70,10 @@
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/guard_refund_balance_evaluator.hpp>
+#include <graphene/chain/contract_evaluate.hpp>
+#include <graphene/chain/contract.hpp>
+#include <graphene/chain/contract_object.hpp>
+#include <graphene/chain/native_contract.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -149,8 +153,20 @@ const uint8_t multisig_account_pair_object::space_id;
 const uint8_t multisig_account_pair_object::type_id;
 const uint8_t crosschain_transaction_history_count_object::space_id;
 const uint8_t crosschain_transaction_history_count_object::type_id;
+
+const uint8_t contract_object::space_id;
+const uint8_t contract_object::type_id;
+const uint8_t contract_storage_object::space_id;
+const uint8_t contract_storage_object::type_id;
+const uint8_t transaction_contract_storage_diff_object::space_id;
+const uint8_t transaction_contract_storage_diff_object::type_id;
+
+const uint8_t contract_event_notify_object::space_id;
+const uint8_t contract_event_notify_object::type_id;
+
 const uint8_t guarantee_object::space_id;
 const uint8_t guarantee_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -217,6 +233,14 @@ void database::initialize_evaluators()
    register_evaluator<asset_real_create_evaluator>();
    register_evaluator<miner_generate_multi_asset_evaluator>();
    register_evaluator<guard_update_multi_account_evaluator>();
+
+   register_evaluator<contract_register_evaluate>();
+   register_evaluator<native_contract_register_evaluate>();
+   register_evaluator<contract_invoke_evaluate>();
+   register_evaluator<contract_upgrade_evaluate>();
+   register_evaluator<contract_transfer_evaluate>();
+   register_evaluator<gurantee_create_evaluator>();
+   register_evaluator<gurantee_cancel_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -259,6 +283,7 @@ void database::initialize_indexes()
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
+   add_index< primary_index<simple_index<local_property_object  >> >();
    add_index< primary_index<simple_index<account_statistics_object       >> >();
    add_index< primary_index<simple_index<asset_dynamic_data_object       >> >();
    add_index< primary_index<flat_index<  block_summary_object            >> >();
@@ -269,7 +294,16 @@ void database::initialize_indexes()
    add_index< primary_index< buyback_index                                > >();
 
    add_index< primary_index< simple_index< fba_accumulator_object       > > >();
+
+   // contract
+   add_index< primary_index<transaction_contract_storage_diff_index       > >();
+   add_index<primary_index<contract_object_index>>();
+   add_index<primary_index<contract_balance_index>>();
+   add_index<primary_index<contract_storage_object_index>>();
+   add_index<primary_index<contract_event_notify_index>>();
+
    add_index <primary_index<guarantee_index                               > >();
+
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)
@@ -449,7 +483,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
    });
-
+   create<local_property_object>([&](local_property_object& p) {
+	   p.guarantee_id = guarantee_object_id_type();
+	   p.symbols.clear();
+   });
    create<chain_property_object>([&](chain_property_object& p)
    {
       p.chain_id = chain_id;
