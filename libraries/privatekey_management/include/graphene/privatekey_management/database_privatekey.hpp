@@ -12,6 +12,7 @@
 
 #include "fc/filesystem.hpp"
 #include "fc/optional.hpp"
+#include "fc/io/raw.hpp"
 #include "fc/crypto/sha512.hpp"
 #include "graphene/privatekey_management/private_key.hpp"
 
@@ -25,8 +26,8 @@ namespace graphene {
 		struct crosschain_privatekey_data
 		{
 			uint64_t        id;
-			std::string     addr;
-			std::string     wif_key;
+			fc::string     addr;
+			fc::string     wif_key;
 
 		};
 
@@ -35,10 +36,10 @@ namespace graphene {
 			uint64_t            id;
 
 			/** address */
-			std::string         addr;
+			fc::string         addr;
 
-			/** encrypted keys */
-			std::vector<char>   cipher_keys;
+			/** encrypted key */
+			std::vector<char>   cipher_key;
 
 		};
 
@@ -58,6 +59,7 @@ namespace graphene {
 			bool contains(const uint64_t key_id)const;
 
 			fc::optional<crosschain_privatekey_data> fetch_by_id(const uint64_t key_id, fc::sha512 checksum)const;
+			uint64_t  fetch_current_max_id()const;
 
 
 		private:
@@ -71,3 +73,21 @@ namespace graphene {
 	}
 } // end namespace graphene::privatekey_management
 
+FC_REFLECT(graphene::privatekey_management::crosschain_privatekey_data,
+	       (id)
+		   (addr)
+	       (wif_key)
+		  )
+
+
+FC_REFLECT(graphene::privatekey_management::crosschain_privatekey_store,
+	       (id)
+	       (addr)
+	       (cipher_key)
+	      )
+
+
+FC_REFLECT(graphene::privatekey_management::database_privatekey,
+			(_keys)
+	        (_key_index)
+	      )

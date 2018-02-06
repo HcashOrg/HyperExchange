@@ -18,21 +18,83 @@
 
 namespace graphene { namespace privatekey_management {
 
-	fc::ecc::private_key  create_private_key()
+
+	fc::ecc::private_key  crosschain_privatekey_base::get_private_key()
 	{
-		return fc::ecc::private_key::generate();
+		if (this->_key != fc::ecc::private_key())
+			return _key;
+
+		_key =  fc::ecc::private_key::generate();
+		return _key;
 	}
 
-	std::string  get_btc_wif_key(fc::ecc::private_key& priv_key)
+	std::string crosschain_privatekey_base::exec(const char* cmd)
 	{
-		
+		std::array<char, COMMAND_BUF> buffer;
+		std::string result;
+	#if defined(_WIN32)
+		std::shared_ptr<FILE> pipe(_popen(cmd, "r"), _pclose);
+	#elif defined(__linux__)
+		std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+	#endif
+		if (!pipe) throw std::runtime_error("popen() failed!");
+		while (!feof(pipe.get())) 
+		{
+			if (fgets(buffer.data(), COMMAND_BUF, pipe.get()) != nullptr)
+				result += buffer.data();
+		}
+
+		result.erase(result.end() - 1);
+		return result;
+	}
+
+
+	std::string  crosschain_privatekey_base::sign_trx(const std::string& script, const std::string& raw_trx)
+	{
+		//GET private key by address, todo
+		std::string priv_hex = _key.get_secret().str().c_str();
+
+		//get endorsement
+		std::string cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe input-sign";
+		cmd += " " + priv_hex + " " + script + " " + raw_trx;
+		auto endorsement = exec(cmd.c_str());
+		printf("endorsement: %s\n", endorsement.c_str());
+
+		//get public hex
+		cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe ec-to-public";
+		cmd += " " + priv_hex;
+		auto pub_hex = exec(cmd.c_str());
+		printf("pub_hex: %s\n", pub_hex.c_str());
+
+		//get signed raw-trx
+		cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe input-set ";
+		cmd += "\"[" + endorsement + "]" + " [" + pub_hex + "]\" " + raw_trx;
+		printf("command str: %s\n", cmd.c_str());
+		auto signed_raw_trx = exec(cmd.c_str());
+
+		printf("signed_raw_trx str: %s\n", signed_raw_trx.c_str());
+		return signed_raw_trx;
+	}
+
+
+
+	btc_privatekey::btc_privatekey()
+	{
+		set_id(0);
+		set_pubkey_prefix(0x0);
+		set_privkey_prefix(0x80);
+	}
+
+
+	std::string  btc_privatekey::get_wif_key(fc::ecc::private_key& priv_key)
+	{		
 		return  graphene::utilities::key_to_wif(priv_key);
 	}
 
-    std::string  get_btc_address(fc::ecc::private_key& priv_key)
+    std::string   btc_privatekey::get_address(fc::ecc::private_key& priv_key)
     {
         //configure for bitcoin
-        uint8_t version = 0;
+        uint8_t version = get_pubkey_prefix();
         bool compress = false;
 
 
@@ -44,13 +106,22 @@ namespace graphene { namespace privatekey_management {
 		return addr;
     }
 
-	fc::optional<fc::ecc::private_key>  import_btc_private_key(std::string& wif_key)
+	fc::optional<fc::ecc::private_key>   btc_privatekey::import_private_key(std::string& wif_key)
 	{
 		return graphene::utilities::wif_to_key(wif_key);
 
 	}
 
-	std::string  get_ltc_wif_key(fc::ecc::private_key& priv_key)
+	
+
+	ltc_privatekey::ltc_privatekey()
+	{
+		set_id(0);
+		set_pubkey_prefix(0x30);
+		set_privkey_prefix(0xB0);
+	}
+
+	std::string  ltc_privatekey::get_wif_key(fc::ecc::private_key& priv_key)
 	{
 		/*fc::sha256& secret = priv_key.get_secret();
 
@@ -73,7 +144,7 @@ namespace graphene { namespace privatekey_management {
 		const size_t size_of_data_to_hash = sizeof(secret) + 1;
 		const size_t size_of_hash_bytes = 4;
 		char data[size_of_data_to_hash + size_of_hash_bytes];
-		data[0] = (char)0xB0;
+		data[0] = (char)get_privkey_prefix();
 		memcpy(&data[1], (char*)&secret, sizeof(secret));
 		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
 		digest = fc::sha256::hash(digest);
@@ -85,10 +156,12 @@ namespace graphene { namespace privatekey_management {
 
 
 
-	std::string  get_ltc_address(fc::ecc::private_key& priv_key)
+
+
+	std::string ltc_privatekey::get_address(fc::ecc::private_key& priv_key)
 	{
 		//configure for bitcoin
-		uint8_t version = 48;
+		uint8_t version = get_pubkey_prefix();
 		bool compress = false;
 
 
@@ -100,7 +173,7 @@ namespace graphene { namespace privatekey_management {
 		return addr;
 	}
 
-	fc::optional<fc::ecc::private_key>  import_ltc_private_key(std::string& wif_key)
+	fc::optional<fc::ecc::private_key> ltc_privatekey::import_private_key(std::string& wif_key)
 	{
 /*
 		std::vector<char> wif_bytes;
@@ -132,42 +205,6 @@ namespace graphene { namespace privatekey_management {
 		return graphene::utilities::wif_to_key(wif_key);
 
 	}
-
-
-	bool store_crosschain_privatekey(std::map<std::string, std::string>& store_keys, fc::ecc::private_key& priv_key, std::string& key_type)
-	{
-		std::string addr, wif_key;
-
-		if (key_type == "btc")
-		{
-			addr = get_btc_address(priv_key);
-			wif_key = get_btc_wif_key(priv_key);
-
-		}
-		else if (key_type == "ltc")
-		{
-			addr = get_ltc_address(priv_key);
-			wif_key = get_ltc_wif_key(priv_key);
-		}
-
-		// judge if the private key has been stored
-		if (store_keys.find(addr) == store_keys.end())
-		{
-			store_keys[addr] = wif_key;
-			return true;
-		}
-		else
-		{
-
-			printf("Attention: this private key has been stored!");
-			return false;
-			
-		}
-		
-		
-
-	}
-
 
 
 

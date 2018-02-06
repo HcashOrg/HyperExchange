@@ -9,10 +9,14 @@ endif(NOT GRAPHENE_GIT_REVISION_DESCRIPTION)
 
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h)
 
+#file(GLOB_RECURSE BTCSRC ${CMAKE_CURRENT_SOURCE_DIR}/btc  *.cpp)
+
 set(sources
    private_key.cpp
    database_privatekey.cpp
-   ${HEADERS})
+#   ${BTCSRC}
+   ${HEADERS}
+   )
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
 list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
@@ -22,7 +26,7 @@ list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 add_library( privatekey_management
              ${sources}
              ${HEADERS} )
-target_link_libraries( privatekey_management graphene_chain)
+target_link_libraries( privatekey_management graphene_chain )
 target_include_directories( privatekey_management
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 							

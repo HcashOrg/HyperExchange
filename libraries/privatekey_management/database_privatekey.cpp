@@ -69,7 +69,7 @@ namespace graphene {
 			crosschain_privatekey_store  data;
 			data.addr = key_data.addr;
 			auto plain_key = fc::raw::pack(key_data.wif_key);
-			data.cipher_keys = fc::aes_encrypt(checksum, plain_key);
+			data.cipher_key = fc::aes_encrypt(checksum, plain_key);
 			data.id = key_data.id;
 
 			auto pack_key_data = fc::raw::pack(data);
@@ -172,7 +172,7 @@ namespace graphene {
 				priv_key.id = result.id;
 				priv_key.addr = result.addr;
 
-				auto wif_key_data = fc::aes_decrypt(checksum, result.cipher_keys);
+				auto wif_key_data = fc::aes_decrypt(checksum, result.cipher_key);
 				priv_key.wif_key = fc::raw::unpack<std::string>(wif_key_data);
 
 				return priv_key;
@@ -183,10 +183,27 @@ namespace graphene {
 		}
 
 
+		uint64_t  database_privatekey::fetch_current_max_id()const
+		{
+
+			index_entry e;
+			
+			_key_index.seekg(0, _key_index.end);
+
+			auto index_pos = (int64_t)_key_index.tellg() - sizeof(e);
+			
+
+			_key_index.seekg(index_pos);
+			_key_index.read((char *)&e, sizeof(e));
+
+			return e.key_id;
+		}
+
+
 
 
 	}
 } // end namespace graphene::privatekey_management
 
 
-FC_REFLECT(graphene::privatekey_management::index_entry, (key_pos)(key_size)(addr));
+FC_REFLECT(graphene::privatekey_management::index_entry, (key_id)(key_pos)(keydata_size));

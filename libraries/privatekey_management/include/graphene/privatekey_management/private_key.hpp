@@ -16,34 +16,76 @@
 namespace graphene {
 	namespace privatekey_management {
 
+		#define COMMAND_BUF  1024
 
-// 		class crosschain_privatekey
-// 		{
-// 		public:
-// 			crosschain_privatekey() {}
-// 
-// 		private:
-// 			fc::ecc::private_key  key;
-// 
-// 		};
+		class crosschain_privatekey_base
+		{
+		public:
+			std::string exec(const char* cmd);
+			std::string  sign_trx(const std::string& script, const std::string& raw_trx);
+			fc::ecc::private_key  get_private_key();
 
-	struct crosschain_privatekey
-	{
-		std::map<std::string, std::string> keys;
-	};
+			virtual std::string get_wif_key(fc::ecc::private_key& priv_key) = 0;
+			virtual std::string get_address(fc::ecc::private_key& priv_key) = 0;
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(std::string& wif_key) = 0;
 
-	fc::ecc::private_key  create_private_key();
+			int get_pubkey_prefix() { return _pubkey_prefix; }
 
-	std::string  get_btc_wif_key(fc::ecc::private_key& priv_key);
-    std::string  get_btc_address(fc::ecc::private_key& priv_key);
-	fc::optional<fc::ecc::private_key>  import_btc_private_key(std::string& wif_key);
+			bool set_pubkey_prefix(int prefix = 0) { _pubkey_prefix = prefix; return true; }
 
-	std::string  get_ltc_wif_key(fc::ecc::private_key& priv_key);
-	std::string  get_ltc_address(fc::ecc::private_key& priv_key);
-	fc::optional<fc::ecc::private_key>  import_ltc_private_key(std::string& wif_key);
+			int get_privkey_prefix() { return _privkey_prefix; }
 
-	bool store_crosschain_privatekey(std::map<std::string, std::string>& store_keys, fc::ecc::private_key& priv_key, std::string& key_type);
+			bool set_privkey_prefix(int prefix = 0)	{ _privkey_prefix = prefix; return true; }
 
+			int		get_id() { return _id; }
+			bool	set_id(int p_id) { _id = p_id; return true; }
+
+
+
+		private:
+			fc::ecc::private_key  _key;
+
+			int                   _id;
+			int                   _pubkey_prefix;
+			int					  _privkey_prefix;
+
+
+		};
+
+
+		class btc_privatekey : public crosschain_privatekey_base
+		{
+		public:
+			btc_privatekey();
+
+			virtual std::string get_wif_key(fc::ecc::private_key& priv_key) ;
+			virtual std::string get_address(fc::ecc::private_key& priv_key) ;
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(std::string& wif_key) ;
+
+		};
+
+
+
+		class ltc_privatekey : public crosschain_privatekey_base
+		{
+		public:
+			ltc_privatekey();
+
+			virtual std::string get_wif_key(fc::ecc::private_key& priv_key);
+			virtual std::string get_address(fc::ecc::private_key& priv_key);
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(std::string& wif_key);
+
+		};
+
+		
 
 	}
 } // end namespace graphene::privatekey_management
+
+
+FC_REFLECT(graphene::privatekey_management::crosschain_privatekey_base,
+	       (_key)
+		   (_id)
+	       (_pubkey_prefix)
+	       (_privkey_prefix)
+		  )
