@@ -174,7 +174,7 @@ namespace graphene {
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
 			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
-			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
+			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
 			if (code && !contract_addr.empty())
 			{
 				string address_str = contract_addr;

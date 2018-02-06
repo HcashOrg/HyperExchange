@@ -1738,10 +1738,17 @@ class wallet_api
 
 	  // contract wallet apis
 	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-	  std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
+      std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
+
+      std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
+      std::pair<asset, share_type> register_native_contract_testing(const string& caller_account_name,  const string& native_contract_key);
+
 	  signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-	  string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+      share_type invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+
+      string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
+      share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
       signed_transaction transfer_to_contract(string from,
@@ -1751,6 +1758,10 @@ class wallet_api
           const string& gas_price,
           const string& gas_limit,
           bool broadcast = false);
+      share_type transfer_to_contract_testing(string from,
+          string to,
+          string amount,
+          string asset_symbol);
 
       vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis
@@ -2018,4 +2029,9 @@ FC_API( graphene::wallet::wallet_api,
 		(get_local_properties)
 		(set_guarantee_id)
 		(cancel_guarantee_order)
+        (invoke_contract_testing)
+        (transfer_to_contract_testing)
+        (register_contract_testing)
+        (register_native_contract_testing)
+        (upgrade_contract_testing)
       )
