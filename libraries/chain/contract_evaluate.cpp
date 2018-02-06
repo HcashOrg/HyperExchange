@@ -190,7 +190,7 @@ namespace graphene {
         contract_operation_result_info contract_invoke_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
-			auto &contract = d.get_contract(o.contract_id);
+			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
@@ -280,7 +280,7 @@ namespace graphene {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
-			auto &contract = d.get_contract(o.contract_id);
+			const auto &contract = d.get_contract(o.contract_id);
 			FC_ASSERT(contract.contract_name.empty());
 			this->caller_address = std::make_shared<address>(o.caller_addr);
             total_fee = o.fee.amount;
@@ -376,7 +376,7 @@ namespace graphene {
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
-				address contract_addr(contract_id);
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 				const auto &contract_storage_changes = pair1.second;
 				for (const auto &pair2 : contract_storage_changes)
 				{
@@ -425,7 +425,7 @@ namespace graphene {
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
-				address contract_addr(contract_id);
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 				const auto &contract_storage_changes = pair1.second;
 				for (const auto &pair2 : contract_storage_changes)
 				{
@@ -446,7 +446,7 @@ namespace graphene {
 			database& d = db();
 			// save contract name
 			FC_ASSERT(d.has_contract(o.contract_id));
-			auto& contract = d.get_contract(o.contract_id);
+			auto contract = d.get_contract(o.contract_id);
 			contract.contract_name = o.contract_name;
 			contract.contract_desc = o.contract_desc;
 			d.update_contract(contract);
@@ -455,7 +455,7 @@ namespace graphene {
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
-				address contract_addr(contract_id);
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 				const auto &contract_storage_changes = pair1.second;
 				for (const auto &pair2 : contract_storage_changes)
 				{
@@ -519,7 +519,7 @@ namespace graphene {
 			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
-				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), origin_op.native_contract_key, address(contract_id));
+				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), origin_op.native_contract_key, address(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 				if (!native_contract)
 					return nullptr;
 				for (const auto & api : native_contract->apis()) {
@@ -545,7 +545,7 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> contract_invoke_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			address contract_addr(contract_id,GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
 			auto contract_info = std::make_shared<UvmContractInfo>();
@@ -579,7 +579,7 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> contract_upgrade_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			address contract_addr(contract_id);
+			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 			if (!db().has_contract(contract_addr))
 				return nullptr;
 			auto contract_info = std::make_shared<UvmContractInfo>();
@@ -685,7 +685,7 @@ namespace graphene {
         {
             auto &d = db();
             FC_ASSERT(d.has_contract(o.contract_id));
-            auto &contract = d.get_contract(o.contract_id);
+            const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
@@ -793,7 +793,7 @@ namespace graphene {
             for (const auto &pair1 : invoke_contract_result.storage_changes)
             {
                 const auto &contract_id = pair1.first;
-                address contract_addr(contract_id);
+                address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
                 const auto &contract_storage_changes = pair1.second;
                 for (const auto &pair2 : contract_storage_changes)
                 {
@@ -878,7 +878,7 @@ namespace graphene {
          StorageDataType contract_common_evaluate::get_storage(const string & contract_id, const string & storage_name) const
         {
             database& d = get_db();
-            auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
+            auto storage_data = d.get_contract_storage(address(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX), storage_name);
             return storage_data;
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_name(const string & contract_name) const

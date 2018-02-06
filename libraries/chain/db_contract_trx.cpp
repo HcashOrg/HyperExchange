@@ -13,7 +13,7 @@ namespace graphene {
 		{
 			try {
 				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
-				auto& storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end())
 				{
 					std::string null_jsonstr("null");
@@ -37,7 +37,7 @@ namespace graphene {
 				FC_ASSERT(itr != index.end());*/
 
 				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
-				auto& storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end()) {
 					create<contract_storage_object>([&](contract_storage_object & obj) {
 						obj.contract_address = contract_id;
@@ -188,7 +188,7 @@ namespace graphene {
         asset database::get_contract_balance(const address & addr, const asset_id_type & asset_id)
         {
             try {
-                auto& contract_idx = get_contract(addr);
+                auto contract_idx = get_contract(addr);
             }
             catch (...)
             {
