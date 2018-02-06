@@ -209,7 +209,7 @@ namespace graphene {
 					}
 				});
 				//auto multisign_hot = multisign_db.find()
-				FC_ASSERT(multi_account_obj.bind_account_cold == multi_account_obj.bind_account_hot);
+				FC_ASSERT(multi_account_obj.bind_account_cold != multi_account_obj.bind_account_hot);
 				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, withop.crosschain_account, withop.amount, withop.asset_symbol, withop.memo, false);
 				trx_op.ccw_trx_id = cross_chain_trx.real_transaction.id();
 				std::cout << trx_op.ccw_trx_id.str() << std::endl;
