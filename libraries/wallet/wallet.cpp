@@ -2185,7 +2185,9 @@ public:
    vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol)const 
    {
 	   try {
-		   return _remote_db->get_binding_account(account, symbol);
+		   auto acct = get_account(account);
+		   FC_ASSERT(acct.addr != address());
+		   return _remote_db->get_binding_account(string(acct.addr), symbol);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol))
    }
 
