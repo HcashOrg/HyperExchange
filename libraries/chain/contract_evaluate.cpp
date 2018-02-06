@@ -186,7 +186,7 @@ namespace graphene {
 		string contract_invoke_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
-			auto &contract = d.get_contract(o.contract_id);
+			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
@@ -271,7 +271,7 @@ namespace graphene {
 			auto &d = db();
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
-			auto &contract = d.get_contract(o.contract_id);
+			const auto &contract = d.get_contract(o.contract_id);
 			FC_ASSERT(contract.contract_name.empty());
 			this->caller_address = std::make_shared<address>(o.caller_addr);
             total_fee = o.fee.amount;
@@ -429,7 +429,7 @@ namespace graphene {
 			database& d = db();
 			// save contract name
 			FC_ASSERT(d.has_contract(o.contract_id));
-			auto& contract = d.get_contract(o.contract_id);
+			auto contract = d.get_contract(o.contract_id);
 			contract.contract_name = o.contract_name;
 			contract.contract_desc = o.contract_desc;
 			d.update_contract(contract);
@@ -667,7 +667,7 @@ namespace graphene {
         {
             auto &d = db();
             FC_ASSERT(d.has_contract(o.contract_id));
-            auto &contract = d.get_contract(o.contract_id);
+            const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);

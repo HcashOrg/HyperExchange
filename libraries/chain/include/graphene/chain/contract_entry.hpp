@@ -50,7 +50,7 @@ namespace blockchain
 			std::string _api_result;
 		public:
 			contract_api_result_error(const std::string& api_result) : _api_result(api_result) {}
-			virtual const char* what() const { return _api_result.c_str(); }
+			virtual const char* what() const noexcept { return _api_result.c_str(); }
 		};
 	}
 }
