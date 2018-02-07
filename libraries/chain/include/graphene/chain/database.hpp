@@ -309,7 +309,8 @@ namespace graphene { namespace chain {
 			 transaction_id_type transaction_id,
 			 signed_transaction real_transaction,
 			 uint64_t op_type,
-			 transaction_stata trx_state);
+			 transaction_stata trx_state,
+			 vector<transaction_id_type> relate_transaction_ids = vector<transaction_id_type>());
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////

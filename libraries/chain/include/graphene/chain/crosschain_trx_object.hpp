@@ -82,6 +82,7 @@ namespace graphene {
 
 			transaction_id_type relate_transaction_id;
 			transaction_id_type transaction_id;
+			vector<transaction_id_type> all_related_origin_transaction_ids;
 			signed_transaction real_transaction;
 			uint64_t op_type;
 			transaction_stata trx_state;
@@ -151,6 +152,7 @@ FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object)
 	(relate_transaction_id)
 	(transaction_id)
 	(real_transaction)
+	(all_related_origin_transaction_ids)
 	(op_type)
 	(trx_state)
 )

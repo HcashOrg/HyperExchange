@@ -2938,6 +2938,7 @@ public:
 	   auto guard_id = guard_obj.guard_member_account;
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
+		   
 		   for (const auto& trx : trxs) {
 			   /*auto id = trx.transaction_id.str();
 			   std::cout << id << std::endl;
@@ -2960,7 +2961,7 @@ public:
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-			   trx_op.ccw_trx_id = transaction_id_type(trx_id);
+			   trx_op.ccw_trx_id = transaction_id_type(trx.first);
 			   trx_op.ccw_trx_signature = siging;
 			   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 			   trx_op.asset_symbol = withop_without_sign.asset_symbol;
@@ -2991,7 +2992,7 @@ public:
 	
 		   const account_object & account_obj = get_account(guard);
 		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-		   trx_op.ccw_trx_id = withop_without_sign.ccw_trx_id;
+		   trx_op.ccw_trx_id = trx[0].transaction_id;
 		   trx_op.ccw_trx_signature = siging;
 		   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 		   trx_op.asset_symbol = withop_without_sign.asset_symbol;
