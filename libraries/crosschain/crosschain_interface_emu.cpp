@@ -32,7 +32,7 @@ namespace graphene {
 			save_wallet_file(_plugin_wallet_filepath + wallet_name);
 
 		}
-		std::map<std::string, graphene::crosschain::hd_trx> crosschain_interface_btc::turn_trxs(const fc::variant_object & trx)
+		std::map<std::string, graphene::crosschain::hd_trx> crosschain_interface_emu::turn_trxs(const fc::variant_object & trx)
 		{
 			std::map<std::string, graphene::crosschain::hd_trx> hdtxs;
 			
@@ -182,7 +182,7 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
-		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::map<const std::string, const std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account,const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			return fc::variant_object();
 		}

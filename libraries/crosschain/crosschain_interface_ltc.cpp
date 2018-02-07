@@ -153,7 +153,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, std::map<const std::string, const std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \

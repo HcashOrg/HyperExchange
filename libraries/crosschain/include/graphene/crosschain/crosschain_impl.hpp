@@ -87,7 +87,7 @@ namespace graphene {
 			// Create transaction from multi-signed account.
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 			// Create transaction from multi-signed account.
-			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::map<const std::string,const std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Get signature for a given transaction.
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript, bool broadcast = true) = 0;

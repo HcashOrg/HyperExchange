@@ -3230,7 +3230,7 @@ public:
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-			   trx_op.ccw_trx_id = transaction_id_type(trx.first);
+			   trx_op.ccw_trx_id = trx.transaction_id;
 			   trx_op.ccw_trx_signature = siging;
 			   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 			   trx_op.asset_symbol = withop_without_sign.asset_symbol;
