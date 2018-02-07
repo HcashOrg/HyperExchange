@@ -136,6 +136,7 @@ namespace graphene { namespace chain {
       balance_object_type,
 	  lockbalance_object_type,
 	  crosschain_trx_object_type,
+	  coldhot_transfer_object_type,
 	  guard_lock_balance_object_type,
 	  multisig_transfer_object_type,
 	  acquired_crosschain_object_type,
@@ -190,6 +191,7 @@ namespace graphene { namespace chain {
    class guard_lock_balance_object;
    class multisig_asset_transfer_object;
    class crosschain_trx_object;
+   class coldhot_transfer_object;
    class acquired_crosschain_trx_object;
    class crosschain_transaction_history_count_object;
 
@@ -213,6 +215,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, multisig_transfer_object_type, multisig_asset_transfer_object >          multisig_asset_transfer_id_type;
    typedef object_id<protocol_ids, acquired_crosschain_object_type, acquired_crosschain_trx_object> acquired_crosschain_id_type;
    typedef object_id<protocol_ids, crosschain_transaction_history_count_object_type, crosschain_transaction_history_count_object> transaction_history_count_id_type;
+   typedef object_id<protocol_ids, coldhot_transfer_object_type, coldhot_transfer_object> coldhot_transfer_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;
@@ -373,6 +376,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 	             (multisig_transfer_object_type)
                  (acquired_crosschain_object_type)
 				 (crosschain_transaction_history_count_object_type)
+				 (coldhot_transfer_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -430,6 +434,7 @@ FC_REFLECT_TYPENAME(graphene::chain::guard_lock_balance_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::fba_accumulator_id_type )
 FC_REFLECT_TYPENAME(graphene::chain::multisig_asset_transfer_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::acquired_crosschain_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::coldhot_transfer_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::multisig_account_pair_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::transaction_history_count_id_type)
 FC_REFLECT( graphene::chain::void_t, )

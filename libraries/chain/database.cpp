@@ -35,3 +35,4 @@
 #include "db_witness_schedule.cpp"
 #include "db_notify.cpp"
 #include "db_crosschain_trx.cpp"
+#include "db_coldhot_trx.cpp"
