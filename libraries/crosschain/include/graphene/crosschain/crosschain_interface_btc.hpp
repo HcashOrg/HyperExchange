@@ -35,6 +35,7 @@ namespace graphene {
 			virtual fc::variant_object transaction_query(std::string trx_id) override;
 			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) override;
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) override;
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::map<const std::string, const std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast = true) override;
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account,const std::string& redeemScript, bool broadcast = true) override;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) override;
 			virtual bool validate_link_trx(const hd_trx &trx) override;

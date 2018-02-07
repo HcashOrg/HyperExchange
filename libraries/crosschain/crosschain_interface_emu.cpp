@@ -176,7 +176,10 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
-
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::map<const std::string, const std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
+		{
+			return fc::variant_object();
+		}
 		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			hd_trx a;
