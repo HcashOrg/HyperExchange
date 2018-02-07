@@ -17,6 +17,7 @@
 
 namespace graphene {
 	namespace chain {
+        share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count);
 		class contract_common_evaluate  {
 		protected:
             generic_evaluator* gen_eval=nullptr;
@@ -68,8 +69,8 @@ namespace graphene {
             contract_register_evaluate():contract_common_evaluate(this){}
 			typedef contract_register_operation operation_type;
 
-			string do_evaluate(const operation_type& o);
-			string do_apply(const operation_type& o);
+            contract_operation_result_info do_evaluate(const operation_type& o);
+            contract_operation_result_info do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -90,8 +91,8 @@ namespace graphene {
 		public:
 			typedef native_contract_register_operation operation_type;
 
-			string do_evaluate(const operation_type& o);
-			string do_apply(const operation_type& o);
+            contract_operation_result_info do_evaluate(const operation_type& o);
+            contract_operation_result_info do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -108,8 +109,8 @@ namespace graphene {
     	public:
 			typedef contract_invoke_operation operation_type;
             contract_invoke_evaluate() : contract_common_evaluate(this) {}
-			string do_evaluate(const operation_type& o);
-			string do_apply(const operation_type& o);
+            contract_operation_result_info do_evaluate(const operation_type& o);
+            contract_operation_result_info do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -127,8 +128,8 @@ namespace graphene {
 			typedef contract_upgrade_operation operation_type;
 
             contract_upgrade_evaluate() : contract_common_evaluate(this) {}
-			string do_evaluate(const operation_type& o);
-			string do_apply(const operation_type& o);
+            contract_operation_result_info do_evaluate(const operation_type& o);
+            contract_operation_result_info do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
 
@@ -146,8 +147,8 @@ namespace graphene {
             typedef transfer_contract_operation operation_type;
 
             contract_transfer_evaluate() : contract_common_evaluate(this) {}
-            string do_evaluate(const operation_type& o);
-            string do_apply(const operation_type& o);
+            contract_operation_result_info do_evaluate(const operation_type& o);
+            contract_operation_result_info do_apply(const operation_type& o);
             void pay_fee();
             
             std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;

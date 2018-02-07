@@ -96,7 +96,7 @@ namespace graphene {
 					{
 						
 
-						auto& guard_balance_iter = guard_lock_balances.find(boost::make_tuple(guard_iter->id, one_asset_iter.second.asset_id));
+						auto guard_balance_iter = guard_lock_balances.find(boost::make_tuple(guard_iter->id, one_asset_iter.second.asset_id));
 						FC_ASSERT(guard_balance_iter != guard_lock_balances.end());
 						FC_ASSERT(guard_balance_iter->lock_asset_amount >= one_asset_iter.second.amount);
 					}

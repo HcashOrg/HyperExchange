@@ -9,7 +9,7 @@
 #include <fc/crypto/sha256.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
-
+#include <graphene/chain/contract_evaluate.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -110,12 +110,12 @@ namespace graphene {
 			share_type core_fee_required = schedule.fee;
 			// bytes size fee
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
-            core_fee_required += init_cost*gas_price;
+            core_fee_required += count_gas_fee(gas_price, init_cost);
 			return core_fee_required;
 		}
 
 		address contract_register_operation::calculate_contract_id() const
-		{
+		{ 
 			address id;
 			fc::sha512::encoder enc;
 			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
@@ -142,7 +142,7 @@ namespace graphene {
 			// base fee
 			share_type core_fee_required = schedule.fee;
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
-            core_fee_required += invoke_cost*gas_price;
+            core_fee_required += count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
@@ -163,7 +163,7 @@ namespace graphene {
 			// base fee
 			share_type core_fee_required = schedule.fee;
 			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
-            core_fee_required += invoke_cost*gas_price;
+            core_fee_required += count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
@@ -179,7 +179,7 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            return invoke_cost*gas_price;
+            return count_gas_fee(gas_price, invoke_cost);
         }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
