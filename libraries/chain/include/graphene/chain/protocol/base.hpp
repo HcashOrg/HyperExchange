@@ -26,7 +26,7 @@
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/protocol/authority.hpp>
-
+#include <fc/io/json.hpp>
 namespace graphene { namespace chain {
 
    /**
@@ -81,7 +81,21 @@ namespace graphene { namespace chain {
     */
 
    struct void_result{};
-   typedef fc::static_variant<void_result,object_id_type,asset> operation_result;
+   struct contract_operation_result_info 
+   {
+       std::string digest_str;
+       share_type gas_count=0;
+       contract_operation_result_info()
+       {}
+       contract_operation_result_info(const contract_operation_result_info& info)
+       {
+           digest_str = info.digest_str;
+           gas_count = info.gas_count;
+       }
+       contract_operation_result_info(const std::string& digest_str,const share_type& gas_count):digest_str(digest_str),gas_count(gas_count){}
+       operator string() const{ return fc::json::to_string(*this); }
+   };
+   typedef fc::static_variant<void_result,object_id_type,asset,contract_operation_result_info> operation_result;
 
    struct base_operation
    {
@@ -96,7 +110,7 @@ namespace graphene { namespace chain {
       void validate()const{}
 
       static uint64_t calculate_data_fee( uint64_t bytes, uint64_t price_per_kbyte );
-	  guarantee_object_id_type guarantee_id = guarantee_object_id_type();
+	  optional<guarantee_object_id_type> get_guarantee_id()const  { return optional<guarantee_object_id_type>(); }
    };
 
    /**
@@ -123,4 +137,7 @@ namespace graphene { namespace chain {
 FC_REFLECT_TYPENAME( graphene::chain::operation_result )
 FC_REFLECT_TYPENAME( graphene::chain::future_extensions )
 FC_REFLECT( graphene::chain::void_result, )
-FC_REFLECT(graphene::chain::base_operation, (guarantee_id))
+FC_REFLECT(graphene::chain::contract_operation_result_info, 
+    (digest_str)
+    (gas_count)
+)

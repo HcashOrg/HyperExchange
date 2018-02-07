@@ -24,6 +24,8 @@
 
 #include <graphene/chain/protocol/authority.hpp>
 #include <graphene/app/impacted.hpp>
+#include <graphene/chain/contract.hpp>
+#include <graphene/chain/native_contract.hpp>
 
 namespace graphene { namespace app {
 
@@ -193,6 +195,7 @@ struct get_impacted_account_visitor
    void operator()(const coldhot_transfer_result_operation& op) {}
    void operator()( const balance_claim_operation& op ) {}
    void operator() (const gurantee_create_operation& op) {}
+   void operator() (const gurantee_cancel_operation& op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );
@@ -234,6 +237,13 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.account_id );
    }
+
+   void operator()(const contract_register_operation& op) {}
+   void operator()(const contract_upgrade_operation& op) {}
+   void operator()(const native_contract_register_operation& op) {}
+   void operator()(const contract_invoke_operation& op) {}
+   void operator()(const storage_operation& op) {}
+   void operator()(const transfer_contract_operation& op) {}
 
 };
 

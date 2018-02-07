@@ -1,0 +1,6 @@
+[submodule "libraries/uvm"]
+	path = libraries/uvm
+	url = https://github.com/BlockLink/uvm
+[submodule "libraries/jsondiff"]
+	path = libraries/jsondiff
+	url = https://github.com/BlockLink/jsondiff-cpp.git

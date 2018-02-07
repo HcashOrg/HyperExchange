@@ -43,6 +43,9 @@
 #include <graphene/chain/protocol/worker.hpp>
 #include <graphene/chain/protocol/guard_lock_balance.hpp>
 #include <graphene/chain/protocol/guard_refund_balance.hpp>
+#include <graphene/chain/contract.hpp>
+#include <graphene/chain/native_contract.hpp>
+#include <graphene/chain/storage.hpp>
 
 namespace graphene { namespace chain {
 
@@ -125,7 +128,14 @@ namespace graphene { namespace chain {
 	   graphene::chain::coldhot_transfer_result_operation,
 	        guard_update_multi_account_operation,
 	        asset_real_create_operation,
-	        gurantee_create_operation
+	   contract_register_operation,
+	   contract_upgrade_operation,
+	   graphene::chain::native_contract_register_operation,
+	   contract_invoke_operation,
+	   storage_operation,
+	   transfer_contract_operation,
+	        gurantee_create_operation,
+	   gurantee_cancel_operation
          > operation;
 
    /// @} // operations group
@@ -142,7 +152,7 @@ namespace graphene { namespace chain {
                                             vector<authority>&  other );
 
    void operation_validate( const operation& op );
-
+  
    /**
     *  @brief necessary to support nested operations inside the proposal_create_operation
     */

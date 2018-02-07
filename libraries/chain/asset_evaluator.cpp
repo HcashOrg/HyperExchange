@@ -680,6 +680,27 @@ void_result gurantee_create_evaluator::do_apply(const gurantee_create_operation&
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result gurantee_cancel_evaluator::do_evaluate(const gurantee_cancel_operation& o)
+{
+	try {
+		const auto& _db = db();
+		const auto gurantee_obj = _db.get(o.cancel_guarantee_id);
+		FC_ASSERT(gurantee_obj.owner_addr == o.owner_addr);
+		FC_ASSERT(gurantee_obj.finished == false);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
+void_result gurantee_cancel_evaluator::do_apply(const gurantee_cancel_operation& o)
+{
+	try {
+		auto& _db = db();
+		auto& gurantee_obj = _db.get(o.cancel_guarantee_id);
+		_db.modify(gurantee_obj, [&](guarantee_object& obj) {
+			obj.finished = true;
+		});
+		_db.cancel_frozen(gurantee_obj.owner_addr,gurantee_obj.asset_orign.asset_id);
+	}FC_CAPTURE_AND_RETHROW((o))
+
+}
 
 } } // graphene::chain

@@ -25,7 +25,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 #include <graphene/chain/protocol/operations.hpp>
-
+#include <graphene/chain/asset_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -66,7 +66,7 @@ namespace graphene {
 			virtual void pay_fee();
 
 			database& db()const;
-
+            const transaction_evaluation_state* get_trx_eval_state() const;
 			//void check_required_authorities(const operation& op);
 		protected:
 			/**
@@ -117,15 +117,20 @@ namespace graphene {
 			// cause a circular dependency
 			share_type calculate_fee_for_operation(const operation& op) const;
 			void db_adjust_balance(const account_id_type& fee_payer, asset fee_from_account);
+			void db_adjust_guarantee(const guarantee_object_id_type id, asset fee_from_account);
+			guarantee_object db_get_guarantee(const guarantee_object_id_type id);
 			void db_adjust_balance(const address& fee_payer, asset fee_from_account);
+			void db_adjust_frozen(const address& fee_payer, asset fee_from_account);
 			asset                            fee_from_account;
 			share_type                       core_fee_paid;
+            share_type                       unused_contract_fee=0;
 			const account_object*            fee_paying_account = nullptr;
 			const account_statistics_object* fee_paying_account_statistics = nullptr;
 			const asset_object*              fee_asset = nullptr;
 			const asset_dynamic_data_object* fee_asset_dyn_data = nullptr;
 			address                   fee_paying_address = address();
 			transaction_evaluation_state*    trx_state;
+            share_type                       gas_count=0;
 		};
 
 		class op_evaluator
@@ -156,7 +161,6 @@ namespace graphene {
 			{
 				auto* eval = static_cast<DerivedEvaluator*>(this);
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
-
 				prepare_fee(op.fee_payer(), op.fee);
 				if (!trx_state->skip_fee_schedule_check)
 				{
@@ -176,9 +180,23 @@ namespace graphene {
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
 
 				convert_fee();
-				//pay_fee();
+				pay_fee();
 				auto result = eval->do_apply(op);
-				//db_adjust_balance(op.fee_payer(), -fee_from_account);
+				if (!op.get_guarantee_id().valid())
+				{
+					//db_adjust_balance(op.fee_payer(), -fee_from_account);
+				}
+				else
+				{
+					//we need to pay by gurantee
+					auto guarantee_obj = db_get_guarantee(*op.get_guarantee_id());
+					price p(guarantee_obj.asset_orign,guarantee_obj.asset_target);
+					auto fee_need_pay = fee_from_account * p;
+					//db_adjust_balance(op.fee_payer(), -fee_need_pay);
+					db_adjust_frozen(guarantee_obj.owner_addr,fee_from_account);
+					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
+					//db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
+				}
 
 				return result;
 			}

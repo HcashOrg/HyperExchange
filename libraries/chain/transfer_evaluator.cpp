@@ -150,6 +150,8 @@ void_result asset_transfer_from_cold_to_hot_evaluator::do_evaluate(const asset_t
 		FC_ASSERT(guards.find(acct->get_id()) != guards.end());
 		
 		auto& instance = crosschain::crosschain_manager::get_instance();
+		if (!instance.contain_crosschain_handles(o.chain_type))
+			return void_result();
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 		if (!crosschain_interface->valid_config())
 			return void_result();

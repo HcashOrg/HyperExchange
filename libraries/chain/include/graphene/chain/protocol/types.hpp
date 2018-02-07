@@ -141,6 +141,12 @@ namespace graphene { namespace chain {
 	  multisig_transfer_object_type,
 	  acquired_crosschain_object_type,
 	  crosschain_transaction_history_count_object_type,
+	  contract_storage_diff_type,
+	  contract_storage_type,
+	  contract_object_type,
+      contract_balance_object_type,
+	  contract_storage_object_type,
+	  contract_event_notify_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -194,6 +200,10 @@ namespace graphene { namespace chain {
    class coldhot_transfer_object;
    class acquired_crosschain_trx_object;
    class crosschain_transaction_history_count_object;
+   class contract_object;
+   class contract_storage_object;
+   class transaction_contract_storage_diff_object;
+   class contract_event_notify_object;
 
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
@@ -216,6 +226,10 @@ namespace graphene { namespace chain {
    typedef object_id<protocol_ids, acquired_crosschain_object_type, acquired_crosschain_trx_object> acquired_crosschain_id_type;
    typedef object_id<protocol_ids, crosschain_transaction_history_count_object_type, crosschain_transaction_history_count_object> transaction_history_count_id_type;
    typedef object_id<protocol_ids, coldhot_transfer_object_type, coldhot_transfer_object> coldhot_transfer_id_type;
+   typedef object_id<protocol_ids, contract_object_type, contract_object> contract_id_type;
+   typedef object_id<protocol_ids, contract_storage_object_type, contract_storage_object> contract_storage_id_type;
+   typedef object_id<protocol_ids, contract_storage_diff_type, transaction_contract_storage_diff_object> transaction_contract_storage_diff_object_id_type;
+   typedef object_id<protocol_ids, contract_event_notify_object_type, contract_event_notify_object> contract_event_notify_object_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;
@@ -376,12 +390,17 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 	             (multisig_transfer_object_type)
                  (acquired_crosschain_object_type)
 				 (crosschain_transaction_history_count_object_type)
+				 (contract_object_type)
+				 (contract_storage_object_type)
+				 (contract_storage_diff_type)
+				 (contract_event_notify_object_type)
 				 (coldhot_transfer_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_global_property_object_type)
                  (impl_dynamic_global_property_object_type)
+	             (impl_local_property_object_type)
                  (impl_reserved0_object_type)
                  (impl_asset_dynamic_data_type)
                  (impl_asset_bitasset_data_type)
@@ -420,6 +439,7 @@ FC_REFLECT_TYPENAME( graphene::chain::balance_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::global_property_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::dynamic_global_property_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::asset_dynamic_data_id_type )
+FC_REFLECT_TYPENAME(graphene::chain::local_property_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::asset_bitasset_data_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_balance_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_statistics_id_type )
@@ -437,6 +457,11 @@ FC_REFLECT_TYPENAME(graphene::chain::acquired_crosschain_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::coldhot_transfer_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::multisig_account_pair_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::transaction_history_count_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::contract_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::contract_storage_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::transaction_contract_storage_diff_object_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::contract_event_notify_object_id_type)
+
 FC_REFLECT( graphene::chain::void_t, )
 
 FC_REFLECT_ENUM( graphene::chain::asset_issuer_permission_flags,
