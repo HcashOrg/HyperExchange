@@ -369,42 +369,6 @@ namespace graphene {
 				FC_THROW(signature);
 		}
 
-		std::map<std::string,graphene::crosschain::hd_trx> crosschain_interface_btc::turn_trxs(const fc::variant_object & trx)
-		{
-			hd_trx hdtx;
-			std::map<std::string, graphene::crosschain::hd_trx> hdtxs;
-			try {
-				auto tx = trx["trx"].get_object();
-				hdtx.asset_symbol = chain_type;
-				hdtx.trx_id = tx["hash"].as_string();
-				const std::string to_addr = tx["vout"].get_array()[0].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				const std::string from_trx_id = tx["vin"].get_array()[0].get_object()["txid"].as_string();
-				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
-				auto from_trx = transaction_query(from_trx_id);
-				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				hdtx.from_account = from_addr;
-				for (auto vouts : tx["vout"].get_array())
-				{
-					auto addrs = vouts.get_object()["scriptPubKey"].get_object()["addresses"].get_array();
-					for (auto addr : addrs)
-					{
-						if (addr.as_string() == from_addr)
-							continue;
-						hdtx.to_account = addr.as_string();
-						auto amount = vouts.get_object()["value"].as_double();
-						char temp[1024];
-						std::sprintf(temp, "%g", amount);
-						hdtx.amount = temp;
-						hdtxs[hdtx.to_account] = hdtx;
-
-					}
-
-				}
-
-			}
-			FC_CAPTURE_AND_RETHROW((trx));
-			return hdtxs;
-		}
 
 		graphene::crosschain::hd_trx crosschain_interface_btc::turn_trx(const fc::variant_object & trx)
 		{
