@@ -891,6 +891,12 @@ class wallet_api
 		  string crosschain_account,
 		  string memo,
 		  bool broadcast = false);
+	  signed_transaction transfer_guard_multi_account( string multi_account,
+		  string amount,
+		  string asset_symbol,
+		  string multi_to_account,
+		  string memo,
+		  bool broadcast = false);
       /**
        *  This method works just like transfer, except it always broadcasts and
        *  returns the transaction ID along with the signed transaction.
@@ -1705,6 +1711,7 @@ class wallet_api
 
 	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
 	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
+	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const transaction_id_type & trxid);
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1777,7 +1784,7 @@ class wallet_api
                                          bool to_temp = false );
 
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
-	  signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount,const string& symbol,bool broadcast=true);
+	  signed_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  signed_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
@@ -2002,6 +2009,7 @@ FC_API( graphene::wallet::wallet_api,
 		(sign_multi_asset_trx)
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
+		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_crosschain_transaction)
 		(get_multi_address_obj)

@@ -40,7 +40,7 @@ namespace graphene {
 			auto addr = acc.find(o.withdraw_account)->addr;*/
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.withdraw_account, o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
-			FC_ASSERT(tunnel_itr->bind_account == o.crosschain_account);
+			FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
@@ -69,11 +69,19 @@ namespace graphene {
 			hdl->validate_link_trx(o.cross_chain_trx);
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.to_account, o.cross_chain_trx.asset_symbol));
+			auto& originaldb = db().get_index_type<crosschain_trx_index>().indices().get<by_original_id_optype>();
+			auto combine_op_number = uint64_t(operation::tag<crosschain_withdraw_combine_sign_operation>::value);
+			auto combine_trx_iter = originaldb.find(boost::make_tuple(o.cross_chain_trx.trx_id, combine_op_number));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
                         return void_result();
+
 		}
 		void_result crosschain_withdraw_result_evaluate::do_apply(const crosschain_withdraw_result_operation& o) {
+			auto& originaldb = db().get_index_type<crosschain_trx_index>().indices().get<by_original_id_optype>();
+			auto combine_op_number = uint64_t(operation::tag<crosschain_withdraw_combine_sign_operation>::value);
+			auto combine_trx_iter = originaldb.find(boost::make_tuple(o.cross_chain_trx.trx_id, combine_op_number));
 			db().adjust_crosschain_confirm_trx(o.cross_chain_trx);
+			db().adjust_crosschain_transaction(combine_trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_result_operation>::value), withdraw_transaction_confirm);
 			return void_result();
 		}
 

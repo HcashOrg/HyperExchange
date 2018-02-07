@@ -95,7 +95,7 @@ namespace graphene { namespace chain {
        contract_operation_result_info(const std::string& digest_str,const share_type& gas_count):digest_str(digest_str),gas_count(gas_count){}
        operator string() const{ return fc::json::to_string(*this); }
    };
-   typedef fc::static_variant<void_result,object_id_type,asset,contract_operation_result_info> operation_result;
+   typedef fc::static_variant<void_result,object_id_type,asset, std::string,contract_operation_result_info> operation_result;
 
    struct base_operation
    {
