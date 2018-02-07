@@ -48,7 +48,8 @@ namespace graphene {
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
-			transaction_id_type ccw_trx_id;
+			//transaction_id_type ccw_trx_id;
+			vector<transaction_id_type> ccw_trx_ids;
 			fc::variant_object withdraw_source_trx;
 			//TODO:refund balance in the situation that channel account tie to formal account
 			miner_id_type miner_broadcast;
@@ -99,6 +100,7 @@ namespace graphene {
 			address miner_address;
 			string asset_symbol;
 			asset fee;
+			string crosschain_trx_id;
 			address fee_payer()const {
 				return miner_address;
 			}
@@ -134,10 +136,10 @@ FC_REFLECT(graphene::chain::crosschain_record_operation, (cross_chain_trx)(fee)(
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation::fee_parameters_type,(fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation,(withdraw_account)(amount)(asset_symbol)(fee)(asset_id)(crosschain_account)(memo))
 FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation, (ccw_trx_id)(withdraw_source_trx)(fee)(miner_broadcast)(miner_address)(asset_id)(asset_symbol))
+FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation, (ccw_trx_ids)(withdraw_source_trx)(fee)(miner_broadcast)(miner_address)(asset_id)(asset_symbol))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation, (ccw_trx_id)(asset_symbol)(fee)(withdraw_source_trx)(sign_guard)(guard_address)(ccw_trx_signature))
 FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (cross_chain_trx)(signed_trx_ids)(fee)(miner_broadcast)(withdraw_trx)(miner_address)(asset_symbol))
+FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation, (cross_chain_trx)(crosschain_trx_id)(signed_trx_ids)(fee)(miner_broadcast)(withdraw_trx)(miner_address)(asset_symbol))
 FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_result_operation, (cross_chain_trx)(miner_broadcast)(fee)(miner_address))

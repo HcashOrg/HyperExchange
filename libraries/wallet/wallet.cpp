@@ -2645,41 +2645,39 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
    }
 
-   signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol,bool broadcast)
+   signed_transaction transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& expiration_time, bool broadcast)
    {
 	   try
 	   {
 		   FC_ASSERT(!is_locked());
-		   //TODO
-		   //get cold hot addresses according to given symbol
-		   //create muliti-trx for given symbol
-		   //return the relvent trx
-                   /*
-		   const address  cold_addr;
-		   const address  hot_addr;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   coldhot_transfer_operation coldhot_transfer_op;
 		   
-		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		   auto inface = instance.get_crosschain_handle(symbol);
-		   string config = (*_crosschain_manager)->get_config();
-		   inface->initialize_config(fc::json::from_string(config).get_object());
-		   auto asset_obj = get_asset(symbol);
-		   const auto trx = inface->create_multisig_transaction(string(cold_addr),string(hot_addr),amount,asset_obj.symbol,string(""),true);
-		   // TODO
-		   const auto& acct = get_account(account);
+		   coldhot_transfer_op.multi_account_withdraw = from_account;
+		   coldhot_transfer_op.multi_account_deposit = to_account;
+		   coldhot_transfer_op.amount = amount;
+		   coldhot_transfer_op.asset_symbol = asset_symbol;
+		   coldhot_transfer_op.memo = memo;
+		   auto guard_obj = get_guard_member(proposer);
+		   auto guard_id = guard_obj.guard_member_account;
+		   auto guard_account_obj = get_account(guard_id);
+		   coldhot_transfer_op.guard = guard_account_obj.addr;
+		   coldhot_transfer_op.guard_id = guard_obj.id;
+		   auto asset_obj = get_asset(asset_symbol);
+		   coldhot_transfer_op.asset_id = guard_account_obj.id;
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   prop_op.proposed_ops.emplace_back(coldhot_transfer_op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   signed_transaction trx;
+		   trx.operations.emplace_back(prop_op);
+		   set_operation_fees(trx, current_params.current_fees);
+		   trx.validate();
 
-		   asset_transfer_from_cold_to_hot_operation op;
-		   op.addr = acct.addr;
-		   op.chain_type = symbol;
-		   op.trx = trx;
-
-		   signed_transaction tx;
-		   tx.operations.emplace_back(op);
-		   set_operation_fees(tx,get_global_properties().parameters.current_fees);
-		   tx.validate();
-                   */
-		   return signed_transaction();
-		   
-	   }FC_CAPTURE_AND_RETHROW((account)(amount)(symbol)(broadcast))
+		   return sign_transaction(trx, broadcast);		   
+	   }FC_CAPTURE_AND_RETHROW((proposer)(from_account)(to_account)(amount)(asset_symbol)(memo)(expiration_time)(broadcast))
    }
 
    vector<multisig_asset_transfer_object> get_multisig_asset_tx()
@@ -3207,6 +3205,7 @@ public:
 	   auto guard_id = guard_obj.guard_member_account;
 	   if (trx_id == "ALL"){
 		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type());
+		   
 		   for (const auto& trx : trxs) {
 			   /*auto id = trx.transaction_id.str();
 			   std::cout << id << std::endl;
@@ -3229,7 +3228,7 @@ public:
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-			   trx_op.ccw_trx_id = transaction_id_type(trx_id);
+			   trx_op.ccw_trx_id = transaction_id_type(trx.first);
 			   trx_op.ccw_trx_signature = siging;
 			   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 			   trx_op.asset_symbol = withop_without_sign.asset_symbol;
@@ -3260,7 +3259,7 @@ public:
 	
 		   const account_object & account_obj = get_account(guard);
 		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
-		   trx_op.ccw_trx_id = withop_without_sign.ccw_trx_id;
+		   trx_op.ccw_trx_id = trx[0].transaction_id;
 		   trx_op.ccw_trx_signature = siging;
 		   trx_op.withdraw_source_trx = withop_without_sign.withdraw_source_trx;
 		   trx_op.asset_symbol = withop_without_sign.asset_symbol;
@@ -3336,6 +3335,43 @@ public:
 
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account_name)(amount)(asset_symbol)(crosschain_account)(memo))
+   }
+   signed_transaction transfer_guard_multi_account(string multi_account,
+	   string amount,
+	   string asset_symbol,
+	   string multi_to_account,
+	   string memo,
+	   bool broadcast/* = false*/) {
+	   try {
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   auto multiAccountObjs = _remote_db->get_multisig_account_pair(asset_symbol);
+		   bool withdraw_multi = false;
+		   bool deposit_multi = false;
+		   for (const auto& multiAccountObj : multiAccountObjs){
+			   if (multi_account == multiAccountObj->bind_account_hot || multi_account == multiAccountObj->bind_account_cold) {
+				   withdraw_multi = true;
+			   }
+			   if (multi_to_account == multiAccountObj->bind_account_hot || multi_to_account == multiAccountObj->bind_account_cold) {
+				   deposit_multi = true;
+			   }
+			   if (withdraw_multi && deposit_multi) {
+				   break;
+			   }
+		   }
+		   FC_ASSERT((withdraw_multi &&deposit_multi), "Cant Transfer account which is not multi account");
+		   crosschain_withdraw_operation op;
+		   //op.withdraw_account = multi_account;
+		   op.amount = amount;
+		   op.asset_id = asset_obj->id;
+		   op.asset_symbol = asset_symbol;
+		   op.crosschain_account = multi_to_account;
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((multi_account)(amount)(asset_symbol)(multi_to_account)(memo))
    }
    signed_transaction lock_balance_to_miner(string miner_account,
 	   string lock_account,
@@ -4913,6 +4949,14 @@ signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_n
 	bool broadcast/* = false*/) {
 	return my->withdraw_cross_chain_transaction(account_name, amount, asset_symbol, crosschain_account, memo, broadcast);
 }
+signed_transaction wallet_api::transfer_guard_multi_account(string multi_account,
+	string amount,
+	string asset_symbol,
+	string multi_to_account,
+	string memo,
+	bool broadcast/* = false*/){
+	return my->transfer_guard_multi_account(multi_account, amount, asset_symbol, multi_to_account,memo, broadcast);
+}
 signed_transaction wallet_api::guard_lock_balance(string guard_account,
 	string amount,
 	string asset_symbol,
@@ -5586,9 +5630,9 @@ signed_transaction wallet_api::update_asset_private_keys(const string& from_acco
 }
 
 
-signed_transaction wallet_api::transfer_from_cold_to_hot(const string& account,const string& amount, const string& symbol, bool broadcast)
+signed_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
 {
-	return my->transfer_from_cold_to_hot(account,amount,symbol,broadcast);
+	return my->transfer_from_cold_to_hot(proposer,from_account,to_account,amount,asset_symbol, memo,exception_time,broadcast);
 }
 
 vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const

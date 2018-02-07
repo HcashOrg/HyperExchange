@@ -462,10 +462,12 @@ namespace graphene { namespace chain {
    /**
    * @ingroup object_index
    */
-   typedef multi_index_container<
+   struct by_chain_type;
+   typedef multi_index_container <
 	   multisig_account_pair_object,
-	   indexed_by<
-		   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   indexed_by <
+	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   ordered_non_unique < tag<by_chain_type>, member < multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type> > ,
 		   ordered_unique< tag<by_multisig_account_pair>,
 		   composite_key<
 			   multisig_account_pair_object,
