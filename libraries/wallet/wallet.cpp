@@ -5406,7 +5406,7 @@ signed_transaction wallet_api::transfer_to_contract(string from, string to, stri
 
 share_type wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol)
 {
-    return share_type();
+    return my->transfer_to_contract_testing(from,to,amount,asset_symbol);
 }
 
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
