@@ -335,7 +335,7 @@ signed_block database::_generate_block(
    //
    _pending_tx_session.reset();
    _pending_tx_session = _undo_db.start_undo_session();
-
+   skip_gas_price_check(false);
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
    for( const processed_transaction& tx : _pending_tx )
@@ -352,6 +352,7 @@ signed_block database::_generate_block(
       try
       {
          auto temp_session = _undo_db.start_undo_session();
+         
          processed_transaction ptx = _apply_transaction( tx );
          temp_session.merge();
 
@@ -374,6 +375,8 @@ signed_block database::_generate_block(
    }
 
    _pending_tx_session.reset();
+
+   skip_gas_price_check(true);
 
    // We have temporarily broken the invariant that
    // _pending_tx_session is the result of applying _pending_tx, as

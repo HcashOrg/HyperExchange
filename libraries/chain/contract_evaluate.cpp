@@ -70,6 +70,10 @@ namespace graphene {
         contract_operation_result_info contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
 			// check contract id unique
+            if (!d.is_skip_gas_price_check())
+            {
+                FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
+            }
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
             total_fee = o.fee.amount;
 			if (!global_uvm_chain_api)
@@ -135,6 +139,10 @@ namespace graphene {
 
         contract_operation_result_info native_contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
+            if (!d.is_skip_gas_price_check())
+            {
+                FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
+            }
 			// check contract id unique
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 			this->caller_address = std::make_shared<address>(o.owner_addr);
@@ -189,6 +197,10 @@ namespace graphene {
 
         contract_operation_result_info contract_invoke_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
+            if (!d.is_skip_gas_price_check())
+            {
+                FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
+            }
 			FC_ASSERT(d.has_contract(o.contract_id));
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
@@ -278,6 +290,10 @@ namespace graphene {
 
         contract_operation_result_info contract_upgrade_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
+            if (!d.is_skip_gas_price_check())
+            {
+                FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
+            }
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
 			const auto &contract = d.get_contract(o.contract_id);
@@ -684,6 +700,10 @@ namespace graphene {
         contract_operation_result_info contract_transfer_evaluate::do_evaluate(const operation_type & o)
         {
             auto &d = db();
+            if (!d.is_skip_gas_price_check())
+            {
+                FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
+            }
             FC_ASSERT(d.has_contract(o.contract_id));
             const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);

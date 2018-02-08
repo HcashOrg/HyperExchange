@@ -177,7 +177,22 @@ namespace graphene {
 			auto itr = index.find(contract_address);
 			return itr != index.end();
 		}
-
+        bool database::is_skip_gas_price_check() const
+        {
+            return _skip_gas_price_check;
+        }
+        void database::skip_gas_price_check(bool skip)
+        {
+            _skip_gas_price_check = skip;
+        }
+        void database::set_min_gas_price(const share_type min_price)
+        {
+            _min_gas_price = min_price;
+        }
+        share_type database::get_min_gas_price() const
+        {
+            return _min_gas_price;
+        }
 		bool database::has_contract_of_name(const string& contract_name)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_name>();
