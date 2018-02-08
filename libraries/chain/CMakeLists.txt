@@ -84,6 +84,8 @@ add_library( graphene_chain
              confidential_evaluator.cpp
              special_authority.cpp
              buyback.cpp
+             coldhot_transfer_evaluate.cpp
+             coldhot_withdraw.cpp
 			 guard_lock_balance_evaluator.cpp
 			 guard_refund_balance_evaluator.cpp
 			 lockbalance_evaluator.cpp
