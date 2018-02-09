@@ -40,7 +40,7 @@ namespace graphene {
 			auto addr = acc.find(o.withdraw_account)->addr;*/
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.withdraw_account, o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
-			FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
+			//FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());

@@ -158,6 +158,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
+	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
@@ -2135,8 +2136,25 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
 }
-vector<crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
+vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
+}
+vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
+	return my->get_coldhot_transaction(coldhot_tx_state, id);
+}
+vector<coldhot_transfer_object> database_api_impl::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
+	if (id == transaction_id_type()){
+		auto coldhot_trx_range = _db.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_tx_state);
+		vector<coldhot_transfer_object> result(coldhot_trx_range.first, coldhot_trx_range.second);
+		return result;
+	}
+	else {
+		const auto& coldhot_tx_db = _db.get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
+		const auto coldhot_tx_iter = coldhot_tx_db.find(boost::make_tuple(id, coldhot_tx_state));
+		vector<coldhot_transfer_object> result;
+		result.push_back(*coldhot_tx_iter);
+		return result;
+	}
 }
 vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	vector<crosschain_trx_object> result;

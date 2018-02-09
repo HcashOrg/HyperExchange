@@ -2667,7 +2667,7 @@ public:
 		   coldhot_transfer_op.guard = guard_account_obj.addr;
 		   coldhot_transfer_op.guard_id = guard_obj.id;
 		   auto asset_obj = get_asset(asset_symbol);
-		   coldhot_transfer_op.asset_id = guard_account_obj.id;
+		   coldhot_transfer_op.asset_id = asset_obj.id;
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(coldhot_transfer_op);
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
@@ -3156,11 +3156,20 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
+   std::map<transaction_id_type, signed_transaction>get_coldhot_transaction(const int & type) {
+	   std::map<transaction_id_type, signed_transaction> results;
+	   std::vector<coldhot_transfer_object> coldhot_txs = _remote_db->get_coldhot_transaction((coldhot_trx_state)type, transaction_id_type());
+	   for (const auto& coldhot_tx : coldhot_txs) {
+		  
+		   results[coldhot_tx.current_id] = coldhot_tx.current_trx;
+	   }
+	   return results;
+   }
    std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type) {
 	   std::map<transaction_id_type, signed_transaction> result;
 	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction((transaction_stata)type, transaction_id_type());
 	   for (const auto& cct : cct_objs) {
-		   auto id = cct.real_transaction.id();
+		   auto id = cct.transaction_id;
 		   result[id] = cct.real_transaction;
 	   }
 	   return result;
@@ -3198,7 +3207,126 @@ public:
 	   }
 	   return ret;
    }
-
+   void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
+	   FC_ASSERT(!is_locked());
+	   if (tx_id == "ALL") {
+		   auto txs = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type());
+		   for (const auto& tx : txs) {
+			   if (tx.op_type != operation::tag<graphene::chain::coldhot_transfer_without_sign_operation>::value) {
+				   continue;
+			   }
+			   auto op = tx.current_trx.operations[0];
+			   auto coldhot_op = op.get<graphene::chain::coldhot_transfer_without_sign_operation>();
+			   auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+			   auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
+			   string config = (*_crosschain_manager)->get_config();
+			   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+			   string temp_guard(guard);
+			   auto handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
+			   FC_ASSERT(handled_trx.size() == 1, "Transcation turn error in guard sign cold hot transaction");
+			   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
+			   string redeemScript = "";
+			   string guard_address = "";
+			   const account_object & account_obj = get_account(guard);
+			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+			   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
+			   for (auto multi_obj : multi_objs) {
+				   if (multi_obj->bind_account_hot == handled_trx.begin()->second.from_account) {
+					   redeemScript = multi_obj->redeemScript_hot;
+					   for (auto guard_multi_address_obj : guard_multi_address_objs) {
+						   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+							   guard_address = guard_multi_address_obj->new_address_hot;
+							   break;
+						   }
+					   }
+					   break;
+				   }
+				   if (multi_obj->bind_account_cold == handled_trx.begin()->second.from_account) {
+					   redeemScript = multi_obj->redeemScript_cold;
+					   for (auto guard_multi_address_obj : guard_multi_address_objs) {
+						   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+							   guard_address = guard_multi_address_obj->new_address_cold;
+							   break;
+						   }
+					   }
+					   break;
+				   }
+			   }
+			   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
+			   string siging = crosschain_plugin->sign_multisig_transaction(coldhot_op.coldhot_trx_original_chain, guard_address, redeemScript, false);
+			   coldhot_transfer_with_sign_operation tx_op;
+			   
+			   tx_op.coldhot_trx_id = tx.current_id;
+			   tx_op.coldhot_trx_original_chain = coldhot_op.coldhot_trx_original_chain;
+			   tx_op.sign_guard = guard_obj->id;
+			   tx_op.asset_symbol = coldhot_op.asset_symbol;
+			   tx_op.guard_address = account_obj.addr;
+			   tx_op.coldhot_transfer_sign = siging;
+			   signed_transaction transaction;
+			   transaction.operations.push_back(tx_op);
+			   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+			   transaction.validate();
+			   sign_transaction(transaction, true);
+		   }
+	   }
+	   else {
+		   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
+		   FC_ASSERT(trx.size() == 1, "Transaction find error");
+		   FC_ASSERT(trx[0].op_type == operation::tag<graphene::chain::coldhot_transfer_without_sign_operation>::value, "Transaction find error");
+		   auto op = trx[0].current_trx.operations[0];
+		   auto coldhot_op = op.get<graphene::chain::coldhot_transfer_without_sign_operation>();
+		   auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+		   auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
+		   string config = (*_crosschain_manager)->get_config();
+		   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+		   string temp_guard(guard);
+		   auto handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
+		   FC_ASSERT(handled_trx.size() == 1, "Transcation turn error in guard sign cold hot transaction");
+		   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
+		   string redeemScript = "";
+		   string guard_address = "";
+		   const account_object & account_obj = get_account(guard);
+		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+		   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
+		   for (auto multi_obj : multi_objs){
+			   if (multi_obj->bind_account_hot == handled_trx.begin()->second.from_account){
+				   redeemScript = multi_obj->redeemScript_hot;
+				   for (auto guard_multi_address_obj : guard_multi_address_objs){
+					   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+						   guard_address = guard_multi_address_obj->new_address_hot;
+						   break;
+					   }
+				   }
+				   break;
+			   }
+			   if (multi_obj->bind_account_cold == handled_trx.begin()->second.from_account){
+				   redeemScript = multi_obj->redeemScript_cold;
+				   for (auto guard_multi_address_obj : guard_multi_address_objs) {
+					   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+						   guard_address = guard_multi_address_obj->new_address_cold;
+						   break;
+					   }
+				   }
+				   break;
+			   }
+		   }
+		   FC_ASSERT((redeemScript != "")&&(guard_address != ""), "redeemScript exist error");
+		   string siging = crosschain_plugin->sign_multisig_transaction(coldhot_op.coldhot_trx_original_chain, guard_address, redeemScript, false);
+		   coldhot_transfer_with_sign_operation tx_op;
+		  
+		   tx_op.coldhot_trx_id = trx[0].current_id;
+		   tx_op.coldhot_trx_original_chain = coldhot_op.coldhot_trx_original_chain;
+		   tx_op.sign_guard = guard_obj->id;
+		   tx_op.asset_symbol = coldhot_op.asset_symbol;
+		   tx_op.guard_address = account_obj.addr;
+		   tx_op.coldhot_transfer_sign = siging;
+		   signed_transaction transaction;
+		   transaction.operations.push_back(tx_op);
+		   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+		   transaction.validate();
+		   sign_transaction(transaction, true);
+	   }
+   }
    void guard_sign_crosschain_transaction(const string& trx_id,const string & guard){
 	   FC_ASSERT(!is_locked());
 	   auto guard_obj = get_guard_member(guard);
@@ -3224,7 +3352,10 @@ public:
 			   string config = (*_crosschain_manager)->get_config();
 			   hdl->initialize_config(fc::json::from_string(config).get_object());
 			   string temp_guard(guard);
-			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, temp_guard, false);
+			   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
+			   FC_ASSERT(current_multi_obj.valid());
+			   auto account_pair_obj = get_multisig_account_pair(current_multi_obj->multisig_account_pair_object_id);
+			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, account_pair_obj->redeemScript_hot, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
@@ -4917,12 +5048,18 @@ signed_transaction wallet_api::transfer_to_account(string from, string to, strin
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
+std::map<transaction_id_type, signed_transaction> wallet_api::get_coldhot_transaction(const int& type) {
+	return my->get_coldhot_transaction(type);
+}
 std::map<transaction_id_type, signed_transaction> wallet_api::get_crosschain_transaction(int type) {
 	return my->get_crosschain_transaction(type);
 }
 std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
+}
+void wallet_api::guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
+	return my->guard_sign_coldhot_transaction(tx_id, guard);
 }
 void wallet_api::guard_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);

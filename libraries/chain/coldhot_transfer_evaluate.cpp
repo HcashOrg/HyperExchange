@@ -43,24 +43,25 @@ namespace graphene {
 			if (!crosschain_handle->valid_config()){
 				return void_result();
 			}
-			auto created_trx = crosschain_handle->turn_trx(o.coldhot_trx_original_chain);
+			auto created_trx = crosschain_handle->turn_trxs(o.coldhot_trx_original_chain);
+			FC_ASSERT(created_trx.size() == 1);
 			auto & coldhot_trx_db = db().get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 			auto coldhot_original_trx_iter = coldhot_trx_db.find(o.coldhot_trx_id);
 			FC_ASSERT(coldhot_original_trx_iter != coldhot_trx_db.end());
 			FC_ASSERT(coldhot_original_trx_iter->current_trx.operations.size() == 1);
 			for (const auto & op : coldhot_original_trx_iter->current_trx.operations) {
-				const auto proposal_update_op = op.get<proposal_create_operation>();
+				/*const auto proposal_update_op = op.get<proposal_create_operation>();
 				FC_ASSERT(proposal_update_op.proposed_ops.size() == 1);
-				for (const auto & real_op : proposal_update_op.proposed_ops){
-					const auto coldhot_transfer_op = real_op.op.get<coldhot_transfer_operation>();
-					FC_ASSERT(created_trx.to_account == coldhot_transfer_op.multi_account_deposit);
-					FC_ASSERT(created_trx.from_account == coldhot_transfer_op.multi_account_withdraw);
+				for (const auto & real_op : proposal_update_op.proposed_ops){*/
+					const auto coldhot_transfer_op = op.get<coldhot_transfer_operation>();
+					FC_ASSERT(created_trx.begin()->second.to_account == coldhot_transfer_op.multi_account_deposit);
+					FC_ASSERT(created_trx.begin()->second.from_account == coldhot_transfer_op.multi_account_withdraw);
 					const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
 					const auto asset_itr = asset_idx.find(coldhot_transfer_op.asset_symbol);
 					FC_ASSERT(asset_itr != asset_idx.end());
-					FC_ASSERT(created_trx.asset_symbol == coldhot_transfer_op.asset_symbol);
-					FC_ASSERT(asset_itr->amount_from_string(created_trx.amount).amount == asset_itr->amount_from_string(coldhot_transfer_op.amount).amount);
-				}
+					FC_ASSERT(created_trx.begin()->second.asset_symbol == coldhot_transfer_op.asset_symbol);
+					FC_ASSERT(asset_itr->amount_from_string(created_trx.begin()->second.amount).amount == asset_itr->amount_from_string(coldhot_transfer_op.amount).amount);
+				//}
 			}
 			return void_result();
 		}
