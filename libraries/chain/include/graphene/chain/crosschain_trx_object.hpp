@@ -126,7 +126,7 @@ namespace graphene {
 			std::less<transaction_stata>
 			>
 			>,
-			ordered_unique<
+			ordered_non_unique<
 			tag<by_original_id_optype>,
 			composite_key<
 			crosschain_trx_object,

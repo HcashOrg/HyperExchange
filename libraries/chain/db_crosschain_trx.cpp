@@ -135,7 +135,7 @@ namespace graphene {
 					}
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
-					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>();
+					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
 					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
 
@@ -442,7 +442,7 @@ namespace graphene {
 					if (transaction_err) {
 						continue;
 					}
-					auto& trx_new_db = get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
+					auto& trx_new_db = get_index_type<crosschain_trx_index>().indices().get<by_trx_type_state>();
 					auto trx_itr = trx_new_db.find(boost::make_tuple(trxs.first, withdraw_without_sign_trx_create));
 					if (trx_itr == trx_new_db.end() || trx_itr->real_transaction.operations.size() < 1) {
 						continue;
@@ -457,7 +457,7 @@ namespace graphene {
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
 					trx_op.miner_broadcast = miner;
-					trx_op.crosschain_trx_id = hdl->turn_trx(with_sign_op.withdraw_source_trx).trx_id;
+					trx_op.crosschain_trx_id = hdl->turn_trxs(with_sign_op.withdraw_source_trx).begin()->second.trx_id;
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
