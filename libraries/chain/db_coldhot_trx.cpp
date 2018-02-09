@@ -86,35 +86,25 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<coldhot_transfer_result_operation>::value){
-					auto& coldhot_relate_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>();
-					auto coldhot_relate_tx_iter = coldhot_relate_tx_dbs.find(relate_trx_id);
-					FC_ASSERT(coldhot_relate_tx_iter != coldhot_relate_tx_dbs.end(), "coldhot original trx doesn`t exist");
-					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-					auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
-					FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "coldhot trx result has been created");
-					auto coldhot_relate_original_iter = coldhot_tx_dbs.find(coldhot_relate_tx_iter->relate_trx_id);
-					FC_ASSERT(coldhot_relate_original_iter != coldhot_tx_dbs.end(), "coldhot original relate trx doesn`t exist");
-					modify(*coldhot_relate_original_iter, [&](coldhot_transfer_object& obj) {
+					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(relate_trx_id);
+					FC_ASSERT(tx_coldhot_without_sign_iter != coldhot_db_objs.end(), "without sign trx doesn`t exist");
+					auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
+					FC_ASSERT(tx_coldhot_original_iter != coldhot_db_objs.end(), "original trx doesn`t exist");
+
+					modify(*tx_coldhot_without_sign_iter, [&](coldhot_transfer_object& obj) {
 						obj.curret_trx_state = coldhot_transaction_confirm;
 					});
-					modify(*coldhot_relate_tx_iter, [&](coldhot_transfer_object& obj) {
+					modify(*tx_coldhot_original_iter, [&](coldhot_transfer_object& obj) {
 						obj.curret_trx_state = coldhot_transaction_confirm;
 					});
-					auto sign_range = get_index_type< coldhot_transfer_index >().indices().get<by_relate_trxidstate>().equal_range(boost::make_tuple(relate_trx_id, coldhot_combine_trx_create));
-					for (auto sign_trx_obj : boost::make_iterator_range(sign_range.first,sign_range.second)) {
-						auto& sign_tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-						auto sign_tx_iter = sign_tx_db.find(sign_trx_obj.current_id);
-						modify(*sign_tx_iter, [&](coldhot_transfer_object& obj) {
+					auto combine_state_tx_range = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trxidstate>().equal_range(boost::make_tuple(relate_trx_id, coldhot_combine_trx_create));
+					for (auto combine_state_tx : boost::make_iterator_range(combine_state_tx_range.first, combine_state_tx_range.second)) {
+						auto combine_state_tx_iter = coldhot_db_objs.find(combine_state_tx.current_id);
+						modify(*combine_state_tx_iter, [&](coldhot_transfer_object& obj) {
 							obj.curret_trx_state = coldhot_transaction_confirm;
 						});
 					}
-					/*create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
-						obj.op_type = op_type;
-						obj.relate_trx_id = relate_trx_id;
-						obj.current_id = current_trx_id;
-						obj.current_trx = current_trx;
-						obj.curret_trx_state = coldhot_transaction_confirm;
-					});*/
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_trx_id)(current_trx_id))
 		}
