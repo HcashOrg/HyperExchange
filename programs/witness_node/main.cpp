@@ -76,7 +76,8 @@ int main(int argc, char** argv) {
       auto history_plug = node->register_plugin<account_history::account_history_plugin>();
       auto market_history_plug = node->register_plugin<market_history::market_history_plugin>();
 	  auto crosschain_record_plug = node->register_plugin<crosschain::crosschain_record_plugin>();
-	  crosschain_record_plug->add_acquire_plugin("BTC");
+	  
+	  
       try
       {
          bpo::options_description cli, cfg;
@@ -166,7 +167,11 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
-
+	  auto chain_types = node->get_crosschain_chain_types();
+	  for (auto& chain_type : chain_types)
+	  {
+		  crosschain_record_plug->add_acquire_plugin(chain_type);
+	  }
       fc::promise<int>::ptr exit_promise = new fc::promise<int>("UNIX Signal Handler");
 
       fc::set_signal_handler([&exit_promise](int signal) {
