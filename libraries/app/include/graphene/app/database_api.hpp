@@ -43,6 +43,7 @@
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/coldhot_transfer_object.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/contract_object.hpp>
@@ -604,6 +605,7 @@ class database_api
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
 
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
+	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
 
@@ -733,6 +735,7 @@ FC_API(graphene::app::database_api,
 	(lookup_multisig_asset)
 	(get_binding_account)
 	(get_crosschain_transaction)
+		(get_coldhot_transaction)
 	(get_multisig_address_obj)
 	(get_multisig_account_pair)
 	(lookup_multisig_account_pair)

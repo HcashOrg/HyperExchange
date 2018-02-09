@@ -1635,8 +1635,10 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
+	  void guard_sign_coldhot_transaction(const string& tx_id, const string& guard);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -2011,6 +2013,7 @@ FC_API( graphene::wallet::wallet_api,
 		(withdraw_cross_chain_transaction)
 		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_coldhot_transaction)
 		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
@@ -2021,6 +2024,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(guard_sign_crosschain_transaction)
+		(guard_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(register_contract)
