@@ -116,8 +116,8 @@ namespace graphene {
 			if (crosschain_plugin->valid_config()) {
 				return void_result();
 			}
-			auto coldhot_trx = crosschain_plugin->turn_trx(o.coldhot_trx_original_chain);
-			FC_ASSERT(coldhot_trx.trx_id == o.original_trx_id);
+			auto coldhot_trx = crosschain_plugin->turn_trxs(o.coldhot_trx_original_chain);
+			FC_ASSERT(coldhot_trx.begin()->second.trx_id == o.original_trx_id);
 			return void_result();
 		}
 		void_result coldhot_transfer_combine_sign_evaluate::do_apply(const coldhot_transfer_combine_sign_operation& o) {

@@ -52,7 +52,7 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<coldhot_transfer_combine_sign_operation>::value){
-					auto& coldhot_relate_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>();
+					auto& coldhot_relate_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto coldhot_relate_tx_iter = coldhot_relate_tx_dbs.find(relate_trx_id);
 					FC_ASSERT(coldhot_relate_tx_iter != coldhot_relate_tx_dbs.end(), "coldhot original trx doesn`t exist");
 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
@@ -173,7 +173,7 @@ namespace graphene {
 			}
 			for (auto & trxs : uncombine_trxs) {
 				try {
-					if (trxs.second.size() < 7) {
+					if (trxs.second.size() < ceil(float(get_global_properties().active_committee_members.size())*2.0 / 3.0)) {
 						continue;
 					}
 					set<string> combine_signature;
@@ -196,7 +196,7 @@ namespace graphene {
 					if (transaction_err) {
 						continue;
 					}
-					auto & tx_relate_db = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trxidstate>();
+					auto & tx_relate_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
 					auto relate_tx_iter = tx_relate_db.find(boost::make_tuple(trxs.first, coldhot_without_sign_trx_create));
 					if (relate_tx_iter == tx_relate_db.end() || relate_tx_iter->current_trx.operations.size() < 1) {
 						continue;
@@ -216,8 +216,8 @@ namespace graphene {
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
-					trx_op.coldhot_transfer_trx_id = coldhot_op.coldhot_trx_id;
-					auto hdl_trx = crosschain_plugin->turn_trxs(trx_op.coldhot_trx_original_chain);
+					trx_op.coldhot_transfer_trx_id = relate_tx_iter->current_id;
+					auto hdl_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
 					trx_op.original_trx_id = hdl_trx.begin()->second.trx_id;
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;

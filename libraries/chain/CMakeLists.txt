@@ -65,7 +65,6 @@ add_library( graphene_chain
              get_config.cpp
 
              pts_address.cpp
-	     coldhot_transfer_evaluate.cpp
 
              evaluator.cpp
              balance_evaluator.cpp
@@ -73,7 +72,6 @@ add_library( graphene_chain
              assert_evaluator.cpp
              witness_evaluator.cpp
              committee_member_evaluator.cpp
-	     coldhot_withdraw.cpp
              asset_evaluator.cpp
              transfer_evaluator.cpp
              proposal_evaluator.cpp
