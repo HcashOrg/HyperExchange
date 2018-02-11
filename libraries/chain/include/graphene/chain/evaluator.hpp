@@ -130,6 +130,7 @@ namespace graphene {
 			const asset_dynamic_data_object* fee_asset_dyn_data = nullptr;
 			address                   fee_paying_address = address();
 			transaction_evaluation_state*    trx_state;
+            share_type                       gas_count=0;
 		};
 
 		class op_evaluator

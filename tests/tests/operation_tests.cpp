@@ -737,7 +737,7 @@ BOOST_AUTO_TEST_CASE(guard_sign_crosschain_transaction_test)
 		//string sign_string = "Hello";
 		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
 		crosschain_withdraw_with_sign_operation trx_op;
-		trx_op.ccw_trx_id = sign_op.ccw_trx_id;
+		trx_op.ccw_trx_id = sign_op.ccw_trx_ids[0];
 		trx_op.asset_symbol = sign_op.asset_symbol;
 		trx_op.ccw_trx_signature = sign_string;
 		trx_op.withdraw_source_trx = sign_op.withdraw_source_trx;

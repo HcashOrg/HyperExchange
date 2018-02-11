@@ -891,6 +891,12 @@ class wallet_api
 		  string crosschain_account,
 		  string memo,
 		  bool broadcast = false);
+	  signed_transaction transfer_guard_multi_account( string multi_account,
+		  string amount,
+		  string asset_symbol,
+		  string multi_to_account,
+		  string memo,
+		  bool broadcast = false);
       /**
        *  This method works just like transfer, except it always broadcasts and
        *  returns the transaction ID along with the signed transaction.
@@ -1629,8 +1635,10 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
+	  void guard_sign_coldhot_transaction(const string& tx_id, const string& guard);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1705,6 +1713,7 @@ class wallet_api
 
 	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
 	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
+	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const transaction_id_type & trxid);
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1738,10 +1747,17 @@ class wallet_api
 
 	  // contract wallet apis
 	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-	  std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
+      std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
+
+      std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
+      std::pair<asset, share_type> register_native_contract_testing(const string& caller_account_name,  const string& native_contract_key);
+
 	  signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-	  string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+      share_type invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+
+      string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
+      share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
       signed_transaction transfer_to_contract(string from,
@@ -1751,6 +1767,10 @@ class wallet_api
           const string& gas_price,
           const string& gas_limit,
           bool broadcast = false);
+      share_type transfer_to_contract_testing(string from,
+          string to,
+          string amount,
+          string asset_symbol);
 
       vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis
@@ -1766,7 +1786,7 @@ class wallet_api
                                          bool to_temp = false );
 
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
-	  signed_transaction transfer_from_cold_to_hot(const string& account,const string& amount,const string& symbol,bool broadcast=true);
+	  signed_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  signed_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
@@ -1785,7 +1805,6 @@ class wallet_api
 	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
 	  void set_guarantee_id(const guarantee_object_id_type id);
-	  local_property_object get_local_properties();
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -1991,7 +2010,9 @@ FC_API( graphene::wallet::wallet_api,
 		(sign_multi_asset_trx)
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
+		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_coldhot_transaction)
 		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
@@ -2002,6 +2023,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(guard_sign_crosschain_transaction)
+		(guard_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(register_contract)
@@ -2015,7 +2037,11 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_balance)
 		(create_guarantee_order)
 	    (list_guarantee_order)
-		(get_local_properties)
 		(set_guarantee_id)
 		(cancel_guarantee_order)
+        (invoke_contract_testing)
+        (transfer_to_contract_testing)
+        (register_contract_testing)
+        (register_native_contract_testing)
+        (upgrade_contract_testing)
       )

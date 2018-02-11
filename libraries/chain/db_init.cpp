@@ -67,8 +67,10 @@
 #include <graphene/chain/lockbalance_evaluator.hpp>
 #include <graphene/chain/guard_lock_balance_evaluator.hpp>
 #include <graphene/chain/crosschain_record_evaluate.hpp>
+#include <graphene/chain/coldhot_transfer_evaluate.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/coldhot_transfer_object.hpp>
 #include <graphene/chain/guard_refund_balance_evaluator.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/contract.hpp>
@@ -153,6 +155,8 @@ const uint8_t multisig_account_pair_object::space_id;
 const uint8_t multisig_account_pair_object::type_id;
 const uint8_t crosschain_transaction_history_count_object::space_id;
 const uint8_t crosschain_transaction_history_count_object::type_id;
+const uint8_t coldhot_transfer_object::space_id;
+const uint8_t coldhot_transfer_object::type_id;
 
 const uint8_t contract_object::space_id;
 const uint8_t contract_object::type_id;
@@ -178,6 +182,11 @@ void database::initialize_evaluators()
    register_evaluator<crosschain_withdraw_with_sign_evaluate>();
    register_evaluator<crosschain_withdraw_combine_sign_evaluate>();
    register_evaluator<crosschain_withdraw_result_evaluate>();
+   register_evaluator<coldhot_transfer_evaluate>();
+   register_evaluator<coldhot_transfer_without_sign_evaluate>();
+   register_evaluator<coldhot_transfer_with_sign_evaluate>();
+   register_evaluator<coldhot_transfer_combine_sign_evaluate>();
+   register_evaluator<coldhot_transfer_result_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
@@ -254,6 +263,7 @@ void database::initialize_indexes()
    add_index<primary_index<lockbalance_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
    add_index<primary_index<crosschain_trx_index>>();
+   add_index<primary_index<coldhot_transfer_index>>();
    add_index<primary_index<acquired_crosschain_index>>();
    add_index<primary_index<transaction_history_count_index>>();
    auto acnt_index = add_index< primary_index<account_index> >();
@@ -283,7 +293,6 @@ void database::initialize_indexes()
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
-   add_index< primary_index<simple_index<local_property_object  >> >();
    add_index< primary_index<simple_index<account_statistics_object       >> >();
    add_index< primary_index<simple_index<asset_dynamic_data_object       >> >();
    add_index< primary_index<flat_index<  block_summary_object            >> >();
@@ -482,10 +491,6 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       p.dynamic_flags = 0;
       p.miner_budget = 0;
       p.recent_slots_filled = fc::uint128::max_value();
-   });
-   create<local_property_object>([&](local_property_object& p) {
-	   p.guarantee_id = guarantee_object_id_type();
-	   p.symbols.clear();
    });
    create<chain_property_object>([&](chain_property_object& p)
    {

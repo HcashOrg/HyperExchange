@@ -31,6 +31,7 @@
 #include <graphene/chain/genesis_state.hpp>
 #include <graphene/chain/evaluator.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/coldhot_transfer_object.hpp>
 #include <graphene/db/object_database.hpp>
 #include <graphene/db/object.hpp>
 #include <graphene/db/simple_index.hpp>
@@ -265,8 +266,6 @@ namespace graphene { namespace chain {
          const chain_property_object&           get_chain_properties()const;
          const global_property_object&          get_global_properties()const;
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
-		 void     set_local_properties_for_chain_type(const string& chain_type);
-		 local_property_object                  get_local_properties()const;
          const node_property_object&            get_node_properties()const;
          const fee_schedule&                    current_fee_schedule()const;
 
@@ -309,7 +308,16 @@ namespace graphene { namespace chain {
 			 transaction_id_type transaction_id,
 			 signed_transaction real_transaction,
 			 uint64_t op_type,
-			 transaction_stata trx_state);
+			 transaction_stata trx_state,
+			 vector<transaction_id_type> relate_transaction_ids = vector<transaction_id_type>());
+		 void adjust_coldhot_transaction(transaction_id_type relate_trx_id,
+			 transaction_id_type current_trx_id,
+			 signed_transaction current_trx,
+			 uint64_t op_type
+			 );
+		 void create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk);
+		 void combine_coldhot_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
+
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////

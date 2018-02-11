@@ -86,6 +86,8 @@ namespace graphene {
 
 			// Create transaction from multi-signed account.
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			// Create transaction from multi-signed account.
+			virtual fc::variant_object create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 
 			// Get signature for a given transaction.
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript, bool broadcast = true) = 0;
@@ -99,6 +101,7 @@ namespace graphene {
 			virtual bool validate_other_trx(const fc::variant_object &trx) = 0;
 			//Turn plugin transaction to handle transaction
 			virtual hd_trx turn_trx(const fc::variant_object & trx) = 0;
+			virtual std::map<std::string, graphene::crosschain::hd_trx> turn_trxs(const fc::variant_object & trx) = 0;
 			// Validate signature. Now it is used to validate signature of multi-signed addresses.
 			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;
 

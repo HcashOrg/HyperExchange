@@ -1,4 +1,7 @@
 file(GLOB COMMON_SOURCES "common/*.cpp")
+if(MSVC)
+  set_source_files_properties( common/database_fixture.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+endif(MSVC)
 
 find_package( Gperftools QUIET )
 if( GPERFTOOLS_FOUND )
@@ -11,6 +14,8 @@ add_executable( chain_test ${UNIT_TESTS} ${COMMON_SOURCES} )
 target_link_libraries( chain_test graphene_chain graphene_app graphene_account_history graphene_egenesis_none fc graphene_wallet crosschain ${PLATFORM_SPECIFIC_LIBS} )
 if(MSVC)
   set_source_files_properties( tests/serialization_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+  set_source_files_properties( tests/authority_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+  set_source_files_properties( tests/operation_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
   set_source_files_properties( app/main.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
 endif(MSVC)
 

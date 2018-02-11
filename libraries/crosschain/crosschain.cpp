@@ -33,6 +33,7 @@ namespace graphene {
 					return itr.first->second;
 				}
 			}
+			return nullptr;
 		}
 		bool crosschain_manager::contain_crosschain_handles(const std::string& symbol)
 		{
