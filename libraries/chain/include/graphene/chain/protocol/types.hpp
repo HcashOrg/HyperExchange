@@ -172,8 +172,7 @@ namespace graphene { namespace chain {
       impl_special_authority_object_type,
       impl_buyback_object_type,
       impl_fba_accumulator_object_type,
-	  impl_guarantee_obj_type,
-	  impl_local_property_object_type
+	  impl_guarantee_obj_type
    };
 
    //typedef fc::unsigned_int            object_id_type;
@@ -248,11 +247,9 @@ namespace graphene { namespace chain {
    class fba_accumulator_object;
    class multisig_account_pair_object;
    class guarantee_object;
-   class local_property_object;
 
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
-   typedef object_id< implementation_ids, impl_local_property_object_type, local_property_object>    local_property_id_type;
    typedef object_id< implementation_ids, impl_asset_dynamic_data_type,      asset_dynamic_data_object>                 asset_dynamic_data_id_type;
    typedef object_id< implementation_ids, impl_asset_bitasset_data_type,     asset_bitasset_data_object>                asset_bitasset_data_id_type;
    typedef object_id< implementation_ids, impl_account_balance_object_type,  account_balance_object>                    account_balance_id_type;
@@ -400,7 +397,6 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_global_property_object_type)
                  (impl_dynamic_global_property_object_type)
-	             (impl_local_property_object_type)
                  (impl_reserved0_object_type)
                  (impl_asset_dynamic_data_type)
                  (impl_asset_bitasset_data_type)
@@ -439,7 +435,6 @@ FC_REFLECT_TYPENAME( graphene::chain::balance_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::global_property_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::dynamic_global_property_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::asset_dynamic_data_id_type )
-FC_REFLECT_TYPENAME(graphene::chain::local_property_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::asset_bitasset_data_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_balance_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_statistics_id_type )

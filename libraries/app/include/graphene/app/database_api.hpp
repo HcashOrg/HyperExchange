@@ -217,7 +217,6 @@ class database_api
        * @brief Retrieve the current @ref dynamic_global_property_object
        */
       dynamic_global_property_object get_dynamic_global_properties()const;
-	  local_property_object get_local_properties() const;
 	  void set_guarantee_id(guarantee_object_id_type id);
       //////////
       // Keys //
@@ -652,7 +651,6 @@ FC_API(graphene::app::database_api,
 	(get_config)
 	(get_chain_id)
 	(get_dynamic_global_properties)
-	(get_local_properties)
 	(set_guarantee_id)
 	// Keys
 	(get_key_references)
