@@ -77,7 +77,8 @@ namespace graphene { namespace chain {
             skip_assert_evaluation      = 1 << 8,  ///< used while reindexing
             skip_undo_history_check     = 1 << 9,  ///< used while reindexing
             skip_witness_schedule_check = 1 << 10,  ///< used while reindexing
-            skip_validate               = 1 << 11 ///< used prior to checkpoint, skips validate() call on transaction
+            skip_validate               = 1 << 11, ///< used prior to checkpoint, skips validate() call on transaction
+            check_gas_price       = 1 << 12
          };
 
          /**
@@ -338,8 +339,6 @@ namespace graphene { namespace chain {
 		 bool has_contract(const address& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
 
-         bool is_skip_gas_price_check() const;
-         void skip_gas_price_check(bool skip);
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
@@ -598,7 +597,6 @@ namespace graphene { namespace chain {
          node_property_object              _node_property_object;
 
          //gas_price check
-         bool                              _skip_gas_price_check=true;
          share_type                        _min_gas_price=1;
    };
 
