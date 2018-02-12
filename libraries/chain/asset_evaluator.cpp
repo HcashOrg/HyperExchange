@@ -650,7 +650,8 @@ void_result gurantee_create_evaluator::do_evaluate(const gurantee_create_operati
 		const auto& range = gran_index.get<by_symbol_owner>().equal_range(boost::make_tuple(o.owner_addr,o.symbol));
 		share_type frozen = 0;
 		std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
-			frozen += obj.asset_orign.amount;
+			if (!obj.finished)
+				frozen += obj.asset_orign.amount;
 		});
 		//we need to check if this  is equal to the frozen assets
 		const auto& balances = _db.get_index_type<balance_index>().indices().get<by_owner>();
@@ -698,7 +699,8 @@ void_result gurantee_cancel_evaluator::do_apply(const gurantee_cancel_operation&
 		_db.modify(gurantee_obj, [&](guarantee_object& obj) {
 			obj.finished = true;
 		});
-		_db.cancel_frozen(gurantee_obj.owner_addr,gurantee_obj.asset_orign.asset_id);
+		asset left = gurantee_obj.asset_orign - gurantee_obj.asset_finished * price(gurantee_obj.asset_orign, gurantee_obj.asset_target);
+		_db.cancel_frozen(gurantee_obj.owner_addr,left);
 	}FC_CAPTURE_AND_RETHROW((o))
 
 }

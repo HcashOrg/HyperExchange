@@ -383,7 +383,7 @@ namespace graphene { namespace chain {
 		 * @param account ID of account whose balance should be adjusted
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
-		 void cancel_frozen(address addr,asset_id_type id);
+		 void cancel_frozen(address addr,asset delta);
 
 
 		 /**

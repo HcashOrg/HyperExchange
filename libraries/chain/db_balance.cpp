@@ -129,15 +129,15 @@ void database::adjust_frozen(address addr, asset delta)
 	}FC_CAPTURE_AND_RETHROW((addr)(delta))
 }
 
-void database::cancel_frozen(address addr, asset_id_type id)
+void database::cancel_frozen(address addr, asset delta)
 {
 	try {
 		auto& by_owner_idx = get_index_type<balance_index>().indices().get<by_owner>();
-		auto itr = by_owner_idx.find(boost::make_tuple(addr, id));
+		auto itr = by_owner_idx.find(boost::make_tuple(addr, delta.asset_id));
 		FC_ASSERT(itr != by_owner_idx.end(), "address has no this asset.");
-		modify(*itr, [id](balance_object& b) {
-			b.balance += asset(b.frozen,id);
-			b.frozen = 0;
+		modify(*itr, [delta](balance_object& b) {
+			b.balance += delta;
+			b.frozen -= delta.amount ;
 		});
 	}FC_CAPTURE_AND_RETHROW((addr))
 }
