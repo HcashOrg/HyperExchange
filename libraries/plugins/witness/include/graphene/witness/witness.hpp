@@ -25,6 +25,7 @@
 
 #include <graphene/app/plugin.hpp>
 #include <graphene/chain/database.hpp>
+#include <graphene/chain/protocol/types.hpp>
 
 #include <fc/thread/future.hpp>
 
@@ -87,6 +88,7 @@ private:
    std::map<chain::public_key_type, fc::ecc::private_key> _private_keys;
    std::set<chain::miner_id_type> _miners;
    fc::future<void> _block_production_task;
+   int min_gas_price;
 };
 
 } } //graphene::miner_plugin

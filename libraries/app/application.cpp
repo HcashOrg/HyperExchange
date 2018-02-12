@@ -1042,6 +1042,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-json", bpo::value<boost::filesystem::path>(), "File to read Genesis State from")
          ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
+         ("min_gas_price",bpo::value<int>(),"Miner in this node would not pack contract trx which gas price to low")
          ;
    command_line_options.add(configuration_file_options);
    command_line_options.add_options()
