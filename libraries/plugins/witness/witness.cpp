@@ -146,7 +146,14 @@ void miner_plugin::plugin_initialize(const boost::program_options::variables_map
          _private_keys[key_id_to_wif_pair.first] = *private_key;
       }
    }
-   
+   if (options.count("min_gas_price"))
+   {
+       min_gas_price =options["min_gas_price"].as<int>();
+   }
+   else
+   {
+       min_gas_price = 1;
+   }
    ilog("miner plugin:  plugin_initialize() end");
 } FC_LOG_AND_RETHROW() }
 
@@ -350,6 +357,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    chain::database& db = database();
    fc::time_point now_fine = fc::time_point::now();
    fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
+   db.set_min_gas_price(min_gas_price);
 
    // If the next block production opportunity is in the present or future, we're synced.
    if( !_production_enabled )
@@ -410,7 +418,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    }
    //through this to generate new multi-addr
    auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
-  // db.create_result_transaction(scheduled_miner, private_key_itr->second);
+   db.create_result_transaction(scheduled_miner, private_key_itr->second);
    db.create_coldhot_transfer_trx(scheduled_miner, private_key_itr->second);
    db.combine_coldhot_sign_transaction(scheduled_miner, private_key_itr->second);
 

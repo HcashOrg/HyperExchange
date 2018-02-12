@@ -291,6 +291,7 @@ signed_block database::generate_block(
    )
 { try {
    signed_block result;
+   skip |= check_gas_price;
    detail::with_skip_flags( *this, skip, [&]()
    {
       result = _generate_block( when, witness_id, block_signing_private_key );
@@ -314,13 +315,12 @@ signed_block database::_generate_block(
    const auto& witness_obj = witness_id(*this);
    const auto& account_obj = witness_obj.miner_account(*this);
 
-   if( !(skip & skip_miner_signature) )
+ if( !(skip & skip_miner_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
    auto maximum_block_size = get_global_properties().parameters.maximum_block_size;
    size_t total_block_size = max_block_header_size;
-
    signed_block pending_block;
    //
    // The following code throws away existing pending_tx_session and
@@ -335,7 +335,6 @@ signed_block database::_generate_block(
    //
    _pending_tx_session.reset();
    _pending_tx_session = _undo_db.start_undo_session();
-
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
    for( const processed_transaction& tx : _pending_tx )
@@ -352,6 +351,7 @@ signed_block database::_generate_block(
       try
       {
          auto temp_session = _undo_db.start_undo_session();
+         
          processed_transaction ptx = _apply_transaction( tx );
          temp_session.merge();
 
@@ -374,6 +374,7 @@ signed_block database::_generate_block(
    }
 
    _pending_tx_session.reset();
+
 
    // We have temporarily broken the invariant that
    // _pending_tx_session is the result of applying _pending_tx, as

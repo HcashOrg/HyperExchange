@@ -77,7 +77,8 @@ namespace graphene { namespace chain {
             skip_assert_evaluation      = 1 << 8,  ///< used while reindexing
             skip_undo_history_check     = 1 << 9,  ///< used while reindexing
             skip_witness_schedule_check = 1 << 10,  ///< used while reindexing
-            skip_validate               = 1 << 11 ///< used prior to checkpoint, skips validate() call on transaction
+            skip_validate               = 1 << 11, ///< used prior to checkpoint, skips validate() call on transaction
+            check_gas_price       = 1 << 12
          };
 
          /**
@@ -266,8 +267,6 @@ namespace graphene { namespace chain {
          const chain_property_object&           get_chain_properties()const;
          const global_property_object&          get_global_properties()const;
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
-		 void     set_local_properties_for_chain_type(const string& chain_type);
-		 local_property_object                  get_local_properties()const;
          const node_property_object&            get_node_properties()const;
          const fee_schedule&                    current_fee_schedule()const;
 
@@ -338,6 +337,8 @@ namespace graphene { namespace chain {
 		 bool has_contract(const address& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
 
+         void set_min_gas_price(const share_type min_price);
+         share_type get_min_gas_price() const;
          //contract_balance//
          asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
          void adjust_contract_balance(const address& addr, const asset& delta);
@@ -431,7 +432,7 @@ namespace graphene { namespace chain {
          void globally_settle_asset( const asset_object& bitasset, const price& settle_price );
          void cancel_order(const force_settlement_object& order, bool create_virtual_op = true);
          void cancel_order(const limit_order_object& order, bool create_virtual_op = true);
-
+         
          /**
           * @brief Process a new limit order through the markets
           * @param order The new order to process
@@ -592,6 +593,9 @@ namespace graphene { namespace chain {
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
          node_property_object              _node_property_object;
+
+         //gas_price check
+         share_type                        _min_gas_price=1;
    };
 
    namespace detail
