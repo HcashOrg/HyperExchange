@@ -89,6 +89,8 @@ namespace graphene { namespace app {
          boost::signals2::signal<void()> syncing_finished;
 		 string get_crosschain_manager_config();
 		 void set_crosschain_manager_config(const string& config);
+		 void set_crosschain_chain_types(std::vector<std::string> chain_types);
+		 std::vector<string> get_crosschain_chain_types();
       private:
          void add_plugin( const string& name, std::shared_ptr<abstract_plugin> p );
          std::shared_ptr<detail::application_impl> my;
@@ -96,6 +98,7 @@ namespace graphene { namespace app {
          boost::program_options::options_description _cli_options;
          boost::program_options::options_description _cfg_options;
 		 string _crosschain_config;
+		 std::vector<std::string> _crosschain_chain_types;
    };
 
 } }
