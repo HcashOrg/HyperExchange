@@ -185,7 +185,6 @@ namespace graphene {
         }
         share_type database::get_min_gas_price() const
         {
-            printf("gas_price %d\n", _min_gas_price);
             return _min_gas_price;
         }
 		bool database::has_contract_of_name(const string& contract_name)
