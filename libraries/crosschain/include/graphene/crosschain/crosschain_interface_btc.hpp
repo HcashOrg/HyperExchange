@@ -17,10 +17,7 @@ namespace graphene {
 		class crosschain_interface_btc : public abstract_crosschain_interface
 		{
 		public:
-			crosschain_interface_btc()
-			{
-				_connection = std::make_shared<fc::http::connection>();
-			}
+			crosschain_interface_btc() {}
 			virtual ~crosschain_interface_btc() {}
 			virtual bool valid_config();
 			virtual void initialize_config(fc::variant_object &json_config) override;
@@ -58,7 +55,6 @@ namespace graphene {
 			fc::variant_object _config;
 			std::string _plugin_wallet_filepath;
 			std::string _wallet_name;
-			fc::http::connection_ptr _connection;
 			std::string _rpc_method;
 			std::string _rpc_url;
 			const std::string chain_type = "BTC";

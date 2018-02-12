@@ -40,7 +40,7 @@ namespace graphene {
 			auto addr = acc.find(o.withdraw_account)->addr;*/
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.withdraw_account, o.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
-			FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
+			//FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
@@ -97,8 +97,19 @@ namespace graphene {
 				return void_result();
 			auto create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
 			auto &trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+		/*	std::map<std::string, double> all_balances;
+			for (auto& one_ccw_trx_id : o.ccw_trx_ids)
+			{
+				auto temp_obj_iter = trx_db.find(one_ccw_trx_id);
+				FC_ASSERT(temp_obj_iter != trx_db.end());
+				auto with_op = temp_obj_iter->real_transaction.operations[0];
+			}
 
-			FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
+			FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());*/
+			auto trx_itr_relate = trx_db.find(trx_state->_trx->id());
+			FC_ASSERT(trx_itr_relate == trx_db.end(), "Crosschain transaction has been created");
+			std::map<std::string, asset> all_balances;
+			const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
 			for (auto& one_trx_id : o.ccw_trx_ids)
 			{
 				auto trx_itr = trx_db.find(one_trx_id);
@@ -111,16 +122,33 @@ namespace graphene {
 				
 				FC_ASSERT(one_trx.to_account == withdraw_op.crosschain_account);
 				{
-					const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
+					
 					const auto asset_itr = asset_idx.find(withdraw_op.asset_symbol);
 					FC_ASSERT(asset_itr != asset_idx.end());
 					FC_ASSERT(one_trx.asset_symbol == withdraw_op.asset_symbol);
-					FC_ASSERT(asset_itr->amount_from_string(one_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
+					if (all_balances.count(withdraw_op.crosschain_account) > 0)
+					{
+						all_balances[withdraw_op.crosschain_account] = all_balances[withdraw_op.crosschain_account] + asset_itr->amount_from_string(withdraw_op.amount);
+					}
+					else
+					{
+						all_balances[withdraw_op.crosschain_account] =  asset_itr->amount_from_string(withdraw_op.amount);
+					}
+					//FC_ASSERT(asset_itr->amount_from_string(one_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
 				}
 			
 				
 				
 			}
+			FC_ASSERT(all_balances.size() == create_trxs.size());
+			for (auto& one_balance : all_balances)
+			{
+				FC_ASSERT(create_trxs.count(one_balance.first) == 1);
+				const auto asset_itr = asset_idx.find(create_trxs[one_balance.first].asset_symbol);
+				FC_ASSERT(one_balance.second.amount == asset_itr->amount_from_string(create_trxs[one_balance.first].amount).amount);
+			}
+
+			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
 			
 			
 			return void_result();

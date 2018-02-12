@@ -381,14 +381,16 @@ namespace detail {
 			 auto config_var = fc::json::from_string(config).get_object();
 			 if (_options->count("chain-type"))
 			 {
+				 //std::set<std::string> _chain_types;
+				 //LOAD_VALUE_SET(_options, "chain-type", _chain_types, std::string);
 				 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
 				 for (auto chain_type : chain_types)
 				 {
 					 auto fd = instance.get_crosschain_handle(chain_type);
 					 if (fd != nullptr)
 						 fd->initialize_config(config_var);
-					 //_chain_db->set_local_properties_for_chain_type(chain_type);
 				 }
+				 _self->set_crosschain_chain_types(chain_types);
 				 _self->set_crosschain_manager_config(config);
 			 }
 		 }
@@ -1138,6 +1140,14 @@ string application::get_crosschain_manager_config()
 void application::set_crosschain_manager_config(const string& config)
 {
 	_crosschain_config = config;
+}
+void application::set_crosschain_chain_types(std::vector<std::string> chain_types)
+{
+	_crosschain_chain_types = chain_types;
+}
+std::vector<string> application::get_crosschain_chain_types()
+{
+	return _crosschain_chain_types;
 }
 
 bool application::is_finished_syncing() const

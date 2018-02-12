@@ -55,7 +55,7 @@ namespace graphene {
 			ordered_unique< tag<by_current_trx_id>,
 			member<coldhot_transfer_object, transaction_id_type, &coldhot_transfer_object::current_id>
 			>,
-			ordered_unique<	tag<by_original_trxid_optype>,
+			ordered_non_unique<	tag<by_original_trxid_optype>,
 			composite_key<
 			coldhot_transfer_object,
 			member<coldhot_transfer_object, std::string, &coldhot_transfer_object::original_trx_id>,

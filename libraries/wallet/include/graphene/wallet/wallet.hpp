@@ -1635,8 +1635,10 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
+	  void guard_sign_coldhot_transaction(const string& tx_id, const string& guard);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1803,7 +1805,6 @@ class wallet_api
 	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
 	  void set_guarantee_id(const guarantee_object_id_type id);
-	  local_property_object get_local_properties();
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2011,6 +2012,7 @@ FC_API( graphene::wallet::wallet_api,
 		(withdraw_cross_chain_transaction)
 		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
+		(get_coldhot_transaction)
 		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
@@ -2021,6 +2023,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(guard_sign_crosschain_transaction)
+		(guard_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(register_contract)
@@ -2034,7 +2037,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_balance)
 		(create_guarantee_order)
 	    (list_guarantee_order)
-		(get_local_properties)
 		(set_guarantee_id)
 		(cancel_guarantee_order)
         (invoke_contract_testing)

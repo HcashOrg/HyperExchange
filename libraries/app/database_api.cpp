@@ -76,8 +76,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       fc::variant_object get_config()const;
       chain_id_type get_chain_id()const;
       dynamic_global_property_object get_dynamic_global_properties()const;
-	  local_property_object get_local_properties() const;
-	  void set_guarantee_id(guarantee_object_id_type id);
+	  
       // Keys
       vector<vector<account_id_type>> get_key_references( vector<public_key_type> key )const;
      bool is_public_key_registered(string public_key) const;
@@ -158,6 +157,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
+	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
@@ -542,28 +542,17 @@ dynamic_global_property_object database_api::get_dynamic_global_properties()cons
 {
    return my->get_dynamic_global_properties();
 }
-local_property_object database_api::get_local_properties() const
-{
-	return my->get_local_properties();
-}
+
 void database_api::set_guarantee_id(guarantee_object_id_type id)
 {
-	return my->set_guarantee_id(id);
+	return ;
 }
 dynamic_global_property_object database_api_impl::get_dynamic_global_properties()const
 {
    return _db.get(dynamic_global_property_id_type());
 }
-local_property_object database_api_impl::get_local_properties() const
-{
-	return _db.get(local_property_id_type());
-}
-void database_api_impl::set_guarantee_id(guarantee_object_id_type id)
-{
-	_db.modify(_db.get(local_property_id_type()), [&id](local_property_object obj) {
-		obj.guarantee_id = id;
-	});
-}
+
+
 
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
@@ -2135,8 +2124,25 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
 }
-vector<crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
+vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
+}
+vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
+	return my->get_coldhot_transaction(coldhot_tx_state, id);
+}
+vector<coldhot_transfer_object> database_api_impl::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
+	if (id == transaction_id_type()){
+		auto coldhot_trx_range = _db.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_tx_state);
+		vector<coldhot_transfer_object> result(coldhot_trx_range.first, coldhot_trx_range.second);
+		return result;
+	}
+	else {
+		const auto& coldhot_tx_db = _db.get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
+		const auto coldhot_tx_iter = coldhot_tx_db.find(boost::make_tuple(id, coldhot_tx_state));
+		vector<coldhot_transfer_object> result;
+		result.push_back(*coldhot_tx_iter);
+		return result;
+	}
 }
 vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	vector<crosschain_trx_object> result;
