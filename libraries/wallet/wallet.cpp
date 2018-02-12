@@ -649,12 +649,7 @@ public:
 	   _guarantee_id = optional<guarantee_object_id_type>();
 	   return id;
    }
-   local_property_object get_local_properties()
-   {
-	   try {
-		   return _remote_db->get_local_properties();
-	   }FC_CAPTURE_AND_RETHROW()
-   }
+
 
    string create_crosschain_symbol(const string& symbol)
    {
@@ -5963,10 +5958,7 @@ void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 	return my->set_guarantee_id(id);
 }
 
-local_property_object wallet_api::get_local_properties()
-{
-	return my->get_local_properties();
-}
+
 
 signed_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,

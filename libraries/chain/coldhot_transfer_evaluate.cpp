@@ -122,6 +122,13 @@ namespace graphene {
 		}
 		void_result coldhot_transfer_combine_sign_evaluate::do_apply(const coldhot_transfer_combine_sign_operation& o) {
 			db().adjust_coldhot_transaction(o.coldhot_transfer_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value));
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.asset_symbol))
+				return void_result();
+			auto crosschain_plugin = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			if (!crosschain_plugin->valid_config())
+				return void_result();
+			crosschain_plugin->broadcast_transaction(o.coldhot_trx_original_chain);
 			return void_result();
 		}
 
@@ -147,6 +154,7 @@ namespace graphene {
 			auto combine_op_number = uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value);
 			auto combine_trx_iter = originaldb.find(boost::make_tuple(o.coldhot_trx_original_chain.trx_id, combine_op_number));
 			db().adjust_coldhot_transaction(combine_trx_iter->relate_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_result_operation>::value));
+			db().adjust_crosschain_confirm_trx(o.coldhot_trx_original_chain);
 			return void_result();
 		}
 
