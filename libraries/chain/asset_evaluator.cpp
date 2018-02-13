@@ -651,7 +651,11 @@ void_result gurantee_create_evaluator::do_evaluate(const gurantee_create_operati
 		share_type frozen = 0;
 		std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
 			if (!obj.finished)
-				frozen += obj.asset_orign.amount;
+			{
+				asset left = obj.asset_orign - obj.asset_finished * price(obj.asset_orign, obj.asset_target);
+				frozen += left.amount;
+			}
+				
 		});
 		//we need to check if this  is equal to the frozen assets
 		const auto& balances = _db.get_index_type<balance_index>().indices().get<by_owner>();
