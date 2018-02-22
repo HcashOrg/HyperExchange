@@ -2362,6 +2362,7 @@ public:
 
       miner_create_operation miner_create_op;
 	  miner_create_op.miner_account = miner_account.id;
+	  miner_create_op.miner_address = miner_account.addr;
 	  miner_create_op.block_signing_key = miner_public_key;
 	  miner_create_op.url = url;
 
