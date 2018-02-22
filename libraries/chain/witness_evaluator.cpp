@@ -34,10 +34,16 @@ namespace graphene { namespace chain {
 
 void_result miner_create_evaluator::do_evaluate( const miner_create_operation& op )
 { try {
-   //account cannot be a guard
-   auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
-   FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
-   return void_result();
+	auto miner_obj = db().get(op.miner_account);
+	FC_ASSERT(miner_obj.addr == op.miner_address, "the address is not correct");
+	//account cannot be a guard
+    auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
+    FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
+   
+    auto & iter_miner = db().get_index_type<miner_index>().indices().get<by_account>();
+    FC_ASSERT(iter_miner.find(op.miner_account) == iter_miner.end(),"the account has beeen a miner.");
+
+    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
 object_id_type miner_create_evaluator::do_apply( const miner_create_operation& op )
