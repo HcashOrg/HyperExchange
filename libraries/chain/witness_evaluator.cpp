@@ -121,8 +121,8 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 		if (!crosschain_interface->valid_config())
 			return void_result();
-		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2 / 3));
-		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2 / 3));
+		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2.0 / 3.0));
+		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2.0 / 3.0));
 
 		FC_ASSERT(o.multi_address_cold == multi_addr_cold["address"]);
 		FC_ASSERT(o.multi_redeemScript_cold == multi_addr_cold["redeemScript"]);
