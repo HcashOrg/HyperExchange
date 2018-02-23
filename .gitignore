@@ -260,3 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 /CMakeCache.txt
+/run_cmake_x64.bat
+/setenv_x64.bat
