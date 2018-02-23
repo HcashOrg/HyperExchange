@@ -21,20 +21,23 @@ namespace graphene {
 		class crosschain_privatekey_base
 		{
 		public:
-			std::string exec(const char* cmd);
+			std::string  exec(const char* cmd);
 			std::string  sign_trx(const std::string& script, const std::string& raw_trx);
+			std::string  sign_message(const std::string& msg);
+
 			fc::ecc::private_key  get_private_key();
 
 			virtual std::string get_wif_key(fc::ecc::private_key& priv_key) = 0;
 			virtual std::string get_address(fc::ecc::private_key& priv_key) = 0;
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(std::string& wif_key) = 0;
 
-			int get_pubkey_prefix() { return _pubkey_prefix; }
 
+			bool is_empty() const {	return _key == fc::ecc::private_key(); }
+
+			int  get_pubkey_prefix() { return _pubkey_prefix; }
 			bool set_pubkey_prefix(int prefix = 0) { _pubkey_prefix = prefix; return true; }
 
 			int get_privkey_prefix() { return _privkey_prefix; }
-
 			bool set_privkey_prefix(int prefix = 0)	{ _privkey_prefix = prefix; return true; }
 
 			int		get_id() { return _id; }

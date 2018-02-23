@@ -58,24 +58,38 @@ namespace graphene { namespace privatekey_management {
 		std::string cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe input-sign";
 		cmd += " " + priv_hex + " " + script + " " + raw_trx;
 		auto endorsement = exec(cmd.c_str());
-		printf("endorsement: %s\n", endorsement.c_str());
+// 		printf("endorsement: %s\n", endorsement.c_str());
 
 		//get public hex
 		cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe ec-to-public";
 		cmd += " " + priv_hex;
 		auto pub_hex = exec(cmd.c_str());
-		printf("pub_hex: %s\n", pub_hex.c_str());
+// 		printf("pub_hex: %s\n", pub_hex.c_str());
 
 		//get signed raw-trx
 		cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe input-set ";
 		cmd += "\"[" + endorsement + "]" + " [" + pub_hex + "]\" " + raw_trx;
-		printf("command str: %s\n", cmd.c_str());
+// 		printf("command str: %s\n", cmd.c_str());
 		auto signed_raw_trx = exec(cmd.c_str());
 
 		printf("signed_raw_trx str: %s\n", signed_raw_trx.c_str());
 		return signed_raw_trx;
 	}
 
+	std::string crosschain_privatekey_base::sign_message(const std::string& msg)
+	{
+		auto wif = get_wif_key(_key);
+
+		//sign msg
+		std::string cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe message-sign";
+		cmd += " " + wif + " " + "\"" + msg + "\"";
+// 		printf("cmd string is %s\n", cmd.c_str());
+		auto signedmsg = exec(cmd.c_str());
+		printf("signed message: %s\n", signedmsg.c_str());
+
+		return signedmsg;
+
+	}
 
 
 	btc_privatekey::btc_privatekey()
@@ -87,12 +101,15 @@ namespace graphene { namespace privatekey_management {
 
 
 	std::string  btc_privatekey::get_wif_key(fc::ecc::private_key& priv_key)
-	{		
+	{	
+		FC_ASSERT( is_empty() == false, "private key is empty!" );
 		return  graphene::utilities::key_to_wif(priv_key);
 	}
 
     std::string   btc_privatekey::get_address(fc::ecc::private_key& priv_key)
     {
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+
         //configure for bitcoin
         uint8_t version = get_pubkey_prefix();
         bool compress = false;
@@ -139,6 +156,8 @@ namespace graphene { namespace privatekey_management {
 		memcpy(data + size_of_data_to_hash + 1, (char*)&digest, size_of_hash_bytes);
 		return fc::to_base58(data, sizeof(data));*/
 
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+
 		fc::sha256& secret = priv_key.get_secret();
 
 		const size_t size_of_data_to_hash = sizeof(secret) + 1;
@@ -160,6 +179,8 @@ namespace graphene { namespace privatekey_management {
 
 	std::string ltc_privatekey::get_address(fc::ecc::private_key& priv_key)
 	{
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+
 		//configure for bitcoin
 		uint8_t version = get_pubkey_prefix();
 		bool compress = false;
