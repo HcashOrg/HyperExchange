@@ -59,6 +59,7 @@ namespace graphene {
 			bool contains(const uint64_t key_id)const;
 
 			fc::optional<crosschain_privatekey_data> fetch_by_id(const uint64_t key_id, fc::sha512 checksum)const;
+			fc::optional<crosschain_privatekey_data> fetch_by_addr(const fc::string& addr, fc::sha512 checksum)const;
 			uint64_t  fetch_current_max_id()const;
 
 

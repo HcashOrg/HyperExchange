@@ -182,6 +182,25 @@ namespace graphene {
 
 		}
 
+		fc::optional<crosschain_privatekey_data> database_privatekey::fetch_by_addr(const fc::string& addr, fc::sha512 checksum)const
+		{
+
+			auto max_id = fetch_current_max_id();
+
+			for (auto i = 1; i <= max_id; ++i)
+			{
+				auto result = fetch_by_id(i, checksum);
+
+				if (result.valid() && result->addr == addr)
+					return result;
+
+			}
+
+
+			return fc::optional<crosschain_privatekey_data>();
+
+		}
+
 
 		uint64_t  database_privatekey::fetch_current_max_id()const
 		{
