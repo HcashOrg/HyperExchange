@@ -80,8 +80,20 @@ namespace graphene {
 
 		};
 
-		
-
+		class crosschain_management
+		{
+		public:
+			crosschain_management() {}
+			~crosschain_management() {}
+			static crosschain_management get_instance()
+			{
+				static crosschain_management mgr;
+				return mgr;
+			}
+			crosschain_privatekey_base * get_crosschain_prk(const std::string& name);
+		private:
+			std::map<std::string, crosschain_privatekey_base *> crosschain_prks;
+		};
 	}
 } // end namespace graphene::privatekey_management
 
