@@ -316,6 +316,34 @@ namespace graphene {
 		{
 			return true;
 		}
+		bool crosschain_interface_btc::validate_address(const std::string& addr)
+		{
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Address.validate\" ,\
+				\"params\" : {\"chainId\":\"btc\" ,\"addr\": " << "\"" << addr <<"}}";
+			fc::http::connection conn;
+			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				auto ret = resp.get_object();
+				if (ret.contains("result"))
+				{
+					auto result = ret["result"].get_object();
+					return result["valid"].as_bool();
+				}
+				else
+				{
+					return false;
+				}
+
+			}
+			else
+				FC_THROW(addr);
+		}
 
 		bool crosschain_interface_btc::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
