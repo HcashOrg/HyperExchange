@@ -55,7 +55,7 @@ namespace graphene { namespace privatekey_management {
 		std::string priv_hex = _key.get_secret().str().c_str();
 
 		//get endorsement
-		std::string cmd = "E:\\blocklink_project\\blocklink-core\\libraries\\privatekey_management\\pm.exe input-sign";
+		std::string cmd = "\input-sign";
 		cmd += " " + priv_hex + " " + script + " " + raw_trx;
 		auto endorsement = exec(cmd.c_str());
 // 		printf("endorsement: %s\n", endorsement.c_str());
@@ -227,7 +227,25 @@ namespace graphene { namespace privatekey_management {
 
 	}
 
+	crosschain_privatekey_base * crosschain_management::get_crosschain_prk(const std::string& name)
+	{
+		auto itr = crosschain_prks.find(name);
+		if (itr != crosschain_prks.end())
+		{
+			return itr->second;
+		}
 
+		if (name == "BTC")
+		{
+			auto itr = crosschain_prks.insert(std::make_pair(name, new btc_privatekey()));
+			return itr.first->second;
+		}
+		else if (name == "LTC")
+		{
+			auto itr = crosschain_prks.insert(std::make_pair(name, new ltc_privatekey()));
+			return itr.first->second;
+		}
+	}
 
 
 } } // end namespace graphene::privatekey_management

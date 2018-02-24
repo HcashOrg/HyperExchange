@@ -44,6 +44,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include "../common/database_fixture.hpp"
 #include <fc/network/url.hpp>
+#include <graphene/privatekey_management/private_key.hpp>
 using namespace graphene::chain;
 using namespace graphene::chain::test;
 
@@ -650,10 +651,13 @@ BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC"); 
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":80}" ).get_object();
 		crosschain->initialize_config(config);
-		string tunnel_account  = crosschain->create_normal_account("test");
+		auto prk = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(op.crosschain_type);
+		auto wif_key = crosschain->create_normal_account("test");
+		auto pkey = prk->import_private_key(wif_key);
+		string tunnel_account = prk->get_address(*pkey);
 		op.tunnel_address = tunnel_account;
 
-		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,wif_key);
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
@@ -776,7 +780,7 @@ BOOST_AUTO_TEST_CASE(account_unbind_operation_test)
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC");
 
 		op.tunnel_address = iter->get_tunnel_account();
-		crosschain->create_signature(op.tunnel_address, op.tunnel_address, op.tunnel_signature);
+		crosschain->create_signature(op.tunnel_address, op.tunnel_address, op.tunnel_signature,"");
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
