@@ -79,7 +79,7 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
-
+#include <graphene/privatekey_management/database_privatekey.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -2365,6 +2365,7 @@ public:
 
       miner_create_operation miner_create_op;
 	  miner_create_op.miner_account = miner_account.id;
+	  miner_create_op.miner_address = miner_account.addr;
 	  miner_create_op.block_signing_key = miner_public_key;
 	  miner_create_op.url = url;
 
@@ -2792,7 +2793,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -2816,7 +2817,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -4358,7 +4359,7 @@ public:
    optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
    optional<guarantee_object_id_type>    _guarantee_id;
-
+   map<string, string> _crosschain_keys;
    static_variant_map _operation_which_map = create_static_variant_map< operation >();
 
 #ifdef __unix__

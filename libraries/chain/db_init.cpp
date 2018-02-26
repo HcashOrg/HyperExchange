@@ -723,6 +723,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
                  [&](const genesis_state_type::initial_miner_type& witness) {
       miner_create_operation op;
       op.miner_account = get_account_id(witness.owner_name);
+	  op.miner_address = get_account_address(witness.owner_name);
       op.block_signing_key = witness.block_signing_key;
       apply_operation(genesis_eval_state, op);
    });

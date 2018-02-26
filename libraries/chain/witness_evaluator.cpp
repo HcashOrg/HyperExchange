@@ -34,10 +34,16 @@ namespace graphene { namespace chain {
 
 void_result miner_create_evaluator::do_evaluate( const miner_create_operation& op )
 { try {
-   //account cannot be a guard
-   auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
-   FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
-   return void_result();
+	auto miner_obj = db().get(op.miner_account);
+	FC_ASSERT(miner_obj.addr == op.miner_address, "the address is not correct");
+	//account cannot be a guard
+    auto & iter = db().get_index_type<guard_member_index>().indices().get<by_account>();
+    FC_ASSERT(iter.find(op.miner_account) == iter.end(),"account cannot be a guard.");
+   
+    auto & iter_miner = db().get_index_type<miner_index>().indices().get<by_account>();
+    FC_ASSERT(iter_miner.find(op.miner_account) == iter_miner.end(),"the account has beeen a miner.");
+
+    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
 object_id_type miner_create_evaluator::do_apply( const miner_create_operation& op )
@@ -115,8 +121,8 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 		if (!crosschain_interface->valid_config())
 			return void_result();
-		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2 / 3));
-		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2 / 3));
+		auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2.0 / 3.0));
+		auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2.0 / 3.0));
 
 		FC_ASSERT(o.multi_address_cold == multi_addr_cold["address"]);
 		FC_ASSERT(o.multi_redeemScript_cold == multi_addr_cold["redeemScript"]);

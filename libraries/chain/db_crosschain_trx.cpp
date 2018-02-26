@@ -14,9 +14,9 @@ namespace graphene {
 					});
 				}
 				else {
-					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
-						FC_ASSERT("deposit transaction exist");
-					}
+// 					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
+// 						FC_ASSERT("deposit transaction exist");
+// 					}
 					modify(*deposit_to_link_trx, [&](acquired_crosschain_trx_object& obj) {
 						obj.acquired_transaction_state = acquired_trx_create;
 					});
@@ -36,9 +36,9 @@ namespace graphene {
 					});
 				}
 				else {
-					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
-						FC_ASSERT("deposit transaction exist");
-					}
+// 					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
+// 						FC_ASSERT("deposit transaction exist");
+// 					}
 					modify(*deposit_to_link_trx, [&](acquired_crosschain_trx_object& obj) {
 						obj.acquired_transaction_state = acquired_trx_comfirmed;
 					});
@@ -58,9 +58,7 @@ namespace graphene {
 
 			try {
 				if (op_type == operation::tag<crosschain_withdraw_evaluate::operation_type>::value) {
-					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_itr = trx_db.find(transaction_id);
-					FC_ASSERT(trx_itr == trx_db.end(), "This Transaction exist");
+					
 					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_transaction_id = transaction_id_type();
@@ -71,20 +69,15 @@ namespace graphene {
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_without_sign_evaluate::operation_type>::value) {
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_itr = trx_db.find(relate_transaction_id);
-					FC_ASSERT(trx_itr != trx_db.end(), "Source Transaction doesn`t exist");
 					//auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_itr_relate = trx_db.find(transaction_id);
-					//FC_ASSERT(trx_itr_relate == trx_db_relate.end(), "Crosschain transaction has been created");
-
-					auto& trx_db_new = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_iter_new = trx_db_new.find(relate_transaction_id);
-					std::cout << relate_transaction_id.str() << std::endl;
-					std::cout << (trx_iter_new == trx_db_new.end()) << std::endl;
-					modify(*trx_iter_new, [&](crosschain_trx_object& obj) {
+					auto trx_without_sign_trx_iter = trx_db.find(transaction_id);
+					auto trx_crosschain_withdraw_iter = trx_db.find(relate_transaction_id);
+					//std::cout << relate_transaction_id.str() << std::endl;
+					//std::cout << (trx_iter_new == trx_db_new.end()) << std::endl;
+					modify(*trx_crosschain_withdraw_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_without_sign_trx_create;
 					});
-					if (trx_itr_relate == trx_db.end())
+					if (trx_without_sign_trx_iter == trx_db.end())
 					{
 						create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
 							obj.op_type = op_type;
@@ -95,19 +88,17 @@ namespace graphene {
 							obj.trx_state = withdraw_without_sign_trx_create;
 						});
 					}
-					
-					std::cout << "Run modify2" << std::endl;
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_combine_sign_evaluate::operation_type>::value) {
 					auto & tx_db_objs = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					auto tx_without_sign_iter = tx_db_objs.find(relate_transaction_id);
 					auto tx_combine_sign_iter = tx_db_objs.find(transaction_id);
-					FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "without sign tx exist error");
-					FC_ASSERT(tx_combine_sign_iter == tx_db_objs.end(), "combine sign tx has create");
-					for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
-						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
-						FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
-					}
+					//FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "without sign tx exist error");
+					//FC_ASSERT(tx_combine_sign_iter == tx_db_objs.end(), "combine sign tx has create");
+					//for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
+					//	auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
+					//	FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
+					//}
 					
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_combine_trx_create;
@@ -118,14 +109,14 @@ namespace graphene {
 							obj.trx_state = withdraw_combine_trx_create;
 						});
 					}
-					auto& sign_trx_db = get_index_type< crosschain_trx_index >().indices().get<by_trx_relate_type_stata>();
-					for (auto one_sign_trx : sign_trx_db)
-					{
-						if ( one_sign_trx.trx_state == withdraw_sign_trx)
-						{
-							std::cout << one_sign_trx.relate_transaction_id.str() << std::endl;
-						}
-					}
+// 					auto& sign_trx_db = get_index_type< crosschain_trx_index >().indices().get<by_trx_relate_type_stata>();
+// 					for (auto one_sign_trx : sign_trx_db)
+// 					{
+// 						if ( one_sign_trx.trx_state == withdraw_sign_trx)
+// 						{
+// 							std::cout << one_sign_trx.relate_transaction_id.str() << std::endl;
+// 						}
+// 					}
 
 					auto& sign_range = get_index_type< crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id);
 					int count = 0;
@@ -159,13 +150,13 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
-					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
-					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
-
-					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-					auto trx_itr = trx_db.find(transaction_id);
-					FC_ASSERT(trx_itr == trx_db.end(), "This sign tex is exist");
+// 					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+// 					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
+// 					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
+// 
+// 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+// 					auto trx_itr = trx_db.find(transaction_id);
+// 					FC_ASSERT(trx_itr == trx_db.end(), "This sign tex is exist");
 					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_transaction_id = relate_transaction_id;
@@ -192,7 +183,7 @@ namespace graphene {
 						});
 					}
 
-					auto & combine_state_range = get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>().equal_range(relate_transaction_id );
+					auto & combine_state_range = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id );
 					int count = 0;
 					std::for_each(combine_state_range.first, combine_state_range.second, [&](const crosschain_trx_object& sign_tx) {
 						auto sign_iter = tx_db_objs.find(sign_tx.transaction_id);
@@ -207,102 +198,102 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
-			vector<crosschain_trx_object> create_withdraw_trx;
-			get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
-			{
-				const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-				if (p.trx_state == withdraw_without_sign_trx_uncreate){
-					create_withdraw_trx.push_back(p);
-				}
-			});
-			std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
-			std::map<std::string, std::string> memo_info;
-			std::map<std::string, vector<transaction_id_type>> ccw_trx_ids;
-			for (auto & cross_chain_trx : create_withdraw_trx){
-				if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1){
-					continue;
-				}
-				auto op = cross_chain_trx.real_transaction.operations[0];
-				auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
-				std::map<std::string, std::string> temp_map;
-				std::vector<transaction_id_type> temp_vector;
-				if (dest_info.count(withop.asset_id)>0)
+			try {
+				vector<crosschain_trx_object> create_withdraw_trx;
+				get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
 				{
-					temp_map = dest_info[withop.asset_id];
-					temp_vector = ccw_trx_ids[withop.asset_symbol];
-				}
-				if (temp_map.count(withop.crosschain_account)>0)
-				{
-					temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + to_double(withop.amount)).c_str();
-					
-				}
-				else
-				{
-					temp_map[withop.crosschain_account] = withop.amount;
-				}
-				temp_vector.push_back(cross_chain_trx.real_transaction.id());
-				dest_info[withop.asset_id] = temp_map;
-				ccw_trx_ids[withop.asset_symbol] = temp_vector;
-
-				
-				memo_info[withop.asset_symbol] = withop.memo;
-			}
-
-			for (auto& one_asset : dest_info)
-			{
-				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-				optional<asset_object> opt_asset= get(one_asset.first);
-				if (!opt_asset.valid())
-				{
-					continue;
-				}
-				auto asset_symbol = opt_asset->symbol;
-				auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
-				crosschain_withdraw_without_sign_operation trx_op;
-				multisig_account_pair_object multi_account_obj;
-
-				get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
-				{
-					const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
-					if (p.chain_type == asset_symbol) {
-						if (multi_account_obj.effective_block_num < p.effective_block_num && p.effective_block_num <= head_block_num()) {
-							multi_account_obj = p;
-						}
+					const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
+					if (p.trx_state == withdraw_without_sign_trx_uncreate) {
+						create_withdraw_trx.push_back(p);
 					}
 				});
-				//auto multisign_hot = multisign_db.find()
-				FC_ASSERT(multi_account_obj.bind_account_cold != multi_account_obj.bind_account_hot);
-				/*std::map<const std::string, const std::string> temp_map;
-				for (auto & itr : one_asset.second)
+				std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
+				std::map<std::string, std::string> memo_info;
+				std::map<std::string, vector<transaction_id_type>> ccw_trx_ids;
+				for (auto & cross_chain_trx : create_withdraw_trx) {
+					if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1) {
+						continue;
+					}
+					auto op = cross_chain_trx.real_transaction.operations[0];
+					auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
+					std::map<std::string, std::string> temp_map;
+					std::vector<transaction_id_type> temp_vector;
+					if (dest_info.count(withop.asset_id)>0)
+					{
+						temp_map = dest_info[withop.asset_id];
+						temp_vector = ccw_trx_ids[withop.asset_symbol];
+					}
+					if (temp_map.count(withop.crosschain_account)>0)
+					{
+						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + to_double(withop.amount)).c_str();
+
+					}
+					else
+					{
+						temp_map[withop.crosschain_account] = withop.amount;
+					}
+					temp_vector.push_back(cross_chain_trx.real_transaction.id());
+					dest_info[withop.asset_id] = temp_map;
+					ccw_trx_ids[withop.asset_symbol] = temp_vector;
+
+
+					memo_info[withop.asset_symbol] = withop.memo;
+				}
+
+				for (auto& one_asset : dest_info)
 				{
+					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					optional<asset_object> opt_asset = get(one_asset.first);
+					if (!opt_asset.valid())
+					{
+						continue;
+					}
+					auto asset_symbol = opt_asset->symbol;
+					auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
+					crosschain_withdraw_without_sign_operation trx_op;
+					multisig_account_pair_object multi_account_obj;
+
+					get_index_type<multisig_account_pair_index >().inspect_all_objects([&](const object& o)
+					{
+						const multisig_account_pair_object& p = static_cast<const multisig_account_pair_object&>(o);
+						if (p.chain_type == asset_symbol) {
+							if (multi_account_obj.effective_block_num < p.effective_block_num && p.effective_block_num <= head_block_num()) {
+								multi_account_obj = p;
+							}
+						}
+					});
+					//auto multisign_hot = multisign_db.find()
+					FC_ASSERT(multi_account_obj.bind_account_cold != multi_account_obj.bind_account_hot);
+					/*std::map<const std::string, const std::string> temp_map;
+					for (auto & itr : one_asset.second)
+					{
 					const std::string key = itr.first;
 					const std::string value = itr.second;
 					temp_map.insert(std::make_pair(key,value));
-				}*/
-				trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], false);
-				trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
-				//std::cout << trx_op.ccw_trx_id.str() << std::endl;
-				trx_op.miner_broadcast = miner;
-				trx_op.asset_symbol = asset_symbol;
-				trx_op.asset_id = opt_asset->id;
-				optional<miner_object> miner_iter = get(miner);
-				optional<account_object> account_iter = get(miner_iter->miner_account);
-				trx_op.miner_address = account_iter->addr;
-				signed_transaction tx;
+					}*/
+					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], false);
+					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
+					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
+					trx_op.miner_broadcast = miner;
+					trx_op.asset_symbol = asset_symbol;
+					trx_op.asset_id = opt_asset->id;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
+					signed_transaction tx;
 
-				uint32_t expiration_time_offset = 0;
-				auto dyn_props = get_dynamic_global_properties();
-// 				operation temp = operation(op);
- 				get_global_properties().parameters.current_fees->set_fee((operation)trx_op);
-				tx.set_reference_block(dyn_props.head_block_id);
-				tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-				tx.operations.push_back(trx_op);
-				tx.validate();
-				tx.sign(pk, get_chain_id());
-				push_transaction(tx);
-			}
-			
-			
+					uint32_t expiration_time_offset = 0;
+					auto dyn_props = get_dynamic_global_properties();
+					// 				operation temp = operation(op);
+					get_global_properties().parameters.current_fees->set_fee((operation)trx_op);
+					tx.set_reference_block(dyn_props.head_block_id);
+					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+					tx.operations.push_back(trx_op);
+					tx.validate();
+					tx.sign(pk, get_chain_id());
+					push_transaction(tx);
+				}
+			}FC_CAPTURE_AND_LOG((0))
 		}
 		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
 			try {

@@ -39,12 +39,16 @@ namespace graphene { namespace chain {
 
       asset             fee;
       /// The account which owns the miner. This account pays the fee for this operation.
+	  address           miner_address;
       account_id_type   miner_account;
       string            url;
       public_key_type   block_signing_key;
 
-      account_id_type fee_payer()const { return miner_account; }
+      address fee_payer()const { return miner_address; }
       void            validate()const;
+	  void get_required_authorities(vector<authority>& a)const {
+		  a.push_back(authority(1, miner_address, 1));
+	  }
    };
 
   /**
@@ -119,7 +123,7 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT( graphene::chain::miner_create_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::miner_create_operation, (fee)(miner_account)(url)(block_signing_key) )
+FC_REFLECT( graphene::chain::miner_create_operation, (fee)(miner_address)(miner_account)(url)(block_signing_key) )
 
 FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
