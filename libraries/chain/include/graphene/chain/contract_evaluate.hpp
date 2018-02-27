@@ -142,6 +142,7 @@ namespace graphene {
         class contract_transfer_evaluate : public evaluator<contract_transfer_evaluate>, public contract_common_evaluate {
         private:
             transfer_contract_operation origin_op;
+            
 
         public:
             typedef transfer_contract_operation operation_type;

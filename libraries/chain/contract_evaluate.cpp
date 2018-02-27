@@ -724,7 +724,11 @@ namespace graphene {
 					if (native_contract->has_api("on_deposit"))
 					{
                         gas_count = o.invoke_cost;
-						auto invoke_result = native_contract->invoke("on_deposit", fc::json::to_string(o.amount));
+                        transfer_contract_operation::transfer_param param;
+                        param.amount = o.amount;
+                        param.param = o.param;
+
+                        auto invoke_result = native_contract->invoke("on_deposit", fc::json::to_string(param));
 
 						gas_used = native_contract->gas_count_for_api_invoke("on_deposit");
                         gas_count = gas_used;
@@ -767,7 +771,10 @@ namespace graphene {
 						std::string contract_result_str;
 						try
 						{
-							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit", fc::json::to_string(o.amount), &contract_result_str);
+                            transfer_contract_operation::transfer_param param;
+                            param.amount = o.amount;
+                            param.param = o.param;
+							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit", fc::json::to_string(param), &contract_result_str);
 						}
 						catch (uvm::core::UvmException &e)
 						{
@@ -1091,10 +1098,30 @@ namespace graphene {
 
             //deposit
             index.first = to;
+            share_type transfer_amount = amount.amount*1;
+            share_type transfer_fee_amount = amount.amount - transfer_amount;
+
             if (invoke_contract_result.deposit_to_address.find(index) != invoke_contract_result.deposit_to_address.end())
-				invoke_contract_result.deposit_to_address[index] += amount.amount;
+				invoke_contract_result.deposit_to_address[index] += transfer_amount;
             else
-				invoke_contract_result.deposit_to_address[index] = amount.amount;
+				invoke_contract_result.deposit_to_address[index] = transfer_amount;
+            bool transfer_fee_exsited = false;
+            if (transfer_fee_amount > 0)
+            {
+                for (auto it = invoke_contract_result.transfer_fees.begin(); it != invoke_contract_result.transfer_fees.end(); it++)
+                {
+                    if (it->first == amount.asset_id)
+                    {
+                        it->second += transfer_fee_amount;
+                        transfer_fee_exsited = true;
+                        break;
+                    }
+                }
+                if (!transfer_fee_exsited)
+                {
+                    invoke_contract_result.transfer_fees.insert(make_pair(amount.asset_id, transfer_fee_amount));
+                }
+            }
         }
          share_type contract_common_evaluate::get_contract_balance(const address & contract, const asset_id_type & asset_id)
         {

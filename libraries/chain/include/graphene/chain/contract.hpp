@@ -55,7 +55,7 @@ namespace graphene {
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_balances;
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_to_address;
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
-
+            std::map<asset_id_type,share_type> transfer_fees;
 			std::vector<contract_event_notify_info> events;
 
 			void clear();
@@ -156,7 +156,11 @@ namespace graphene {
                 uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
             };
 
-
+            struct transfer_param
+            {
+                asset amount;
+                string param;
+            };
             asset fee; // transaction fee limit
             gas_count_type invoke_cost; // contract invoke gas limit
             gas_price_type gas_price; // gas price of this contract transaction
@@ -164,6 +168,7 @@ namespace graphene {
             fc::ecc::public_key caller_pubkey;
             address contract_id;
             asset amount;
+            std::string param;
             extensions_type   extensions;
 
             address fee_payer()const { return caller_addr; }
@@ -198,4 +203,5 @@ FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_pr
 FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc))
 FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount))
+FC_REFLECT(graphene::chain::transfer_contract_operation::transfer_param, (amount)(param))
+FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount)(param))
