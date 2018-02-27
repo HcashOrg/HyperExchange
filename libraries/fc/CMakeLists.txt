@@ -218,6 +218,7 @@ set( fc_sources
      src/crypto/sha224.cpp
      src/crypto/sha512.cpp
      src/crypto/dh.cpp
+     src/crypto/pke.cpp
      src/crypto/blowfish.cpp
      src/crypto/elliptic_common.cpp
      ${ECC_REST}

@@ -7,6 +7,7 @@
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/sha256.hpp>
+#include <fc/io/json.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/contract_evaluate.hpp>
@@ -24,6 +25,7 @@ namespace graphene {
 			contract_balances.clear();
 			deposit_to_address.clear();
 			deposit_contract.clear();
+            transfer_fees.clear();
 		}
 
 		string contract_invoke_result::ordered_digest() const
@@ -89,6 +91,17 @@ namespace graphene {
 				deposit_contract_array.push_back(item);
 			}
 			result_array.push_back(deposit_contract_array);
+
+            JsonArray transfer_fees_array;
+            for (auto it= transfer_fees.begin(); it != transfer_fees.end(); it++)
+            {
+                JsonArray item;
+                item.push_back(fc::json::to_string(it->first));
+                item.push_back(it->second.value);
+                transfer_fees_array.push_back(item);
+            }
+            result_array.push_back(transfer_fees_array);
+
 
 			auto array_json_str = json_dumps(result_array);
 			return fc::sha256::hash(array_json_str.c_str(), array_json_str.size()).str();
@@ -179,7 +192,10 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            return count_gas_fee(gas_price, invoke_cost);
+            share_type core_fee_required = schedule.fee;
+            core_fee_required += calculate_data_fee(fc::raw::pack_size(param), schedule.price_per_kbyte);
+            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+            return core_fee_required;
         }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)

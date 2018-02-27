@@ -79,7 +79,7 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
-
+#include <graphene/privatekey_management/database_privatekey.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1491,6 +1491,7 @@ public:
        string to,
        string amount,
        string asset_symbol,
+       const string& param,
        const string& gas_price,
        const string& gas_limit,
        bool broadcast = false)
@@ -1517,6 +1518,7 @@ public:
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
+       transfer_to_contract_op.param = param;
 
        signed_transaction tx;
        tx.operations.push_back(transfer_to_contract_op);
@@ -1531,7 +1533,7 @@ public:
        auto signed_tx = sign_transaction(tx, broadcast);
        return signed_tx;
    }
-   share_type transfer_to_contract_testing(string from, string to, string amount, string asset_symbol)
+   share_type transfer_to_contract_testing(string from, string to, string amount, string asset_symbol,const string& param)
    {
        // TODO: invoke_contract_testing
        FC_ASSERT(!self.is_locked());
@@ -1555,6 +1557,7 @@ public:
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
+       transfer_to_contract_op.param = param;
 
        signed_transaction tx;
        tx.operations.push_back(transfer_to_contract_op);
@@ -2790,7 +2793,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -2814,7 +2817,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -4356,7 +4359,7 @@ public:
    optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
    optional<guarantee_object_id_type>    _guarantee_id;
-
+   map<string, string> _crosschain_keys;
    static_variant_map _operation_which_map = create_static_variant_map< operation >();
 
 #ifdef __unix__
@@ -5576,14 +5579,14 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	return res;
 }
 
-signed_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& gas_price, const string& gas_limit, bool broadcast)
+signed_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
 {
-    return my->transfer_to_contract(from, to,amount, asset_symbol, gas_price, gas_limit,broadcast);
+    return my->transfer_to_contract(from, to,amount, asset_symbol, param, gas_price, gas_limit,broadcast);
 }
 
-share_type wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol)
+share_type wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param)
 {
-    return my->transfer_to_contract_testing(from,to,amount,asset_symbol);
+    return my->transfer_to_contract_testing(from,to,amount,asset_symbol, param);
 }
 
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const

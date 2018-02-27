@@ -226,12 +226,11 @@ void_result proposal_delete_evaluator::do_evaluate(const proposal_delete_operati
    database& d = db();
 
    _proposal = &o.proposal(d);
-
-   auto required_approvals = &_proposal->required_account_approvals;
-   FC_ASSERT( required_approvals->find(o.fee_paying_account) != required_approvals->end(),
-              "Provided authority is not authoritative for this proposal.",
-              ("provided", o.fee_paying_account)("required", *required_approvals));
-
+   auto proposer_addr = d.get(_proposal->proposer).addr;
+   // if no one has voted, i think we can remove this proposal
+   // and definately only proposer can remove this proposal
+   FC_ASSERT(proposer_addr == o.fee_paying_account,"not created by this account");
+   FC_ASSERT(_proposal->approved_key_approvals.size()==0 && _proposal->disapproved_key_approvals.size()==0 , "as there are already votes, so it cannot be removed any more.");
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 

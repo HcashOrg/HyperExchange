@@ -16,7 +16,8 @@ namespace graphene {
 			withdraw_sign_trx = 2,
 			withdraw_combine_trx_create = 3,
 			withdraw_transaction_confirm = 4,
-			withdraw_transaction_fail = 5
+			withdraw_transaction_fail = 5,
+			withdraw_canceled =6
 		};
 		enum acquired_trx_state {
 			acquired_trx_uncreate = 0,

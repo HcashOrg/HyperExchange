@@ -148,7 +148,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo,const std::string& prk)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -276,7 +276,34 @@ namespace graphene {
 		{
 			return true;
 		}
+		bool crosschain_interface_ltc::validate_address(const std::string& addr)
+		{
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Address.validate\" ,\
+				\"params\" : {\"chainId\":\"ltc\" ,\"addr\": " << "\"" << addr << "}}";
+			fc::http::connection conn;
+			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				auto ret = resp.get_object();
+				if (ret.contains("result"))
+				{
+					auto result = ret["result"].get_object();
+					return result["valid"].as_bool();
+				}
+				else
+				{
+					return false;
+				}
 
+			}
+			else
+				FC_THROW(addr);
+		}
 		bool crosschain_interface_ltc::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
 			std::ostringstream req_body;
@@ -307,7 +334,7 @@ namespace graphene {
 				FC_THROW(signature);
 		}
 
-		bool crosschain_interface_ltc::create_signature(const std::string &account, const std::string &content, std::string &signature)
+		bool crosschain_interface_ltc::create_signature(const std::string &account, const std::string &content, std::string &signature, const std::string& prk)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
