@@ -884,7 +884,7 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
 		inface->initialize_config(config);
-		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), "1", string("BTC"), string(""), true);
+		auto trx = inface->create_multisig_transaction(string(cold_addr), string(hot_addr), "1", string("BTC"), string(""), "");
 		inface->initialize_config(config);
 		auto link_trx = inface->turn_trx(trx);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));

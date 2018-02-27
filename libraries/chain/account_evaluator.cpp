@@ -420,12 +420,14 @@ object_id_type account_unbind_evaluator::do_apply(const account_unbind_operation
 void_result account_multisig_create_evaluator::do_evaluate(const account_multisig_create_operation& o)
 { try {
 	//Check if this address exists.
-	auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+	const auto &guard_change_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
+	
 	//Check if all the signatures are valid.
-	auto &accounts = db().get_index_type<account_index>().indices().get<by_address>();
+	const auto &accounts = db().get_index_type<account_index>().indices().get<by_address>();
 	auto addr = address(fc::ecc::public_key(o.signature, fc::sha256::hash(o.new_address_hot+o.new_address_cold)));
 	FC_ASSERT(accounts.find(addr) != accounts.end());
-
+	FC_ASSERT(o.account_id == accounts.find(addr)->id);
+	FC_ASSERT(guard_change_idx.find(o.account_id)->formal == true);
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
 }
