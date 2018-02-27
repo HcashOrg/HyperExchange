@@ -225,9 +225,6 @@ namespace graphene {
 				\"method\" : \"Zchain.Trans.createTrx\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
 			std::cout << req_body.str() << std::endl;
-			std::cout << _config["ip"].as_string()<<std::endl;
-			std::cout << _config["port"].as_uint64() << std::endl;
-
 			fc::http::connection conn;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
@@ -411,7 +408,7 @@ namespace graphene {
 						auto hex = result["result"].get_object()["data"].as_string();
 					}
 				}
-			}FC_CAPTURE_AND_RETHROW((trx));
+			}FC_CAPTURE_AND_LOG((trx));
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_btc::query_account_balance(const std::string &account)
