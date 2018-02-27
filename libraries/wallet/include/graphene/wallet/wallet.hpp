@@ -1764,13 +1764,15 @@ class wallet_api
           string to,
           string amount,
           string asset_symbol,
+          const string& param,
           const string& gas_price,
           const string& gas_limit,
           bool broadcast = false);
       share_type transfer_to_contract_testing(string from,
           string to,
           string amount,
-          string asset_symbol);
+          string asset_symbol,
+          const string& param);
 
       vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis

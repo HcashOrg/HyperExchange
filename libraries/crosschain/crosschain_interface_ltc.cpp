@@ -434,7 +434,7 @@ namespace graphene {
 						auto hex = result["result"].get_object()["data"].as_string();
 					}
 				}
-			}FC_CAPTURE_AND_RETHROW((trx));
+			}FC_CAPTURE_AND_LOG((trx));
 		}
 
 		std::vector<fc::variant_object> crosschain_interface_ltc::query_account_balance(const std::string &account)
@@ -462,6 +462,30 @@ namespace graphene {
 				if (result.contains("result"))
 				{
 					end_block_num = result["result"].get_object()["blockNum"].as_uint64();
+					for (auto one_data : result["result"].get_object()["data"].get_array())
+					{
+						//std::cout << one_data.get_object()["txid"].as_string();
+						return_value.push_back(one_data.get_object());
+					}
+				}
+			}
+			std::ostringstream req_body1;
+			req_body1 << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Transaction.Withdraw.History\" ,\
+				\"params\" : {\"chainId\":\"" << local_symbol << "\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": " << start_block << "}}";
+			fc::http::connection conn1;
+			conn1.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response1 = conn1.request(_rpc_method, _rpc_url, req_body1.str(), _rpc_headers);
+			std::cout << req_body1.str() << std::endl;
+			if (response1.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response1.body.begin(), response1.body.end()));
+				//std::cout << std::string(response.body.begin(), response.body.end());
+				auto result = resp.get_object();
+				if (result.contains("result"))
+				{
+					end_block_num = std::max(uint32_t(result["result"].get_object()["blockNum"].as_uint64()),end_block_num);
 					for (auto one_data : result["result"].get_object()["data"].get_array())
 					{
 						//std::cout << one_data.get_object()["txid"].as_string();
