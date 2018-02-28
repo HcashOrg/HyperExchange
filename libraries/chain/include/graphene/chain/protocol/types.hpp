@@ -173,7 +173,8 @@ namespace graphene { namespace chain {
       impl_special_authority_object_type,
       impl_buyback_object_type,
       impl_fba_accumulator_object_type,
-	  impl_guarantee_obj_type
+	  impl_guarantee_obj_type,
+	  impl_address_transaction_history_object_type
    };
 
    //typedef fc::unsigned_int            object_id_type;

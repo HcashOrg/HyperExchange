@@ -54,6 +54,14 @@ namespace graphene {
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.asset_symbol))
+				return void_result();
+			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
+			bool valid_address = hdl->validate_address(o.crosschain_account);
+			FC_ASSERT(valid_address, "crosschain address isn`t valid");
 			//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
 			return void_result();
 		}

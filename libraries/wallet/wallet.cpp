@@ -758,6 +758,12 @@ public:
       graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 
       account_object account = get_account( account_name_or_id );
+	  if (account.addr == address())
+	  {
+		  create_account(account_name_or_id);
+		  account = get_account(account_name_or_id);
+	  }
+		  
 	  string addr = account.addr.operator fc::string();
       // make a list of all current public keys for the named account
       flat_set<public_key_type> all_keys_for_account;
@@ -765,14 +771,16 @@ public:
       std::vector<public_key_type> owner_keys = account.owner.get_keys();
       std::copy(active_keys.begin(), active_keys.end(), std::inserter(all_keys_for_account, all_keys_for_account.end()));
       std::copy(owner_keys.begin(), owner_keys.end(), std::inserter(all_keys_for_account, all_keys_for_account.end()));
-      all_keys_for_account.insert(account.options.memo_key);
+	 
 
       _keys[wif_pub_key] = wif_key;
 	  account.addr = address(wif_pub_key);
       _wallet.update_account(account);
 
       _wallet.extra_keys[account.id].insert(wif_pub_key);
-
+	  if (account.options.memo_key == public_key_type())
+		  return true;
+	  all_keys_for_account.insert(account.options.memo_key);
       return all_keys_for_account.find(wif_pub_key) != all_keys_for_account.end();
    }
 

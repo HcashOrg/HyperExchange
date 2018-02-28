@@ -441,13 +441,19 @@ map<uint32_t, optional<block_header>> database_api_impl::get_block_header_batch(
 vector<optional<multisig_account_pair_object> > database_api_impl::get_multisig_account_pair(const string& symbol) const
 {
     const auto& multisig_accounts_byid = _db.get_index_type<multisig_account_pair_index>().indices().get<by_id>();
+	//std::cout <<"multisig account size: "<< multisig_accounts_byid.size() << std::endl;
 	vector<optional<multisig_account_pair_object>> result;
-	std::transform(multisig_accounts_byid.begin(), multisig_accounts_byid.end(), std::back_inserter(result),
-		[&multisig_accounts_byid,&symbol](const multisig_account_pair_object& obj) -> optional<multisig_account_pair_object> {
-		if (obj.chain_type == symbol)
-			return obj;
-		//return  optional<multisig_account_pair_object>() ;
-	});
+	for (const auto & one_multisig_obj : multisig_accounts_byid)
+	{
+		if (one_multisig_obj.chain_type == symbol)
+			result.push_back(one_multisig_obj);
+	}
+	//std::transform(multisig_accounts_byid.begin(), multisig_accounts_byid.end(), std::back_inserter(result),
+	//	[&multisig_accounts_byid,&symbol](const multisig_account_pair_object& obj) -> optional<multisig_account_pair_object> {
+	//	if (obj.chain_type == symbol)
+	//		return obj;
+	//	//return  optional<multisig_account_pair_object>() ;
+	//});
 	return result;
 }
 optional<multisig_account_pair_object> database_api_impl::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const

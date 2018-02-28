@@ -199,18 +199,12 @@ namespace graphene {
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
-				vector<crosschain_trx_object> create_withdraw_trx;
-				get_index_type<crosschain_trx_index>().inspect_all_objects([&](const object& o)
-				{
-					const crosschain_trx_object& p = static_cast<const crosschain_trx_object&>(o);
-					if (p.trx_state == withdraw_without_sign_trx_uncreate) {
-						create_withdraw_trx.push_back(p);
-					}
-				});
+				auto withdraw_range = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_uncreate);
 				std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
 				std::map<std::string, std::string> memo_info;
 				std::map<std::string, vector<transaction_id_type>> ccw_trx_ids;
-				for (auto & cross_chain_trx : create_withdraw_trx) {
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				for (auto & cross_chain_trx : boost::make_iterator_range(withdraw_range.first,withdraw_range.second)) {
 					if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1) {
 						continue;
 					}
@@ -223,26 +217,32 @@ namespace graphene {
 						temp_map = dest_info[withop.asset_id];
 						temp_vector = ccw_trx_ids[withop.asset_symbol];
 					}
-					if (temp_map.count(withop.crosschain_account)>0)
-					{
-						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + to_double(withop.amount)).c_str();
-
+					optional<asset_object> opt_asset = get(withop.asset_id);
+					if (!opt_asset.valid()) {
+						continue;
 					}
-					else
-					{
+					auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
+					if (!hdl->valid_config()) {
+						continue;
+					}
+					bool valid_address = hdl->validate_address(withop.crosschain_account);
+					if (!valid_address) {
+						continue;
+					}
+					if (temp_map.count(withop.crosschain_account)>0){
+						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + to_double(withop.amount)).c_str();
+					}
+					else{
 						temp_map[withop.crosschain_account] = withop.amount;
 					}
 					temp_vector.push_back(cross_chain_trx.real_transaction.id());
 					dest_info[withop.asset_id] = temp_map;
 					ccw_trx_ids[withop.asset_symbol] = temp_vector;
-
-
 					memo_info[withop.asset_symbol] = withop.memo;
 				}
 
 				for (auto& one_asset : dest_info)
 				{
-					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 					optional<asset_object> opt_asset = get(one_asset.first);
 					if (!opt_asset.valid())
 					{
@@ -271,7 +271,7 @@ namespace graphene {
 					const std::string value = itr.second;
 					temp_map.insert(std::make_pair(key,value));
 					}*/
-					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], false);
+					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], "");
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
 					trx_op.miner_broadcast = miner;

@@ -99,6 +99,16 @@ namespace graphene { namespace chain {
          //std::pair<account_id_type,uint32_t>                   account_seq()const { return std::tie( account, sequence );     }
    };
    
+   class address_transaction_history_object :public abstract_object<address_transaction_history_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_address_transaction_history_object_type;
+	   address                  addr;
+	   transaction_id_type      trx_id;
+	   signed_transaction       signed_trx;
+   };
+
    struct by_id;
 struct by_seq;
 struct by_op;
@@ -127,7 +137,31 @@ typedef multi_index_container<
 
 typedef generic_index<account_transaction_history_object, account_transaction_history_multi_index_type> account_transaction_history_index;
 
-   
+  
+struct by_trx;
+
+typedef multi_index_container<
+	address_transaction_history_object,
+	indexed_by<
+	ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	ordered_unique< tag<by_seq>,
+	composite_key< address_transaction_history_object,
+	member< address_transaction_history_object, address, &address_transaction_history_object::addr>,
+	member< address_transaction_history_object, transaction_id_type, &address_transaction_history_object::trx_id>
+	>
+	>,
+	ordered_unique< tag<by_trx>,member< address_transaction_history_object, transaction_id_type, &address_transaction_history_object::trx_id>
+	>,
+	ordered_non_unique< tag<by_address>,
+	member< address_transaction_history_object, address, &address_transaction_history_object::addr>
+	>
+	>
+> address_transaction_history_multi_index_type;
+
+typedef generic_index<address_transaction_history_object, address_transaction_history_multi_index_type> address_transaction_history_index;
+
+
+
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::operation_history_object, (graphene::chain::object),
@@ -135,3 +169,5 @@ FC_REFLECT_DERIVED( graphene::chain::operation_history_object, (graphene::chain:
 
 FC_REFLECT_DERIVED( graphene::chain::account_transaction_history_object, (graphene::chain::object),
                     (account)(operation_id)(sequence)(next) )
+FC_REFLECT_DERIVED(graphene::chain::address_transaction_history_object, (graphene::chain::object),
+	(addr)(trx_id)(signed_trx))

@@ -3,6 +3,7 @@
 #include "graphene/crosschain/crosschain_impl.hpp"
 #include "graphene/crosschain/crosschain_interface_emu.hpp"
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
+#include <graphene/crosschain/crosschain_interface_ltc.hpp>
 namespace graphene {
 	namespace crosschain {
 		crosschain_manager::crosschain_manager()
@@ -30,6 +31,11 @@ namespace graphene {
 				else if (name == "BTC")
 				{
 					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_btc()));
+					return itr.first->second;
+				}
+				else if (name == "LTC")
+				{
+					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_ltc()));
 					return itr.first->second;
 				}
 			}
