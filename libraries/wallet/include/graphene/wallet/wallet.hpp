@@ -25,7 +25,7 @@
 
 #include <graphene/app/api.hpp>
 #include <graphene/utilities/key_conversion.hpp>
-
+#include <graphene/wallet/contract_event_handler.hpp>
 using namespace graphene::app;
 using namespace graphene::chain;
 using namespace graphene::utilities;
@@ -152,7 +152,9 @@ struct wallet_data
 {
    /** Chain ID this wallet is used with */
    chain_id_type chain_id;
-   account_multi_index_type my_accounts;
+   account_multi_index_type my_accounts; 
+
+   script_object_multi_index_type my_scripts;
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
    {
@@ -177,7 +179,43 @@ struct wallet_data
          return true;
       }
    }
-
+   vector<script_object> list_scripts()
+   {
+       vector<script_object> res;
+       auto& idx = my_scripts.get<by_hash>();
+       for (auto itr : idx)
+       {
+           res.push_back(itr);
+       }
+       return res;
+   }
+   bool insert_script(const script_object& spt)
+   {
+       auto& idx = my_scripts.get<by_hash>();
+       auto itr = idx.find(spt.script_hash);
+       if (itr != idx.end())
+       {
+           idx.replace(itr, spt);
+           return false;
+       }
+       else {
+           idx.insert(spt);
+           return true;
+       }
+   }
+   bool remove_script(const string& strhash)
+   {
+       auto& idx = my_scripts.get<by_hash>();
+       auto itr = idx.find(strhash);
+       if (itr != idx.end())
+       {
+           idx.erase(itr);
+           return true;
+       }
+       else {
+           return false;
+       }
+   }
    /** encrypted keys */
    vector<char>              cipher_keys;
 
@@ -1776,7 +1814,11 @@ class wallet_api
 
       vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis
-
+      // begin script wallet apis
+      std::string add_script(const string& script_path);
+      vector<script_object>list_scripts();
+      void remove_script(const string& script_hash);
+      // end script wallet apis
       /**
        *  Used to transfer from one set of blinded balances to another
        */
@@ -1824,6 +1866,7 @@ FC_REFLECT( graphene::wallet::plain_keys, (keys)(checksum) )
 FC_REFLECT( graphene::wallet::wallet_data,
             (chain_id)
             (my_accounts)
+            (my_scripts)
             (cipher_keys)
             (extra_keys)
             (pending_account_registrations)(pending_miner_registrations)
@@ -2037,6 +2080,8 @@ FC_API( graphene::wallet::wallet_api,
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
+        (add_script)
+        (remove_script)
 		(create_guarantee_order)
 	    (list_guarantee_order)
 		(set_guarantee_id)

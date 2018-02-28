@@ -5593,7 +5593,28 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
-
+std::string wallet_api::add_script(const string& script_path) 
+{
+    script_object spt;
+    std::ifstream in(script_path, std::ios::in | std::ios::binary);
+    FC_ASSERT(in.is_open());
+    std::vector<unsigned char> contract_filedata((std::istreambuf_iterator<char>(in)),
+        (std::istreambuf_iterator<char>()));
+    in.close();
+    auto contract_code = ContractHelper::load_contract_from_file(script_path);
+    spt.script = contract_code;
+    spt.script_hash = spt.script.GetHash();
+    my->_wallet.insert_script(spt);
+    return spt.script_hash;
+}
+vector<script_object> wallet_api::list_scripts()
+{
+    return my->_wallet.list_scripts();
+}
+void wallet_api::remove_script(const string& script_hash)
+{
+    my->_wallet.remove_script(script_hash);
+}
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);
