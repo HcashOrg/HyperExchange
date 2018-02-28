@@ -271,7 +271,7 @@ namespace graphene {
 					const std::string value = itr.second;
 					temp_map.insert(std::make_pair(key,value));
 					}*/
-					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], false);
+					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], "");
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
 					trx_op.miner_broadcast = miner;
