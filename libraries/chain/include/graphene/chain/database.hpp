@@ -185,7 +185,17 @@ namespace graphene { namespace chain {
           *  the write lock and may be in an "inconstant state" until after it is
           *  released.
           */
-         fc::signal<void(const signed_block&)>           applied_block;
+         fc::signal<void(const signed_transaction&)>           store_transactions;
+
+		 /**
+		 *  This signal is emitted after all operations and virtual operation for a
+		 *  block have been applied but before the get_applied_operations() are cleared.
+		 *
+		 *  You may not yield from this callback because the blockchain is holding
+		 *  the write lock and may be in an "inconstant state" until after it is
+		 *  released.
+		 */
+		 fc::signal<void(const signed_block&)>           applied_block;
 
          /**
           * This signal is emitted any time a new transaction is added to the pending

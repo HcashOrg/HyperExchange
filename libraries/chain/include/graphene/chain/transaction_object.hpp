@@ -53,7 +53,7 @@ namespace graphene { namespace chain {
 
          signed_transaction  trx;
          transaction_id_type trx_id;
-
+		 share_type  block_num;
          time_point_sec get_expiration()const { return trx.expiration; }
    };
 
@@ -64,7 +64,7 @@ namespace graphene { namespace chain {
       transaction_object,
       indexed_by<
          ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-         hashed_unique< tag<by_trx_id>, BOOST_MULTI_INDEX_MEMBER(transaction_object, transaction_id_type, trx_id), std::hash<transaction_id_type> >,
+         ordered_unique< tag<by_trx_id>, member<transaction_object, transaction_id_type, &transaction_object::trx_id> >,
          ordered_non_unique< tag<by_expiration>, const_mem_fun<transaction_object, time_point_sec, &transaction_object::get_expiration > >
       >
    > transaction_multi_index_type;
@@ -133,7 +133,7 @@ namespace graphene { namespace chain {
 
 } }
 
-FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id) )
+FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id)(block_num) )
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
 FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(contract_address)(storage_name)(diff))
