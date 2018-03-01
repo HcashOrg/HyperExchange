@@ -84,6 +84,24 @@ namespace graphene { namespace app {
    };
    
    /**
+   * @brief The history_api class implements the RPC API for transaction
+   *
+   * This API contains methods to access transactions
+   */
+   class transaction_api
+   {
+   public:
+	   transaction_api(graphene::chain::database& db);
+	   ~transaction_api();
+	   optional<transaction> get_transaction(transaction_id_type trx_id);
+   private:
+	   graphene::chain::database& _db;
+   };
+
+
+
+
+   /**
     * @brief The history_api class implements the RPC API for account history
     *
     * This API contains methods to access account histories
@@ -368,6 +386,7 @@ namespace graphene { namespace app {
          /// @brief Retrieve the debug API (if available)
          fc::api<graphene::debug_miner::debug_api> debug()const;
 	     fc::api<crosschain_api> crosschain_config() const;
+		 fc::api<transaction_api> transaction() const;
          /// @brief Called to enable an API, not reflected.
          void enable_api( const string& api_name );
 		 
@@ -375,6 +394,7 @@ namespace graphene { namespace app {
 
          application& _app;
          optional< fc::api<block_api> > _block_api;
+		 optional< fc::api<transaction_api> > _transaction_api;
          optional< fc::api<database_api> > _database_api;
          optional< fc::api<network_broadcast_api> > _network_broadcast_api;
          optional< fc::api<network_node_api> > _network_node_api;
@@ -412,6 +432,9 @@ FC_API(graphene::app::crosschain_api,
      )
 FC_API(graphene::app::block_api,
 	(get_blocks)
+	)
+FC_API(graphene::app::transaction_api,
+	(get_transaction)
 	)
 FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
@@ -454,4 +477,5 @@ FC_API(graphene::app::login_api,
        (asset)
        (debug)
 	   (crosschain_config)
+	   (transaction)
      )

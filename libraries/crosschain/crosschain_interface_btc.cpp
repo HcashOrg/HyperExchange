@@ -208,7 +208,7 @@ namespace graphene {
 				std::cout << "message is :" <<std::string(response.body.begin(), response.body.end()) << std::endl;
 				auto ret = resp.get_object()["result"].get_object();
 				FC_ASSERT(ret.contains("data"));
-				return fc::variant_object();
+				return ret["data"].get_object();
 			}
 			else
 				FC_THROW("TODO");

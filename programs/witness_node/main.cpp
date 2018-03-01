@@ -27,7 +27,7 @@
 #include <graphene/account_history/account_history_plugin.hpp>
 #include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
-
+#include <graphene/transaction/transaction_plugin.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/interprocess/signals.hpp>
@@ -43,7 +43,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-
 #include <iostream>
 #include <fstream>
 
@@ -74,7 +73,7 @@ int main(int argc, char** argv) {
 
       auto witness_plug = node->register_plugin<miner_plugin::miner_plugin>();
       auto history_plug = node->register_plugin<account_history::account_history_plugin>();
-      auto market_history_plug = node->register_plugin<market_history::market_history_plugin>();
+	  auto transaction_plg = node->register_plugin<transaction::transaction_plugin>();
 	  auto crosschain_record_plug = node->register_plugin<crosschain::crosschain_record_plugin>();
 	  
 	  

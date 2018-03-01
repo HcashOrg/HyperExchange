@@ -410,7 +410,8 @@ public:
         _remote_net_broadcast(rapi->network_broadcast()),
         _remote_hist(rapi->history()),
 	   _crosschain_manager(rapi->crosschain_config()),
-	   _guarantee_id(optional<guarantee_object_id_type>())
+	   _guarantee_id(optional<guarantee_object_id_type>()),
+	   _remote_trx(rapi->transaction())
    {
       chain_id_type remote_chain_id = _remote_db->get_chain_id();
       if( remote_chain_id != _chain_id )
@@ -636,6 +637,17 @@ public:
 
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
+
+   transaction get_transaction(transaction_id_type id) const
+   {
+	   try {
+		   auto trx = _remote_trx->get_transaction(id);
+		   if (trx.valid())
+			   return *trx;
+		   return transaction();
+	   }FC_CAPTURE_AND_RETHROW((id))
+   }
+
 
    void set_guarantee_id(const guarantee_object_id_type id)
    {
@@ -4362,6 +4374,7 @@ public:
    fc::api<database_api>   _remote_db;
    fc::api<network_broadcast_api>   _remote_net_broadcast;
    fc::api<history_api>    _remote_hist;
+   fc::api<transaction_api> _remote_trx;
    optional< fc::api<network_node_api> > _remote_net_node;
    optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
    optional< fc::api<crosschain_api> >   _crosschain_manager;
@@ -5996,6 +6009,10 @@ signed_transaction wallet_api::cancel_guarantee_order(const guarantee_object_id_
 vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol)
 {
 	return my->list_guarantee_order(symbol);
+}
+transaction wallet_api::get_transaction(transaction_id_type id) const
+{
+	return my->get_transaction(id);
 }
 
 void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
