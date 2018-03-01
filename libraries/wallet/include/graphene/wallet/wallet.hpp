@@ -155,6 +155,11 @@ struct wallet_data
    account_multi_index_type my_accounts; 
 
    script_object_multi_index_type my_scripts;
+
+   script_binding_object_multi_index_type event_handlers;
+   // script bindings
+
+   //
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
    {
@@ -215,6 +220,40 @@ struct wallet_data
        else {
            return false;
        }
+   }
+   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
+   {
+       auto& idx=event_handlers.get<by_contract_addr>();
+       auto itr = idx.lower_bound(contract);
+       auto itr_end = idx.upper_bound(contract);
+       while (itr != itr_end)
+       {
+           if (itr->script_hash == script_hash&&itr->event_name == event_name)
+               return false;
+           itr++;
+       }
+       script_binding_object obj;
+       obj.script_hash = script_hash;
+       obj.contract_id = contract;
+       obj.event_name = event_name;
+       idx.insert(obj);
+       return true;
+   }
+   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
+   {
+       auto& idx = event_handlers.get<by_contract_addr>();
+       auto itr = idx.lower_bound(contract);
+       auto itr_end = idx.upper_bound(contract);
+       while (itr != itr_end)
+       {
+           if (itr->script_hash == script_hash&&itr->event_name == event_name)
+           {
+               idx.erase(itr);
+               return true;
+           }
+           itr++;
+       }
+       return false;
    }
    /** encrypted keys */
    vector<char>              cipher_keys;
@@ -1818,6 +1857,8 @@ class wallet_api
       std::string add_script(const string& script_path);
       vector<script_object>list_scripts();
       void remove_script(const string& script_hash);
+      bool bind_script_to_event(const string& script_hash, const string& contract, const string& event_name);
+      bool remove_event_handle(const string& script_hash, const string& contract, const string& event_name);
       // end script wallet apis
       /**
        *  Used to transfer from one set of blinded balances to another
@@ -2082,6 +2123,8 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_balance)
         (add_script)
         (remove_script)
+        (bind_script_to_event)
+        (remove_event_handle)
 		(create_guarantee_order)
 	    (list_guarantee_order)
 		(set_guarantee_id)

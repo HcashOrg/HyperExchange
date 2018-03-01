@@ -5623,6 +5623,18 @@ void wallet_api::remove_script(const string& script_hash)
 {
     my->_wallet.remove_script(script_hash);
 }
+bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
+{
+    auto con_info=my->_remote_db->get_contract_info(contract);
+    FC_ASSERT(con_info.contract_address == address(contract,ADDRESS_CONTRACT_PREFIX), "");
+    return my->_wallet.bind_script_to_event(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX),event_name);
+}
+bool wallet_api::remove_event_handle(const string& script_hash, const string& contract, const string& event_name)
+{
+    auto con_info = my->_remote_db->get_contract_info(contract);
+    FC_ASSERT(con_info.contract_address == address(contract, ADDRESS_CONTRACT_PREFIX), "");
+    return my->_wallet.remove_event_handle(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
+}
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);
