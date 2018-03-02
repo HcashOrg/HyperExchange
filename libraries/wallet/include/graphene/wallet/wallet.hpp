@@ -1890,6 +1890,7 @@ class wallet_api
 	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
 	  transaction get_transaction(transaction_id_type id)const;
+	  vector<transaction_id_type> list_transactions() const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
@@ -2136,4 +2137,5 @@ FC_API( graphene::wallet::wallet_api,
         (register_native_contract_testing)
         (upgrade_contract_testing)
 		(get_transaction)
+		(list_transactions)
       )

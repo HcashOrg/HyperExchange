@@ -186,6 +186,7 @@ namespace graphene { namespace chain {
           *  released.
           */
          fc::signal<void(const signed_transaction&)>           store_transactions;
+		 fc::signal<void(const signed_transaction&)>           store_history_transactions;
 
 		 /**
 		 *  This signal is emitted after all operations and virtual operation for a

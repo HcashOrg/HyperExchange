@@ -61,13 +61,12 @@ class transaction_plugin_impl
       }
 
 	  transaction_plugin& _self;
-      flat_set<account_id_type> _tracked_accounts;
+      flat_set<address> _tracked_addresses;
       bool _partial_operations = false;
       primary_index< simple_index< operation_history_object > >* _oho_index;
       uint32_t _max_ops_per_account = -1;
-   private:
       /** add one history record, then check and remove the earliest history record */
-      void add_account_history( const account_id_type account_id, const operation_history_id_type op_id );
+      void add_transaction_history( const signed_transaction& trx );
 
 };
 
@@ -85,63 +84,33 @@ void transaction_plugin_impl::update_transaction_record( const signed_transactio
    });
 }
 
-void transaction_plugin_impl::add_account_history( const account_id_type account_id, const operation_history_id_type op_id )
+void transaction_plugin_impl::add_transaction_history(const signed_transaction& trx)
 {
-   graphene::chain::database& db = database();
-   const auto& stats_obj = account_id(db).statistics(db);
-   // add new entry
-   const auto& ath = db.create<account_transaction_history_object>( [&]( account_transaction_history_object& obj ){
-       obj.operation_id = op_id;
-       obj.account = account_id;
-       obj.sequence = stats_obj.total_ops + 1;
-       obj.next = stats_obj.most_recent_op;
-   });
-   db.modify( stats_obj, [&]( account_statistics_object& obj ){
-       obj.most_recent_op = ath.id;
-       obj.total_ops = ath.sequence;
-   });
-   // remove the earliest account history entry if too many
-   // _max_ops_per_account is guaranteed to be non-zero outside
-   if( stats_obj.total_ops - stats_obj.removed_ops > _max_ops_per_account )
-   {
-      // look for the earliest entry
-      const auto& his_idx = db.get_index_type<account_transaction_history_index>();
-      const auto& by_seq_idx = his_idx.indices().get<by_seq>();
-      auto itr = by_seq_idx.lower_bound( boost::make_tuple( account_id, 0 ) );
-      // make sure don't remove the one just added
-      if( itr != by_seq_idx.end() && itr->account == account_id && itr->id != ath.id )
-      {
-         // if found, remove the entry, and adjust account stats object
-         const auto remove_op_id = itr->operation_id;
-         const auto itr_remove = itr;
-         ++itr;
-         db.remove( *itr_remove );
-         db.modify( stats_obj, [&]( account_statistics_object& obj ){
-             obj.removed_ops = obj.removed_ops + 1;
-         });
-         // modify previous node's next pointer
-         // this should be always true, but just have a check here
-         if( itr != by_seq_idx.end() && itr->account == account_id )
-         {
-            db.modify( *itr, [&]( account_transaction_history_object& obj ){
-               obj.next = account_transaction_history_id_type();
-            });
-         }
-         // else need to modify the head pointer, but it shouldn't be true
+	graphene::chain::database& db = database();
+	if (_tracked_addresses.size() == 0)
+		return;
+	auto chain_id = db.get_chain_id();
+	auto signatures = trx.get_signature_keys(chain_id);
+	flat_set<address> addresses;
+	for (auto sig : signatures)
+	{
+		addresses.insert(address(sig));
+	}
 
-         // remove the operation history entry (1.11.x) if configured and no reference left
-         if( _partial_operations )
-         {
-            // check for references
-            const auto& by_opid_idx = his_idx.indices().get<by_opid>();
-            if( by_opid_idx.find( remove_op_id ) == by_opid_idx.end() )
-            {
-               // if no reference, remove
-               db.remove( remove_op_id(db) );
-            }
-         }
-      }
-   }
+	const auto& trx_ids = db.get_index_type<transaction_index>().indices().get<by_trx_id>();
+	auto iter_ids = trx_ids.find(trx.id());
+	if (iter_ids == trx_ids.end())
+		return;
+	for (auto addr : addresses)
+	{
+		auto iter = _tracked_addresses.find(addr);
+		if (iter == _tracked_addresses.end())
+			continue;
+		db.create<history_transaction_object>([&](history_transaction_object& obj) {
+			obj.addr = addr;
+			obj.trx_obj_id = iter_ids->id;
+		});
+	}
 }
 
 } // end namespace detail
@@ -171,26 +140,32 @@ void transaction_plugin::plugin_set_program_options(
    )
 {
    cli.add_options()
-         ("track-account", boost::program_options::value<std::vector<std::string>>()->composing()->multitoken(), "Account ID to track history for (may specify multiple times)")
-         ("partial-operations", boost::program_options::value<bool>(), "Keep only those operations in memory that are related to account history tracking")
-         ("max-ops-per-account", boost::program_options::value<uint32_t>(), "Maximum number of operations per account will be kept in memory")
-         ;
+         ("track-address", boost::program_options::value<std::vector<std::string>>()->composing()->multitoken(), "address to track history for (may specify multiple times)");
    cfg.add(cli);
 }
 
 void transaction_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 {
    database().store_transactions.connect( [&]( const signed_transaction& b){ my->update_transaction_record(b); } );
+   database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
    database().add_index< primary_index< transaction_index > >();
+   database().add_index<primary_index<history_transaction_index>>();
 }
 
 void transaction_plugin::plugin_startup()
 {
 }
 
-flat_set<account_id_type> transaction_plugin::tracked_accounts() const
+flat_set<address> transaction_plugin::tracked_address() const
 {
-   return my->_tracked_accounts;
+   return my->_tracked_addresses;
 }
+
+void transaction_plugin::add_tracked_address(vector<address> addrs)
+{
+	for (auto addr : addrs)
+		my->_tracked_addresses.insert(addr);
+}
+
 
 } }
