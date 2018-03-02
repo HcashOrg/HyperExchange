@@ -163,6 +163,7 @@ namespace graphene { namespace chain {
 	  impl_multisig_address_object_type,
 	  impl_account_statistics_object_type,
       impl_transaction_object_type,
+	  impl_history_transaction_object_type,
       impl_block_summary_object_type,
       impl_account_transaction_history_object_type,
       impl_blinded_balance_object_type,
@@ -248,7 +249,7 @@ namespace graphene { namespace chain {
    class fba_accumulator_object;
    class multisig_account_pair_object;
    class guarantee_object;
-
+   class history_transaction_object;
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
    typedef object_id< implementation_ids, impl_asset_dynamic_data_type,      asset_dynamic_data_object>                 asset_dynamic_data_id_type;
@@ -256,6 +257,7 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_account_balance_object_type,  account_balance_object>                    account_balance_id_type;
    typedef object_id< implementation_ids, impl_account_statistics_object_type,account_statistics_object>                account_statistics_id_type;
    typedef object_id< implementation_ids, impl_transaction_object_type,      transaction_object>                        transaction_obj_id_type;
+   typedef object_id<implementation_ids, impl_history_transaction_object_type, history_transaction_object>              history_transaction_obj_id_type;
    typedef object_id< implementation_ids, impl_block_summary_object_type,    block_summary_object>                      block_summary_id_type;
 
    typedef object_id< implementation_ids,
@@ -393,6 +395,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (contract_storage_diff_type)
 				 (contract_event_notify_object_type)
 				 (coldhot_transfer_object_type)
+
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -404,6 +407,7 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_account_balance_object_type)
                  (impl_account_statistics_object_type)
                  (impl_transaction_object_type)
+	             (impl_history_transaction_object_type)
                  (impl_block_summary_object_type)
                  (impl_account_transaction_history_object_type)
                  (impl_blinded_balance_object_type)
@@ -440,6 +444,7 @@ FC_REFLECT_TYPENAME( graphene::chain::asset_bitasset_data_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_balance_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_statistics_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::transaction_obj_id_type )
+FC_REFLECT_TYPENAME(graphene::chain::history_transaction_obj_id_type)
 FC_REFLECT_TYPENAME( graphene::chain::block_summary_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_transaction_history_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::budget_record_id_type )

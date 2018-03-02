@@ -74,8 +74,8 @@ class transaction_plugin : public graphene::app::plugin
          boost::program_options::options_description& cfg) override;
       virtual void plugin_initialize(const boost::program_options::variables_map& options) override;
       virtual void plugin_startup() override;
-
-      flat_set<account_id_type> tracked_accounts()const;
+	  void add_tracked_address(vector<address> addrs);
+      flat_set<address> tracked_address()const;
 
       friend class detail::transaction_plugin_impl;
       std::unique_ptr<detail::transaction_plugin_impl> my;

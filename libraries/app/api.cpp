@@ -157,7 +157,17 @@ namespace graphene { namespace app {
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
 		return trx_ids.find(id)->trx;
 	}
-
+	vector<transaction_id_type> transaction_api::list_transactions()
+	{
+		vector<transaction_id_type> result;
+		const auto& history_ids = _db.get_index_type<history_transaction_index>().indices().get<by_id>();
+		const auto& trx_ids = _db.get_index_type<transaction_index>().indices().get<by_id>();
+		for (auto history : history_ids)
+		{
+			auto obj = _db.get(history.trx_obj_id);
+			result.push_back(obj.trx_id);
+		}
+	}
 
     network_broadcast_api::network_broadcast_api(application& a):_app(a)
     {
