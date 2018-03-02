@@ -551,6 +551,7 @@ void database::_apply_block( const signed_block& next_block )
 	  const auto& apply_trx_res = apply_transaction(trx, skip);
 	  FC_ASSERT(apply_trx_res.operation_results == trx.operation_results, "operation apply result not same with result in block");
       ++_current_trx_in_block;
+	  //store_transactions(signed_transaction(trx));
    }
    
    update_global_dynamic_data(next_block);
@@ -583,6 +584,7 @@ void database::_apply_block( const signed_block& next_block )
 
    // notify observers that the block has been applied
    applied_block( next_block ); //emit
+   
    _applied_ops.clear();
 
    notify_changed_objects();
@@ -650,9 +652,12 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    if( !(skip & skip_transaction_dupe_check) )
    {
       create<transaction_object>([&](transaction_object& transaction) {
-         transaction.trx_id = trx_id;
+         transaction.trx_id = trx.id();
          transaction.trx = trx;
       });
+   }
+   else {
+	   store_transactions(signed_transaction(trx));
    }
 
    eval_state.operation_results.reserve(trx.operations.size());

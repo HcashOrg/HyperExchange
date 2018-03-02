@@ -540,6 +540,7 @@ namespace detail {
             wild_access.allowed_apis.push_back( "history_api" );
             wild_access.allowed_apis.push_back( "crypto_api" );
 			wild_access.allowed_apis.push_back("crosschain_api");
+			wild_access.allowed_apis.push_back("transaction_api");
             _apiaccess.permission_map["*"] = wild_access;
          }
 

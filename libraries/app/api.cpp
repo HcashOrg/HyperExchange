@@ -42,6 +42,7 @@
 #include <fc/thread/future.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include <graphene/chain/transaction_object.hpp>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)
@@ -79,6 +80,12 @@ namespace graphene { namespace app {
 		FC_ASSERT(_crosschain_api);
 		return *_crosschain_api;
 	}
+	fc::api<transaction_api> login_api::transaction() const
+	{
+		FC_ASSERT(_transaction_api);
+		return *_transaction_api;
+	}
+
     void login_api::enable_api( const std::string& api_name )
     {
        if( api_name == "database_api" )
@@ -119,7 +126,10 @@ namespace graphene { namespace app {
 	   {
 		   _crosschain_api = std::make_shared<crosschain_api>(_app.get_crosschain_manager_config());
 	   }
-
+	   else if (api_name == "transaction_api")
+	   {
+		   _transaction_api = std::make_shared<transaction_api>(std::ref(*_app.chain_database()));
+	   }
        return;
     }
 
@@ -136,6 +146,18 @@ namespace graphene { namespace app {
        }
        return res;
     }
+
+	//transaction_api
+	transaction_api::transaction_api(graphene::chain::database& db) :_db(db) {}
+	transaction_api::~transaction_api() {}
+
+	optional<transaction> transaction_api::get_transaction(transaction_id_type id)
+	{
+		const auto& trx_ids = _db.get_index_type<transaction_index>().indices().get<by_trx_id>();
+		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
+		return trx_ids.find(id)->trx;
+	}
+
 
     network_broadcast_api::network_broadcast_api(application& a):_app(a)
     {
