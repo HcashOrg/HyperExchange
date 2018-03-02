@@ -150,6 +150,7 @@ void transaction_plugin::plugin_initialize(const boost::program_options::variabl
    database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
    database().add_index< primary_index< transaction_index > >();
    database().add_index<primary_index<history_transaction_index>>();
+   LOAD_VALUE_SET(options, "track-address", my->_tracked_addresses, graphene::chain::address);
 }
 
 void transaction_plugin::plugin_startup()
