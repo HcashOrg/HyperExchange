@@ -648,6 +648,17 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
 
+   vector<transaction_id_type> list_transactions() const
+   {
+	   try {
+
+		   auto result = _remote_trx->list_transactions();
+		   return result;
+
+
+	   }FC_CAPTURE_AND_RETHROW()
+   }
+
 
    void set_guarantee_id(const guarantee_object_id_type id)
    {
@@ -5985,6 +5996,12 @@ transaction wallet_api::get_transaction(transaction_id_type id) const
 {
 	return my->get_transaction(id);
 }
+
+vector<transaction_id_type> wallet_api::list_transactions() const
+{
+	return my->list_transactions();
+}
+
 
 void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 {

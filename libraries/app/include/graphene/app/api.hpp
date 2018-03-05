@@ -94,6 +94,7 @@ namespace graphene { namespace app {
 	   transaction_api(graphene::chain::database& db);
 	   ~transaction_api();
 	   optional<transaction> get_transaction(transaction_id_type trx_id);
+	   vector<transaction_id_type> list_transactions();
    private:
 	   graphene::chain::database& _db;
    };
@@ -435,6 +436,7 @@ FC_API(graphene::app::block_api,
 	)
 FC_API(graphene::app::transaction_api,
 	(get_transaction)
+	(list_transactions)
 	)
 FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
