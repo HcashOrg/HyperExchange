@@ -36,7 +36,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/withdraw_permission_object.hpp>
 #include <graphene/chain/worker_object.hpp>
-
+#include <iostream>
 #include <fc/crypto/hex.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/future.hpp>
@@ -155,6 +155,8 @@ namespace graphene { namespace app {
 	{
 		const auto& trx_ids = _db.get_index_type<transaction_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
+		std::cout << string(trx_ids.find(id)->id) << std::endl;
+	
 		return trx_ids.find(id)->trx;
 	}
 	vector<transaction_id_type> transaction_api::list_transactions()

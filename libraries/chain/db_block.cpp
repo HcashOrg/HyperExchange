@@ -651,15 +651,12 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    //Insert transaction into unique transactions database.
    if( !(skip & skip_transaction_dupe_check) )
    {
+	   
       create<transaction_object>([&](transaction_object& transaction) {
          transaction.trx_id = trx.id();
          transaction.trx = trx;
       });
    }
-   else {
-	   store_transactions(signed_transaction(trx));
-   }
-   store_history_transactions(signed_transaction(trx));
    eval_state.operation_results.reserve(trx.operations.size());
 
    //Finally process the operations
