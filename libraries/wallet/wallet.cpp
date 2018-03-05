@@ -2677,7 +2677,11 @@ public:
 		   
 		   coldhot_transfer_op.multi_account_withdraw = from_account;
 		   coldhot_transfer_op.multi_account_deposit = to_account;
-		   coldhot_transfer_op.amount = amount;
+		   fc::variant amount_fc = amount;
+		   amount_fc.as_double();
+		   char temp[1024];
+		   std::sprintf(temp, "%g", amount);
+		   coldhot_transfer_op.amount = temp;
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
 		   auto guard_obj = get_guard_member(proposer);
