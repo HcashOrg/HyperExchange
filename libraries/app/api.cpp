@@ -169,6 +169,7 @@ namespace graphene { namespace app {
 			auto obj = _db.get(history.trx_obj_id);
 			result.push_back(obj.trx_id);
 		}
+		return result;
 	}
 
     network_broadcast_api::network_broadcast_api(application& a):_app(a)
