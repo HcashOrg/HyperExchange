@@ -153,7 +153,7 @@ namespace graphene { namespace app {
 
 	optional<transaction> transaction_api::get_transaction(transaction_id_type id)
 	{
-		const auto& trx_ids = _db.get_index_type<transaction_index>().indices().get<by_trx_id>();
+		const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
 		std::cout << string(trx_ids.find(id)->id) << std::endl;
 	
@@ -163,7 +163,7 @@ namespace graphene { namespace app {
 	{
 		vector<transaction_id_type> result;
 		const auto& history_ids = _db.get_index_type<history_transaction_index>().indices().get<by_id>();
-		const auto& trx_ids = _db.get_index_type<transaction_index>().indices().get<by_id>();
+		const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_id>();
 		for (auto history : history_ids)
 		{
 			auto obj = _db.get(history.trx_obj_id);

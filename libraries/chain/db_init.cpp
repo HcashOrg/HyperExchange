@@ -312,8 +312,7 @@ void database::initialize_indexes()
    add_index<primary_index<contract_event_notify_index>>();
 
    add_index <primary_index<guarantee_index                               > >();
-   add_index <primary_index<transaction_index                             > >();
-   add_index <primary_index<history_transaction_index                     > >();
+  
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

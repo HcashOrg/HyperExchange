@@ -78,10 +78,8 @@ transaction_plugin_impl::~transaction_plugin_impl()
 void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 {
    graphene::chain::database& db = database();
-   const auto& trx_ids = db.get_index_type<transaction_index>().indices().get<by_trx_id>();
-   std::cout << "transaction size is " << trx_ids.size() << std::endl;
    for (auto trx : b.transactions) {
-	   db.create<transaction_object>([&](transaction_object& obj) {
+	   db.create<trx_object>([&](trx_object& obj) {
 		   obj.trx = trx;
 		   obj.trx_id = trx.id();
 	   });
@@ -101,7 +99,7 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		addresses.insert(address(sig));
 	}
 
-	const auto& trx_ids = db.get_index_type<transaction_index>().indices().get<by_trx_id>();
+	const auto& trx_ids = db.get_index_type<trx_index>().indices().get<by_trx_id>();
 	auto iter_ids = trx_ids.find(trx.id());
 	if (iter_ids == trx_ids.end())
 		return;
@@ -152,6 +150,8 @@ void transaction_plugin::plugin_initialize(const boost::program_options::variabl
 {
    database().applied_block.connect( [&]( const signed_block& b){ my->update_transaction_record(b); } );
    //database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
+   database().add_index <primary_index<trx_index         > >();
+   database().add_index <primary_index<history_transaction_index > >();
    LOAD_VALUE_SET(options, "track-address", my->_tracked_addresses, graphene::chain::address);
 }
 

@@ -40,6 +40,17 @@ namespace graphene { namespace chain {
    using namespace graphene::db;
    using boost::multi_index_container;
    using namespace boost::multi_index;
+
+   class trx_object : public abstract_object<trx_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_trx_object_type;
+
+	   signed_transaction  trx;
+	   transaction_id_type trx_id;
+   };
+  
    /**
     * The purpose of this object is to enable the detection of duplicate transactions. When a transaction is included
     * in a block a transaction_object is added. At the end of block processing all transaction_objects that have
@@ -70,14 +81,25 @@ namespace graphene { namespace chain {
 
    typedef generic_index<transaction_object, transaction_multi_index_type> transaction_index;
 
+   typedef multi_index_container<
+	   trx_object,
+	   indexed_by<
+	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   ordered_unique< tag<by_trx_id>, member<trx_object, transaction_id_type, &trx_object::trx_id> >
+	   >
+   > trx_multi_index_type;
+
+   typedef generic_index<trx_object, trx_multi_index_type> trx_index;
+
+
    class history_transaction_object :public abstract_object<history_transaction_object>
    {
    public:
 	   static const uint8_t space_id = implementation_ids;
 	   static const uint8_t type_id = impl_history_transaction_object_type;
 
-	   address                 addr;
-	   transaction_obj_id_type trx_obj_id;
+	   address                addr;
+	   trx_obj_id_type        trx_obj_id;
    };
    struct by_addr;
    typedef multi_index_container<
@@ -158,4 +180,4 @@ FC_REFLECT_DERIVED(graphene::chain::history_transaction_object, (graphene::db::o
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
 FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(contract_address)(storage_name)(diff))
-
+FC_REFLECT_DERIVED(graphene::chain::trx_object, (graphene::db::object), (trx)(trx_id))
