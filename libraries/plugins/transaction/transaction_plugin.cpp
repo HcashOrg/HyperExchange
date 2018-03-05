@@ -83,6 +83,7 @@ void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 		   obj.trx = trx;
 		   obj.trx_id = trx.id();
 	   });
+	   add_transaction_history(trx);
    }   
 }
 
