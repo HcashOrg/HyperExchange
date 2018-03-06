@@ -194,16 +194,19 @@ struct wallet_data
        }
        return res;
    }
-   bool insert_script(const script_object& spt)
+   bool insert_script(script_object& spt)
    {
        auto& idx = my_scripts.get<by_hash>();
        auto itr = idx.find(spt.script_hash);
        if (itr != idx.end())
        {
+           spt.id.number = itr->id.number;
            idx.replace(itr, spt);
            return false;
        }
        else {
+
+           spt.id.number=object_id_type(spt.space_id,spt.type_id,my_scripts.size()).number;
            idx.insert(spt);
            return true;
        }
@@ -233,6 +236,7 @@ struct wallet_data
            itr++;
        }
        script_binding_object obj;
+       obj.id.number=object_id_type(obj.space_id, obj.type_id, event_handlers.size()).number;
        obj.script_hash = script_hash;
        obj.contract_id = contract;
        obj.event_name = event_name;
@@ -2124,6 +2128,7 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_to_contract)
         (get_contract_balance)
         (add_script)
+        (list_scripts)
         (remove_script)
         (bind_script_to_event)
         (remove_event_handle)
