@@ -2690,7 +2690,7 @@ public:
 		   coldhot_transfer_op.multi_account_deposit = to_account;
 		   fc::variant amount_fc = amount;
 		   char temp[1024];
-		   std::sprintf(temp, "%g", amount_fc.as_double());
+		   std::sprintf(temp, "%.8g", amount_fc.as_double());
 		   coldhot_transfer_op.amount = temp;
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
