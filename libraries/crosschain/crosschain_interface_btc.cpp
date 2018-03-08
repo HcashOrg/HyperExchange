@@ -171,7 +171,7 @@ namespace graphene {
 						hdtx.to_account = addr.as_string();
 						auto amount = vouts.get_object()["value"].as_double();
 						char temp[1024];
-						std::sprintf(temp, "%g", amount);
+						std::sprintf(temp, "%.8f", amount);
 						hdtx.amount = temp;
 						hdtxs[hdtx.to_account] = hdtx;
 
