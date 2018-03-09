@@ -176,18 +176,6 @@ namespace graphene { namespace chain {
          const vector<optional< operation_history_object > >& get_applied_operations()const;
 
          string to_pretty_string( const asset& a )const;
-
-         /**
-          *  This signal is emitted after all operations and virtual operation for a
-          *  block have been applied but before the get_applied_operations() are cleared.
-          *
-          *  You may not yield from this callback because the blockchain is holding
-          *  the write lock and may be in an "inconstant state" until after it is
-          *  released.
-          */
-         fc::signal<void(const signed_transaction&)>           store_transactions;
-		 fc::signal<void(const signed_transaction&)>           store_history_transactions;
-
 		 /**
 		 *  This signal is emitted after all operations and virtual operation for a
 		 *  block have been applied but before the get_applied_operations() are cleared.

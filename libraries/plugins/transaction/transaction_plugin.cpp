@@ -53,7 +53,7 @@ class transaction_plugin_impl
       /** this method is called as a callback after a block is applied
        * and will process/index all operations that were applied in the block.
        */
-      void update_transaction_record( const signed_transaction& b );
+      void update_transaction_record( const signed_block& b );
 
       graphene::chain::database& database()
       {
@@ -75,13 +75,16 @@ transaction_plugin_impl::~transaction_plugin_impl()
    return;
 }
 
-void transaction_plugin_impl::update_transaction_record( const signed_transaction& trx )
+void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 {
    graphene::chain::database& db = database();
-   db.create<transaction_object>([&](transaction_object & obj){
-	   obj.trx = trx;
-       obj.trx_id = trx.id();
-   });
+   for (auto trx : b.transactions) {
+	   db.create<trx_object>([&](trx_object& obj) {
+		   obj.trx = trx;
+		   obj.trx_id = trx.id();
+	   });
+	   add_transaction_history(trx);
+   }   
 }
 
 void transaction_plugin_impl::add_transaction_history(const signed_transaction& trx)
@@ -97,7 +100,7 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		addresses.insert(address(sig));
 	}
 
-	const auto& trx_ids = db.get_index_type<transaction_index>().indices().get<by_trx_id>();
+	const auto& trx_ids = db.get_index_type<trx_index>().indices().get<by_trx_id>();
 	auto iter_ids = trx_ids.find(trx.id());
 	if (iter_ids == trx_ids.end())
 		return;
@@ -146,10 +149,11 @@ void transaction_plugin::plugin_set_program_options(
 
 void transaction_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 {
-   database().store_transactions.connect( [&]( const signed_transaction& b){ my->update_transaction_record(b); } );
-   database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
-   database().add_index< primary_index< transaction_index > >();
-   database().add_index<primary_index<history_transaction_index>>();
+   database().applied_block.connect( [&]( const signed_block& b){ my->update_transaction_record(b); } );
+   //database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
+   database().add_index <primary_index<trx_index         > >();
+   database().add_index <primary_index<history_transaction_index > >();
+   LOAD_VALUE_SET(options, "track-address", my->_tracked_addresses, graphene::chain::address);
 }
 
 void transaction_plugin::plugin_startup()

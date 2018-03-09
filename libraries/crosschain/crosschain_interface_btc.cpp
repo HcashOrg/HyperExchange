@@ -171,7 +171,7 @@ namespace graphene {
 						hdtx.to_account = addr.as_string();
 						auto amount = vouts.get_object()["value"].as_double();
 						char temp[1024];
-						std::sprintf(temp, "%g", amount);
+						std::sprintf(temp, "%.8g", amount);
 						hdtx.amount = temp;
 						hdtxs[hdtx.to_account] = hdtx;
 
@@ -199,6 +199,7 @@ namespace graphene {
 			}
 			req_body << "}}}";
 			fc::http::connection conn;
+			std::cout << req_body.str() << std::endl;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)

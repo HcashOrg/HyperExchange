@@ -313,7 +313,6 @@ void database::initialize_indexes()
 
    add_index <primary_index<guarantee_index                               > >();
   
-
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

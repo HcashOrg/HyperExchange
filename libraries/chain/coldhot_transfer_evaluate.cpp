@@ -26,6 +26,7 @@ namespace graphene {
 					}
 				}
 				FC_ASSERT((withdraw_multi &&deposit_multi), "Cant Transfer account which is not multi account");
+				FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				auto current_trx_id = trx_state->_trx->id();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
