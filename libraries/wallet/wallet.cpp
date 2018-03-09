@@ -341,7 +341,7 @@ private:
          // look up the owners on the blockchain
          std::vector<fc::optional<graphene::chain::account_object>> owner_account_objects = _remote_db->lookup_account_names(pending_witness_names);
 
-         // if any of them have registered witnesses, claim them
+         // if any of them have registered witnechaindatabase_apisses, claim them
          for( const fc::optional<graphene::chain::account_object>& optional_account : owner_account_objects )
             if (optional_account)
             {
@@ -349,6 +349,77 @@ private:
                if (witness_obj)
 				   claim_registered_miner(optional_account->name);
             }
+      }
+      if (_wallet.event_handlers.size() != 0)
+      {
+          auto& idx = _wallet.event_handlers.get<by_id>();
+          for (auto& it : idx)
+          {
+              optional<script_object> script_obj=_wallet.get_script_by_hash(it.script_hash);
+              if(!script_obj.valid())
+                  continue;
+              ::blockchain::contract_engine::ContractEngineBuilder builder;
+              auto engine = builder.build();
+              int exception_code = 0;
+              auto code_stream = engine->get_bytestream_from_code(script_obj->script);
+              if (!code_stream)
+                  continue;
+              vector<pair<object_id_type, transaction_id_type>> new_handled;
+              vector<pair<object_id_type, transaction_id_type>> undoed;
+              auto last_handled=it.handled.rbegin();
+              bool undo_failed = false;
+              while (last_handled != it.handled.rend())
+              {
+                  if (_remote_db->get_contract_event_notify_by_id(last_handled->first).valid())
+                  {
+                      break;
+                  }
+                  //todo: undo execute
+                  try {
+                      //todo: execute
+                      undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
+                      
+                  }
+                  catch (...)
+                  {
+                      undo_failed = true;
+                      break;
+                  }
+                  
+                  last_handled++;
+              }
+              _wallet.update_handler(it.id, undoed, false);
+              if(undo_failed)
+                  continue;
+              vector<contract_event_notify_object> events=_remote_db->get_contract_event_notify(it.contract_id,transaction_id_type(),it.event_name);
+              for (auto ev : events)
+              {
+                  if (ev.id > last_handled->first)
+                  {
+                      try {
+                          //todo: execute
+                          engine->clear_exceptions();
+                          engine->add_global_string_variable("event_type", ev.event_name.c_str());
+                          engine->add_global_string_variable("param", ev.event_arg.c_str());
+                          engine->add_global_string_variable("contract_id", ev.contract_address.address_to_contract_string());
+                          engine->add_global_bool_variable("undo", false);
+
+                          engine->load_and_run_stream(code_stream.get());
+
+                          new_handled.push_back(std::make_pair(ev.id, ev.trx_id));
+                      }
+                      catch (...)
+                      {
+                          break;
+                      }
+
+                  }
+              }
+              _wallet.update_handler(it.id, new_handled, true);
+              //it.move_from(new_obj);
+
+          }
+          save_wallet_file();
       }
    }
 

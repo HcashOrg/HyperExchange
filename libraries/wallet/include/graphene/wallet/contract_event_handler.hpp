@@ -23,6 +23,7 @@ namespace graphene {
             boost::multi_index::ordered_unique<boost::multi_index::tag<by_hash>, boost::multi_index::member<script_object, std::string, &script_object::script_hash>>
             >> script_object_multi_index_type;
         typedef chain::generic_index<script_object, script_object_multi_index_type> script_object_index;
+
         class script_binding_object :public db::abstract_object<script_binding_object>
         {
         public:
@@ -31,6 +32,7 @@ namespace graphene {
             std::string script_hash;
             chain::address contract_id;
             std::string event_name;
+            std::map<db::object_id_type, chain::transaction_id_type> handled;
         };
         struct by_script_hash {};
         struct by_contract_addr {};
@@ -47,4 +49,4 @@ namespace graphene {
 FC_REFLECT_DERIVED(graphene::wallet::script_object, (graphene::db::object),
 (script)(script_hash))
 FC_REFLECT_DERIVED(graphene::wallet::script_binding_object, (graphene::db::object),
-(script_hash)(contract_id)(event_name))
+(script_hash)(contract_id)(event_name)(handled))

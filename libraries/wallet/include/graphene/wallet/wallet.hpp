@@ -194,6 +194,15 @@ struct wallet_data
        }
        return res;
    }
+   optional<script_object> get_script_by_hash(const string& contract_hash)
+   {
+       vector<script_object> res;
+       auto& idx = my_scripts.get<by_hash>();
+       auto it = idx.find(contract_hash);
+       if (it == idx.end())
+           return optional<script_object>();
+       return *it;
+   }
    bool insert_script(script_object& spt)
    {
        auto& idx = my_scripts.get<by_hash>();
@@ -258,6 +267,28 @@ struct wallet_data
            itr++;
        }
        return false;
+   }
+   bool update_handler(const object_id_type& id,const vector<std::pair<object_id_type,transaction_id_type>>& modifies,bool add)
+   {
+       auto& idx = event_handlers.get<by_id>();
+       auto it=idx.find(id);
+       if (it == idx.end())
+           return false;
+
+       auto new_item = *it;
+       for (auto& item : modifies)
+       {
+           if (add)
+               new_item.handled.insert(std::make_pair(item.first, item.second));
+           else
+           {
+               new_item.handled.erase(item.first);
+           }
+
+       }
+
+       idx.replace(it, new_item);
+       return true;
    }
    /** encrypted keys */
    vector<char>              cipher_keys;

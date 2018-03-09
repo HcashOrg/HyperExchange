@@ -339,7 +339,7 @@ namespace graphene { namespace chain {
 		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
 		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg);
 
-
+         vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
 		 void update_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);

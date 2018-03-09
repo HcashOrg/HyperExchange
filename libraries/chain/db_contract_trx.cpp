@@ -95,6 +95,42 @@ namespace graphene {
 				});
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(event_name)(event_arg));
 		}
+        bool object_id_type_comp(const object& obj1, const object& obj2)
+        {
+            return obj1.id < obj2.id;
+        }
+        vector<contract_event_notify_object> database::get_contract_event_notify(const address & contract_id, const transaction_id_type & trx_id, const string& event_name)
+        {
+            try {
+                bool trx_id_check = true;
+                if (trx_id == transaction_id_type())
+                    trx_id_check = false;
+                bool event_check = true;
+                if (event_name == "")
+                    event_check = false;
+                vector<contract_event_notify_object> res;
+                auto& conn_db=get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
+                auto lb=conn_db.lower_bound(contract_id);
+                auto ub = conn_db.upper_bound(contract_id);
+                while (lb!=ub)
+                {
+                    if (trx_id_check&&lb->trx_id != trx_id)
+                    {
+                        lb++;
+                        continue;
+                    }
+                    if (event_check&&lb->event_name != event_name)
+                    {
+                        lb++;
+                        continue;
+                    }
+                    res.push_back(*lb);
+                    lb++;
+                }
+                std::sort(res.begin(), res.end(), object_id_type_comp);
+                return res;
+            } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
+        }
 
         void database::store_contract(const contract_object & contract)
         {
