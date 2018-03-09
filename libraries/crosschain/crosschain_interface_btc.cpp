@@ -199,6 +199,7 @@ namespace graphene {
 			}
 			req_body << "}}}";
 			fc::http::connection conn;
+			std::cout << req_body.str() << std::endl;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
