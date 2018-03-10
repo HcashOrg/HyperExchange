@@ -52,8 +52,7 @@ namespace graphene {
 			if (contract_transfer_evaluator) {
 				return contract_transfer_evaluator;
 			}
-			FC_ASSERT(false);
-			return nullptr;
+			return nullptr; // FIXME: 不直接报错，因为在ljsonlib.cpp中现在会用到
 		}
 
 	    share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
@@ -100,7 +99,7 @@ namespace graphene {
 				invoke_contract_result.clear();
 				try
 				{
-					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
+					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "init_arg", nullptr);
 				}
 				catch (uvm::core::UvmException &e)
 				{
@@ -515,7 +514,7 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
+			if (origin_op.contract_id.address_to_contract_string() == contract_id)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
 				const auto &code = origin_op.contract_code;
@@ -526,7 +525,26 @@ namespace graphene {
 			}
 			else
 			{
-				return nullptr;
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+				if (!db().has_contract(contract_addr))
+					return nullptr;
+				auto contract_info = std::make_shared<UvmContractInfo>();
+				const auto &contract = db().get_contract(contract_addr);
+				if (contract.is_native_contract)
+				{
+					auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<contract_register_evaluate*>(this), contract.native_contract_key, contract.contract_address);
+					if (!native_contract)
+						return nullptr;
+					for (const auto & api : native_contract->apis()) {
+						contract_info->contract_apis.push_back(api);
+					}
+					return contract_info;
+				}
+				const auto &code = contract.code;
+				for (const auto & api : code.abi) {
+					contract_info->contract_apis.push_back(api);
+				}
+				return contract_info;
 			}
 		}
 
@@ -545,7 +563,26 @@ namespace graphene {
 			}
 			else
 			{
-				return nullptr;
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+				if (!db().has_contract(contract_addr))
+					return nullptr;
+				auto contract_info = std::make_shared<UvmContractInfo>();
+				const auto &contract = db().get_contract(contract_addr);
+				if (contract.is_native_contract)
+				{
+					auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), contract.native_contract_key, contract.contract_address);
+					if (!native_contract)
+						return nullptr;
+					for (const auto & api : native_contract->apis()) {
+						contract_info->contract_apis.push_back(api);
+					}
+					return contract_info;
+				}
+				const auto &code = contract.code;
+				for (const auto & api : code.abi) {
+					contract_info->contract_apis.push_back(api);
+				}
+				return contract_info;
 			}
 		}
 
