@@ -40,6 +40,8 @@ namespace graphene {
 		*/
 		void UvmChainApi::throw_exception(lua_State *L, int code, const char *error_format, ...)
 		{
+			if (has_error)
+				return;
 			has_error = 1;
 			char *msg = (char*)lua_malloc(L, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH);
 			memset(msg, 0x0, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH);
@@ -83,6 +85,8 @@ namespace graphene {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				if (evaluator) {
 					auto gas_limit = evaluator->get_gas_limit();
+					if (gas_limit == 0)
+						return 0;
 					auto gas_count = uvm::lua::lib::get_lua_state_instructions_executed_count(L);
 					return gas_count > gas_limit;
 				}
@@ -158,7 +162,7 @@ namespace graphene {
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			auto code = get_contract_code_by_id(evaluator, std::string(address));
 			auto contract_info = get_contract_info_by_id(evaluator, std::string(address));
-			if (!code)
+			if (!code || !contract_info)
 				return 0;
 
 			contract_info_ret->contract_apis.clear();
@@ -174,7 +178,7 @@ namespace graphene {
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
 			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
-			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : string(get_contract_info_by_name(evaluator, contract_name).contract_address);
+			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : get_contract_info_by_name(evaluator, contract_name).contract_address.address_to_contract_string();
 			if (code && !contract_addr.empty())
 			{
 				string address_str = contract_addr;
