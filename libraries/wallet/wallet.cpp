@@ -5582,13 +5582,13 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	{
 
 		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = string(cont.contract_address);
+		contract_address = cont.contract_address.address_to_contract_string();
 	}
     auto cont= my->_remote_db->get_contract_info(contract_address);
     ContractEntryPrintable res;
     res.code_printable = cont.code;
     res.owner_address = cont.owner_address;
-    res.id = cont.contract_address.operator fc::string();
+	res.id = cont.contract_address.address_to_contract_string();
 	res.name = cont.contract_name;
 	res.description = cont.contract_desc;;
     res.createtime=cont.create_time;
@@ -5606,12 +5606,12 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	{
 
 		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = string(cont.contract_address);
+		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	auto cont = my->_remote_db->get_contract_info(contract_address);
 	ContractEntryPrintable res;
 	res.owner_address = cont.owner_address;
-	res.id = cont.contract_address.operator fc::string();
+	res.id = cont.contract_address.address_to_contract_string();
 	res.name = cont.contract_name;
 	res.description = cont.contract_desc;;
 	res.createtime = cont.create_time;

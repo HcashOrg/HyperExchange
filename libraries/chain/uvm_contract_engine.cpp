@@ -102,7 +102,8 @@ namespace uvm
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
 			else
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				throw std::exception(exception_msg);
 			}
 		}
 	}
@@ -121,7 +122,8 @@ namespace uvm
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
 			else
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				throw std::exception(exception_msg);
 			}
 		}
 	}
