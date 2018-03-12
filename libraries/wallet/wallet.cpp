@@ -678,6 +678,7 @@ public:
    {
 	   string config = (*_crosschain_manager)->get_config();
 	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+	   FC_ASSERT(instance.contain_crosschain_handles(symbol),"plguin doesnt exist.");
 	   auto fd = instance.get_crosschain_handle(symbol);
 	   fd->initialize_config(fc::json::from_string(config).get_object());
 	   return fd->create_normal_account("");
@@ -2649,6 +2650,7 @@ public:
 		   auto asset_id = get_asset_id(symbol);
 		   string config = (*_crosschain_manager)->get_config();
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   FC_ASSERT(instance.contain_crosschain_handles(symbol), "plguin doesnt exist.");
 		   //we need get proper crosschain interface
 		   auto cross_interface = instance.get_crosschain_handle(symbol);
 		   cross_interface->initialize_config(fc::json::from_string(config).get_object());
@@ -2779,6 +2781,7 @@ public:
 		   const auto asset_id = get_asset_id(symbol);
 		   update_op.chain_type = symbol;
 		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT(crosschain::crosschain_manager::get_instance().contain_crosschain_handles(symbol), "plguin doesnt exist.");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   
@@ -2825,6 +2828,7 @@ public:
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT(crosschain::crosschain_manager::get_instance().contain_crosschain_handles(symbol), "plguin doesnt exist.");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
