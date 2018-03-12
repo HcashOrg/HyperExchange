@@ -32,7 +32,7 @@ namespace graphene {
             std::string script_hash;
             chain::address contract_id;
             std::string event_name;
-            std::map<db::object_id_type, chain::transaction_id_type> handled;
+            std::map<db::object_id_type, chain::contract_event_notify_object> handled;
         };
         struct by_script_hash {};
         struct by_contract_addr {};

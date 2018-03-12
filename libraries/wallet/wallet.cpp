@@ -359,13 +359,15 @@ private:
               if(!script_obj.valid())
                   continue;
               ::blockchain::contract_engine::ContractEngineBuilder builder;
+              if (!uvm::lua::api::global_uvm_chain_api)
+                  uvm::lua::api::global_uvm_chain_api = new UvmChainApi();
               auto engine = builder.build();
               int exception_code = 0;
               auto code_stream = engine->get_bytestream_from_code(script_obj->script);
               if (!code_stream)
                   continue;
-              vector<pair<object_id_type, transaction_id_type>> new_handled;
-              vector<pair<object_id_type, transaction_id_type>> undoed;
+              vector<pair<object_id_type, contract_event_notify_object>> new_handled;
+              vector<pair<object_id_type, contract_event_notify_object>> undoed;
               auto last_handled=it.handled.rbegin();
               bool undo_failed = false;
               while (last_handled != it.handled.rend())
@@ -406,7 +408,7 @@ private:
 
                           engine->load_and_run_stream(code_stream.get());
 
-                          new_handled.push_back(std::make_pair(ev.id, ev.trx_id));
+                          new_handled.push_back(std::make_pair(ev.id, ev));
                       }
                       catch (...)
                       {
@@ -948,8 +950,10 @@ public:
 
       return true;
    }
+   fc::mutex save_mutex;
    void save_wallet_file(string wallet_filename = "")
    {
+       fc::scoped_lock<fc::mutex> lock(save_mutex);
       //
       // Serialize in memory, then save to disk
       //
@@ -5727,8 +5731,8 @@ void wallet_api::remove_script(const string& script_hash)
 bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
 {
     auto con_info=my->_remote_db->get_contract_info(contract);
-    FC_ASSERT(con_info.contract_address == address(contract,ADDRESS_CONTRACT_PREFIX), "");
-    bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
+    FC_ASSERT(con_info.contract_address == address(contract,GRAPHENE_CONTRACT_ADDRESS_PREFIX), "");
+    bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, GRAPHENE_CONTRACT_ADDRESS_PREFIX), event_name);
 
     save_wallet_file();
     return res;

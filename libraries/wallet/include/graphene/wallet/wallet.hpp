@@ -26,6 +26,8 @@
 #include <graphene/app/api.hpp>
 #include <graphene/utilities/key_conversion.hpp>
 #include <graphene/wallet/contract_event_handler.hpp>
+#include <fc/thread/mutex.hpp>
+#include <fc/thread/scoped_lock.hpp>
 using namespace graphene::app;
 using namespace graphene::chain;
 using namespace graphene::utilities;
@@ -158,7 +160,7 @@ struct wallet_data
 
    script_binding_object_multi_index_type event_handlers;
    // script bindings
-
+   fc::mutex script_lock;
    //
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
@@ -186,6 +188,7 @@ struct wallet_data
    }
    vector<script_object> list_scripts()
    {
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        vector<script_object> res;
        auto& idx = my_scripts.get<by_hash>();
        for (auto itr : idx)
@@ -196,6 +199,8 @@ struct wallet_data
    }
    optional<script_object> get_script_by_hash(const string& contract_hash)
    {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        vector<script_object> res;
        auto& idx = my_scripts.get<by_hash>();
        auto it = idx.find(contract_hash);
@@ -205,6 +210,8 @@ struct wallet_data
    }
    bool insert_script(script_object& spt)
    {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        auto& idx = my_scripts.get<by_hash>();
        auto itr = idx.find(spt.script_hash);
        if (itr != idx.end())
@@ -222,6 +229,8 @@ struct wallet_data
    }
    bool remove_script(const string& strhash)
    {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        auto& idx = my_scripts.get<by_hash>();
        auto itr = idx.find(strhash);
        if (itr != idx.end())
@@ -235,6 +244,8 @@ struct wallet_data
    }
    bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
    {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        auto& idx=event_handlers.get<by_contract_addr>();
        auto itr = idx.lower_bound(contract);
        auto itr_end = idx.upper_bound(contract);
@@ -254,6 +265,8 @@ struct wallet_data
    }
    bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
    {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
        auto& idx = event_handlers.get<by_contract_addr>();
        auto itr = idx.lower_bound(contract);
        auto itr_end = idx.upper_bound(contract);
@@ -268,7 +281,7 @@ struct wallet_data
        }
        return false;
    }
-   bool update_handler(const object_id_type& id,const vector<std::pair<object_id_type,transaction_id_type>>& modifies,bool add)
+   bool update_handler(const object_id_type& id,const vector<std::pair<object_id_type, chain::contract_event_notify_object>>& modifies,bool add)
    {
        auto& idx = event_handlers.get<by_id>();
        auto it=idx.find(id);
