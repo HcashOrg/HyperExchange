@@ -124,7 +124,7 @@ namespace graphene { namespace app {
        }
 	   else if (api_name == "crosschain_api")
 	   {
-		   _crosschain_api = std::make_shared<crosschain_api>(_app.get_crosschain_manager_config());
+		   _crosschain_api = std::make_shared<crosschain_api>(_app.get_crosschain_manager_config(),_app.get_crosschain_chain_types());
 	   }
 	   else if (api_name == "transaction_api")
 	   {
@@ -677,11 +677,15 @@ namespace graphene { namespace app {
        return fc::ecc::range_get_info( proof );
     }
 	//crosschain_api
-	crosschain_api::crosschain_api(const string& config) :_config(config) {}
+	crosschain_api::crosschain_api(const string& config, const vector<string>& crosschain_symbols) :_config(config) { _crosschain_symbols = crosschain_symbols; }
 	crosschain_api::~crosschain_api() {}
 	string crosschain_api::get_config()
 	{
 		return _config;
+	}
+	bool crosschain_api::contain_symbol(const string& symbol)
+	{
+		return std::find(_crosschain_symbols.begin(), _crosschain_symbols.end(), symbol) != _crosschain_symbols.end();
 	}
     // asset_api
     asset_api::asset_api(graphene::chain::database& db) : _db(db) { }
