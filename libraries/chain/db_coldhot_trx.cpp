@@ -149,44 +149,66 @@ namespace graphene {
 		}
 		void database::create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk) {
 			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_without_sign_trx_uncreate);
+			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_without_sign_trx_create);
+			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_sign_trx);
+			flat_set<string> asset_set;
+			for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
+			{
+				auto op = check_point.current_trx.operations[0];
+				auto coldhot_op = op.get<coldhot_transfer_operation>();
+				asset_set.insert(coldhot_op.asset_symbol);
+
+			}
+
+			for (auto check_point : boost::make_iterator_range(check_point_2.first, check_point_2.second))
+			{
+				auto op = check_point.current_trx.operations[0];
+				auto coldhot_op = op.get<coldhot_transfer_operation>();
+				asset_set.insert(coldhot_op.asset_symbol);
+
+			}
+			auto coldhot_transfer_trx = *coldhot_uncreate_range.first;
+			
 			for (auto coldhot_transfer_trx : boost::make_iterator_range(coldhot_uncreate_range.first, coldhot_uncreate_range.second)) {
 				try {
 					auto coldhot_transfer_op = coldhot_transfer_trx.current_trx.operations[0];
 					/*auto& propsal_op = coldhot_transfer_op.get<proposal_create_operation>();
 					if (propsal_op.proposed_ops.size() != 1){
-						continue;
+					continue;
 					}*/
-					
-					//for (auto coldhot_transfer : propsal_op.proposed_ops){
-						auto coldhot_op = coldhot_transfer_op.get<coldhot_transfer_operation>();
-						auto & manager = graphene::crosschain::crosschain_manager::get_instance();
-						auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
-						coldhot_transfer_without_sign_operation trx_op;
-						std::map<string, string> dest_info;
-						dest_info[std::string(coldhot_op.multi_account_deposit)] = coldhot_op.amount;
-						trx_op.coldhot_trx_original_chain = crosschain_plugin->create_multisig_transaction(std::string(coldhot_op.multi_account_withdraw),
-								dest_info,
-								coldhot_op.asset_symbol,
-								coldhot_op.memo,"");
-						trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
-						trx_op.miner_broadcast = miner;
-						trx_op.asset_symbol = coldhot_op.asset_symbol;
-						trx_op.asset_id = coldhot_op.asset_id;
-						optional<miner_object> miner_iter = get(miner);
-						optional<account_object> account_iter = get(miner_iter->miner_account);
-						trx_op.miner_address = account_iter->addr;
 
-						signed_transaction tx;
-						uint32_t expiration_time_offset = 0;
-						auto dyn_props = get_dynamic_global_properties();
-						operation temp = operation(trx_op);
-						get_global_properties().parameters.current_fees->set_fee(temp);
-						tx.set_reference_block(dyn_props.head_block_id);
-						tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
-						tx.operations.push_back(trx_op);
-						tx.validate();
-						tx.sign(pk, get_chain_id());
-						push_transaction(tx);
+					//for (auto coldhot_transfer : propsal_op.proposed_ops){
+					auto coldhot_op = coldhot_transfer_op.get<coldhot_transfer_operation>();
+					auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+					if (asset_set.find(coldhot_op.asset_symbol) != asset_set.end())
+						continue;
+					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
+					coldhot_transfer_without_sign_operation trx_op;
+					std::map<string, string> dest_info;
+					dest_info[std::string(coldhot_op.multi_account_deposit)] = coldhot_op.amount;
+					trx_op.coldhot_trx_original_chain = crosschain_plugin->create_multisig_transaction(std::string(coldhot_op.multi_account_withdraw),
+						dest_info,
+						coldhot_op.asset_symbol,
+						coldhot_op.memo, "");
+					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
+					trx_op.miner_broadcast = miner;
+					trx_op.asset_symbol = coldhot_op.asset_symbol;
+					trx_op.asset_id = coldhot_op.asset_id;
+					optional<miner_object> miner_iter = get(miner);
+					optional<account_object> account_iter = get(miner_iter->miner_account);
+					trx_op.miner_address = account_iter->addr;
+
+					signed_transaction tx;
+					uint32_t expiration_time_offset = 0;
+					auto dyn_props = get_dynamic_global_properties();
+					operation temp = operation(trx_op);
+					get_global_properties().parameters.current_fees->set_fee(temp);
+					tx.set_reference_block(dyn_props.head_block_id);
+					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+					tx.operations.push_back(trx_op);
+					tx.validate();
+					tx.sign(pk, get_chain_id());
+					push_transaction(tx);
 					//}
 				}
 				catch (...) {

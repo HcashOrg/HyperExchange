@@ -57,7 +57,7 @@ namespace graphene {
 			std::string _wallet_name;
 			std::string _rpc_method;
 			std::string _rpc_url;
-			const std::string chain_type = "BTC";
+			const std::string chain_type = std::string("BTC");
 			fc::http::headers _rpc_headers;
 		};
 	}
