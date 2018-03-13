@@ -25,7 +25,9 @@
 
 #include <graphene/app/api.hpp>
 #include <graphene/utilities/key_conversion.hpp>
-
+#include <graphene/wallet/contract_event_handler.hpp>
+#include <fc/thread/mutex.hpp>
+#include <fc/thread/scoped_lock.hpp>
 using namespace graphene::app;
 using namespace graphene::chain;
 using namespace graphene::utilities;
@@ -152,7 +154,14 @@ struct wallet_data
 {
    /** Chain ID this wallet is used with */
    chain_id_type chain_id;
-   account_multi_index_type my_accounts;
+   account_multi_index_type my_accounts; 
+
+   script_object_multi_index_type my_scripts;
+
+   script_binding_object_multi_index_type event_handlers;
+   // script bindings
+   fc::mutex script_lock;
+   //
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
    {
@@ -177,7 +186,123 @@ struct wallet_data
          return true;
       }
    }
+   vector<script_object> list_scripts()
+   {
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       vector<script_object> res;
+       auto& idx = my_scripts.get<by_hash>();
+       for (auto itr : idx)
+       {
+           res.push_back(itr);
+       }
+       return res;
+   }
+   optional<script_object> get_script_by_hash(const string& contract_hash)
+   {
 
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       vector<script_object> res;
+       auto& idx = my_scripts.get<by_hash>();
+       auto it = idx.find(contract_hash);
+       if (it == idx.end())
+           return optional<script_object>();
+       return *it;
+   }
+   bool insert_script(script_object& spt)
+   {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& idx = my_scripts.get<by_hash>();
+       auto itr = idx.find(spt.script_hash);
+       if (itr != idx.end())
+       {
+           spt.id.number = itr->id.number;
+           idx.replace(itr, spt);
+           return false;
+       }
+       else {
+
+           spt.id.number=object_id_type(spt.space_id,spt.type_id,my_scripts.size()).number;
+           idx.insert(spt);
+           return true;
+       }
+   }
+   bool remove_script(const string& strhash)
+   {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& idx = my_scripts.get<by_hash>();
+       auto itr = idx.find(strhash);
+       if (itr != idx.end())
+       {
+           idx.erase(itr);
+           return true;
+       }
+       else {
+           return false;
+       }
+   }
+   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
+   {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& idx=event_handlers.get<by_contract_addr>();
+       auto itr = idx.lower_bound(contract);
+       auto itr_end = idx.upper_bound(contract);
+       while (itr != itr_end)
+       {
+           if (itr->script_hash == script_hash&&itr->event_name == event_name)
+               return false;
+           itr++;
+       }
+       script_binding_object obj;
+       obj.id.number=object_id_type(obj.space_id, obj.type_id, event_handlers.size()).number;
+       obj.script_hash = script_hash;
+       obj.contract_id = contract;
+       obj.event_name = event_name;
+       idx.insert(obj);
+       return true;
+   }
+   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
+   {
+
+       fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& idx = event_handlers.get<by_contract_addr>();
+       auto itr = idx.lower_bound(contract);
+       auto itr_end = idx.upper_bound(contract);
+       while (itr != itr_end)
+       {
+           if (itr->script_hash == script_hash&&itr->event_name == event_name)
+           {
+               idx.erase(itr);
+               return true;
+           }
+           itr++;
+       }
+       return false;
+   }
+   bool update_handler(const object_id_type& id,const vector<std::pair<object_id_type, chain::contract_event_notify_object>>& modifies,bool add)
+   {
+       auto& idx = event_handlers.get<by_id>();
+       auto it=idx.find(id);
+       if (it == idx.end())
+           return false;
+
+       auto new_item = *it;
+       for (auto& item : modifies)
+       {
+           if (add)
+               new_item.handled.insert(std::make_pair(item.first, item.second));
+           else
+           {
+               new_item.handled.erase(item.first);
+           }
+
+       }
+
+       idx.replace(it, new_item);
+       return true;
+   }
    /** encrypted keys */
    vector<char>              cipher_keys;
 
@@ -1776,7 +1901,13 @@ class wallet_api
 
       vector<asset> get_contract_balance(const string& contract_address) const;
       // end contract wallet apis
-
+      // begin script wallet apis
+      std::string add_script(const string& script_path);
+      vector<script_object>list_scripts();
+      void remove_script(const string& script_hash);
+      bool bind_script_to_event(const string& script_hash, const string& contract, const string& event_name);
+      bool remove_event_handle(const string& script_hash, const string& contract, const string& event_name);
+      // end script wallet apis
       /**
        *  Used to transfer from one set of blinded balances to another
        */
@@ -1826,6 +1957,7 @@ FC_REFLECT( graphene::wallet::plain_keys, (keys)(checksum) )
 FC_REFLECT( graphene::wallet::wallet_data,
             (chain_id)
             (my_accounts)
+            (my_scripts)
             (cipher_keys)
             (extra_keys)
             (pending_account_registrations)(pending_miner_registrations)
@@ -2039,6 +2171,11 @@ FC_API( graphene::wallet::wallet_api,
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
+        (add_script)
+        (list_scripts)
+        (remove_script)
+        (bind_script_to_event)
+        (remove_event_handle)
 		(create_guarantee_order)
 	    (list_guarantee_order)
 		(set_guarantee_id)

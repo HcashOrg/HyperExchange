@@ -615,6 +615,8 @@ class database_api
 
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
+      vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
+      optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
    private:
       std::shared_ptr< database_api_impl > my;
@@ -742,6 +744,8 @@ FC_API(graphene::app::database_api,
     (get_contract_info)
 	(get_contract_info_by_name)
     (get_contract_balance)
+    (get_contract_event_notify)
 	(get_gurantee_object)
 	(list_guarantee_object)
+    (get_contract_event_notify_by_id)
 );

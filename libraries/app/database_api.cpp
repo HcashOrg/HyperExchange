@@ -167,6 +167,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
+      optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -1611,6 +1612,19 @@ optional<guarantee_object> database_api_impl::get_gurantee_object(const guarante
 	return optional<guarantee_object>();
 }
 
+optional<contract_event_notify_object> database_api_impl::get_contract_event_notify_by_id(const contract_event_notify_object_id_type & id)
+{
+    auto& indices = _db.get_index_type<contract_event_notify_index>().indices();
+    auto& idx= indices.get<by_id>();
+    auto it=idx.find(id);
+    if (it != idx.end())
+    {
+        return *it;
+    }
+    return optional<contract_event_notify_object>();
+
+}
+
 map<string, guard_member_id_type> database_api::lookup_guard_member_accounts(const string& lower_bound_name, uint32_t limit,bool formal)const
 {
    return my->lookup_guard_member_accounts( lower_bound_name, limit ,formal);
@@ -2125,8 +2139,14 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 {
 	return my->get_gurantee_object(id);
 }
-
-
+optional<contract_event_notify_object> database_api::get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id)
+{
+    return my->get_contract_event_notify_by_id(id);
+}
+vector<contract_event_notify_object> database_api::get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const
+{
+    return my->_db.get_contract_event_notify(contract_id,trx_id, event_name);
+}
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
 }

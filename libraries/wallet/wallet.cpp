@@ -341,7 +341,7 @@ private:
          // look up the owners on the blockchain
          std::vector<fc::optional<graphene::chain::account_object>> owner_account_objects = _remote_db->lookup_account_names(pending_witness_names);
 
-         // if any of them have registered witnesses, claim them
+         // if any of them have registered witnechaindatabase_apisses, claim them
          for( const fc::optional<graphene::chain::account_object>& optional_account : owner_account_objects )
             if (optional_account)
             {
@@ -349,6 +349,79 @@ private:
                if (witness_obj)
 				   claim_registered_miner(optional_account->name);
             }
+      }
+      if (_wallet.event_handlers.size() != 0)
+      {
+          auto& idx = _wallet.event_handlers.get<by_id>();
+          for (auto& it : idx)
+          {
+              optional<script_object> script_obj=_wallet.get_script_by_hash(it.script_hash);
+              if(!script_obj.valid())
+                  continue;
+              ::blockchain::contract_engine::ContractEngineBuilder builder;
+              if (!uvm::lua::api::global_uvm_chain_api)
+                  uvm::lua::api::global_uvm_chain_api = new UvmChainApi();
+              auto engine = builder.build();
+              int exception_code = 0;
+              auto code_stream = engine->get_bytestream_from_code(script_obj->script);
+              if (!code_stream)
+                  continue;
+              vector<pair<object_id_type, contract_event_notify_object>> new_handled;
+              vector<pair<object_id_type, contract_event_notify_object>> undoed;
+              auto last_handled=it.handled.rbegin();
+              bool undo_failed = false;
+              while (last_handled != it.handled.rend())
+              {
+                  if (_remote_db->get_contract_event_notify_by_id(last_handled->first).valid())
+                  {
+                      break;
+                  }
+                  //todo: undo execute
+                  try {
+                      //todo: execute
+                      undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
+                      
+                  }
+                  catch (...)
+                  {
+                      undo_failed = true;
+                      break;
+                  }
+                  
+                  last_handled++;
+              }
+              _wallet.update_handler(it.id, undoed, false);
+              if(undo_failed)
+                  continue;
+              vector<contract_event_notify_object> events=_remote_db->get_contract_event_notify(it.contract_id,transaction_id_type(),it.event_name);
+              for (auto ev : events)
+              {
+                  if (ev.id > last_handled->first)
+                  {
+                      try {
+                          //todo: execute
+                          engine->clear_exceptions();
+                          engine->add_global_string_variable("event_type", ev.event_name.c_str());
+                          engine->add_global_string_variable("param", ev.event_arg.c_str());
+                          engine->add_global_string_variable("contract_id", ev.contract_address.address_to_contract_string());
+                          engine->add_global_bool_variable("undo", false);
+
+                          engine->load_and_run_stream(code_stream.get());
+
+                          new_handled.push_back(std::make_pair(ev.id, ev));
+                      }
+                      catch (...)
+                      {
+                          break;
+                      }
+
+                  }
+              }
+              _wallet.update_handler(it.id, new_handled, true);
+              //it.move_from(new_obj);
+
+          }
+          save_wallet_file();
       }
    }
 
@@ -878,8 +951,10 @@ public:
 
       return true;
    }
+   fc::mutex save_mutex;
    void save_wallet_file(string wallet_filename = "")
    {
+       fc::scoped_lock<fc::mutex> lock(save_mutex);
       //
       // Serialize in memory, then save to disk
       //
@@ -5573,7 +5648,48 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
+std::string wallet_api::add_script(const string& script_path) 
+{
+    script_object spt;
+    std::ifstream in(script_path, std::ios::in | std::ios::binary);
+    FC_ASSERT(in.is_open());
+    std::vector<unsigned char> contract_filedata((std::istreambuf_iterator<char>(in)),
+        (std::istreambuf_iterator<char>()));
+    in.close();
+    auto contract_code = ContractHelper::load_contract_from_file(script_path);
+    spt.script = contract_code;
+    spt.script_hash = spt.script.GetHash();
+    my->_wallet.insert_script(spt);
+    save_wallet_file();
+    return spt.script_hash;
+}
+vector<script_object> wallet_api::list_scripts()
+{
+    return my->_wallet.list_scripts();
+}
+void wallet_api::remove_script(const string& script_hash)
+{
+    my->_wallet.remove_script(script_hash);
 
+    save_wallet_file();
+}
+bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
+{
+    auto con_info=my->_remote_db->get_contract_info(contract);
+    FC_ASSERT(con_info.contract_address == address(contract,GRAPHENE_CONTRACT_ADDRESS_PREFIX), "");
+    bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, GRAPHENE_CONTRACT_ADDRESS_PREFIX), event_name);
+
+    save_wallet_file();
+    return res;
+}
+bool wallet_api::remove_event_handle(const string& script_hash, const string& contract, const string& event_name)
+{
+    auto con_info = my->_remote_db->get_contract_info(contract);
+    FC_ASSERT(con_info.contract_address == address(contract, ADDRESS_CONTRACT_PREFIX), "");
+    bool res = my->_wallet.remove_event_handle(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
+    save_wallet_file();
+    return res;
+}
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);
