@@ -677,8 +677,8 @@ public:
    string create_crosschain_symbol(const string& symbol)
    {
 	   string config = (*_crosschain_manager)->get_config();
+	   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
 	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-	   FC_ASSERT(instance.contain_crosschain_handles(symbol),"plguin doesnt exist.");
 	   auto fd = instance.get_crosschain_handle(symbol);
 	   fd->initialize_config(fc::json::from_string(config).get_object());
 	   return fd->create_normal_account("");
@@ -2649,8 +2649,8 @@ public:
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
 		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		   FC_ASSERT(instance.contain_crosschain_handles(symbol), "plguin doesnt exist.");
 		   //we need get proper crosschain interface
 		   auto cross_interface = instance.get_crosschain_handle(symbol);
 		   cross_interface->initialize_config(fc::json::from_string(config).get_object());
@@ -2781,7 +2781,7 @@ public:
 		   const auto asset_id = get_asset_id(symbol);
 		   update_op.chain_type = symbol;
 		   string config = (*_crosschain_manager)->get_config();
-		   FC_ASSERT(crosschain::crosschain_manager::get_instance().contain_crosschain_handles(symbol), "plguin doesnt exist.");
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   
@@ -2828,7 +2828,7 @@ public:
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   string config = (*_crosschain_manager)->get_config();
-		   FC_ASSERT(crosschain::crosschain_manager::get_instance().contain_crosschain_handles(symbol), "plguin doesnt exist.");
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
@@ -2853,6 +2853,7 @@ public:
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
@@ -3246,7 +3247,7 @@ public:
    }
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	   FC_ASSERT(!is_locked());
-	   FC_ASSERT(transaction_id_type(tx_id),"not correct transction.");
+	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
 	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
 	   FC_ASSERT(trx.size() == 1, "Transaction find error");
 	   FC_ASSERT(trx[0].op_type == operation::tag<graphene::chain::coldhot_transfer_without_sign_operation>::value, "Transaction find error");

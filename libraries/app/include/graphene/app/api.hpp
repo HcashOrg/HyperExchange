@@ -341,11 +341,13 @@ namespace graphene { namespace app {
    class crosschain_api
    {
    public:
-	   crosschain_api(const string& config);
+	   crosschain_api(const string& config,const vector<string>& crosschain_symbols);
 	   ~crosschain_api();
 	   string get_config();
+	   bool contain_symbol(const string& symbol);
    private:
 	   string _config;
+	   std::vector<string> _crosschain_symbols;
    };
 
 
@@ -430,6 +432,7 @@ FC_API(graphene::app::history_api,
      )
 FC_API(graphene::app::crosschain_api,
        (get_config)
+	   (contain_symbol)
      )
 FC_API(graphene::app::block_api,
 	(get_blocks)
