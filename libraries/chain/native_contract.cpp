@@ -76,7 +76,7 @@ namespace graphene {
 			return contract_id;
 		}
 		std::set<std::string> demo_native_contract::apis() const {
-			return { "init", "hello", "contract_balance", "withdraw", "on_deposit" };
+			return { "init", "hello", "contract_balance", "withdraw", "on_deposit_asset" };
 		}
 		std::set<std::string> demo_native_contract::offline_apis() const {
 			return {};
