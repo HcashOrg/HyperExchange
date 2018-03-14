@@ -199,6 +199,32 @@ namespace graphene {
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
+
+				//need to check if can be created
+				auto check_point_1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_create);
+				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_sign_trx);
+				flat_set<string> asset_set;
+				for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
+				{
+					auto op = check_point.real_transaction.operations[0];
+					if (op.which() == operation::tag<crosschain_withdraw_without_sign_operation>().value)
+					{
+						auto withop = op.get<crosschain_withdraw_without_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
+				}
+
+				for (auto check_point : boost::make_iterator_range(check_point_2.first, check_point_2.second))
+				{
+					auto op = check_point.real_transaction.operations[0];
+					if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
+					{
+						auto withop = op.get<crosschain_withdraw_with_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
+
+				}
+
 				auto withdraw_range = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_uncreate);
 				std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
 				std::map<std::string, std::string> memo_info;
@@ -249,6 +275,9 @@ namespace graphene {
 						continue;
 					}
 					auto asset_symbol = opt_asset->symbol;
+					if (asset_set.find(asset_symbol) != asset_set.end())
+						continue;
+
 					auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
 					crosschain_withdraw_without_sign_operation trx_op;
 					multisig_account_pair_object multi_account_obj;
@@ -271,6 +300,7 @@ namespace graphene {
 					const std::string value = itr.second;
 					temp_map.insert(std::make_pair(key,value));
 					}*/
+					
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol], "");
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
