@@ -155,20 +155,25 @@ namespace graphene {
 			for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
 			{
 				auto op = check_point.current_trx.operations[0];
-				auto coldhot_op = op.get<coldhot_transfer_operation>();
-				asset_set.insert(coldhot_op.asset_symbol);
+				if (op.which() == operation::tag<coldhot_transfer_without_sign_operation>::value)
+				{
+					auto coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
+					asset_set.insert(coldhot_op.asset_symbol);
+				}
+				
 
 			}
 
 			for (auto check_point : boost::make_iterator_range(check_point_2.first, check_point_2.second))
 			{
 				auto op = check_point.current_trx.operations[0];
-				auto coldhot_op = op.get<coldhot_transfer_operation>();
-				asset_set.insert(coldhot_op.asset_symbol);
+				if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>::value)
+				{
+					auto coldhot_op = op.get<coldhot_transfer_with_sign_operation>();
+					asset_set.insert(coldhot_op.asset_symbol);
+				}
 
-			}
-			auto coldhot_transfer_trx = *coldhot_uncreate_range.first;
-			
+			}		
 			for (auto coldhot_transfer_trx : boost::make_iterator_range(coldhot_uncreate_range.first, coldhot_uncreate_range.second)) {
 				try {
 					auto coldhot_transfer_op = coldhot_transfer_trx.current_trx.operations[0];

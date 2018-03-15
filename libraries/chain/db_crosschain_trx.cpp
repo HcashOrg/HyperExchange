@@ -207,16 +207,21 @@ namespace graphene {
 				for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
 				{
 					auto op = check_point.real_transaction.operations[0];
-					auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
-					asset_set.insert(withop.asset_symbol);
-
+					if (op.which() == operation::tag<crosschain_withdraw_without_sign_operation>().value)
+					{
+						auto withop = op.get<crosschain_withdraw_without_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
 				}
 
 				for (auto check_point : boost::make_iterator_range(check_point_2.first, check_point_2.second))
 				{
 					auto op = check_point.real_transaction.operations[0];
-					auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
-					asset_set.insert(withop.asset_symbol);
+					if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
+					{
+						auto withop = op.get<crosschain_withdraw_with_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
 
 				}
 
