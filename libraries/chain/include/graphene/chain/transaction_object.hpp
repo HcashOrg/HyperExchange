@@ -106,7 +106,7 @@ namespace graphene { namespace chain {
 	   history_transaction_object,
 	   indexed_by<
 	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-	   ordered_unique< tag<by_addr>, member<history_transaction_object, address, &history_transaction_object::addr> >
+	   ordered_non_unique< tag<by_addr>, member<history_transaction_object, address, &history_transaction_object::addr> >
 	   >
    > history_transaction_multi_index_type;
 
