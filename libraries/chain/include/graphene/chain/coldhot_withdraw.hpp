@@ -34,6 +34,7 @@ namespace graphene {
 			
 			transaction_id_type coldhot_trx_id;
 			fc::variant_object coldhot_trx_original_chain;
+			int withdraw_account_count;
 			miner_id_type miner_broadcast;
 			address miner_address;
 			asset fee;
@@ -120,7 +121,7 @@ namespace graphene {
 FC_REFLECT(graphene::chain::coldhot_transfer_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::coldhot_transfer_operation, (multi_account_withdraw)(multi_account_deposit)(amount)(asset_symbol)(fee)(asset_id)(memo)(guard)(guard_id))
 FC_REFLECT(graphene::chain::coldhot_transfer_without_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::coldhot_transfer_without_sign_operation, (coldhot_trx_id)(coldhot_trx_original_chain)(miner_broadcast)(miner_address)(fee)(asset_symbol)(asset_id))
+FC_REFLECT(graphene::chain::coldhot_transfer_without_sign_operation, (coldhot_trx_id)(withdraw_account_count)(coldhot_trx_original_chain)(miner_broadcast)(miner_address)(fee)(asset_symbol)(asset_id))
 FC_REFLECT(graphene::chain::coldhot_transfer_with_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::coldhot_transfer_with_sign_operation, (coldhot_trx_id)(coldhot_trx_original_chain)(sign_guard)(asset_symbol)(fee)(guard_address)(coldhot_transfer_sign))
 FC_REFLECT(graphene::chain::coldhot_transfer_combine_sign_operation::fee_parameters_type, (fee))
