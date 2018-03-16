@@ -463,10 +463,26 @@ namespace graphene { namespace chain {
    * @ingroup object_index
    */
    struct by_chain_type;
+   struct by_bindhot_chain_type;
+   struct by_bindcold_chain_type;
    typedef multi_index_container <
 	   multisig_account_pair_object,
 	   indexed_by <
 	   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+	   ordered_non_unique < tag<by_bindhot_chain_type>, 
+		   composite_key<
+		   multisig_account_pair_object,
+		   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account_hot>,
+		   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type>
+		   >
+		>,
+	   ordered_non_unique < tag<by_bindcold_chain_type>,
+	   composite_key<
+		   multisig_account_pair_object,
+		   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::bind_account_cold>,
+		   member<multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type>
+	   >
+	   >,
 	   ordered_non_unique < tag<by_chain_type>, member < multisig_account_pair_object, std::string, &multisig_account_pair_object::chain_type> > ,
 		   ordered_unique< tag<by_multisig_account_pair>,
 		   composite_key<
@@ -488,10 +504,12 @@ namespace graphene { namespace chain {
    /**
    * @ingroup object_index
    */
+   struct by_multisig_account_pair_id;
    typedef multi_index_container<
 	   multisig_address_object,
 	   indexed_by<
 		   ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+		   ordered_non_unique< tag<by_multisig_account_pair_id>, member<multisig_address_object, multisig_account_pair_id_type, &multisig_address_object::multisig_account_pair_object_id> >,
 		   ordered_unique< tag<by_account_chain_type>,
 			   composite_key<
 					multisig_address_object,

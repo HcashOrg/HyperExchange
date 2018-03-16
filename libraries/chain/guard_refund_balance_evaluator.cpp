@@ -16,7 +16,7 @@ namespace graphene {
 				auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto iter = crosschain_trxs.find(transaction_id_type(o.txid));
 				d.adjust_balance(refund_addr,asset(amount,asset_type.get_id()));
-				d.modify(*iter, [&](crosschain_trx_object obj) {
+				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
 				});
 			}FC_CAPTURE_AND_RETHROW((o))

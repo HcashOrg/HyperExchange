@@ -59,7 +59,7 @@ namespace graphene {
 				auto& coldhot_without_sign_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>();
 				auto coldhot_without_sign_tx_iter = coldhot_without_sign_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_without_sign_tx_iter == coldhot_without_sign_tx_dbs.end(), "coldhot trx without sign has been created");
-
+				
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				auto crosschain_handle = manager.get_crosschain_handle(std::string(o.asset_symbol));
 				if (!crosschain_handle->valid_config()) {
@@ -77,6 +77,23 @@ namespace graphene {
 					FC_ASSERT(proposal_update_op.proposed_ops.size() == 1);
 					for (const auto & real_op : proposal_update_op.proposed_ops){*/
 					const auto coldhot_transfer_op = op.get<coldhot_transfer_operation>();
+					auto& multi_account_pair_hot_db = d.get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
+					auto& multi_account_pair_cold_db = d.get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
+					multisig_account_pair_id_type withdraw_multi_id;
+					auto hot_iter = multi_account_pair_hot_db.find(boost::make_tuple(coldhot_transfer_op.multi_account_withdraw, coldhot_transfer_op.asset_symbol));
+					auto cold_iter = multi_account_pair_cold_db.find(boost::make_tuple(coldhot_transfer_op.multi_account_withdraw, coldhot_transfer_op.asset_symbol));
+					if (hot_iter != multi_account_pair_hot_db.end()) {
+						withdraw_multi_id = hot_iter->id;
+					}
+					else if (cold_iter != multi_account_pair_cold_db.end()) {
+						withdraw_multi_id = cold_iter->id;
+					}
+					auto & multi_range = d.get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
+					int withdraw_account_count = 0;
+					for (auto multi_account : boost::make_iterator_range(multi_range.first, multi_range.second)) {
+						++withdraw_account_count;
+					}
+					FC_ASSERT((withdraw_account_count == o.withdraw_account_count),"withdraw multi account count error");
 					FC_ASSERT(created_trx.count(coldhot_transfer_op.multi_account_deposit) == 1);
 					auto one_trx = created_trx[coldhot_transfer_op.multi_account_deposit];
 					FC_ASSERT(one_trx.to_account == coldhot_transfer_op.multi_account_deposit);

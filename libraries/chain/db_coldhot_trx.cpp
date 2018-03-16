@@ -187,6 +187,22 @@ namespace graphene {
 					auto & manager = graphene::crosschain::crosschain_manager::get_instance();
 					if (asset_set.find(coldhot_op.asset_symbol) != asset_set.end())
 						continue;
+					auto& multi_account_pair_hot_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
+					auto& multi_account_pair_cold_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
+					multisig_account_pair_id_type withdraw_multi_id;
+					auto hot_iter  = multi_account_pair_hot_db.find(boost::make_tuple(coldhot_op.multi_account_withdraw, coldhot_op.asset_symbol));
+					auto cold_iter = multi_account_pair_cold_db.find(boost::make_tuple(coldhot_op.multi_account_withdraw, coldhot_op.asset_symbol));
+					if (hot_iter != multi_account_pair_hot_db.end()){
+						withdraw_multi_id = hot_iter->id;
+					}
+					else if (cold_iter != multi_account_pair_cold_db.end()){
+						withdraw_multi_id = cold_iter->id;
+					}
+					auto & multi_range = get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
+					int withdraw_account_count = 0;
+					for (auto multi_account : boost::make_iterator_range(multi_range.first,multi_range.second)){
+						++withdraw_account_count;
+					}
 					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
 					coldhot_transfer_without_sign_operation trx_op;
 					std::map<string, string> dest_info;
@@ -195,6 +211,7 @@ namespace graphene {
 						dest_info,
 						coldhot_op.asset_symbol,
 						coldhot_op.memo, "");
+					trx_op.withdraw_account_count = withdraw_account_count;
 					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
 					trx_op.miner_broadcast = miner;
 					trx_op.asset_symbol = coldhot_op.asset_symbol;
@@ -230,7 +247,14 @@ namespace graphene {
 			fc::variant_object ad;
 			for (auto & trxs : uncombine_trxs) {
 				try {
-					if (trxs.second.size() < ceil(float(get_global_properties().active_committee_members.size())*2.0 / 3.0)) {
+					auto & tx_relate_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
+					auto relate_tx_iter = tx_relate_db.find(boost::make_tuple(trxs.first, coldhot_without_sign_trx_create));
+					if (relate_tx_iter == tx_relate_db.end() || relate_tx_iter->current_trx.operations.size() < 1) {
+						continue;
+					}
+					auto op = relate_tx_iter->current_trx.operations[0];
+					auto coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
+					if (trxs.second.size() < ceil(float(coldhot_op.withdraw_account_count)*2.0 / 3.0)) {
 						continue;
 					}
 					set<string> combine_signature;
@@ -253,13 +277,6 @@ namespace graphene {
 					if (transaction_err) {
 						continue;
 					}
-					auto & tx_relate_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
-					auto relate_tx_iter = tx_relate_db.find(boost::make_tuple(trxs.first, coldhot_without_sign_trx_create));
-					if (relate_tx_iter == tx_relate_db.end() || relate_tx_iter->current_trx.operations.size() < 1) {
-						continue;
-					}
-					auto op = relate_tx_iter->current_trx.operations[0];
-					auto coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
 					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
 					coldhot_transfer_combine_sign_operation trx_op;
