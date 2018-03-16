@@ -737,6 +737,7 @@ namespace graphene {
         contract_operation_result_info contract_transfer_evaluate::do_evaluate(const operation_type & o)
         {
             auto &d = db();
+            
             if (d.get_node_properties().skip_flags&database::validation_steps::check_gas_price)
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
@@ -762,7 +763,9 @@ namespace graphene {
 					{
                         gas_count = o.invoke_cost;
                         transfer_contract_operation::transfer_param param;
-                        param.amount = o.amount;
+                        
+                        param.num= o.amount.amount;
+                        param.symbol = o.amount.asset_id(d).symbol;
                         param.param = o.param;
 
                         auto invoke_result = native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
@@ -809,7 +812,8 @@ namespace graphene {
 						try
 						{
                             transfer_contract_operation::transfer_param param;
-                            param.amount = o.amount;
+                            param.num = o.amount.amount;
+                            param.symbol = o.amount.asset_id(d).symbol;
                             param.param = o.param;
 							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
 						}

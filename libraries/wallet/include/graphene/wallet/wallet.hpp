@@ -212,6 +212,10 @@ struct wallet_data
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& id_idx = my_scripts.get<by_id>();
+       uint64_t new_id = 0;
+       if (id_idx.rbegin() != id_idx.rend())
+           new_id = id_idx.rbegin()->id.instance() + 1;
        auto& idx = my_scripts.get<by_hash>();
        auto itr = idx.find(spt.script_hash);
        if (itr != idx.end())
@@ -222,7 +226,7 @@ struct wallet_data
        }
        else {
 
-           spt.id.number=object_id_type(spt.space_id,spt.type_id,my_scripts.size()).number;
+           spt.id.number=object_id_type(spt.space_id,spt.type_id, new_id).number;
            idx.insert(spt);
            return true;
        }
@@ -246,9 +250,14 @@ struct wallet_data
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
+       auto& id_idx = my_scripts.get<by_id>();
+       uint64_t new_id = 0;
+       if (id_idx.rbegin() != id_idx.rend())
+           new_id = id_idx.rbegin()->id.instance() + 1;
        auto& idx=event_handlers.get<by_contract_addr>();
        auto itr = idx.lower_bound(contract);
        auto itr_end = idx.upper_bound(contract);
+
        while (itr != itr_end)
        {
            if (itr->script_hash == script_hash&&itr->event_name == event_name)
@@ -256,7 +265,7 @@ struct wallet_data
            itr++;
        }
        script_binding_object obj;
-       obj.id.number=object_id_type(obj.space_id, obj.type_id, event_handlers.size()).number;
+       obj.id.number=object_id_type(obj.space_id, obj.type_id, new_id).number;
        obj.script_hash = script_hash;
        obj.contract_id = contract;
        obj.event_name = event_name;

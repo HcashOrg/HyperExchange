@@ -158,7 +158,8 @@ namespace graphene {
 
             struct transfer_param
             {
-                asset amount;
+                share_type num;
+                string symbol;
                 string param;
             };
             asset fee; // transaction fee limit
@@ -203,5 +204,5 @@ FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_pr
 FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc))
 FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::transfer_contract_operation::transfer_param, (amount)(param))
+FC_REFLECT(graphene::chain::transfer_contract_operation::transfer_param, (num)(symbol)(param))
 FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount)(param))

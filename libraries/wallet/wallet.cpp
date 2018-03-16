@@ -380,7 +380,13 @@ private:
                   try {
                       //todo: execute
                       undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
-                      
+                      engine->clear_exceptions();
+                      engine->add_global_string_variable("event_type", last_handled->second.event_name.c_str());
+                      engine->add_global_string_variable("param", last_handled->second.event_arg.c_str());
+                      engine->add_global_string_variable("contract_id", last_handled->second.contract_address.address_to_contract_string());
+                      engine->add_global_bool_variable("undo", true);
+
+                      engine->load_and_run_stream(code_stream.get());
                   }
                   catch (...)
                   {
@@ -418,7 +424,6 @@ private:
                   }
               }
               _wallet.update_handler(it.id, new_handled, true);
-              //it.move_from(new_obj);
 
           }
           save_wallet_file();
