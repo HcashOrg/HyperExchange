@@ -171,7 +171,7 @@ namespace graphene {
 				this->invoke_contract_result = invoke_result;
 
 				new_contract.contract_address = o.calculate_contract_id();
-				new_contract.is_native_contract = true;
+				new_contract.type_of_contract = contract_type::native_contract;
 				new_contract.native_contract_key = o.native_contract_key;
 				new_contract.owner_address = o.owner_addr;
 				new_contract.create_time = o.register_time;
@@ -208,7 +208,7 @@ namespace graphene {
             total_fee = o.fee.amount;
             gas_count = o.invoke_cost;
 			try {
-				if (contract.is_native_contract)
+				if (contract.type_of_contract==contract_type::native_contract)
 				{
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
@@ -305,7 +305,7 @@ namespace graphene {
             { 
 			try {
                 gas_count = o.invoke_cost;
-				if (contract.is_native_contract)
+				if (contract.type_of_contract == contract_type::native_contract)
 				{
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
@@ -530,7 +530,7 @@ namespace graphene {
 					return nullptr;
 				auto contract_info = std::make_shared<UvmContractInfo>();
 				const auto &contract = db().get_contract(contract_addr);
-				if (contract.is_native_contract)
+				if (contract.type_of_contract == contract_type::native_contract)
 				{
 					auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<contract_register_evaluate*>(this), contract.native_contract_key, contract.contract_address);
 					if (!native_contract)
@@ -568,7 +568,7 @@ namespace graphene {
 					return nullptr;
 				auto contract_info = std::make_shared<UvmContractInfo>();
 				const auto &contract = db().get_contract(contract_addr);
-				if (contract.is_native_contract)
+				if (contract.type_of_contract == contract_type::native_contract)
 				{
 					auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), contract.native_contract_key, contract.contract_address);
 					if (!native_contract)
@@ -603,7 +603,7 @@ namespace graphene {
 				return nullptr;
 			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
-			if (contract.is_native_contract)
+			if (contract.type_of_contract == contract_type::native_contract)
 			{
 				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<contract_invoke_evaluate*>(this), contract.native_contract_key, contract.contract_address);
 				if (!native_contract)
@@ -637,7 +637,7 @@ namespace graphene {
 				return nullptr;
 			auto contract_info = std::make_shared<UvmContractInfo>();
 			const auto &contract = db().get_contract(contract_addr);
-			if (contract.is_native_contract)
+			if (contract.type_of_contract == contract_type::native_contract)
 			{
 				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<contract_upgrade_evaluate*>(this), contract.native_contract_key, contract.contract_address);
 				if (!native_contract)
@@ -737,6 +737,7 @@ namespace graphene {
         contract_operation_result_info contract_transfer_evaluate::do_evaluate(const operation_type & o)
         {
             auto &d = db();
+            
             if (d.get_node_properties().skip_flags&database::validation_steps::check_gas_price)
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
@@ -749,7 +750,7 @@ namespace graphene {
             total_fee = o.fee.amount;
             
             try {
-                if (contract.is_native_contract)
+                if (contract.type_of_contract == contract_type::native_contract)
                 {
                     FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
@@ -758,16 +759,18 @@ namespace graphene {
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
-					if (native_contract->has_api("on_deposit"))
+					if (native_contract->has_api("on_deposit_asset"))
 					{
                         gas_count = o.invoke_cost;
                         transfer_contract_operation::transfer_param param;
-                        param.amount = o.amount;
+                        
+                        param.num= o.amount.amount;
+                        param.symbol = o.amount.asset_id(d).symbol;
                         param.param = o.param;
 
-                        auto invoke_result = native_contract->invoke("on_deposit", fc::json::to_string(param));
+                        auto invoke_result = native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
 
-						gas_used = native_contract->gas_count_for_api_invoke("on_deposit");
+						gas_used = native_contract->gas_count_for_api_invoke("on_deposit_asset");
                         gas_count = gas_used;
                         FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 						auto register_fee = native_contract_register_fee;
@@ -782,7 +785,7 @@ namespace graphene {
                 }
                 else
                 {
-					if (contract.code.abi.find("on_deposit") != contract.code.abi.end())
+					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
 					{
 
                         gas_count = o.invoke_cost;
@@ -809,9 +812,10 @@ namespace graphene {
 						try
 						{
                             transfer_contract_operation::transfer_param param;
-                            param.amount = o.amount;
+                            param.num = o.amount.amount;
+                            param.symbol = o.amount.asset_id(d).symbol;
                             param.param = o.param;
-							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit", fc::json::to_string(param), &contract_result_str);
+							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
 						}
 						catch (uvm::core::UvmException &e)
 						{
@@ -890,7 +894,7 @@ namespace graphene {
                 return nullptr;
             auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = db().get_contract(contract_addr);
-            if (contract.is_native_contract)
+            if (contract.type_of_contract == contract_type::native_contract)
             {
                 auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<contract_transfer_evaluate*>(this), contract.native_contract_key, contract.contract_address);
                 if (!native_contract)

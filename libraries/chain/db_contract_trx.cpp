@@ -147,7 +147,7 @@ namespace graphene {
 					obj.contract_name = contract.contract_name;
 					obj.contract_desc = contract.contract_desc;
                     obj.contract_address = contract.contract_address;
-					obj.is_native_contract = contract.is_native_contract;
+					obj.type_of_contract = contract.type_of_contract;
 					obj.native_contract_key = contract.native_contract_key;
                 });
             }
@@ -173,7 +173,7 @@ namespace graphene {
 						obj.contract_name = contract.contract_name;
 						obj.contract_desc = contract.contract_desc;
 						obj.contract_address = contract.contract_address;
-						obj.is_native_contract = contract.is_native_contract;
+						obj.type_of_contract = contract.type_of_contract;
 						obj.native_contract_key = contract.native_contract_key;
 					});
 				}

@@ -17,7 +17,7 @@ namespace graphene {
 			{
 				StorageDataChangeType change;
 				change.after = value;
-				const auto &before = _evaluate->get_storage(string(contract_address), storage_name);
+				const auto &before = _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
 				jsondiff::JsonDiff differ;
 				auto before_json_str = before.as<string>();
 				auto after_json_str = change.after.as<string>();
@@ -76,7 +76,7 @@ namespace graphene {
 			return contract_id;
 		}
 		std::set<std::string> demo_native_contract::apis() const {
-			return { "init", "hello", "contract_balance", "withdraw", "on_deposit" };
+			return { "init", "hello", "contract_balance", "withdraw", "on_deposit_asset" };
 		}
 		std::set<std::string> demo_native_contract::offline_apis() const {
 			return {};
