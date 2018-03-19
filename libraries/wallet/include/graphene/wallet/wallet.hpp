@@ -1919,7 +1919,9 @@ class wallet_api
                                          bool to_temp = false );
 
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
+	  signed_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  signed_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
+	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  signed_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
@@ -2140,7 +2142,9 @@ FC_API( graphene::wallet::wallet_api,
 		(get_guard_lock_balance)
 		(get_miner_lock_balance)
 		(refund_request)
+		(cancel_cold_hot_uncreate_transaction)
 		(transfer_from_cold_to_hot)
+		(get_multi_account_guard)
 		(withdraw_from_link)
 		(get_multisig_asset_tx)
 		(sign_multi_asset_trx)

@@ -34,5 +34,11 @@ namespace graphene {
 		share_type coldhot_transfer_result_operation::calculate_fee(const fee_parameters_type& k)const {
 			return share_type(0);
 		}
+		void coldhot_cancel_transafer_transaction_operation::validate() const {
+
+		}
+		share_type coldhot_cancel_transafer_transaction_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
 	}
 }

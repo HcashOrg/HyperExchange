@@ -187,6 +187,7 @@ void database::initialize_evaluators()
    register_evaluator<coldhot_transfer_with_sign_evaluate>();
    register_evaluator<coldhot_transfer_combine_sign_evaluate>();
    register_evaluator<coldhot_transfer_result_evaluate>();
+   register_evaluator<coldhot_cancel_transafer_transaction_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();

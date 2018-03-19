@@ -157,6 +157,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
+	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
@@ -2153,6 +2154,9 @@ vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(con
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }
+vector<optional<multisig_address_object>> database_api::get_multi_account_guard(const string & multi_address, const string& symbol) const {
+	return my->get_multi_account_guard(multi_address, symbol);
+}
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
 }
@@ -2188,6 +2192,28 @@ vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(cons
 		result.push_back(*cct_trx_iter);
 	}
 	
+	return result;
+}
+vector<optional<multisig_address_object>> database_api_impl::get_multi_account_guard(const string & multi_address, const string& symbol)const {
+	vector<optional<multisig_address_object>> result;
+	auto& hot_db = _db.get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
+	auto& cold_db = _db.get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
+	auto hot_iter = hot_db.find(boost::make_tuple(multi_address, symbol));
+	auto cold_iter = cold_db.find(boost::make_tuple(multi_address, symbol));
+	multisig_account_pair_id_type multi_id;
+	if (hot_iter != hot_db.end()) {
+		multi_id = hot_iter->id;
+	}
+	if (cold_iter != cold_db.end()) {
+		FC_ASSERT(multi_id == multisig_account_pair_id_type(), "this address exist in both cold and hot address");
+		multi_id = cold_iter->id;
+	}
+	FC_ASSERT(multi_id != multisig_account_pair_id_type(), "Can`t find coldhot multiaddress");
+	auto guard_range = _db.get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(multi_id);
+	for (auto guard : boost::make_iterator_range(guard_range.first,guard_range.second))
+	{
+		result.push_back(guard);
+	}
 	return result;
 }
 vector<guard_lock_balance_object> database_api_impl::get_guard_lock_balance(const guard_member_id_type& id)const {

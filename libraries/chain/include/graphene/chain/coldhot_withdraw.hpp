@@ -116,6 +116,25 @@ namespace graphene {
 				a.push_back(authority(1, miner_address, 1));
 			}
 		};
+		struct coldhot_cancel_transafer_transaction_operation : public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+			};
+
+			transaction_id_type trx_id;
+			//TODO:refund balance in the situation that channel account tie to formal account
+			asset fee;
+			address guard;
+			guard_member_id_type guard_id;
+			address fee_payer()const {
+				return guard;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, guard, 1));
+			}
+		};
 	}
 }
 FC_REFLECT(graphene::chain::coldhot_transfer_operation::fee_parameters_type, (fee))
@@ -128,3 +147,5 @@ FC_REFLECT(graphene::chain::coldhot_transfer_combine_sign_operation::fee_paramet
 FC_REFLECT(graphene::chain::coldhot_transfer_combine_sign_operation, (coldhot_trx_original_chain)(signed_trx_ids)(original_trx_id)(miner_broadcast)(coldhot_transfer_trx_id)(miner_address)(asset_symbol)(fee))
 FC_REFLECT(graphene::chain::coldhot_transfer_result_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::coldhot_transfer_result_operation, (coldhot_trx_original_chain)(miner_broadcast)(fee)(miner_address))
+FC_REFLECT(graphene::chain::coldhot_cancel_transafer_transaction_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::coldhot_cancel_transafer_transaction_operation, (trx_id)(guard)(fee)(guard_id))
