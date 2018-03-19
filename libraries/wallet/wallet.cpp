@@ -1348,7 +1348,7 @@ public:
            return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(native_contract_key))
    }
-   share_type invoke_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_api, const string & contract_arg)
+   share_type invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
    {
        try {
            FC_ASSERT(!self.is_locked());
@@ -1361,6 +1361,17 @@ public:
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto caller_pubkey = privkey.get_public_key();
+
+		   std::string contract_address;
+		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+		   {
+			   contract_address = contract_address_or_name;
+		   }
+		   else {
+
+			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   contract_address = string(cont.contract_address);
+		   }
 
            contract_invoke_op.gas_price =  GRAPHENE_BLOCKCHAIN_PRECISION;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
@@ -1394,10 +1405,10 @@ public:
                }
            }
            return gas_count;
-       }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address)(contract_api)(contract_arg))
+       }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
 
    }
-   signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_api, const string& contract_arg)
+   signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1410,6 +1421,17 @@ public:
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
+
+		   std::string contract_address;
+		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+		   {
+			   contract_address = contract_address_or_name;
+		   }
+		   else {
+
+			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   contract_address = string(cont.contract_address);
+		   }
 
 		   contract_invoke_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
 		   contract_invoke_op.invoke_cost = std::stoll(gas_limit);
@@ -1434,10 +1456,10 @@ public:
 		   bool broadcast = true;
 		   auto signed_tx = sign_transaction(tx, broadcast);
 		   return signed_tx;
-	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address)(contract_api)(contract_arg))
+	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address_or_name)(contract_api)(contract_arg))
    }
 
-   string invoke_contract_offline(const string& caller_account_name, const string& contract_address, const string& contract_api, const string& contract_arg)
+   string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1450,6 +1472,17 @@ public:
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
+
+		   std::string contract_address;
+		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+		   {
+			   contract_address = contract_address_or_name;
+		   }
+		   else {
+
+			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   contract_address = string(cont.contract_address);
+		   }
 
 		   contract_invoke_op.gas_price = 0;
 		   contract_invoke_op.invoke_cost = 0;
@@ -1505,7 +1538,7 @@ public:
 			   return detail;
 		   }
 		   return "some error happened, not api result get";
-	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address)(contract_api)(contract_arg))
+	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
    }
 
    signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
