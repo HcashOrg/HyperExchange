@@ -126,6 +126,7 @@ namespace graphene { namespace chain {
 	   graphene::chain::coldhot_transfer_with_sign_operation,
 	   graphene::chain::coldhot_transfer_combine_sign_operation,
 	   graphene::chain::coldhot_transfer_result_operation,
+	   graphene::chain::coldhot_cancel_transafer_transaction_operation,
 	        guard_update_multi_account_operation,
 	        asset_real_create_operation,
 	   contract_register_operation,

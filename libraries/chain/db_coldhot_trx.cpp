@@ -5,9 +5,6 @@ namespace graphene {
 		void database::adjust_coldhot_transaction(transaction_id_type relate_trx_id, transaction_id_type current_trx_id, signed_transaction current_trx, uint64_t op_type) {
 			try {
 				if (op_type == operation::tag<coldhot_transfer_operation>::value) {
-// 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 					auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
-// 					FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "This coldhot Transaction exist");
 					create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_trx_id = transaction_id_type();
@@ -19,11 +16,6 @@ namespace graphene {
 				else if (op_type == operation::tag<coldhot_transfer_without_sign_operation>::value){
 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto coldhot_tx_iter = coldhot_tx_dbs.find(relate_trx_id);
-					//FC_ASSERT(coldhot_tx_iter != coldhot_tx_dbs.end(), "coldhot original trx doesn`t exist");
-					//check without sign trx exist
-// 					auto& coldhot_relate_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>();
-// 					auto coldhot_relate_tx_iter = coldhot_relate_tx_dbs.find(current_trx_id);
-// 					FC_ASSERT(coldhot_relate_tx_iter == coldhot_relate_tx_dbs.end(), "coldhot trx without sign has been created");
 					modify(*coldhot_tx_iter, [&](coldhot_transfer_object& obj) {
 						obj.curret_trx_state = coldhot_without_sign_trx_create;
 					});
@@ -36,12 +28,6 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<coldhot_transfer_with_sign_operation>::value) {
-// 					auto& coldhot_original_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 					auto coldhot_original_tx_iter = coldhot_original_tx_dbs.find(relate_trx_id);
-// 					FC_ASSERT(coldhot_original_tx_iter != coldhot_original_tx_dbs.end(), "coldhot original trx doesn`t exist");
-// 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 					auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
-// 					FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "coldhot trx with this sign has been created");
 					create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_trx_id = relate_trx_id;
@@ -51,14 +37,6 @@ namespace graphene {
 					});
 				}
 				else if (op_type == operation::tag<coldhot_transfer_combine_sign_operation>::value){
-// 					auto& coldhot_relate_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 					auto coldhot_relate_tx_iter = coldhot_relate_tx_dbs.find(relate_trx_id);
-// 					FC_ASSERT(coldhot_relate_tx_iter != coldhot_relate_tx_dbs.end(), "coldhot original trx doesn`t exist");
-// 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 					auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
-// 					FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "coldhot trx combine has been created");
-// 					auto coldhot_relate_original_iter = coldhot_tx_dbs.find(coldhot_relate_tx_iter->relate_trx_id);
-// 					FC_ASSERT(coldhot_relate_original_iter != coldhot_tx_dbs.end(), "coldhot original relate trx doesn`t exist");
 					auto& coldhot_tx_dbs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto coldhot_without_sign_trx_iter = coldhot_tx_dbs.find(relate_trx_id);
 					auto coldhot_transfer_trx_iter = coldhot_tx_dbs.find(coldhot_without_sign_trx_iter->relate_trx_id);
@@ -80,21 +58,6 @@ namespace graphene {
 							obj.curret_trx_state = coldhot_combine_trx_create;
 						});
 					}
-// 					std::vector<coldhot_transfer_object> sign_trxs;
-// 					get_index_type<coldhot_transfer_index >().inspect_all_objects([&](const object& o)
-// 					{
-// 						const coldhot_transfer_object& p = static_cast<const coldhot_transfer_object&>(o);
-// 						if (p.curret_trx_state == coldhot_sign_trx && p.relate_trx_id == relate_trx_id) {
-// 							sign_trxs.push_back(p);
-// 						}
-// 					});
-// 					for (auto sign_trx_obj : sign_trxs) {
-// 						auto& sign_tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 						auto sign_tx_iter = sign_tx_db.find(sign_trx_obj.current_id);
-// 						modify(*sign_tx_iter, [&](coldhot_transfer_object& obj) {
-// 							obj.curret_trx_state = coldhot_combine_trx_create;
-// 						});
-// 					}
 					auto op = current_trx.operations[0];
 					auto combine_op = op.get<coldhot_transfer_combine_sign_operation>();
 					create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
@@ -119,21 +82,6 @@ namespace graphene {
 					modify(*tx_coldhot_original_iter, [&](coldhot_transfer_object& obj) {
 						obj.curret_trx_state = coldhot_transaction_confirm;
 					});
-// 					std::vector<coldhot_transfer_object> sign_trxs;
-// 					get_index_type<coldhot_transfer_index >().inspect_all_objects([&](const object& o)
-// 					{
-// 						const coldhot_transfer_object& p = static_cast<const coldhot_transfer_object&>(o);
-// 						if (p.curret_trx_state == coldhot_combine_trx_create && p.relate_trx_id == relate_trx_id) {
-// 							sign_trxs.push_back(p);
-// 						}
-// 					});
-// 					for (auto sign_trx_obj : sign_trxs) {
-// 						auto& sign_tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
-// 						auto sign_tx_iter = sign_tx_db.find(sign_trx_obj.current_id);
-// 						modify(*sign_tx_iter, [&](coldhot_transfer_object& obj) {
-// 							obj.curret_trx_state = coldhot_transaction_confirm;
-// 						});
-// 					}
 					auto combine_state_tx_range = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(relate_trx_id);
 					for (auto combine_state_tx : boost::make_iterator_range(combine_state_tx_range.first, combine_state_tx_range.second)) {
 						if (combine_state_tx.curret_trx_state != coldhot_combine_trx_create) {
@@ -144,6 +92,20 @@ namespace graphene {
 							obj.curret_trx_state = coldhot_transaction_confirm;
 						});
 					}
+				}
+				else if (op_type == operation::tag<coldhot_cancel_transafer_transaction_operation>::value) {
+					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+					auto tx_coldhot_original_iter = coldhot_db_objs.find(relate_trx_id);
+					modify(*tx_coldhot_original_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
+					create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
+						obj.op_type = op_type;
+						obj.relate_trx_id = relate_trx_id;
+						obj.current_id = current_trx_id;
+						obj.current_trx = current_trx;
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_trx_id)(current_trx_id))
 		}
