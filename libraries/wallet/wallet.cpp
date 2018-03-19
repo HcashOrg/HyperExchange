@@ -385,7 +385,7 @@ private:
                       engine->add_global_string_variable("param", last_handled->second.event_arg.c_str());
                       engine->add_global_string_variable("contract_id", last_handled->second.contract_address.address_to_contract_string());
                       engine->add_global_bool_variable("undo", true);
-
+                      engine->add_global_int_variable("block_num", last_handled->second.block_num);
                       engine->load_and_run_stream(code_stream.get());
                   }
                   catch (...)
@@ -5546,7 +5546,7 @@ signed_transaction wallet_api::invoke_contract(const string& caller_account_name
 	else {
 
 		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = string(cont.contract_address);
+		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
@@ -5561,7 +5561,7 @@ share_type wallet_api::invoke_contract_testing(const string & caller_account_nam
     else {
 
         auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-        contract_address = string(cont.contract_address);
+        contract_address = cont.contract_address.address_to_contract_string();
     }
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
 
@@ -5577,7 +5577,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	else {
 
 		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = string(cont.contract_address);
+		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }

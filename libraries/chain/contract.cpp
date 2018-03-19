@@ -52,7 +52,7 @@ namespace graphene {
 			for (auto it = contract_withdraw.cbegin(); it != contract_withdraw.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_string());
+				item.push_back(it->first.first.address_to_contract_string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				contract_withdraw_array.push_back(item);
@@ -63,7 +63,7 @@ namespace graphene {
 			for (auto it = contract_balances.cbegin(); it != contract_balances.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_string());
+				item.push_back(it->first.first.address_to_contract_string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				contract_balances_array.push_back(item);
@@ -85,7 +85,7 @@ namespace graphene {
 			for (auto it = deposit_contract.cbegin(); it != deposit_contract.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_string());
+				item.push_back(it->first.first.address_to_contract_string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				deposit_contract_array.push_back(item);
@@ -116,6 +116,7 @@ namespace graphene {
             FC_ASSERT(owner_addr != address());
             FC_ASSERT(address(owner_pubkey) == owner_addr);
             FC_ASSERT(contract_id != address());
+            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
 		}
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
@@ -131,8 +132,18 @@ namespace graphene {
 		{ 
 			address id;
 			fc::sha512::encoder enc;
-			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
-			fc::raw::pack(enc, info_to_digest);
+            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
+            if (contract_code != Code())
+            {
+                std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
+                fc::raw::pack(enc, info_to_digest);
+            }
+            else if(inherit_from!=address())
+            {
+                std::pair<address, fc::time_point> info_to_digest(inherit_from, register_time);
+                fc::raw::pack(enc, info_to_digest);
+            }
+
 			id.addr = fc::ripemd160::hash(enc.result());
 			return id;
 		}

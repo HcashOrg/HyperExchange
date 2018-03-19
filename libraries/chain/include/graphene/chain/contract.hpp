@@ -20,6 +20,7 @@ namespace graphene {
 			address contract_address;
 			string event_name;
 			string event_arg;
+            uint64_t block_num;
 		};
 
 		struct comparator_for_contract_invoke_result_balance {
@@ -79,7 +80,8 @@ namespace graphene {
 			fc::time_point_sec     register_time;
 			address contract_id;
 			uvm::blockchain::Code  contract_code;
-
+            std::string init_arg;
+            address     inherit_from;
 			extensions_type   extensions;
 
 			address fee_payer()const { return owner_addr; }
@@ -196,9 +198,9 @@ namespace graphene {
 
 	}
 }
-
+FC_REFLECT(graphene::chain::contract_event_notify_info,(contract_address)(event_name)(event_arg)(block_num))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code))
+FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code)(init_arg)(inherit_from))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_api)(contract_arg)(offline))
 FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fee)(price_per_kbyte))

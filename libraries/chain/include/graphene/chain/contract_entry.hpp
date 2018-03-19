@@ -72,6 +72,7 @@ namespace uvm {
 			void SetApis(char* module_apis[], int count, int api_type);
 			bool valid() const;
 			std::string GetHash() const;
+            bool operator!=(const Code& it)const;
 		};
 	}
 }

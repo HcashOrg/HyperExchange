@@ -51,7 +51,24 @@ namespace uvm {
 			return hashstr;
 		}
 
-		void Code::SetApis(char* module_apis[], int count, int api_type)
+        bool Code::operator!=(const Code& it) const
+        {
+            if (abi != it.abi)
+                return true;
+            if (offline_abi != it.offline_abi)
+                return true;
+            if (events != it.events)
+                return true;
+            if (storage_properties != it.storage_properties)
+                return true;
+            if (code != it.code)
+                return true;
+            if (code_hash != code_hash)
+                return true;
+            return false;
+        }
+
+        void Code::SetApis(char* module_apis[], int count, int api_type)
 		{
 			if (api_type == ContractApiType::chain)
 			{

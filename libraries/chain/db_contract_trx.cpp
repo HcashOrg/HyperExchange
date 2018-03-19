@@ -78,7 +78,7 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
 		}
 
-		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg)
+		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num)
 		{
 			try {
 				contract_event_notify_object obj;
@@ -86,12 +86,15 @@ namespace graphene {
 				obj.contract_address = contract_id;
 				obj.event_name = event_name;
 				obj.event_arg = event_arg;
+                obj.block_num = block_num;
 				auto& conn_db = get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
 				create<contract_event_notify_object>([&](contract_event_notify_object & o) {
 					o.contract_address = obj.contract_address;
 					o.trx_id = obj.trx_id;
 					o.event_name = obj.event_name;
 					o.event_arg = obj.event_arg;
+                    o.block_num = obj.block_num;
+
 				});
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(event_name)(event_arg));
 		}
@@ -149,6 +152,7 @@ namespace graphene {
                     obj.contract_address = contract.contract_address;
 					obj.type_of_contract = contract.type_of_contract;
 					obj.native_contract_key = contract.native_contract_key;
+                    obj.inherit_from = contract.inherit_from;
                 });
             }
             else
@@ -175,6 +179,7 @@ namespace graphene {
 						obj.contract_address = contract.contract_address;
 						obj.type_of_contract = contract.type_of_contract;
 						obj.native_contract_key = contract.native_contract_key;
+                        obj.inherit_from = contract.inherit_from;
 					});
 				}
 				else
