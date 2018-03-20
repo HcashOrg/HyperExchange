@@ -105,7 +105,7 @@ namespace graphene {
 				invoke_contract_result.clear();
 				try
 				{
-					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), o.init_arg, nullptr);
+					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
 				}
 				catch (uvm::core::UvmException &e)
 				{
@@ -656,10 +656,11 @@ namespace graphene {
                 {
                     return nullptr;
                 }
-                if (contract.type_of_contract == contract_type::native_contract)
+
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
                     return nullptr;
-                const auto &code = contract.code;
-                for (const auto & api : code.abi) {
+                for (const auto & api : base_contract.code.abi) {
                     contract_info->contract_apis.push_back(api);
                 }
             }
@@ -707,10 +708,10 @@ namespace graphene {
                 {
                     return nullptr;
                 }
-                if (contract.type_of_contract == contract_type::native_contract)
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
                     return nullptr;
-                const auto &code = contract.code;
-                for (const auto & api : code.abi) {
+                for (const auto & api : base_contract.code.abi) {
                     contract_info->contract_apis.push_back(api);
                 }
             }
@@ -742,7 +743,20 @@ namespace graphene {
 			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto code = std::make_shared<uvm::blockchain::Code>();
-				*code = origin_op.contract_code;
+				if(origin_op.contract_code!=uvm::blockchain::Code())
+                {
+                    *code = origin_op.contract_code;
+                }
+                else
+                {
+                    FC_ASSERT(origin_op.inherit_from != address());
+                    if (!db().has_contract(origin_op.inherit_from))
+                        return nullptr;
+                    const auto &contract = db().get_contract(origin_op.inherit_from);
+                    if (contract.type_of_contract == contract_type::native_contract)
+                        return nullptr;
+                    *code = contract.code;
+                }
 				return code;
 			}
 			else
@@ -981,10 +995,10 @@ namespace graphene {
                 {
                     return nullptr;
                 }
-                if (contract.type_of_contract == contract_type::native_contract)
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
                     return nullptr;
-                const auto &code = contract.code;
-                for (const auto & api : code.abi) {
+                for (const auto & api : base_contract.code.abi) {
                     contract_info->contract_apis.push_back(api);
                 }
             }
@@ -1064,12 +1078,21 @@ namespace graphene {
             address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
-            auto contract_info = std::make_shared<UvmContractInfo>();
+            //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract(contract_addr);
             // TODO: when contract is native contract
-            const auto &code = contract.code;
-            for (const auto & api : code.abi) {
-                contract_info->contract_apis.push_back(api);
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            auto code = contract.code;
+            if (!(contract.code != uvm::blockchain::Code()))
+            {
+                FC_ASSERT(contract.inherit_from != address());
+                if (!get_db().has_contract(contract.inherit_from))
+                    return nullptr;
+                const auto &base_contract = get_db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract == contract_type::native_contract)
+                    return nullptr;
+                code = base_contract.code;
+
             }
             auto ccode = std::make_shared<uvm::blockchain::Code>();
             *ccode = code;

@@ -1187,6 +1187,49 @@ public:
 		   return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
+
+   std::string register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+   {
+       // TODO: register_contract_testing
+       try {
+           FC_ASSERT(!self.is_locked());
+           FC_ASSERT(is_valid_account_name(caller_account_name));
+
+           contract_register_operation contract_register_op;
+
+           //juge if the name has been registered in the chain
+           auto acc_caller = get_account(caller_account_name);
+           FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+           auto owner_pubkey = privkey.get_public_key();
+
+           contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+           contract_register_op.init_cost = std::stoll(gas_limit);
+           contract_register_op.owner_addr = acc_caller.addr;
+           contract_register_op.owner_pubkey = owner_pubkey;
+
+
+           contract_register_op.inherit_from = address(base, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_register_op.register_time = fc::time_point::now() + fc::seconds(1);
+           contract_register_op.contract_id = contract_register_op.calculate_contract_id();
+           contract_register_op.fee.amount = 0;
+           contract_register_op.fee.asset_id = asset_id_type(0);
+
+           signed_transaction tx;
+           tx.operations.push_back(contract_register_op);
+           auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
+           set_operation_fees(tx, current_fees);
+
+           auto dyn_props = get_dynamic_global_properties();
+           tx.set_reference_block(dyn_props.head_block_id);
+           tx.set_expiration(dyn_props.time + fc::seconds(30));
+           tx.validate();
+
+           bool broadcast = true;
+           auto signed_tx = sign_transaction(tx, broadcast);
+           return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+       }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(base))
+   }
    std::pair<asset, share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath)
    {
        try {
@@ -5519,6 +5562,11 @@ signed_transaction wallet_api::approve_proposal(
 std::string wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
+}
+
+std::string wallet_api::register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+{
+    return my->register_contract_like(caller_account_name,gas_price,gas_limit,base);
 }
 
 std::pair<asset, share_type> wallet_api::register_contract_testing(const string & caller_account_name, const string & contract_filepath)

@@ -1881,6 +1881,7 @@ class wallet_api
 
 	  // contract wallet apis
 	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+      std::string register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
       std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
 
       std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
@@ -2173,6 +2174,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_current_multi_address_obj)
 		(register_contract)
 		(register_native_contract)
+        (register_contract_like)
 		(invoke_contract)
 		(invoke_contract_offline)
 		(upgrade_contract)
