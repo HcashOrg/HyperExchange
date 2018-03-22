@@ -6,12 +6,7 @@
 #include <graphene/chain/vesting_balance_object.hpp>
 namespace graphene {
     namespace chain {
-        enum contract_type
-        {
-            normal_contract,
-            native_contract,
-            contract_based_on_template
-        };
+
         struct by_contract_id;
 
 		struct by_contract_name {};
@@ -140,7 +135,6 @@ namespace graphene {
 
     }
 }
-FC_REFLECT_ENUM(graphene::chain::contract_type,(normal_contract)(native_contract)(contract_based_on_template))
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),

@@ -255,5 +255,25 @@ namespace graphene {
 		void coldhot_transfer_result_evaluate::pay_fee() {
 
 		}
+		void_result coldhot_cancel_transafer_transaction_evaluate::do_evaluate(const coldhot_cancel_transafer_transaction_operation& o) {
+			try {
+				database & d = db();
+				auto & coldhot_db = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				auto coldhot_iter = coldhot_db.find(o.trx_id);
+				FC_ASSERT(coldhot_iter != coldhot_db.end());
+				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_without_sign_trx_uncreate, "Coldhot transaction has been create");
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+			
+		}
+		void_result coldhot_cancel_transafer_transaction_evaluate::do_apply(const coldhot_cancel_transafer_transaction_operation& o) {
+			try {
+				db().adjust_coldhot_transaction(o.trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_cancel_transafer_transaction_operation>::value));
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		void coldhot_cancel_transafer_transaction_evaluate::pay_fee() {
+
+		}
 	}
 }
