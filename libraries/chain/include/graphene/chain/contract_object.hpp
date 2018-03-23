@@ -6,12 +6,7 @@
 #include <graphene/chain/vesting_balance_object.hpp>
 namespace graphene {
     namespace chain {
-        enum contract_type
-        {
-            normal_contract,
-            native_contract,
-            contract_based_on_template
-        };
+
         struct by_contract_id;
 
 		struct by_contract_name {};
@@ -29,6 +24,7 @@ namespace graphene {
 			string contract_desc;
             contract_type type_of_contract = normal_contract;
 			string native_contract_key; // key to find native contract code
+            address inherit_from;
 
         };
         struct by_contract_obj_id {};
@@ -125,6 +121,7 @@ namespace graphene {
 			string event_name;
 			string event_arg;
 			transaction_id_type trx_id;
+            uint64_t block_num;
 		};
 
 		using contract_event_notify_multi_index_type = multi_index_container<
@@ -138,12 +135,11 @@ namespace graphene {
 
     }
 }
-FC_REFLECT_ENUM(graphene::chain::contract_type,(normal_contract)(native_contract)(contract_based_on_template))
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc))
+    (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
     (owner)(balance)(vesting_policy)(last_claim_date))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
-	(contract_address)(event_name)(event_arg)(trx_id))
+	(contract_address)(event_name)(event_arg)(trx_id)(block_num))

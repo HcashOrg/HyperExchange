@@ -8,11 +8,11 @@ namespace graphene {
 	namespace chain {
 		void abstract_native_contract::set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value)
 		{
-			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
+			if (_contract_invoke_result.storage_changes.find(contract_address.address_to_contract_string()) == _contract_invoke_result.storage_changes.end())
 			{
-				_contract_invoke_result.storage_changes[string(contract_address)] = contract_storage_changes_type();
+				_contract_invoke_result.storage_changes[contract_address.address_to_contract_string()] = contract_storage_changes_type();
 			}
-			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
+			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.address_to_contract_string()];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				StorageDataChangeType change;
@@ -40,14 +40,14 @@ namespace graphene {
 		}
 		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const string& storage_name)
 		{
-			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
+			if (_contract_invoke_result.storage_changes.find(contract_address.address_to_contract_string()) == _contract_invoke_result.storage_changes.end())
 			{
-				return _evaluate->get_storage(string(contract_address), storage_name);
+				return _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
 			}
-			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
+			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.address_to_contract_string()];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
-				return _evaluate->get_storage(string(contract_address), storage_name);
+				return _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
 			}
 			return storage_changes[storage_name].after;
 		}

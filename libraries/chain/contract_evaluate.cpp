@@ -78,7 +78,13 @@ namespace graphene {
             total_fee = o.fee.amount;
 			if (!global_uvm_chain_api)
 				global_uvm_chain_api = new UvmChainApi();
-			
+            FC_ASSERT(o.contract_code != uvm::blockchain::Code() || o.inherit_from != address());
+            if (!(o.contract_code != uvm::blockchain::Code()) && o.inherit_from != address())
+            {
+                FC_ASSERT(d.has_contract(o.inherit_from));
+                auto& base_contract=d.get_contract(o.inherit_from);
+                FC_ASSERT(base_contract.type_of_contract == normal_contract);
+            }
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
 			::blockchain::contract_engine::ContractEngineBuilder builder;
@@ -99,7 +105,7 @@ namespace graphene {
 				invoke_contract_result.clear();
 				try
 				{
-					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "init_arg", nullptr);
+					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
 				}
 				catch (uvm::core::UvmException &e)
 				{
@@ -117,6 +123,9 @@ namespace graphene {
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
+                new_contract.inherit_from = o.inherit_from;
+                if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
+                    new_contract.type_of_contract = contract_based_on_template;
                 unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - required;
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
@@ -175,6 +184,7 @@ namespace graphene {
 				new_contract.native_contract_key = o.native_contract_key;
 				new_contract.owner_address = o.owner_addr;
 				new_contract.create_time = o.register_time;
+                new_contract.inherit_from = address();
                 unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - required;
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
@@ -514,13 +524,32 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
+            FC_ASSERT((origin_op.contract_code != uvm::blockchain::Code()) || (origin_op.inherit_from != address()));
 			if (origin_op.contract_id.address_to_contract_string() == contract_id)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
-				const auto &code = origin_op.contract_code;
-				for (const auto & api : code.abi) {
-					contract_info->contract_apis.push_back(api);
-				}
+                if (origin_op.contract_code != uvm::blockchain::Code())
+                {
+                    const auto &code = origin_op.contract_code;
+                    for (const auto & api : code.abi) {
+                        contract_info->contract_apis.push_back(api);
+                    }
+                }
+                else
+                {
+                    if (!db().has_contract(origin_op.inherit_from))
+                        return nullptr;
+                    const auto &contract =db().get_contract(origin_op.inherit_from);
+                    if (contract.type_of_contract == contract_type::native_contract)
+                        return nullptr;
+                    const auto &code = contract.code;
+                    for (const auto & api : code.abi) {
+                        contract_info->contract_apis.push_back(api);
+                    }
+                    return contract_info;
+
+                }
+         
 				return contract_info;
 			}
 			else
@@ -613,10 +642,28 @@ namespace graphene {
 				}
 				return contract_info;
 			}
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            if (contract.code != uvm::blockchain::Code())
+            {
+                const auto &code = contract.code;
+                for (const auto & api : code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
+            }
+            else 
+            { 
+                if (!db().has_contract(contract.inherit_from))
+                {
+                    return nullptr;
+                }
+
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
+                    return nullptr;
+                for (const auto & api : base_contract.code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
+            }
 			return contract_info;
 		}
 
@@ -647,10 +694,27 @@ namespace graphene {
 				}
 				return contract_info;
 			}
-			const auto &code = contract.code;
-			for (const auto & api : code.abi) {
-				contract_info->contract_apis.push_back(api);
-			}
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            if (contract.code != uvm::blockchain::Code())
+            {
+                const auto &code = contract.code;
+                for (const auto & api : code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
+            }
+            else
+            {
+                if (!db().has_contract(contract.inherit_from))
+                {
+                    return nullptr;
+                }
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
+                    return nullptr;
+                for (const auto & api : base_contract.code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
+            }
 			return contract_info;
 		}
 
@@ -679,7 +743,20 @@ namespace graphene {
 			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
 			{
 				auto code = std::make_shared<uvm::blockchain::Code>();
-				*code = origin_op.contract_code;
+				if(origin_op.contract_code!=uvm::blockchain::Code())
+                {
+                    *code = origin_op.contract_code;
+                }
+                else
+                {
+                    FC_ASSERT(origin_op.inherit_from != address());
+                    if (!db().has_contract(origin_op.inherit_from))
+                        return nullptr;
+                    const auto &contract = db().get_contract(origin_op.inherit_from);
+                    if (contract.type_of_contract == contract_type::native_contract)
+                        return nullptr;
+                    *code = contract.code;
+                }
 				return code;
 			}
 			else
@@ -904,9 +981,26 @@ namespace graphene {
                 }
                 return contract_info;
             }
-            const auto &code = contract.code;
-            for (const auto & api : code.abi) {
-                contract_info->contract_apis.push_back(api);
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            if (contract.code != uvm::blockchain::Code())
+            {
+                const auto &code = contract.code;
+                for (const auto & api : code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
+            }
+            else
+            {
+                if (!db().has_contract(contract.inherit_from))
+                {
+                    return nullptr;
+                }
+                const auto& base_contract = db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract != contract_type::normal_contract)
+                    return nullptr;
+                for (const auto & api : base_contract.code.abi) {
+                    contract_info->contract_apis.push_back(api);
+                }
             }
             return contract_info;
         }
@@ -984,12 +1078,21 @@ namespace graphene {
             address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
-            auto contract_info = std::make_shared<UvmContractInfo>();
+            //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract(contract_addr);
             // TODO: when contract is native contract
-            const auto &code = contract.code;
-            for (const auto & api : code.abi) {
-                contract_info->contract_apis.push_back(api);
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            auto code = contract.code;
+            if (!(contract.code != uvm::blockchain::Code()))
+            {
+                FC_ASSERT(contract.inherit_from != address());
+                if (!get_db().has_contract(contract.inherit_from))
+                    return nullptr;
+                const auto &base_contract = get_db().get_contract(contract.inherit_from);
+                if (base_contract.type_of_contract == contract_type::native_contract)
+                    return nullptr;
+                code = base_contract.code;
+
             }
             auto ccode = std::make_shared<uvm::blockchain::Code>();
             *ccode = code;
@@ -1082,7 +1185,7 @@ namespace graphene {
             auto trx_id = get_current_trx_id();
             for (const auto &obj : invoke_contract_result.events)
             {
-                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg);
+                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num);
             }
         }
          void contract_common_evaluate::transfer_to_address(const address & contract, const asset & amount, const address & to)
@@ -1202,6 +1305,8 @@ namespace graphene {
 			 info.contract_address = contract_addr;
 			 info.event_name = event_name;
 			 info.event_arg = event_arg;
+
+             info.block_num=1+ get_db().head_block_num();
 			 invoke_contract_result.events.push_back(info);
 		 }
 
