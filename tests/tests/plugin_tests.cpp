@@ -1,6 +1,8 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/variant_object.hpp>
 #include <iostream>
+#include <map>
+#include <string>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 #include <boost/filesystem.hpp>
@@ -64,7 +66,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer)
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	//transfer normal trx
-	auto trx = hdl->transfer(std::string("test_account"), std::string("to_account"), 1, std::string("mBTC"), std::string(""), true);
+	const auto trx = hdl->transfer(std::string("test_account"), std::string("to_account"), 1, std::string("mBTC"), std::string(""), true);
 	hdl->broadcast_transaction(trx);
 	//check balance of account
 	auto ret = hdl->query_account_balance(std::string("to_account"));
@@ -100,8 +102,9 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 {
 	auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
-
-	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),"10",std::string("mBTC"),std::string(""),"");
+	std::map<std::string, std::string> dest_info;
+	dest_info[std::string("toaccount")] = "10";
+	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),dest_info,std::string("mBTC"),std::string(""),"");
 	//sign
 	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),"",true);
 	

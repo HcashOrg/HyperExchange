@@ -674,7 +674,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_destory_coin, database_fixture)
 	auto& bal_idx = db.get_index_type<balance_index>();
 	const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
 	//subscribe_to_item(addr);
-	auto& itr = by_owner_idx.find(boost::make_tuple(account_id_type()(db).addr, asset_id_type()));
+	const auto& itr = by_owner_idx.find(boost::make_tuple(account_id_type()(db).addr, asset_id_type()));
 	for (auto one_miner : miners)
 	{
 		miner_id_type temp = one_miner.id;

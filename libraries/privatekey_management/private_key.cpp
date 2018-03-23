@@ -158,7 +158,7 @@ namespace graphene { namespace privatekey_management {
 
 		FC_ASSERT(is_empty() == false, "private key is empty!");
 
-		fc::sha256& secret = priv_key.get_secret();
+		const fc::sha256& secret = priv_key.get_secret();
 
 		const size_t size_of_data_to_hash = sizeof(secret) + 1;
 		const size_t size_of_hash_bytes = 4;

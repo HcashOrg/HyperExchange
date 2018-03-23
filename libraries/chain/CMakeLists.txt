@@ -21,6 +21,8 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
         db_update.cpp
         db_witness_schedule.cpp
 		db_lock_balance.cpp
+	db_crosschain_trx.cpp
+	db_coldhot_trx.cpp
       )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
@@ -63,9 +65,7 @@ add_library( graphene_chain
 
              genesis_state.cpp
              get_config.cpp
-
-             pts_address.cpp
-
+	     pts_address.cpp
              evaluator.cpp
              balance_evaluator.cpp
              account_evaluator.cpp
@@ -76,24 +76,24 @@ add_library( graphene_chain
              transfer_evaluator.cpp
              proposal_evaluator.cpp
              market_evaluator.cpp
+             coldhot_transfer_evaluate.cpp
+	     crosschain_record_evaluate.cpp
              vesting_balance_evaluator.cpp
              withdraw_permission_evaluator.cpp
              worker_evaluator.cpp
              confidential_evaluator.cpp
              special_authority.cpp
              buyback.cpp
-             coldhot_transfer_evaluate.cpp
              coldhot_withdraw.cpp
-			 guard_lock_balance_evaluator.cpp
-			 guard_refund_balance_evaluator.cpp
-			 lockbalance_evaluator.cpp
+	     crosschain_record.cpp
+ 	     guard_lock_balance_evaluator.cpp
+	     guard_refund_balance_evaluator.cpp
+	     lockbalance_evaluator.cpp
              account_object.cpp
              asset_object.cpp
              fba_object.cpp
              proposal_object.cpp
              vesting_balance_object.cpp
-			crosschain_record.cpp
-			crosschain_record_evaluate.cpp
              block_database.cpp
 
              is_authorized_asset.cpp

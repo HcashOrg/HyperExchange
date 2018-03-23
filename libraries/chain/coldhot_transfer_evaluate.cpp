@@ -88,7 +88,7 @@ namespace graphene {
 					else if (cold_iter != multi_account_pair_cold_db.end()) {
 						withdraw_multi_id = cold_iter->id;
 					}
-					auto & multi_range = d.get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
+					const auto & multi_range = d.get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
 					int withdraw_account_count = 0;
 					for (auto multi_account : boost::make_iterator_range(multi_range.first, multi_range.second)) {
 						++withdraw_account_count;

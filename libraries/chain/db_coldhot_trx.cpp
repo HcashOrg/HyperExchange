@@ -110,16 +110,16 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((relate_trx_id)(current_trx_id))
 		}
 		void database::create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk) {
-			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_without_sign_trx_uncreate);
-			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_without_sign_trx_create);
-			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_sign_trx);
+			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_uncreate);
+			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_create);
+			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_sign_trx);
 			flat_set<string> asset_set;
-			for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
+			for (const auto& check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
 			{
 				auto op = check_point.current_trx.operations[0];
 				if (op.which() == operation::tag<coldhot_transfer_without_sign_operation>::value)
 				{
-					auto coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
+					const auto& coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
 					asset_set.insert(coldhot_op.asset_symbol);
 				}
 				
@@ -160,7 +160,7 @@ namespace graphene {
 					else if (cold_iter != multi_account_pair_cold_db.end()){
 						withdraw_multi_id = cold_iter->id;
 					}
-					auto & multi_range = get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
+					const auto & multi_range = get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(withdraw_multi_id);
 					int withdraw_account_count = 0;
 					for (auto multi_account : boost::make_iterator_range(multi_range.first,multi_range.second)){
 						++withdraw_account_count;
@@ -172,7 +172,8 @@ namespace graphene {
 					trx_op.coldhot_trx_original_chain = crosschain_plugin->create_multisig_transaction(std::string(coldhot_op.multi_account_withdraw),
 						dest_info,
 						coldhot_op.asset_symbol,
-						coldhot_op.memo, "");
+						coldhot_op.memo,
+						"");
 					trx_op.withdraw_account_count = withdraw_account_count;
 					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
 					trx_op.miner_broadcast = miner;

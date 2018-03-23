@@ -168,7 +168,7 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		fc::variant_object crosschain_interface_emu::transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast)
+		fc::variant_object crosschain_interface_emu::transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast)
 		{
 			//TODo add rpc get function
 			hd_trx a;
@@ -182,7 +182,7 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
-		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account,const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo, const std::string& prk)
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(const std::string &from_account,const std::map<std::string, std::string> dest_info, const std::string &symbol, const std::string &memo, const std::string& prk)
 		{
 			return fc::variant_object();
 		}
@@ -200,7 +200,7 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		fc::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript,bool broadcast)
+		fc::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, const std::string &sign_account, const std::string& redeemScript,bool broadcast)
 		{
 			string a;
 			fc::variant v;
@@ -284,7 +284,7 @@ namespace graphene {
 			return ret;
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
+		std::vector<fc::variant_object> crosschain_interface_emu::transaction_history(std::string symbol,const std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
 		{
 			struct comp_block_num
 			{

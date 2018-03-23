@@ -36,7 +36,7 @@
 #include <graphene/chain/withdraw_permission_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/worker_object.hpp>
-
+#include <graphene/chain/transaction_object.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <iostream>
 

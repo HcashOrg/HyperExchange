@@ -143,7 +143,7 @@ namespace graphene {
 				FC_THROW(trx_id);
 		}
 
-		fc::variant_object crosschain_interface_btc::transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
+		fc::variant_object crosschain_interface_btc::transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast /*= true*/)
 		{
 			return fc::variant_object();
 		}
@@ -184,7 +184,7 @@ namespace graphene {
 			return hdtxs;
 		}
 
-		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo, const std::string& prk)
+		fc::variant_object crosschain_interface_btc::create_multisig_transaction(const std::string &from_account, const std::map<std::string, std::string> dest_info, const std::string &symbol, const std::string &memo, const std::string& prk)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -242,7 +242,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account,const std::string& redeemScript,bool broadcast /*= true*/)
+		std::string crosschain_interface_btc::sign_multisig_transaction(fc::variant_object trx, const std::string &sign_account,const std::string& redeemScript,bool broadcast /*= true*/)
 		{
 
 			std::ostringstream req_body;
@@ -446,7 +446,7 @@ namespace graphene {
 			return std::vector<fc::variant_object>();
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_btc::transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
+		std::vector<fc::variant_object> crosschain_interface_btc::transaction_history(std::string symbol,const std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
 		{
 			std::vector<fc::variant_object> return_value;
 			std::string local_symbol = "btc";

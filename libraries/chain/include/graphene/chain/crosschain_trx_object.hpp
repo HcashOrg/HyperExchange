@@ -158,7 +158,8 @@ FC_REFLECT_ENUM(graphene::chain::transaction_stata,
 (withdraw_sign_trx)
 (withdraw_combine_trx_create)
 (withdraw_transaction_confirm)
-(withdraw_transaction_fail))
+(withdraw_transaction_fail)
+(withdraw_canceled))
 FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object),
 	(relate_transaction_id)
 	(transaction_id)

@@ -24,10 +24,10 @@ namespace graphene {
 			virtual std::map<std::string,std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) override;
 			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) override;
 			virtual fc::variant_object transaction_query(std::string trx_id) override;
-			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) override;
+			virtual fc::variant_object transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast = true) override;
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) override;
-			virtual fc::variant_object create_multisig_transaction(std::string &from_account, const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo, const std::string& prk) override;
-			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account,const std::string& redeemScript, bool broadcast = true) override;
+			virtual fc::variant_object create_multisig_transaction(const std::string &from_account, const std::map<std::string, std::string> dest_info, const std::string &symbol, const std::string &memo, const std::string& prk) override;
+			virtual std::string sign_multisig_transaction(fc::variant_object trx, const std::string &sign_account,const std::string& redeemScript, bool broadcast = true) override;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) override;
 			virtual bool validate_link_trx(const hd_trx &trx) override;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) override;
@@ -39,7 +39,7 @@ namespace graphene {
 			virtual std::map<std::string, graphene::crosschain::hd_trx> turn_trxs(const fc::variant_object & trx)override;
 			virtual void broadcast_transaction(const fc::variant_object &trx) override;
 			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) override;
-			virtual std::vector<fc::variant_object> transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num) override;
+			virtual std::vector<fc::variant_object> transaction_history(std::string symbol,const std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num) override;
 			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) override;
 			virtual std::string import_private_key(std::string &account, std::string &encrypt_passprase) override;
 			virtual std::string backup_wallet(std::string &wallet_name, std::string &encrypt_passprase) override;

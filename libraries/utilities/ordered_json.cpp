@@ -12,7 +12,7 @@ namespace graphene {
 			{
 				std::stringstream ss;
 				ss << "{";
-				auto& json_obj = value.as<fc::mutable_variant_object>();
+				const auto& json_obj = value.as<fc::mutable_variant_object>();
 				std::list<std::string> keys;
 				for (auto it = json_obj.begin(); it != json_obj.end(); it++)
 				{

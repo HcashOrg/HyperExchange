@@ -82,15 +82,15 @@ namespace graphene {
 			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
 
 			// Transfer asset.
-			virtual fc::variant_object transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
+			virtual fc::variant_object transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast = true) = 0;
 
 			// Create transaction from multi-signed account.
 			virtual fc::variant_object create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast = true) = 0;
 			// Create transaction from multi-signed account.
-			virtual fc::variant_object create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo, const std::string& prk) = 0;
+			virtual fc::variant_object create_multisig_transaction(const std::string &from_account, const std::map<std::string,std::string> dest_info, const std::string &symbol, const std::string &memo, const std::string& prk) = 0;
 
 			// Get signature for a given transaction.
-			virtual std::string sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript, bool broadcast = true) = 0;
+			virtual std::string sign_multisig_transaction(fc::variant_object trx, const std::string &sign_account, const std::string& redeemScript, bool broadcast = true) = 0;
 
 			// Merge all signatures into on transaction.
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) = 0;
@@ -116,7 +116,7 @@ namespace graphene {
 			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) = 0;
 
 			// Query transactions of given account.
-			virtual std::vector<fc::variant_object> transaction_history(std::string symbol, std::string &user_account, uint32_t start_block, uint32_t limit,uint32_t& end_block_num) = 0;
+			virtual std::vector<fc::variant_object> transaction_history(std::string symbol, const std::string &user_account, uint32_t start_block, uint32_t limit,uint32_t& end_block_num) = 0;
 
 			// Export private key.
 			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) = 0;
