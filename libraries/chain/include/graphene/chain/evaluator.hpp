@@ -33,7 +33,7 @@ namespace graphene {
 		struct signed_transaction;
 		class generic_evaluator;
 		class transaction_evaluation_state;
-		class crosschain_withdraw_evaluate;
+	//	class crosschain_withdraw_evaluate;
 		class generic_evaluator
 		{
 		public:

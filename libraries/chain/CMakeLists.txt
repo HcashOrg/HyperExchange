@@ -66,6 +66,9 @@ add_library( graphene_chain
              genesis_state.cpp
              get_config.cpp
 	     pts_address.cpp
+	     crosschain_record.cpp
+	     crosschain_record_evaluate.cpp
+             account_object.cpp
              evaluator.cpp
              balance_evaluator.cpp
              account_evaluator.cpp
@@ -77,7 +80,6 @@ add_library( graphene_chain
              proposal_evaluator.cpp
              market_evaluator.cpp
              coldhot_transfer_evaluate.cpp
-	     crosschain_record_evaluate.cpp
              vesting_balance_evaluator.cpp
              withdraw_permission_evaluator.cpp
              worker_evaluator.cpp
@@ -85,11 +87,9 @@ add_library( graphene_chain
              special_authority.cpp
              buyback.cpp
              coldhot_withdraw.cpp
-	     crosschain_record.cpp
  	     guard_lock_balance_evaluator.cpp
 	     guard_refund_balance_evaluator.cpp
 	     lockbalance_evaluator.cpp
-             account_object.cpp
              asset_object.cpp
              fba_object.cpp
              proposal_object.cpp
@@ -109,6 +109,7 @@ add_library( graphene_chain
              db_contract_trx.cpp
              native_contract.cpp
 
+	     crosschain_record_evaluate.cpp
              ${HEADERS}
              ${PROTOCOL_HEADERS}
              "${CMAKE_CURRENT_BINARY_DIR}/include/graphene/chain/hardfork.hpp"

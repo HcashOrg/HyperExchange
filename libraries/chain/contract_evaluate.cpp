@@ -82,7 +82,7 @@ namespace graphene {
             if (!(o.contract_code != uvm::blockchain::Code()) && o.inherit_from != address())
             {
                 FC_ASSERT(d.has_contract(o.inherit_from));
-                auto& base_contract=d.get_contract(o.inherit_from);
+                const auto& base_contract=d.get_contract(o.inherit_from);
                 FC_ASSERT(base_contract.type_of_contract == normal_contract);
             }
 			this->caller_address = std::make_shared<address>(o.owner_addr);
