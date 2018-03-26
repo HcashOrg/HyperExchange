@@ -118,7 +118,7 @@ namespace graphene {
 // 						}
 // 					}
 
-					auto& sign_range = get_index_type< crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id);
+					const auto& sign_range = get_index_type< crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id);
 					int count = 0;
 					std::for_each(sign_range.first, sign_range.second, [&](const crosschain_trx_object& sign_tx) {
 						auto sign_iter = tx_db_objs.find(sign_tx.transaction_id);
@@ -183,7 +183,7 @@ namespace graphene {
 						});
 					}
 
-					auto & combine_state_range = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id );
+					const auto & combine_state_range = get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(relate_transaction_id );
 					int count = 0;
 					std::for_each(combine_state_range.first, combine_state_range.second, [&](const crosschain_trx_object& sign_tx) {
 						auto sign_iter = tx_db_objs.find(sign_tx.transaction_id);
@@ -314,8 +314,8 @@ namespace graphene {
 
 					uint32_t expiration_time_offset = 0;
 					auto dyn_props = get_dynamic_global_properties();
-					// 				operation temp = operation(op);
-					get_global_properties().parameters.current_fees->set_fee((operation)trx_op);
+					operation temp = operation(trx_op);
+					get_global_properties().parameters.current_fees->set_fee(temp);
 					tx.set_reference_block(dyn_props.head_block_id);
 					tx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 					tx.operations.push_back(trx_op);

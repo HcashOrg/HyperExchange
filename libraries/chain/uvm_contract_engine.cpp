@@ -103,7 +103,8 @@ namespace uvm
 			else
 			{
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-				throw std::exception(exception_msg);
+				std::logic_error ex(exception_msg);
+				throw std::exception(ex);
 			}
 		}
 	}
@@ -123,7 +124,8 @@ namespace uvm
 			else
 			{
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-				throw std::exception(exception_msg);
+				std::logic_error ex(exception_msg);
+				throw std::exception(ex);
 			}
 		}
 	}

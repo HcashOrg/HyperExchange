@@ -140,12 +140,13 @@ namespace graphene {
 				FC_THROW(trx_id);
 		}
 
-		fc::variant_object crosschain_interface_ltc::transfer(std::string &from_account, std::string &to_account, uint64_t amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
+		fc::variant_object crosschain_interface_ltc::transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast /*= true*/)
 		{
 			return fc::variant_object();
 		}
 
-		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo)
+
+		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -177,7 +178,7 @@ namespace graphene {
 
 		}
 
-		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast /*= true*/)
+		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, std::string &to_account, const std::string& amount, std::string &symbol, std::string &memo, bool broadcast)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -455,7 +456,7 @@ namespace graphene {
 			return std::vector<fc::variant_object>();
 		}
 
-		std::vector<fc::variant_object> crosschain_interface_ltc::transaction_history(std::string symbol,std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
+		std::vector<fc::variant_object> crosschain_interface_ltc::transaction_history(std::string symbol,const std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num)
 		{
 			std::vector<fc::variant_object> return_value;
 			std::string local_symbol = "ltc";
