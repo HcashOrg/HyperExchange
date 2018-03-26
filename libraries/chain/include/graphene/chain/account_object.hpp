@@ -317,7 +317,9 @@ namespace graphene { namespace chain {
 	   account_id_type	 guard_account;
 	   std::string		 chain_type;
 	   std::string       new_address_hot;
+	   std::string       new_pubkey_hot;
 	   std::string       new_address_cold;
+	   std::string       new_pubkey_cold;
 	   multisig_account_pair_id_type    multisig_account_pair_object_id= multisig_account_pair_id_type();
    	   signature_type	 signature;
 
@@ -555,7 +557,7 @@ FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
 					
 FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
 					(graphene::db::object),
-					(guard_account)(chain_type)(new_address_hot)(new_address_cold)(multisig_account_pair_object_id)(signature))
+					(guard_account)(chain_type)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(multisig_account_pair_object_id)(signature))
 					
 FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (graphene::chain::object),

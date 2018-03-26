@@ -340,7 +340,9 @@ namespace graphene { namespace chain {
 	   account_id_type account_id;
 	   address addr;
 	   std::string new_address_hot;
+	   std::string new_pubkey_hot;
 	   std::string new_address_cold;
+	   std::string new_pubkey_cold;
 	   signature_type signature;
 
 	   address fee_payer()const { return addr; }
@@ -387,4 +389,4 @@ FC_REFLECT(graphene::chain::account_unbind_operation::fee_parameters_type, (fee)
 FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature))
 
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_address_cold)(signature))
+FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))

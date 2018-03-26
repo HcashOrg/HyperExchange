@@ -7,7 +7,7 @@
 * Date: 2018-01-11
 */
 
-#include "graphene/privatekey_management/database_privatekey.hpp"
+#include "graphene/crosschain_privatekey_management/database_privatekey.hpp"
 #include "fc/crypto/aes.hpp"
 
 namespace graphene {

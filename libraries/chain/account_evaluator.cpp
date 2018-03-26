@@ -35,7 +35,7 @@
 #include <graphene/chain/special_authority_object.hpp>
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
-
+#include <graphene/crosschain_privatekey_management/util.hpp>
 #include <algorithm>
 
 namespace graphene { namespace chain {
@@ -428,6 +428,14 @@ void_result account_multisig_create_evaluator::do_evaluate(const account_multisi
 	FC_ASSERT(accounts.find(addr) != accounts.end());
 	FC_ASSERT(o.account_id == accounts.find(addr)->id);
 	FC_ASSERT(guard_change_idx.find(o.account_id)->formal == true);
+	auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(o.crosschain_type);
+	if (prk_ptr == nullptr)
+		return void_result();
+	auto address_hot = prk_ptr->get_address_by_pubkey(o.new_pubkey_hot);
+	auto address_cold = prk_ptr->get_address_by_pubkey(o.new_pubkey_cold);
+	FC_ASSERT(address_hot == o.new_address_hot);
+	FC_ASSERT(address_cold == o.new_address_cold);
+
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
 }
@@ -440,7 +448,9 @@ void_result account_multisig_create_evaluator::do_apply(const account_multisig_c
 		a.chain_type = o.crosschain_type;
 		a.signature = o.signature;
 		a.new_address_hot = o.new_address_hot;
+		a.new_pubkey_hot = o.new_pubkey_hot;
 		a.new_address_cold = o.new_address_cold;
+		a.new_pubkey_cold = o.new_pubkey_cold;
 	});
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))

@@ -282,8 +282,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot](const multisig_address_object& obj) {
 				if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
 				{
-					symbol_addrs_cold.push_back(obj.new_address_cold);
-					symbol_addrs_hot.push_back(obj.new_address_hot);
+					symbol_addrs_cold.push_back(obj.new_pubkey_cold);
+					symbol_addrs_hot.push_back(obj.new_pubkey_hot);
 				}
 			}
 			);

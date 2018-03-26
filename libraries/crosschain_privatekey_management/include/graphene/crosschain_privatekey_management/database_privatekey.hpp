@@ -14,7 +14,7 @@
 #include "fc/optional.hpp"
 #include "fc/io/raw.hpp"
 #include "fc/crypto/sha512.hpp"
-#include "graphene/privatekey_management/private_key.hpp"
+#include "graphene/crosschain_privatekey_management/private_key.hpp"
 
 #include <fstream>
 #include <string>

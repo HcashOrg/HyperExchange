@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 
 	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),std::string("toaccount"),"10",std::string("mBTC"),std::string(""),"");
 	//sign
-	auto signature = hdl->sign_multisig_transaction(trx,std::string("sign_account"),"",true);
+	auto signature = "";//hdl->sign_multisig_transaction(trx,std::string("sign_account"),"",true);
 	
 	std::vector<std::string> vec;
 	vec.push_back(signature);

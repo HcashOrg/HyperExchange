@@ -79,7 +79,7 @@
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
-#include <graphene/privatekey_management/database_privatekey.hpp>
+#include <graphene/crosschain_privatekey_management/private_key.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -532,6 +532,7 @@ public:
       {
          plain_keys data;
          data.keys = _keys;
+		 data.crosschain_keys = _crosschain_keys;
          data.checksum = _checksum;
          auto plain_txt = fc::raw::pack(data);
          _wallet.cipher_keys = fc::aes_encrypt( data.checksum, plain_txt );
@@ -751,15 +752,54 @@ public:
 	   return id;
    }
 
-
-   string create_crosschain_symbol(const string& symbol)
+   crosschain_prkeys create_crosschain_symbol(const string& symbol)
    {
-	   string config = (*_crosschain_manager)->get_config();
-	   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
-	   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-	   auto fd = instance.get_crosschain_handle(symbol);
-	   fd->initialize_config(fc::json::from_string(config).get_object());
-	   return fd->create_normal_account("");
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   auto fd = instance.get_crosschain_handle(symbol);
+		   fd->initialize_config(fc::json::from_string(config).get_object());
+		   auto wif_key = fd->create_normal_account("");
+		   FC_ASSERT(wif_key != "");
+
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto pk = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(pk.valid());
+		   prk_ptr->set_key(*pk);
+
+		   auto addr = prk_ptr->get_address();
+		   auto pubkey = prk_ptr->get_public_key();
+		   crosschain_prkeys keys;
+		   keys.addr = addr;
+		   keys.pubkey = pubkey;
+		   keys.wif_key = wif_key;
+		   _crosschain_keys[addr] = keys;
+		   save_wallet_file();
+		   return keys;
+	   }FC_CAPTURE_AND_RETHROW((symbol))
+
+   }
+
+   crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   FC_ASSERT(ptr != nullptr ,"plugin doesnt exist.");
+		   ptr->generate();
+		   auto addr = ptr->get_address();
+		   auto pubkey = ptr->get_public_key();
+		   crosschain_prkeys keys;
+		   keys.addr = addr;
+		   keys.pubkey = pubkey;
+		   keys.wif_key = ptr->get_wif_key();
+		   _crosschain_keys[addr] = keys;
+		   save_wallet_file();
+		   return keys;
+	   }FC_CAPTURE_AND_RETHROW((symbol))
+	   
    }
 
    account_id_type get_account_id(string account_name_or_id) const
@@ -885,6 +925,23 @@ public:
 	  all_keys_for_account.insert(account.options.memo_key);
       return all_keys_for_account.find(wif_pub_key) != all_keys_for_account.end();
    }
+
+   bool import_crosschain_key(string wif_key, string symbol)
+   {
+	   auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+	   FC_ASSERT(ptr != nullptr, "plugin doesnt exist.");
+	   ptr->import_private_key(wif_key);
+	   if (ptr->get_private_key() == fc::ecc::private_key())
+		   return false;
+	   crosschain_prkeys key;
+	   auto addr = ptr->get_address();
+	   key.addr = addr;
+	   key.pubkey = ptr->get_public_key();
+	   key.wif_key = ptr->get_wif_key();
+	   _crosschain_keys[addr] = key;
+	   return true;
+   }
+
 
    vector< signed_transaction > import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast );
 
@@ -2458,7 +2515,7 @@ public:
 		   prop_op.fee_paying_account = get_account(proposing_account).addr;
 		   prop_op.proposed_ops.emplace_back(guard_update_op);
 		   prop_op.type = vote_id_type::witness;
-		   prop_op.review_period_seconds = 0;
+		   //prop_op.review_period_seconds = 0;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -2829,22 +2886,17 @@ public:
 		   auto guard_account = get_guard_member(from_account);
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
-		   string config = (*_crosschain_manager)->get_config();
-		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
-		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		   //we need get proper crosschain interface
-		   auto cross_interface = instance.get_crosschain_handle(symbol);
-		   cross_interface->initialize_config(fc::json::from_string(config).get_object());
-		   //we need generate two public
-		   string hot_addr =cross_interface->create_normal_account(symbol);
+		   auto  hot_keys =create_crosschain_symbol(symbol);
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
-		   string cold_addr = cross_interface->create_normal_account(symbol);
+		   auto cold_keys = create_crosschain_symbol(symbol);
 
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
-		   op.new_address_cold = cold_addr;
-		   op.new_address_hot = hot_addr;
+		   op.new_address_cold = cold_keys.addr;
+		   op.new_pubkey_cold = cold_keys.pubkey;
+		   op.new_address_hot = hot_keys.addr;
+		   op.new_pubkey_hot = hot_keys.pubkey;
 		   op.crosschain_type = symbol;
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
 		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
@@ -2937,7 +2989,7 @@ public:
 		   string config = (*_crosschain_manager)->get_config();
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(multisig_trx_obj.chain_type);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   auto signature = crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj[0]->new_address_hot,"");
+		   auto signature = "";// crosschain->sign_multisig_transaction(multisig_trx_obj.trx,multisig_obj[0]->new_address_hot,"");
 		   op.signature = signature;
 		   op.addr = acct.addr;
 		   op.multisig_trx_id = multisig_trx_obj.id;
@@ -3015,7 +3067,14 @@ public:
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   prk_ptr->set_key(*key_ptr);
+
+		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -3040,7 +3099,15 @@ public:
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,"");
+
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   prk_ptr->set_key(*key_ptr);
+
+		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   trx.validate();
@@ -3473,7 +3540,13 @@ public:
 		   }
 	   }
 	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
-	   string siging = crosschain_plugin->sign_multisig_transaction(coldhot_op.coldhot_trx_original_chain, guard_address, redeemScript, false);
+	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
+	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
+	   auto wif_key = _crosschain_keys[guard_address].wif_key;
+	   auto key_ptr = prk_ptr->import_private_key(wif_key);
+	   FC_ASSERT(key_ptr.valid());
+	   prk_ptr->set_key(*key_ptr);
+	   string siging = crosschain_plugin->sign_multisig_transaction(coldhot_op.coldhot_trx_original_chain, prk_ptr, redeemScript, false);
 	   coldhot_transfer_with_sign_operation tx_op;
 
 	   tx_op.coldhot_trx_id = trx[0].current_id;
@@ -3517,7 +3590,13 @@ public:
 			   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
 			   FC_ASSERT(current_multi_obj.valid());
 			   auto account_pair_obj = get_multisig_account_pair(current_multi_obj->multisig_account_pair_object_id);
-			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, account_pair_obj->redeemScript_hot, false);
+
+			   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
+			   FC_ASSERT(_crosschain_keys.count(current_multi_obj->new_address_hot)>0, "private key doesnt belong to this wallet.");
+			   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
+			   auto key_ptr = prk_ptr->import_private_key(wif_key);
+			   FC_ASSERT(key_ptr.valid());
+			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
@@ -3547,7 +3626,14 @@ public:
 		   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
 		   FC_ASSERT(current_multi_obj.valid());
 		   auto account_pair_obj = get_multisig_account_pair(current_multi_obj->multisig_account_pair_object_id);
-		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, current_multi_obj->new_address_hot, account_pair_obj->redeemScript_hot,false);
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
+		   FC_ASSERT(_crosschain_keys.count(current_multi_obj->new_address_hot)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
+		   std::cout << wif_key << std::endl;
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   prk_ptr->set_key(*key_ptr);
+		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 		   crosschain_withdraw_with_sign_operation trx_op;
 	
 		   const account_object & account_obj = get_account(guard);
@@ -4523,7 +4609,7 @@ public:
    optional< fc::api<crosschain_api> >   _crosschain_manager;
    flat_map<string, operation> _prototype_ops;
    optional<guarantee_object_id_type>    _guarantee_id;
-   map<string, string> _crosschain_keys;
+   map<string, crosschain_prkeys> _crosschain_keys;
    static_variant_map _operation_which_map = create_static_variant_map< operation >();
 
 #ifdef __unix__
@@ -5012,6 +5098,27 @@ bool wallet_api::import_key(string account_name_or_id, string wif_key)
    }
    return false;
 }
+
+bool wallet_api::import_crosschain_key(string wif_key, string symbol)
+{
+	FC_ASSERT(!is_locked());
+	// backup wallet
+	fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+	if (!optional_private_key)
+		FC_THROW("Invalid private key");
+	string shorthash = detail::address_to_shorthash(optional_private_key->get_public_key());
+	copy_wallet_file("before-import-key-" + shorthash);
+
+	if (my->import_crosschain_key(wif_key, symbol))
+	{
+		save_wallet_file();
+		copy_wallet_file("after-import-key-" + shorthash);
+		return true;
+	}
+	return false;
+}
+
+
 
 map<string, bool> wallet_api::import_accounts( string filename, string password )
 {
@@ -5951,6 +6058,7 @@ void wallet_api::unlock(string password)
    auto pk = fc::raw::unpack<plain_keys>(decrypted);
    FC_ASSERT(pk.checksum == pw);
    my->_keys = std::move(pk.keys);
+   my->_crosschain_keys = std::move(pk.crosschain_keys);
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
 } FC_CAPTURE_AND_RETHROW() }
@@ -6145,6 +6253,23 @@ map<address, string> wallet_api::dump_private_keys()
    FC_ASSERT(!is_locked());
    return my->_keys;
 }
+
+map<string, crosschain_prkeys> wallet_api::dump_crosschain_private_keys()
+{
+	FC_ASSERT(!is_locked());
+	return my->_crosschain_keys;
+}
+
+map<string, crosschain_prkeys> wallet_api::dump_crosschain_private_key(string pubkey)
+{
+	FC_ASSERT(!is_locked());
+	map<string, crosschain_prkeys> result;
+	auto iter = my->_crosschain_keys.find(pubkey);
+	if (iter != my->_crosschain_keys.end())
+		result[pubkey] = iter->second;
+	return result;
+}
+
 
 map<address, string> wallet_api::dump_private_key(string account_name)
 {
@@ -6778,9 +6903,14 @@ vector<blind_receipt> wallet_api::blind_history( string key_or_account )
    return result;
 }
 
-string wallet_api::create_crosschain_symbol(const string& symbol)
+crosschain_prkeys wallet_api::create_crosschain_symbol(const string& symbol)
 {
 	return my->create_crosschain_symbol(symbol);
+}
+
+crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symbol)
+{
+	return my->wallet_create_crosschain_symbol(symbol);
 }
 
 order_book wallet_api::get_order_book( const string& base, const string& quote, unsigned limit )

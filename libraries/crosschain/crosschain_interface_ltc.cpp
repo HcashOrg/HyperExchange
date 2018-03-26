@@ -6,7 +6,7 @@
 #include <fc/variant.hpp>
 #include <fc/variant_object.hpp>
 #include <iostream>
-
+#include <graphene/crosschain_privatekey_management/private_key.hpp>
 namespace graphene {
 	namespace crosschain {
 
@@ -51,25 +51,22 @@ namespace graphene {
 
 		std::string crosschain_interface_ltc::create_normal_account(std::string account_name)
 		{
+			auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(chain_type);
+			if (ptr == nullptr)
+				return "";
+			ptr->generate();
 
-			std::string json_str = "{ \"jsonrpc\": \"2.0\", \
-				\"params\" : {\"chainId\":\"ltc\" \
-			}, \
-				\"id\" : \"45\", \
-				\"method\" : \"Zchain.Address.Create\" \
-			}";
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Addr.importAddr\" ,\
+				\"params\" : {\"chainId\":\"ltc\" ,\"addr\": \"" << ptr->get_address() << "\"}}";
+			std::cout << req_body.str() << std::endl;
 			fc::http::connection conn;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-			auto response = conn.request(_rpc_method, _rpc_url, json_str, _rpc_headers);
+			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
-			if (response.status == fc::http::reply::OK)
-			{
-				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
-				auto ret = resp["result"].get_object()["address"];
-				return ret.as_string();
-			}
-			else if (response.status == fc::http::reply::BadRequest)
-				throw(fc::http::reply::BadRequest);
+			return ptr->get_wif_key();
 		}
 		
 		std::map<std::string,std::string> crosschain_interface_ltc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
@@ -148,7 +145,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo,const std::string& prk)
+		fc::variant_object crosschain_interface_ltc::create_multisig_transaction(std::string &from_account, const std::map<std::string,std::string> dest_info, std::string &symbol, std::string &memo)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -204,9 +201,15 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-		std::string crosschain_interface_ltc::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account,const std::string& redeemScript,bool broadcast /*= true*/)
+		std::string crosschain_interface_ltc::sign_multisig_transaction(fc::variant_object trx, graphene::privatekey_management::crosschain_privatekey_base*& sign_key,const std::string& redeemScript,bool broadcast /*= true*/)
 		{
 
+			try {
+				FC_ASSERT(trx.contains("hex"));
+				return sign_key->sign_trx(redeemScript, trx["hex"].as_string());
+			}
+			FC_CAPTURE_AND_RETHROW((trx)(redeemScript));
+			/*
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
@@ -228,6 +231,7 @@ namespace graphene {
 			else
 				FC_THROW("TODO");
 			return std::string();
+			*/
 		}
 
 		fc::variant_object crosschain_interface_ltc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
@@ -334,8 +338,16 @@ namespace graphene {
 				FC_THROW(signature);
 		}
 
-		bool crosschain_interface_ltc::create_signature(const std::string &account, const std::string &content, std::string &signature, const std::string& prk)
+		bool crosschain_interface_ltc::create_signature(graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string &content, std::string &signature)
 		{
+
+			signature = "";
+			signature = sign_key->sign_message(content);
+			if (signature == "")
+				return false;
+			return true;
+
+			/*
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
@@ -357,6 +369,7 @@ namespace graphene {
 			}
 			else
 				FC_THROW(signature);
+			*/
 		}
 
 		std::map<std::string, graphene::crosschain::hd_trx> crosschain_interface_ltc::turn_trxs(const fc::variant_object & trx)

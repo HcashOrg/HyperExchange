@@ -182,7 +182,7 @@ namespace graphene {
 			fc::to_variant(a, v);
 			return v.get_object();
 		}
-		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account,const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo, const std::string& prk)
+		fc::variant_object crosschain_interface_emu::create_multisig_transaction(std::string &from_account,const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo)
 		{
 			return fc::variant_object();
 		}
@@ -200,7 +200,7 @@ namespace graphene {
 			return v.get_object();
 		}
 
-		fc::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, std::string &sign_account, const std::string& redeemScript,bool broadcast)
+		fc::string crosschain_interface_emu::sign_multisig_transaction(fc::variant_object trx, graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string& redeemScript,bool broadcast)
 		{
 			string a;
 			fc::variant v;
@@ -239,7 +239,7 @@ namespace graphene {
 			return true;
 		}
 
-		bool crosschain_interface_emu::create_signature(const std::string &account, const std::string &content, std::string &signature, const std::string& prk)
+		bool crosschain_interface_emu::create_signature(graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string &content, std::string &signature)
 		{
 			return false;
 		}

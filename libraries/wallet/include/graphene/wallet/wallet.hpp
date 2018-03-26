@@ -50,11 +50,19 @@ typedef uint16_t transaction_handle_type;
 
 object* create_object( const variant& v );
 
+struct crosschain_prkeys
+{
+	string addr;
+	string pubkey;
+	string wif_key;
+};
+
 struct plain_keys
 {
    //map<public_key_type, string>  keys;
 	map<address, string>  keys;
-   fc::sha512                    checksum;
+	map<string, crosschain_prkeys>    crosschain_keys;
+	fc::sha512                    checksum;
 };
 
 struct brain_key_info
@@ -710,7 +718,8 @@ class wallet_api
 	  * @returns a map containing the private keys, indexed by their public key
 	  */
 	  map<address, string> dump_private_key(string account_name);
-
+	  map<string, crosschain_prkeys>  dump_crosschain_private_key(string pubkey);
+	  map<string, crosschain_prkeys>  dump_crosschain_private_keys();
       /** Returns a list of all commands supported by the wallet API.
        *
        * This lists each command, along with its arguments and return types.
@@ -817,7 +826,7 @@ class wallet_api
        * @returns true if the key was imported
        */
       bool import_key(string account_name_or_id, string wif_key);
-
+	  bool import_crosschain_key(string wif_key, string symbol);
       map<string, bool> import_accounts( string filename, string password );
 
       bool import_account_keys( string filename, string password, string src_account_name, string dest_account_name );
@@ -1937,7 +1946,8 @@ class wallet_api
 	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
 	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
 	  signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
-	  string create_crosschain_symbol(const string& symbol);
+	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
+	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
 	  signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
@@ -1964,8 +1974,8 @@ FC_REFLECT( graphene::wallet::blind_balance, (amount)(from)(to)(one_time_key)(bl
 FC_REFLECT( graphene::wallet::blind_confirmation::output, (label)(pub_key)(decrypted_memo)(confirmation)(auth)(confirmation_receipt) )
 FC_REFLECT( graphene::wallet::blind_confirmation, (trx)(outputs) )
 
-FC_REFLECT( graphene::wallet::plain_keys, (keys)(checksum) )
-
+FC_REFLECT( graphene::wallet::plain_keys, (keys)(crosschain_keys)(checksum) )
+FC_REFLECT(graphene::wallet::crosschain_prkeys,(addr)(pubkey)(wif_key))
 FC_REFLECT( graphene::wallet::wallet_data,
             (chain_id)
             (my_accounts)
@@ -2202,4 +2212,8 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_contract_testing)
 		(get_transaction)
 		(list_transactions)
+		(dump_crosschain_private_key)
+		(dump_crosschain_private_keys)
+		(wallet_create_crosschain_symbol)
+	    (import_crosschain_key)
       )

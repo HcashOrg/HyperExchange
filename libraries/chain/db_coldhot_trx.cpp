@@ -172,7 +172,7 @@ namespace graphene {
 					trx_op.coldhot_trx_original_chain = crosschain_plugin->create_multisig_transaction(std::string(coldhot_op.multi_account_withdraw),
 						dest_info,
 						coldhot_op.asset_symbol,
-						coldhot_op.memo, "");
+						coldhot_op.memo);
 					trx_op.withdraw_account_count = withdraw_account_count;
 					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
 					trx_op.miner_broadcast = miner;

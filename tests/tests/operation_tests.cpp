@@ -44,7 +44,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include "../common/database_fixture.hpp"
 #include <fc/network/url.hpp>
-#include <graphene/privatekey_management/private_key.hpp>
+#include <graphene/crosschain_privatekey_management/private_key.hpp>
 using namespace graphene::chain;
 using namespace graphene::chain::test;
 
@@ -654,10 +654,10 @@ BOOST_FIXTURE_TEST_CASE(account_bind_operation_test,database_fixture)
 		auto prk = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(op.crosschain_type);
 		auto wif_key = crosschain->create_normal_account("test");
 		auto pkey = prk->import_private_key(wif_key);
-		string tunnel_account = prk->get_address(*pkey);
+		string tunnel_account = prk->get_address();
 		op.tunnel_address = tunnel_account;
-
-		crosschain->create_signature(tunnel_account, tunnel_account, op.tunnel_signature,wif_key);
+		graphene::privatekey_management::crosschain_privatekey_base * sign_key;
+		crosschain->create_signature(sign_key,tunnel_account, op.tunnel_signature);
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
@@ -737,7 +737,7 @@ BOOST_AUTO_TEST_CASE(guard_sign_crosschain_transaction_test)
 		fc::variant_object config = fc::json::from_string("{\"ip\":\"192.168.1.123\",\"port\":5000}").get_object();
 		hdl->initialize_config(config);
 		auto sign_test = hdl->create_normal_account("signtest");
-		auto sign_string = hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, sign_test,"" ,false);
+		string sign_string=""; //hdl->sign_multisig_transaction(sign_op.withdraw_source_trx, sign_test,"" ,false);
 		//string sign_string = "Hello";
 		const guard_member_object& guard = *db.get_index_type<guard_member_index>().indices().get<by_account>().find(nathan.get_id());
 		crosschain_withdraw_with_sign_operation trx_op;
@@ -780,7 +780,8 @@ BOOST_AUTO_TEST_CASE(account_unbind_operation_test)
 		auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle("BTC");
 
 		op.tunnel_address = iter->get_tunnel_account();
-		crosschain->create_signature(op.tunnel_address, op.tunnel_address, op.tunnel_signature,"");
+		graphene::privatekey_management::crosschain_privatekey_base * sign_key;
+		crosschain->create_signature(sign_key,op.tunnel_address, op.tunnel_signature);
 		signed_transaction trx;
 		trx.operations.emplace_back(op);
 		set_expiration(db, trx);
@@ -930,7 +931,7 @@ BOOST_AUTO_TEST_CASE(sign_multisig_asset_operation_test)
 			sign_multisig_asset_operation op;
 			op.addr = acct.addr;
 			op.multisig_trx_id = iter.id;
-			op.signature = inface->sign_multisig_transaction(iter.trx, string("1112BhPMSEFRYm51TCyDGd9nTmQcP5TC8s"),"");
+			op.signature = "";//= inface->sign_multisig_transaction(iter.trx, string("1112BhPMSEFRYm51TCyDGd9nTmQcP5TC8s"),"");
 
 			signed_transaction tx;
 

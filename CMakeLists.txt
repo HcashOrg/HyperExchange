@@ -51,7 +51,9 @@ LIST(APPEND BOOST_COMPONENTS thread
                              chrono
                              unit_test_framework
                              context
-                             locale)
+                             locale
+                             regex
+                            )
 SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
 IF( WIN32 )
