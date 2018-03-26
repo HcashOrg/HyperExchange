@@ -146,11 +146,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-<<<<<<< HEAD
 		fc::variant_object crosschain_interface_ub::create_multisig_transaction(std::string &from_account, const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo)
-=======
-		fc::variant_object crosschain_interface_ub::create_multisig_transaction(const std::string &from_account, const std::map<std::string, std::string> dest_info, const std::string &symbol, const std::string &memo, const std::string& prk)
->>>>>>> 720e079b3a22a4e123fe64cb8ed03f4ee442b9f0
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -206,11 +202,7 @@ namespace graphene {
 			return fc::variant_object();
 		}
 
-<<<<<<< HEAD
 		std::string crosschain_interface_ub::sign_multisig_transaction(fc::variant_object trx, graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string& redeemScript, bool broadcast /*= true*/)
-=======
-		std::string crosschain_interface_ub::sign_multisig_transaction(fc::variant_object trx, const std::string &sign_account, const std::string& redeemScript, bool broadcast /*= true*/)
->>>>>>> 720e079b3a22a4e123fe64cb8ed03f4ee442b9f0
 		{
 			try {
 				FC_ASSERT(trx.contains("hex"));
@@ -296,7 +288,7 @@ namespace graphene {
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Address.validate\" ,\
-				\"params\" : {\"chainId\":\"ub\" ,\"addr\": " << "\"" << addr << "}}";
+				\"params\" : {\"chainId\":\"ub\" ,\"addr\": " << "\"" << addr << "\"}}";
 			fc::http::connection conn;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
