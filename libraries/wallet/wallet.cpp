@@ -3629,10 +3629,8 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
 		   FC_ASSERT(_crosschain_keys.count(current_multi_obj->new_address_hot)>0, "private key doesnt belong to this wallet.");
 		   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
-		   std::cout << wif_key << std::endl;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
-		   prk_ptr->set_key(*key_ptr);
 		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 		   std::cout << siging << std::endl;
 		   crosschain_withdraw_with_sign_operation trx_op;
