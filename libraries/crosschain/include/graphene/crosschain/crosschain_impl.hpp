@@ -30,6 +30,7 @@
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
+#include <graphene/utilities/string_escape.hpp>
 namespace graphene {
 	namespace crosschain {
 		typedef struct handle_history_trx {

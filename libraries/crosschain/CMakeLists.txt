@@ -24,7 +24,7 @@ list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 add_library( crosschain
              ${sources}
              ${HEADERS} )
-target_link_libraries( crosschain fc graphene_chain graphene_wallet graphene_app crosschain_privatekey_management )
+target_link_libraries( crosschain fc graphene_chain graphene_wallet graphene_app crosschain_privatekey_management graphene_utilities )
 target_include_directories( crosschain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 if (USE_PCH)
