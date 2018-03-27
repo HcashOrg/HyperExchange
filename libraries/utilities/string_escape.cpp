@@ -68,6 +68,28 @@ namespace graphene { namespace utilities {
     escaped_string << "\"";
     return escaped_string.str();
   }
+  
+  std::string remove_zero_for_str_amount(const std::string& input)
+  {
+	  auto pos = input.find(".");
+	  if (std::string::npos == pos)
+		  return input;
+	  auto temp = input;
+	  auto end = input.size()-1;
+	  for (; end > pos; end--)
+	  {
+		  if (input[end] == '0')
+		  {
+			  continue;
+		  }
+		  break;
+	  }
+	  if (end == pos)
+		  return temp.substr(0, end);
+	  
+	  return temp.substr(0, end + 1);
+  }
+
 
 } } // end namespace graphene::utilities
 

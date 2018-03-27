@@ -887,7 +887,7 @@ BOOST_AUTO_TEST_CASE(asset_transfer_from_cold_to_hot_operation_test)
 		inface->initialize_config(config);
 		std::map<string, string> dest_info;
 		dest_info[std::string("hot_addr")] = "1";
-		auto trx = inface->create_multisig_transaction(string(cold_addr), dest_info, string("BTC"), string(""),string(""));
+		auto trx = fc::variant_object();
 		inface->initialize_config(config);
 		auto link_trx = inface->turn_trx(trx);
 		auto private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("guard_test")));

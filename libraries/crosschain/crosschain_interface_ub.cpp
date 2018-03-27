@@ -206,7 +206,7 @@ namespace graphene {
 		{
 			try {
 				FC_ASSERT(trx.contains("hex"));
-				return sign_key->sign_trx(redeemScript, trx["hex"].as_string());
+				return sign_key->mutisign_trx(redeemScript, trx);
 			}
 			FC_CAPTURE_AND_RETHROW((trx)(redeemScript));
 
@@ -398,8 +398,8 @@ namespace graphene {
 						hdtx.to_account = addr.as_string();
 						auto amount = vouts.get_object()["value"].as_double();
 						char temp[1024];
-						std::sprintf(temp, "%g", amount);
-						hdtx.amount = temp;
+						std::sprintf(temp, "%.8f", amount);
+						hdtx.amount = graphene::utilities::remove_zero_for_str_amount(temp);
 						hdtxs[hdtx.to_account] = hdtx;
 
 					}

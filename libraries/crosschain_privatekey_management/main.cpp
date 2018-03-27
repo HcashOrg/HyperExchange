@@ -147,12 +147,31 @@ int main(int argc, char** argv)
 // 
 // 	libbitcoin::der_signature out;
 // 	printf("the result is %s\n", libbitcoin::encode_base16(out).c_str());
+ltc_privatekey pkey;
+pkey.import_private_key("TAsCFXH8ebtQVfs1hs21DyZANkz2NqdG1b59J7YAGNPpHHcnBgfz");
+std::string raw_transaction = "02000000015714b71b0d009e82b4b567e32bb2b683447c56ee5223bb7728a1d4954511d65f0100000000ffffffff0214ab15350000000017a914aa8bd720f81981f3d95f955617af1f47cfc6c980874c988306000000001976a914e700f114bf2c28cdc63dfaa3b90c53ae6aa21b0f88ac00000000";
+auto reedeem_script = "552102fbe8fadaa20b1cf4b913266763458808dd7f5e82f7e3acced1c142bf88585f6521033b623685259908b034edceb99017ecb415a3bdd284c350adb7368a3635f04b58210350c376ccf7199a94a12b6a1b23d09db9db0a2bb0f111e573da68d0090c584114210238c312f758406db7b2816d3ed3af7c1086af2ea37893ffb8590dcde0861d8e8a2102cfef44dd37fc7a9c27612977e6bc899dcd7aa22e7664b7752ef5d87617c6f80d21021de3deb826c30725cc5fc82875b32d01b50b7b14a85e20b1daa387dca7f88c602102e598f49763070e075183e67bf5538f52479cdbd3f97934afe16fd513e4409bb957ae";
+auto temp1 =graphene::privatekey_management::mutisign_trx(pkey.get_wif_key(),reedeem_script, raw_transaction);
+//raw_transaction = temp1;
+std::cout << temp1 << std::endl;
 
-ltc_privatekey ltc_key;
-auto str1 = "T98n92nnBQ2AQNiYQKwTFZyV9hfhJKNgRZW1u2y9kYeDJyW2qLeH";
-ltc_key.import_private_key(str1);
-auto str  =ltc_key.sign_message("LLUkfY5gUfRwejJu1p9CWvpqMSKRgF6Za7");
-std::cout << str << std::endl;
+pkey.import_private_key("T3ZT51mvKEqszqCKmrQpqukkFpk8gGdYZkgF7rWRGqXApFWzbPJf");
+temp1 = graphene::privatekey_management::mutisign_trx(pkey.get_wif_key(), reedeem_script, raw_transaction);
+//raw_transaction = temp1;
+std::cout << temp1 << std::endl;
+
+pkey.import_private_key("TAJMcRUCRQ8xdSXpSVPn3Yr5XXGfnhUYZEFNU9Bho3DNYgGAunk2");
+temp1 = graphene::privatekey_management::mutisign_trx(pkey.get_wif_key(), reedeem_script, raw_transaction);
+//raw_transaction = temp1;
+std::cout << temp1 << std::endl;
+pkey.import_private_key("T7B4ULM1BT2WhDbxeXDESE3G2AAeasbeo4XUi9itbY4Vd54J1zEp");
+temp1 = graphene::privatekey_management::mutisign_trx(pkey.get_wif_key(), reedeem_script, raw_transaction);
+//raw_transaction = temp1;
+std::cout << temp1 << std::endl;
+pkey.import_private_key("TA6Hb2NtTv87vEU3emnxBHnq8oWroAHXMXeG6JpjrZTbWr6BC7vM");
+temp1 = graphene::privatekey_management::mutisign_trx(pkey.get_wif_key(), reedeem_script, raw_transaction);
+//raw_transaction = temp1;
+std::cout << temp1 << std::endl;
 
 
 

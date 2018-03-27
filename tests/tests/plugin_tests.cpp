@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(plugin_transfer_multi)
 	auto hdl = manager.get_crosschain_handle(std::string("EMU"));
 	std::map<std::string, std::string> dest_info;
 	dest_info[std::string("toaccount")] = "10";
-	auto trx = hdl->create_multisig_transaction(std::string("multi_sig_account"),dest_info,std::string("mBTC"),std::string(""),"");
+	auto trx = fc::variant_object();//hdl->create_multisig_transaction(std::string("multi_sig_account"),dest_info,std::string("mBTC"),std::string(""),"");
 	//sign
 	auto signature = "";//hdl->sign_multisig_transaction(trx,std::string("sign_account"),"",true);
 	
