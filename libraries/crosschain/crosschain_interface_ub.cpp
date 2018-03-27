@@ -206,7 +206,7 @@ namespace graphene {
 		{
 			try {
 				FC_ASSERT(trx.contains("hex"));
-				return sign_key->sign_trx(redeemScript, trx["hex"].as_string());
+				return sign_key->mutisign_trx(redeemScript, trx);
 			}
 			FC_CAPTURE_AND_RETHROW((trx)(redeemScript));
 

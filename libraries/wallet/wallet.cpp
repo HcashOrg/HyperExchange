@@ -3634,6 +3634,7 @@ public:
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
 		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+		   std::cout << siging << std::endl;
 		   crosschain_withdraw_with_sign_operation trx_op;
 	
 		   const account_object & account_obj = get_account(guard);

@@ -10,7 +10,7 @@ set(SOURCES node.cpp
 add_library( graphene_net ${SOURCES} ${HEADERS} )
 
 target_link_libraries( graphene_net 
-  PUBLIC fc graphene_db )
+  PUBLIC fc graphene_db)
 target_include_directories( graphene_net 
   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/chain/include"
@@ -18,6 +18,7 @@ target_include_directories( graphene_net
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/jsondiff/jsondiff-cpp/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/crosschain/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/crosschain_privatekey_management/include"
+   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/utilities/include"
 )
 
 if(MSVC)
