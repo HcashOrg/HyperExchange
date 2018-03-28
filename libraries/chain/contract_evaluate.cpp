@@ -115,7 +115,13 @@ namespace graphene {
 				gas_used = engine->gas_used();
 				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = count_contract_register_fee(o.contract_code);
-				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#ifdef NO_FEE
+
+                auto required = 0;
+#else
+                auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#endif
+				
                 gas_count = gas_used;
 				// TODO: deposit margin balance to contract
 				
@@ -172,7 +178,11 @@ namespace graphene {
 				gas_used = native_contract->gas_count_for_api_invoke("init");
 				FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = native_contract_register_fee;
-				auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#ifdef NO_FEE
+                auto required = 0;
+#else
+                auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#endif
 				// TODO: deposit margin balance to contract
 
                 gas_count = gas_used;
@@ -272,7 +282,12 @@ namespace graphene {
                     gas_count = gas_used;
 					if(!offline)
 						FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-					auto required = count_gas_fee(o.gas_price, gas_used);
+#ifdef NO_FEE
+                    auto required = 0;
+#else
+                    auto required = count_gas_fee(o.gas_price, gas_used);;
+#endif
+                    
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)- required;
 
 				}
@@ -329,7 +344,11 @@ namespace graphene {
 					gas_used = native_contract->gas_count_for_api_invoke("on_upgrade");
 					FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 					auto register_fee = native_contract_register_fee;
-					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#ifdef NO_FEE
+                    auto required = 0;
+#else
+                    auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;;
+#endif
 					//gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - required;
                     gas_count = gas_used;
@@ -366,7 +385,11 @@ namespace graphene {
 					gas_used = engine->gas_used();
                     gas_count = gas_used;
 					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-					auto required = count_gas_fee(o.gas_price, gas_used);
+#ifdef NO_FEE
+                    auto required = 0;
+#else
+                    auto required = count_gas_fee(o.gas_price, gas_used);
+#endif
 					//gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - required;
 				}
@@ -851,7 +874,11 @@ namespace graphene {
                         gas_count = gas_used;
                         FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
 						auto register_fee = native_contract_register_fee;
-						auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#ifdef NO_FEE
+                        auto required = 0;
+#else
+                        auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
+#endif
 						//gas_fees.push_back(asset(required, asset_id_type(0)));
 						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)- required;
 					}
@@ -903,7 +930,11 @@ namespace graphene {
 
                         gas_count = gas_used;
 						FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-						auto required = count_gas_fee(o.gas_price,gas_used);
+#ifdef NO_FEE
+                        auto required = 0;
+#else
+                        auto required = count_gas_fee(o.gas_price, gas_used);
+#endif
 						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)-required;
 					}
 					else
