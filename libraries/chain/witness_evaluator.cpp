@@ -156,6 +156,8 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)
 		{
+			if (itr.chain_type != o.chain_type || itr.multisig_account_pair_object_id != multisig_account_pair_id_type())
+				continue;
 			db().modify(itr, [&](multisig_address_object& obj) {
 				obj.multisig_account_pair_object_id = new_acnt_object.id;
 			});
