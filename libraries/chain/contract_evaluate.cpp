@@ -141,12 +141,12 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
 			}
 			catch (std::exception &e)
 			{
 				undo_contract_effected();
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count);
