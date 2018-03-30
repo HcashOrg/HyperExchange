@@ -153,6 +153,7 @@ namespace graphene {
 					obj.type_of_contract = contract.type_of_contract;
 					obj.native_contract_key = contract.native_contract_key;
                     obj.inherit_from = contract.inherit_from;
+                    obj.derived = contract.derived;
                 });
             }
             else
@@ -180,6 +181,7 @@ namespace graphene {
 						obj.type_of_contract = contract.type_of_contract;
 						obj.native_contract_key = contract.native_contract_key;
                         obj.inherit_from = contract.inherit_from;
+                        obj.derived = contract.derived;
 					});
 				}
 				else
