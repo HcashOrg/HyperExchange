@@ -420,6 +420,12 @@ namespace graphene {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
+            if (new_contract.inherit_from != address())
+            {
+                auto base_contract=d.get_contract(new_contract.inherit_from);
+                base_contract.derived.push_back(new_contract.contract_address);
+                d.update_contract(base_contract);
+            }
 			auto trx_id = get_current_trx_id();
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{

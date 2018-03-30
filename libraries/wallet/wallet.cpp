@@ -5831,6 +5831,11 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	res.name = cont.contract_name;
 	res.description = cont.contract_desc;;
     res.createtime=cont.create_time;
+    res.derived.clear();
+    for (auto i:cont.derived)
+    {
+        res.derived.push_back(i.address_to_contract_string());
+    }
     return res;
 }
 
