@@ -4,7 +4,7 @@ set_source_files_properties( "${CMAKE_CURRENT_BINARY_DIR}/include/graphene/chain
 
 add_dependencies( build_hardfork_hpp cat-parts )
 
-file(GLOB HEADERS "include/graphene/chain/*.hpp" "../uvm/include/uvm/*.hpp" "../jsondiff/jsondiff-cpp/include/jsondiff/*.h"  "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/src/*.h")
+file(GLOB HEADERS "include/graphene/chain/*.hpp" "../uvm/include/uvm/*.hpp" "../jsondiff/jsondiff-cpp/include/jsondiff/*.h"  "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" )
 file(GLOB PROTOCOL_HEADERS "include/graphene/chain/protocol/*.hpp")
 
 if( GRAPHENE_DISABLE_UNITY_BUILD )
