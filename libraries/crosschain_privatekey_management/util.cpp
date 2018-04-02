@@ -81,11 +81,11 @@ namespace graphene {
 		{
 			std::vector<fc::variant_object> obj;
 			libbitcoin::chain::transaction  tx;
-		    tx.from_data(libbitcoin::config::base16(trx));
-			obj.push_back(fc::variant_object("txid", tx.hash));
+		    //tx.from_data(libbitcoin::config::base16(trx));
+			//obj.push_back(fc::variant_object("txid", tx.hash));
 			//obj.push_back(fc::variant_object("hash",tx.witness_hash_););
 
-
+			return "";
 
 		}
 	}
