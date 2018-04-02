@@ -8,7 +8,7 @@
 */
 
 #include <graphene/crosschain_privatekey_management/util.hpp>
-
+#include <fc/variant.hpp>
 
 namespace graphene {
     namespace privatekey_management {
@@ -76,5 +76,18 @@ namespace graphene {
 		}
 
     }
+	namespace utxo {
+		std::string decoderawtransaction(const std::string& trx)
+		{
+			std::vector<fc::variant_object> obj;
+			libbitcoin::chain::transaction  tx;
+		    tx.from_data(libbitcoin::config::base16(trx));
+			obj.push_back(fc::variant_object("txid", tx.hash));
+			//obj.push_back(fc::variant_object("hash",tx.witness_hash_););
+
+
+
+		}
+	}
 }
 

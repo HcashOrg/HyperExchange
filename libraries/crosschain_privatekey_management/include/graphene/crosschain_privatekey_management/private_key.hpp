@@ -42,9 +42,6 @@ namespace graphene {
 			void set_key(fc::ecc::private_key& key) { _key = key; }
 			int		get_id() { return _id; }
 			bool	set_id(int p_id) { _id = p_id; return true; }
-
-
-
 		private:
 			fc::ecc::private_key  _key;
 
@@ -70,6 +67,7 @@ namespace graphene {
 			virtual std::string get_address_by_pubkey(const std::string& pub);
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key) ;
+			static  std::string  decoderawtransaction(const std::string trx);
 		private:
 			void init();
 
