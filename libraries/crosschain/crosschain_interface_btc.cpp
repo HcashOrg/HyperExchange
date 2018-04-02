@@ -182,7 +182,7 @@ namespace graphene {
 			return hdtxs;
 		}
 
-		fc::variant_object crosschain_interface_btc::create_multisig_transaction(std::string &from_account, const std::map<std::string, std::string> dest_info, std::string &symbol, std::string &memo)
+		fc::variant_object crosschain_interface_btc::create_multisig_transaction(const std::string &from_account, const std::map<std::string, std::string> dest_info, const std::string &symbol, const std::string &memo)
 		{
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \

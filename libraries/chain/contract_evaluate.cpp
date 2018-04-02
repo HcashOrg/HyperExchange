@@ -141,12 +141,12 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (e.what()));
 			}
 			catch (std::exception &e)
 			{
 				undo_contract_effected();
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count);
@@ -529,33 +529,33 @@ namespace graphene {
 
 		void contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-            if (unspent_fee != 0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee - unspent_fee);
+//           if (unspent_fee != 0)
+//               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+//           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-            if (unspent_fee != 0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee - unspent_fee);
+ //           if (unspent_fee != 0)
+ //               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+ //           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void contract_invoke_evaluate::pay_fee() {
 #ifndef NO_FEE
-            if (unspent_fee != 0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee - unspent_fee);
+  //          if (unspent_fee != 0)
+  //              db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+  //          db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void contract_upgrade_evaluate::pay_fee() {
 #ifndef NO_FEE
-            if (unspent_fee != 0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee - unspent_fee);
+ //           if (unspent_fee != 0)
+ //               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+ //           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
@@ -1003,9 +1003,9 @@ namespace graphene {
         void contract_transfer_evaluate::pay_fee()
         {
 #ifndef NO_FEE
-            if(unspent_fee!=0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee-unspent_fee);
+//            if(unspent_fee!=0)
+//                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+//            db().modify_current_collected_fee(total_fee-unspent_fee);
 #endif
         }
 

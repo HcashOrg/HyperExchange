@@ -139,7 +139,7 @@ namespace graphene { namespace privatekey_management {
         uint8_t version = get_pubkey_prefix();
         bool compress = true;
 
-		fc::ecc::private_key& priv_key = get_private_key();
+		const fc::ecc::private_key& priv_key = get_private_key();
         fc::ecc::public_key  pub_key = priv_key.get_public_key();
 
         graphene::chain::pts_address btc_addr(pub_key, compress, version);
@@ -223,8 +223,8 @@ namespace graphene { namespace privatekey_management {
 
 		FC_ASSERT(is_empty() == false, "private key is empty!");
 
-		fc::ecc::private_key& priv_key = get_private_key();
-		fc::sha256& secret = priv_key.get_secret();
+		const fc::ecc::private_key& priv_key = get_private_key();
+		const fc::sha256& secret = priv_key.get_secret();
 
 		const size_t size_of_data_to_hash = sizeof(secret) + 2;
 		const size_t size_of_hash_bytes = 4;
@@ -250,7 +250,7 @@ namespace graphene { namespace privatekey_management {
 		uint8_t version = get_pubkey_prefix();
 		bool compress = true;
 
-		fc::ecc::private_key& priv_key = get_private_key();
+		const fc::ecc::private_key& priv_key = get_private_key();
 		fc::ecc::public_key  pub_key = priv_key.get_public_key();
 
 		graphene::chain::pts_address btc_addr(pub_key, compress, version);
@@ -266,8 +266,8 @@ namespace graphene { namespace privatekey_management {
 		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
 		// 		libbitcoin::wallet::ec_private libbitcoin_priv("L13gvvM3TtL2EmfBdye8tp4tQhcbCG3xz3VPrBjSZL8MeJavLL8K");
 		libbitcoin::data_chunk  data(msg.begin(), msg.end());
-
-		libbitcoin::wallet::sign_message(sign, data, libbitcoin_priv.secret(),true, "Litecoin Signed Message:\n");
+		
+		libbitcoin::wallet::sign_message(sign, data, libbitcoin_priv.secret(),true, std::string("Litecoin Signed Message:\n"));
 
 		auto result = libbitcoin::encode_base64(sign);
 		// 		printf("the signed message is %s\n", result.c_str());
@@ -380,7 +380,7 @@ namespace graphene { namespace privatekey_management {
 		uint8_t version = get_pubkey_prefix();
 		bool compress = true;
 
-		fc::ecc::private_key& priv_key = get_private_key();
+		const fc::ecc::private_key& priv_key = get_private_key();
 		fc::ecc::public_key  pub_key = priv_key.get_public_key();
 
 		graphene::chain::pts_address btc_addr(pub_key, compress, version);

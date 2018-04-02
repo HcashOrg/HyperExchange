@@ -28,17 +28,14 @@ namespace graphene {
 			return void_result();
 		}
 		void_result crosschain_record_evaluate::do_apply(const crosschain_record_operation& o) {
-			auto tunnel_idx_range =  db().get_index_type<account_binding_index>().indices().get<by_binded_account>().equal_range(o.cross_chain_trx.from_account);
-			for (auto tunnel_itr : boost::make_iterator_range(tunnel_idx_range.first,tunnel_idx_range.second)){
-				//auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
-				if (tunnel_itr.chain_type != o.cross_chain_trx.asset_symbol){
-					continue;
-				}
-				auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
-				auto asset_itr = asset_idx.find(o.asset_id);
-				db().adjust_balance(tunnel_itr.owner, asset(asset_itr->amount_from_string(o.cross_chain_trx.amount).amount, o.asset_id));
-				db().adjust_deposit_to_link_trx(o.cross_chain_trx);
-			}
+			auto& tunnel_idx =  db().get_index_type<account_binding_index>().indices().get<by_binded_account>();
+//			for (auto tunnel_itr : boost::make_iterator_range(tunnel_idx_range.first,tunnel_idx_range.second)){
+			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
+			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
+			auto asset_itr = asset_idx.find(o.asset_id);
+			db().adjust_balance(tunnel_itr->owner, asset(asset_itr->amount_from_string(o.cross_chain_trx.amount).amount, o.asset_id));
+			db().adjust_deposit_to_link_trx(o.cross_chain_trx);
+//			}
 			return void_result();
 		}
 		void crosschain_record_evaluate::pay_fee() {
