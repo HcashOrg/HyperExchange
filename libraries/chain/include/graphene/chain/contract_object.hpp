@@ -24,6 +24,7 @@ namespace graphene {
 			string contract_desc;
             contract_type type_of_contract = normal_contract;
 			string native_contract_key; // key to find native contract code
+            vector<address> derived;
             address inherit_from;
 
         };
@@ -136,7 +137,7 @@ namespace graphene {
     }
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(inherit_from))
+    (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
