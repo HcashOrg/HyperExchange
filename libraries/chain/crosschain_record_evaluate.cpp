@@ -50,9 +50,6 @@ namespace graphene {
 				i++;
 			}
 			FC_ASSERT((i == 0), "This Transaction exist");
-			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
-			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.withdraw_account, o.asset_symbol));
-			FC_ASSERT(tunnel_itr != tunnel_idx.end());
 			//FC_ASSERT(tunnel_itr->bind_account != o.crosschain_account);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
