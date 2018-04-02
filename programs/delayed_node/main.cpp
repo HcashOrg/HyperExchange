@@ -36,7 +36,7 @@
 #include <fc/log/logger_config.hpp>
 
 #include <boost/filesystem.hpp>
-
+#include <graphene/transaction/transaction_plugin.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
 
       auto delayed_plug = node.register_plugin<delayed_node::delayed_node_plugin>();
       auto history_plug = node.register_plugin<account_history::account_history_plugin>();
+	  auto transaction_plg = node.register_plugin<transaction::transaction_plugin>();
       auto market_history_plug = node.register_plugin<market_history::market_history_plugin>();
 
       try

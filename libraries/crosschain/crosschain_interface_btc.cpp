@@ -65,7 +65,7 @@ namespace graphene {
 			fc::http::connection conn;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(),	_rpc_headers);
-			std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+			//std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 			return ptr->get_wif_key();
 		}
 		
