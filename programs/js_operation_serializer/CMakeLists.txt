@@ -3,7 +3,7 @@ if( UNIX AND NOT APPLE )
   set(rt_library rt )
 endif()
 IF(WIN32)
- target_link_libraries( js_operation_serializer  PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_none graphene_utilities graphene_wallet fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} 
+ target_link_libraries( js_operation_serializer  PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_none graphene_utilities graphene_wallet fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ELSE()
 target_link_libraries( js_operation_serializer
                        PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_none graphene_utilities graphene_wallet fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
