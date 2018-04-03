@@ -67,7 +67,7 @@ namespace graphene {
 			virtual std::string get_address_by_pubkey(const std::string& pub);
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key) ;
-			static  std::string  decoderawtransaction(const std::string trx);
+			static  fc::variant_object  decoderawtransaction(const std::string& trx);
 		private:
 			void init();
 

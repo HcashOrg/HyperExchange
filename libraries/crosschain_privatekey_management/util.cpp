@@ -9,7 +9,7 @@
 
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <fc/variant.hpp>
-
+#include <graphene/crosschain_privatekey_management/private_key.hpp>
 namespace graphene {
     namespace privatekey_management {
 
@@ -70,22 +70,62 @@ namespace graphene {
 			//             printf("signed trx is %s\n", signed_trx.c_str());
 
 			return signed_trx;
+		}
 
-
-
+		fc::variant_object btc_privatekey::decoderawtransaction(const std::string& trx)
+		{
+			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto ret= fc::variant(decode).get_object();
+			return ret;
 		}
 
     }
 	namespace utxo {
 		std::string decoderawtransaction(const std::string& trx)
 		{
-			std::vector<fc::variant_object> obj;
+			std::ostringstream obj;
 			libbitcoin::chain::transaction  tx;
-		    //tx.from_data(libbitcoin::config::base16(trx));
-			//obj.push_back(fc::variant_object("txid", tx.hash));
-			//obj.push_back(fc::variant_object("hash",tx.witness_hash_););
+		    tx.from_data(libbitcoin::config::base16(trx));
+			auto hash =tx.hash(true);
+			std::reverse(hash.begin(),hash.end());
+			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"inputs\": {";
+			//insert input:
+			auto ins = tx.inputs();
+			auto int_size = ins.size();
+			for (auto index = 0; index < int_size; index++)
+			{ 
+				if (index > 0)
+					obj << ",";
+				obj << "\"input\": {";
+				auto input = ins.at(index);
+				auto previous_output = input.previous_output();
+				hash = previous_output.hash();
+				std::reverse(hash.begin(),hash.end());
+				obj << "\"previous_output\": { \
+                       \"hash\": \"" << libbitcoin::encode_base16(hash);
+				obj << "\",\"index\": " << previous_output.index();
+				obj << "},";
 
-			return "";
+				obj <<"\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
+				obj << "\"sequence\": " << input.sequence() << "}";
+			}
+			obj << "},\
+                \"lock_time\": " << tx.locktime() << ",\"outputs\": {";
+
+			auto ons = tx.outputs();
+			auto out_size = ons.size();
+			for (auto index = 0; index < out_size; index++)
+			{
+				if (index > 0)
+					obj << ",";
+				auto output = ons.at(index);
+				obj << "\"output\": {";
+
+				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\",";
+				obj << "\"value\": " << output.value() << "}";
+			}
+			obj << "}}";
+			return obj.str();
 
 		}
 	}
