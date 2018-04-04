@@ -78,7 +78,18 @@ namespace graphene {
 			auto ret= fc::variant(decode).get_object();
 			return ret;
 		}
-
+		fc::variant_object ltc_privatekey::decoderawtransaction(const std::string& trx)
+		{
+			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto ret = fc::variant(decode).get_object();
+			return ret;
+		}
+		fc::variant_object ub_privatekey::decoderawtransaction(const std::string& trx)
+		{
+			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto ret = fc::variant(decode).get_object();
+			return ret;
+		}
     }
 	namespace utxo {
 		std::string decoderawtransaction(const std::string& trx)
