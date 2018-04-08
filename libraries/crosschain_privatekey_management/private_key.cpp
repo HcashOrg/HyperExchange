@@ -447,19 +447,16 @@ namespace graphene { namespace privatekey_management {
 
 		if (name == "BTC")
 		{
-			crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
 			auto itr = crosschain_prks.insert(std::make_pair(name, new btc_privatekey()));
 			return itr.first->second;
 		}
 		else if (name == "LTC")
 		{
-			crosschain_decode.insert(std::make_pair("LTC", &graphene::privatekey_management::ltc_privatekey::decoderawtransaction));
 			auto itr = crosschain_prks.insert(std::make_pair(name, new ltc_privatekey()));
 			return itr.first->second;
 		}
 		else if (name == "UB")
 		{
-			crosschain_decode.insert(std::make_pair("UB", &graphene::privatekey_management::ub_privatekey::decoderawtransaction));
 			auto itr = crosschain_prks.insert(std::make_pair(name, new ub_privatekey()));
 			return itr.first->second;
 		}
