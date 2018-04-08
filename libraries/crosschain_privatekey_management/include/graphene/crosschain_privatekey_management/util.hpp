@@ -32,7 +32,6 @@ namespace graphene {
 	namespace utxo {
 
 		std::string decoderawtransaction(const std::string& trx);
-
 	}
 }
 

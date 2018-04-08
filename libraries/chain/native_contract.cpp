@@ -58,7 +58,7 @@ namespace graphene {
 			contract_event_notify_info info;
 			info.contract_address = contract_address;
 			info.event_name = event_name;
-			info.event_arg;
+			info.event_arg = event_arg;
 			_contract_invoke_result.events.push_back(info);
 		}
 

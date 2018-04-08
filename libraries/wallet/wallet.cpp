@@ -1690,6 +1690,21 @@ public:
 		  
 	   }FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
    }
+   variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
+		   FC_ASSERT(crosschain->validate_address(from));
+		   FC_ASSERT(crosschain->validate_address(to));
+		   map<string, string> dest;
+		   dest[to] = amount;
+		   return crosschain->create_multisig_transaction(from,dest,symbol,"");
+	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
+   }
 
    share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
@@ -5817,6 +5832,10 @@ fc::variant_object wallet_api::decoderawtransaction(const string& raw_trx, const
 	return my->decoderawtransaction(raw_trx,symbol);
 }
 
+fc::variant_object wallet_api::createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol)
+{
+	return my->createrawtransaction(from,to,amount, symbol);
+}
 
 share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
 {
