@@ -529,33 +529,33 @@ namespace graphene {
 
 		void contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-//           if (unspent_fee != 0)
-//               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-//           db().modify_current_collected_fee(total_fee - unspent_fee);
+           if (unspent_fee != 0)
+               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
- //           if (unspent_fee != 0)
- //               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
- //           db().modify_current_collected_fee(total_fee - unspent_fee);
+           if (unspent_fee != 0)
+               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void contract_invoke_evaluate::pay_fee() {
 #ifndef NO_FEE
-  //          if (unspent_fee != 0)
-  //              db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-  //          db().modify_current_collected_fee(total_fee - unspent_fee);
+          if (unspent_fee != 0)
+              db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+          db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
 		void contract_upgrade_evaluate::pay_fee() {
 #ifndef NO_FEE
- //           if (unspent_fee != 0)
- //               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
- //           db().modify_current_collected_fee(total_fee - unspent_fee);
+          if (unspent_fee != 0)
+               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+           db().modify_current_collected_fee(total_fee - unspent_fee);
 #endif
 		}
 
@@ -1003,9 +1003,9 @@ namespace graphene {
         void contract_transfer_evaluate::pay_fee()
         {
 #ifndef NO_FEE
-//            if(unspent_fee!=0)
-//                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-//            db().modify_current_collected_fee(total_fee-unspent_fee);
+            if(unspent_fee!=0)
+                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+            db().modify_current_collected_fee(total_fee-unspent_fee);
 #endif
         }
 

@@ -113,11 +113,11 @@ namespace graphene {
 
 		};
 
-
+		typedef fc::variant_object(*FuncPtr)(const std::string& trx);
 		class crosschain_management
 		{
 		public:
-			crosschain_management() {}
+			crosschain_management();
 			~crosschain_management() {}
 			static crosschain_management& get_instance()
 			{
@@ -125,8 +125,10 @@ namespace graphene {
 				return mgr;
 			}
 			crosschain_privatekey_base * get_crosschain_prk(const std::string& name);
+			fc::variant_object decoderawtransaction(const std::string& raw_trx, const std::string& symbol);
 		private:
 			std::map<std::string, crosschain_privatekey_base *> crosschain_prks;
+			std::map<std::string, FuncPtr> crosschain_decode;
 		};
 	}
 } // end namespace graphene::privatekey_management

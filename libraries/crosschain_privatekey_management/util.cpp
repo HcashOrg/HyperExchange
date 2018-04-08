@@ -10,6 +10,7 @@
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <fc/variant.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
+#include <fc/io/json.hpp>
 namespace graphene {
     namespace privatekey_management {
 
@@ -75,20 +76,17 @@ namespace graphene {
 		fc::variant_object btc_privatekey::decoderawtransaction(const std::string& trx)
 		{
 			auto decode = graphene::utxo::decoderawtransaction(trx);
-			auto ret= fc::variant(decode).get_object();
-			return ret;
+			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object ltc_privatekey::decoderawtransaction(const std::string& trx)
 		{
 			auto decode = graphene::utxo::decoderawtransaction(trx);
-			auto ret = fc::variant(decode).get_object();
-			return ret;
+			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object ub_privatekey::decoderawtransaction(const std::string& trx)
 		{
 			auto decode = graphene::utxo::decoderawtransaction(trx);
-			auto ret = fc::variant(decode).get_object();
-			return ret;
+			return fc::json::from_string(decode).get_object();
 		}
     }
 	namespace utxo {

@@ -1960,6 +1960,7 @@ class wallet_api
 	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
 	  transaction get_transaction(transaction_id_type id)const;
+	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  vector<transaction_id_type> list_transactions() const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
       fc::signal<void(bool)> lock_changed;
@@ -2216,4 +2217,5 @@ FC_API( graphene::wallet::wallet_api,
 		(dump_crosschain_private_keys)
 		(wallet_create_crosschain_symbol)
 	    (import_crosschain_key)
+		(decoderawtransaction)
       )

@@ -1681,6 +1681,16 @@ public:
 		   return signed_tx;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_address)(contract_name)(contract_desc))
    }
+
+   variant_object decoderawtransaction(const string& raw_trx, const string& symbol)
+   {
+	   try {
+		   auto cross_mgr = graphene::privatekey_management::crosschain_management::get_instance();
+		   return cross_mgr.decoderawtransaction(raw_trx,symbol);
+		  
+	   }FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
+   }
+
    share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
        try {
@@ -5801,6 +5811,12 @@ signed_transaction wallet_api::upgrade_contract(const string& caller_account_nam
 {
 	return my->upgrade_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_name, contract_desc);
 }
+
+fc::variant_object wallet_api::decoderawtransaction(const string& raw_trx, const string& symbol)
+{
+	return my->decoderawtransaction(raw_trx,symbol);
+}
+
 
 share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
 {

@@ -184,7 +184,7 @@ namespace graphene {
 				auto result = eval->do_apply(op);
 				if (!op.get_guarantee_id().valid())
 				{
-					//db_adjust_balance(op.fee_payer(), -fee_from_account);
+					db_adjust_balance(op.fee_payer(), -fee_from_account);
 				}
 				else
 				{
@@ -192,10 +192,10 @@ namespace graphene {
 					auto guarantee_obj = db_get_guarantee(*op.get_guarantee_id());
 					price p(guarantee_obj.asset_orign,guarantee_obj.asset_target);
 					auto fee_need_pay = fee_from_account * p;
-					//db_adjust_balance(op.fee_payer(), -fee_need_pay);
+					db_adjust_balance(op.fee_payer(), -fee_need_pay);
 					db_adjust_frozen(guarantee_obj.owner_addr,fee_from_account);
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
-					//db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
+					db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
 				}
 
 				return result;

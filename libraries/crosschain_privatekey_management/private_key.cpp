@@ -106,8 +106,8 @@ namespace graphene { namespace privatekey_management {
 	void btc_privatekey::init()
 	{
 		set_id(0);
-		set_pubkey_prefix(0x6F);
-		set_privkey_prefix(0xEF);
+		set_pubkey_prefix(0x0);
+		set_privkey_prefix(0x80);
 	}
 
 
@@ -199,8 +199,8 @@ namespace graphene { namespace privatekey_management {
 	void ltc_privatekey::init()
 	{
 		set_id(0);
-		set_pubkey_prefix(0x6F);
-		set_privkey_prefix(0xEF);
+		set_pubkey_prefix(0x30);
+		set_privkey_prefix(0xB0);
 	}
 
 	std::string  ltc_privatekey::get_wif_key()
@@ -430,13 +430,13 @@ namespace graphene { namespace privatekey_management {
 			}
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
-
-
-
 	}
-
-
-
+	crosschain_management::crosschain_management()
+	{
+		crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("LTC", &graphene::privatekey_management::ltc_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("UB", &graphene::privatekey_management::ub_privatekey::decoderawtransaction));
+	}
 	crosschain_privatekey_base * crosschain_management::get_crosschain_prk(const std::string& name)
 	{
 		auto itr = crosschain_prks.find(name);
@@ -447,15 +447,32 @@ namespace graphene { namespace privatekey_management {
 
 		if (name == "BTC")
 		{
+			crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
 			auto itr = crosschain_prks.insert(std::make_pair(name, new btc_privatekey()));
 			return itr.first->second;
 		}
 		else if (name == "LTC")
 		{
+			crosschain_decode.insert(std::make_pair("LTC", &graphene::privatekey_management::ltc_privatekey::decoderawtransaction));
 			auto itr = crosschain_prks.insert(std::make_pair(name, new ltc_privatekey()));
 			return itr.first->second;
 		}
+		else if (name == "UB")
+		{
+			crosschain_decode.insert(std::make_pair("UB", &graphene::privatekey_management::ub_privatekey::decoderawtransaction));
+			auto itr = crosschain_prks.insert(std::make_pair(name, new ub_privatekey()));
+			return itr.first->second;
+		}
 		return nullptr;
+	}
+
+	fc::variant_object crosschain_management::decoderawtransaction(const std::string& raw_trx, const std::string& symbol)
+	{
+		try {
+			auto iter = crosschain_decode.find(symbol);
+			FC_ASSERT(iter != crosschain_decode.end(), "plugin not exist.");
+			return iter->second(raw_trx);
+		}FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
 	}
 
 
