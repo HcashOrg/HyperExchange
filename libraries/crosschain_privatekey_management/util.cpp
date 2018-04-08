@@ -129,7 +129,7 @@ namespace graphene {
 					obj << ",";
 				auto output = ons.at(index);
 				obj << "\"output\": {";
-
+				obj << "\"address\": \"" << output.address() << "\",";
 				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\",";
 				obj << "\"value\": " << output.value() << "}";
 			}
