@@ -707,12 +707,23 @@ public:
       }
 	  return account_object();
    }
- 
-   vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type)
+
+   vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto& iter = _wallet.my_accounts.get<by_name>();
+		   FC_ASSERT(iter.find(account) != iter.end(), "Could not find account name ${account}", ("account", account));
+		   return _remote_db->get_guarantee_orders(iter.find(account)->addr, all);
+
+	   }FC_CAPTURE_AND_RETHROW((account)(all))
+   }
+
+   vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all)
    {
 	   try {
 		   auto asset_obj = get_asset(chain_type);
-		   return _remote_db->list_guarantee_object(chain_type);
+		   return _remote_db->list_guarantee_object(chain_type,all);
 
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
@@ -6333,10 +6344,13 @@ signed_transaction wallet_api::cancel_guarantee_order(const guarantee_object_id_
 {
 	return my->cancel_guarantee_order(id,broadcast);
 }
-
-vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol)
+vector<optional<guarantee_object>> wallet_api::get_my_guarantee_order(const string& account, bool all)
 {
-	return my->list_guarantee_order(symbol);
+	return my->get_my_guarantee_order(account,all);
+}
+vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string& symbol,bool all)
+{
+	return my->list_guarantee_order(symbol,all);
 }
 transaction wallet_api::get_transaction(transaction_id_type id) const
 {

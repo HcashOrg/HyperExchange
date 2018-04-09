@@ -1958,7 +1958,8 @@ class wallet_api
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
 	  signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
-	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type);
+	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
+	  vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all = true);
 	  transaction get_transaction(transaction_id_type id)const;
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
@@ -2220,4 +2221,5 @@ FC_API( graphene::wallet::wallet_api,
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)
+		(get_my_guarantee_order)
       )

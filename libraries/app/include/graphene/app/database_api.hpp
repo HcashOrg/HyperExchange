@@ -613,8 +613,9 @@ class database_api
 	  contract_object get_contract_info_by_name(const string& contract_name)const;
       vector<asset> get_contract_balance(const address& contract_address) const;
 
-	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
+	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all=true) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
+	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
@@ -735,12 +736,12 @@ FC_API(graphene::app::database_api,
 	(lookup_multisig_asset)
 	(get_binding_account)
 	(get_crosschain_transaction)
-		(get_coldhot_transaction)
-		(get_multi_account_guard)
+	(get_coldhot_transaction)
+	(get_multi_account_guard)
 	(get_multisig_address_obj)
 	(get_multisig_account_pair)
 	(lookup_multisig_account_pair)
-
+	(get_guarantee_orders)
     //contract
     (get_contract_info)
 	(get_contract_info_by_name)
