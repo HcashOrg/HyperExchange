@@ -455,7 +455,7 @@ namespace graphene {
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{
 				const auto &contract_id = pair1.first;
-				address contract_addr(contract_id);
+				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 				const auto &contract_storage_changes = pair1.second;
 				for (const auto &pair2 : contract_storage_changes)
 				{
@@ -616,7 +616,10 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
+			if (!address::is_valid(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+				return nullptr;
+			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+			if (origin_op.contract_id == contract_addr)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
 				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), origin_op.native_contract_key, address(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
@@ -629,7 +632,6 @@ namespace graphene {
 			}
 			else
 			{
-				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
 				if (!db().has_contract(contract_addr))
 					return nullptr;
 				auto contract_info = std::make_shared<UvmContractInfo>();

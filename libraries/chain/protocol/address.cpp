@@ -34,7 +34,7 @@ namespace graphene {
    address::address( const std::string& base58str, const char *prefix_str)
    {
       std::string prefix(prefix_str);
-      FC_ASSERT( is_valid( base58str, prefix ), "${str}", ("str",base58str) );
+      FC_ASSERT( is_valid( base58str, prefix ), "${str}", ("str",base58str + " -- " + prefix) );
 
       std::vector<char> v = fc::from_base58( base58str.substr( prefix.size() ) );
       memcpy( (char*)addr._hash, v.data(), std::min<size_t>( v.size()-4, sizeof( addr ) ) );

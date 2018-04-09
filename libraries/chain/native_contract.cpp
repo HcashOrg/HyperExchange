@@ -23,12 +23,13 @@ namespace graphene {
 				auto after_json_str = change.after.as<string>();
 				auto diff = differ.diff_by_string(before_json_str, after_json_str);
 				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
+				change.before = before;
 				storage_changes[storage_name] = change;
 			}
 			else
 			{
 				auto& change = storage_changes[storage_name];
-				auto before = change.after;
+				auto before = change.before;
 				auto after = value;
 				change.after = after;
 				jsondiff::JsonDiff differ;
@@ -507,18 +508,19 @@ namespace graphene {
 		bool native_contract_finder::has_native_contract_with_key(const std::string& key)
 		{
 			std::vector<std::string> native_contract_keys = {
-				demo_native_contract::native_contract_key(),
+				// demo_native_contract::native_contract_key(),
 				token_native_contract::native_contract_key()
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
 		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
 		{
-			if (key == demo_native_contract::native_contract_key())
+			/*if (key == demo_native_contract::native_contract_key())
 			{
 				return std::make_shared<demo_native_contract>(evaluate, contract_address);
 			}
-			else if (key == token_native_contract::native_contract_key())
+			else */
+			if (key == token_native_contract::native_contract_key())
 			{
 				return std::make_shared<token_native_contract>(evaluate, contract_address);
 			}
