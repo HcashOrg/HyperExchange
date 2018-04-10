@@ -37,7 +37,7 @@ namespace graphene { namespace privatekey_management {
 		return _key;
 	}
 
-	std::string  crosschain_privatekey_base::sign_trx(const std::string& script, const std::string& raw_trx)
+	std::string  crosschain_privatekey_base::sign_trx(const std::string& script, const std::string& raw_trx,int index)
 	{
 		//get endorsement
 		libbitcoin::endorsement out;
@@ -49,7 +49,6 @@ namespace graphene { namespace privatekey_management {
 	
 		libbitcoin::chain::transaction  trx;
 		trx.from_data(libbitcoin::config::base16(raw_trx));
-		uint32_t index = 0;
 		uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
 
 		auto result = libbitcoin::chain::script::create_endorsement(out, libbitcoin_priv.secret(), libbitcoin_script, trx, index, hash_type);
@@ -67,7 +66,6 @@ namespace graphene { namespace privatekey_management {
 		libbitcoin_script.from_string(endorsment_script);
 
 		//trx.from_data(libbitcoin::config::base16(raw_trx));
-		index = 0;
 		trx.inputs()[index].set_script(libbitcoin_script);	    
 		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());
 
@@ -166,7 +164,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		return this->crosschain_privatekey_base::sign_message(msg);
 	}
-
+	std::string btc_privatekey::sign_trx(const std::string& script, const std::string& raw_trx,int index)
+	{
+		return this->crosschain_privatekey_base::sign_trx(script,raw_trx,index);
+	}
 
 	fc::optional<fc::ecc::private_key>   btc_privatekey::import_private_key(const std::string& wif_key)
 	{
@@ -343,6 +344,10 @@ namespace graphene { namespace privatekey_management {
 		return key;
 
 	}
+	std::string ltc_privatekey::sign_trx(const std::string& script, const std::string& raw_trx,int index)
+	{
+		return this->crosschain_privatekey_base::sign_trx(script, raw_trx, index);
+	}
 
 	void ub_privatekey::init()
 	{
@@ -431,6 +436,11 @@ namespace graphene { namespace privatekey_management {
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
 	}
+	std::string ub_privatekey::sign_trx(const std::string& script, const std::string& raw_trx, int index)
+	{
+		return this->crosschain_privatekey_base::sign_trx(script, raw_trx,index);
+	}
+
 	crosschain_management::crosschain_management()
 	{
 		crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));

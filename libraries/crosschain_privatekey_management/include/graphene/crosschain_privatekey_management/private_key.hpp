@@ -23,7 +23,7 @@ namespace graphene {
 
 			crosschain_privatekey_base();
 			crosschain_privatekey_base(fc::ecc::private_key& priv_key);
-			virtual std::string  sign_trx(const std::string& script, const std::string& raw_trx);
+			virtual std::string  sign_trx(const std::string& script, const std::string& raw_trx,int index);
 			virtual std::string  sign_message(const std::string& msg);
 			fc::ecc::private_key  get_private_key();
 
@@ -68,6 +68,7 @@ namespace graphene {
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key) ;
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			virtual std::string  sign_trx(const std::string& script, const std::string& raw_trx,int index);
 		private:
 			void init();
 
@@ -89,6 +90,7 @@ namespace graphene {
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			virtual std::string  sign_trx(const std::string& script, const std::string& raw_trx,int index);
 		private:
 			void init();
 
@@ -108,6 +110,7 @@ namespace graphene {
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			virtual std::string  sign_trx(const std::string& script, const std::string& raw_trx,int index);
 		private:
 			void init();
 

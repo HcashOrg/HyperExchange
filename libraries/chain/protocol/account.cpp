@@ -293,20 +293,10 @@ void account_transfer_operation::validate()const
 
 void account_bind_operation::validate()const
 {
-	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
-	if (!crosschain->valid_config())
-		return;
-	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_address, tunnel_signature));
-	//auto pub_key = fc::ecc::public_key(sig, d);
-	//FC_ASSERT( address());
 }
 
 void account_unbind_operation::validate()const
 {
-	auto crosschain = graphene::crosschain::crosschain_manager::get_instance().get_crosschain_handle(crosschain_type);
-	if (!crosschain->valid_config())
-		return;
-	FC_ASSERT(crosschain->validate_signature(tunnel_address, tunnel_address, tunnel_signature));
 }
 
 void account_multisig_create_operation::validate()const

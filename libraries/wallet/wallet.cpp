@@ -1717,12 +1717,34 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
 
-   string signrawtransaction(const string& from, const fc::variant_object& trx, bool broadcast = true)
+   string signrawtransaction(const string& from,const string& symbol, const fc::variant_object& trx, bool broadcast = true)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		   return string();
-
+		  
+		   auto iter = _crosschain_keys.find(from);
+		   FC_ASSERT(iter != _crosschain_keys.end(),"there is no private key in this wallet.");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
+		   FC_ASSERT(pk.valid());
+		   auto scripts = trx["scriptPubKey"].as<vector<string>>();
+		   string raw = trx["hex"].as_string();
+		   for (auto index=0;index < scripts.size(); index++)
+		   {
+			   auto script = scripts.at(index);
+			   raw=prk_ptr->sign_trx(script,raw,index);
+		   }
+		   if (broadcast)
+		   {
+			   string config = (*_crosschain_manager)->get_config();
+			   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
+			   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+			   auto fd = instance.get_crosschain_handle(symbol);
+			   fd->initialize_config(fc::json::from_string(config).get_object());
+			   fc::variant_object new_trx("hex", raw);
+			   fd->broadcast_transaction(new_trx);
+		   }
+		   return raw;
 	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
    }
 
@@ -2973,8 +2995,8 @@ public:
 		   coldhot_transfer_op.multi_account_deposit = to_account;
 		   fc::variant amount_fc = amount;
 		   char temp[1024];
-		   std::sprintf(temp, "%.8g", amount_fc.as_double());
-		   coldhot_transfer_op.amount = temp;
+		   std::sprintf(temp, "%.8f", amount_fc.as_double());
+		   coldhot_transfer_op.amount = graphene::utilities::remove_zero_for_str_amount(temp);
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
 		   auto guard_obj = get_guard_member(proposer);
@@ -5856,9 +5878,9 @@ fc::variant_object wallet_api::createrawtransaction(const string& from, const st
 {
 	return my->createrawtransaction(from,to,amount, symbol);
 }
-string wallet_api::signrawtransaction(const string& from, const fc::variant_object& trx, bool broadcast)
+string wallet_api::signrawtransaction(const string& from,const string& symbol ,const fc::variant_object& trx, bool broadcast)
 {
-	return my->signrawtransaction(from,trx,broadcast);
+	return my->signrawtransaction(from,symbol,trx,broadcast);
 }
 
 share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
