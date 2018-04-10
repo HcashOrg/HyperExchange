@@ -94,7 +94,7 @@ namespace graphene { namespace chain {
 
        address fee_payer()const { return fee_paying_account; }
        void            validate()const;
-       share_type      calculate_fee(const fee_parameters_type& k)const;
+       share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   void get_required_authorities(vector<authority>& a)const
 	   {
 		   a.push_back(authority(1, fee_payer(), 1));
@@ -139,7 +139,7 @@ namespace graphene { namespace chain {
 
 	  address fee_payer()const { return fee_paying_account; }
       void            validate()const;
-      share_type      calculate_fee(const fee_parameters_type& k)const;
+      share_type calculate_fee(const fee_parameters_type& k)const { return 0; };
 	  void get_required_authorities(vector<authority>& a)const;
 	  
       void get_required_active_authorities( flat_set<account_id_type>& )const;

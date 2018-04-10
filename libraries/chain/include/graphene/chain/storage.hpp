@@ -34,6 +34,7 @@ namespace graphene {
 		struct StorageDataChangeType
 		{
 			StorageDataType storage_diff;
+			StorageDataType before;
 			StorageDataType after;
 		};
 

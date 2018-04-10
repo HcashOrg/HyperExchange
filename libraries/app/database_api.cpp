@@ -166,8 +166,9 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       contract_object get_contract_info(const string& contract_address)const ;
 	  contract_object get_contract_info_by_name(const string& contract_name) const;
       vector<asset> get_contract_balance(const address & contract_address) const;
-	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type) const;
+	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
+	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
    //private:
       template<typename T>
@@ -1582,14 +1583,39 @@ fc::optional<guard_member_object> database_api_impl::get_guard_member_by_account
       return *itr;
    return {};
 }
-
-vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(const string& chain_type) const
+vector<optional<guarantee_object>> database_api_impl::get_guarantee_orders(const address& addr, bool all) const
+{
+	vector<optional<guarantee_object>> result;
+	const auto& idx = _db.get_index_type<guarantee_index>().indices().get<by_owner>();
+	const auto& range = idx.equal_range(addr);
+	std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
+		if (all == true)
+		{
+			result.emplace_back(obj);
+		}
+		else
+		{
+			if (obj.finished != true)
+				result.emplace_back(obj);
+		}
+	});
+	return result;
+}
+vector<optional<guarantee_object>> database_api_impl::list_guarantee_object(const string& chain_type,bool all) const
 {
 	vector<optional<guarantee_object>> result;
 	const auto& idx = _db.get_index_type<guarantee_index>().indices().get<by_symbol>();
 	const auto& range = idx.equal_range(chain_type);
 	std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
-		result.emplace_back(obj);
+		if (all == true)
+		{
+			result.emplace_back(obj);
+		}
+		else
+		{
+			if (obj.finished != true)
+				result.emplace_back(obj);
+		}
 	});
 	//sort result
 	std::sort(result.begin(), result.end(), [](optional<guarantee_object> a, optional<guarantee_object> b) {
@@ -2132,9 +2158,13 @@ optional<multisig_account_pair_object> database_api::lookup_multisig_account_pai
 {
 	return my->lookup_multisig_account_pair(id);
 }
-vector<optional<guarantee_object>> database_api::list_guarantee_object(const string& chain_type) const
+vector<optional<guarantee_object>> database_api::list_guarantee_object(const string& chain_type,bool all) const
 {
-	return my->list_guarantee_object(chain_type);
+	return my->list_guarantee_object(chain_type,all);
+}
+vector<optional<guarantee_object>> database_api::get_guarantee_orders(const address& addr, bool all) const
+{
+	return my->get_guarantee_orders(addr, all);
 }
 optional<guarantee_object> database_api::get_gurantee_object(const guarantee_object_id_type id) const
 {
