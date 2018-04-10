@@ -29,6 +29,7 @@ namespace graphene {
             gas_count_type gas_used;
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
+            bool exec_succeed = true;
         public:
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
