@@ -1717,6 +1717,15 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
 
+   string signrawtransaction(const string& from, const fc::variant_object& trx, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   return string();
+
+	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
+   }
+
    share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
        try {
@@ -5846,6 +5855,10 @@ fc::variant_object wallet_api::decoderawtransaction(const string& raw_trx, const
 fc::variant_object wallet_api::createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol)
 {
 	return my->createrawtransaction(from,to,amount, symbol);
+}
+string wallet_api::signrawtransaction(const string& from, const fc::variant_object& trx, bool broadcast)
+{
+	return my->signrawtransaction(from,trx,broadcast);
 }
 
 share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
