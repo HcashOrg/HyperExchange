@@ -94,7 +94,7 @@ namespace graphene { namespace db {
          void    disable();
          void    enable();
          bool    enabled()const { return !_disabled; }
-
+		 int     get_active_session() { return _active_sessions; }
          session start_undo_session( bool force_enable = false );
          /**
           * This should be called just after an object is created
