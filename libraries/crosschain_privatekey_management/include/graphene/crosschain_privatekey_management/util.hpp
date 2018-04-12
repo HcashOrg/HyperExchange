@@ -21,7 +21,7 @@ namespace graphene {
 
 		std::string create_endorsement(const std::string& signer_wif, const std::string& redeemscript, const std::string& raw_trx, int vin_index = 0);
 
-		std::string mutisign_trx(const std::string& signer_wif, const std::string& redeemscript, const std::string& raw_trx, int vin_index = 0);
+		std::string mutisign_trx(const std::string& endorse, const std::string& redeemscript, const std::string& raw_trx, int vin_index = 0);
 
 	}
 

@@ -186,7 +186,8 @@ namespace graphene { namespace privatekey_management {
 			std::string trx = raw_trx["hex"].as_string();
 			for (int index = 0; index < size; index++)
 			{
-				trx = graphene::privatekey_management::mutisign_trx(get_wif_key(),redeemscript,trx,index);
+				auto endorse = graphene::privatekey_management::create_endorsement(get_wif_key(), redeemscript,trx,index);
+				trx = graphene::privatekey_management::mutisign_trx(endorse,redeemscript,trx,index);
 			}
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
@@ -286,7 +287,8 @@ namespace graphene { namespace privatekey_management {
 			std::string trx = raw_trx["hex"].as_string();
 			for (int index = 0; index < size; index++)
 			{
-				trx = graphene::privatekey_management::mutisign_trx(get_wif_key(), redeemscript, trx, index);
+				auto endorse = graphene::privatekey_management::create_endorsement(get_wif_key(), redeemscript, trx, index);
+				trx = graphene::privatekey_management::mutisign_trx(endorse, redeemscript, trx, index);
 			}
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
@@ -421,6 +423,59 @@ namespace graphene { namespace privatekey_management {
 		return key;
 
 	}
+
+	static std::string create_endorsement(const std::string& signer_wif, const std::string& redeemscript_hex, const std::string& raw_trx, int vin_index)
+	{
+		libbitcoin::wallet::ec_private libbitcoin_priv(signer_wif);
+		libbitcoin::chain::script   libbitcoin_script;
+		libbitcoin_script.from_data(libbitcoin::config::base16(redeemscript_hex), false);
+		libbitcoin::chain::transaction  trx;
+		trx.from_data(libbitcoin::config::base16(raw_trx));
+		uint32_t index = vin_index;
+		uint8_t sighash_type = libbitcoin::machine::sighash_algorithm::all;
+
+		libbitcoin::chain::input::list ins;
+		const auto& inputs = trx.inputs();
+		const auto any = (sighash_type & libbitcoin::machine::sighash_algorithm::anyone_can_pay) != 0;
+		ins.reserve(any ? 1 : inputs.size());
+
+		BITCOIN_ASSERT(input_index < inputs.size());
+		const auto& self = inputs[vin_index];
+
+		if (any)
+		{
+			// Retain only self.
+			ins.emplace_back(self.previous_output(), libbitcoin_script, self.sequence());
+		}
+		else
+		{
+			// Erase all input scripts.
+			for (const auto& input : inputs)
+				ins.emplace_back(input.previous_output(), libbitcoin::chain::script{},
+					input.sequence());
+
+			// Replace self that is lost in the loop.
+			ins[vin_index].set_script(libbitcoin_script);
+			////ins[input_index].set_sequence(self.sequence());
+		}
+
+		// Move new inputs and copy outputs to new transaction.
+		libbitcoin::chain::transaction out(trx.version(), trx.locktime(), libbitcoin::chain::input::list{}, trx.outputs());
+		out.set_inputs(std::move(ins));
+		auto serialized = out.to_data(true, false);
+		libbitcoin::extend_data(serialized, libbitcoin::to_little_endian(sighash_type));
+		libbitcoin::extend_data(serialized,"ub");
+		auto higest =libbitcoin::bitcoin_hash(serialized);
+
+		libbitcoin::ec_signature signature;
+		libbitcoin::endorsement endorse;
+		if (!libbitcoin::sign(signature, libbitcoin_priv.secret(), higest) || !libbitcoin::encode_signature(endorse, signature))
+			return "";
+		endorse.push_back(sighash_type);
+		endorse.shrink_to_fit();
+		return libbitcoin::encode_base16(endorse);
+	}
+
 	std::string ub_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx)
 	{
 		try {
@@ -431,7 +486,8 @@ namespace graphene { namespace privatekey_management {
 			std::string trx = raw_trx["hex"].as_string();
 			for (int index = 0; index < size; index++)
 			{
-				trx = graphene::privatekey_management::mutisign_trx(get_wif_key(), redeemscript, trx, index);
+				auto endorse = create_endorsement(get_wif_key(), redeemscript, trx, index);
+				trx = graphene::privatekey_management::mutisign_trx(endorse, redeemscript, trx, index);
 			}
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
