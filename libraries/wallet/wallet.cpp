@@ -1115,13 +1115,13 @@ public:
       FC_ASSERT(_builder_transactions.count(handle));
       return _builder_transactions[handle];
    }
-   signed_transaction sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast = true)
+   full_transaction sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast = true)
    {
       FC_ASSERT(_builder_transactions.count(transaction_handle));
 
       return _builder_transactions[transaction_handle] = sign_transaction(_builder_transactions[transaction_handle], broadcast);
    }
-   signed_transaction propose_builder_transaction(
+   full_transaction propose_builder_transaction(
       transaction_handle_type handle,
       time_point_sec expiration = time_point::now() + fc::minutes(1),
       uint32_t review_period_seconds = 0, bool broadcast = true)
@@ -1140,7 +1140,7 @@ public:
       return trx = sign_transaction(trx, broadcast);
    }
 
-   signed_transaction propose_builder_transaction2(
+   full_transaction propose_builder_transaction2(
       transaction_handle_type handle,
       string account_name_or_id,
       time_point_sec expiration = time_point::now() + fc::minutes(1),
@@ -1166,7 +1166,7 @@ public:
       _builder_transactions.erase(handle);
    }
 
-   signed_transaction register_account(string name, bool broadcast)
+   full_transaction register_account(string name, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1519,7 +1519,7 @@ public:
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
 
    }
-   signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
+   full_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1652,7 +1652,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
    }
 
-   signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
+   full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
    {
 	   try {
 		   // TODO: invoke_contract_testing
@@ -1799,7 +1799,7 @@ public:
 
    }
 
-   signed_transaction transfer_to_contract(string from,
+   full_transaction transfer_to_contract(string from,
        string to,
        string amount,
        string asset_symbol,
@@ -1894,7 +1894,7 @@ public:
        }
        return gas_count;
    }
-   signed_transaction register_account(string name,
+   full_transaction register_account(string name,
                                        public_key_type owner,
                                        public_key_type active,
                                        string  registrar_account,
@@ -1962,7 +1962,7 @@ public:
       return tx;
    } FC_CAPTURE_AND_RETHROW( (name)(owner)(active)(registrar_account)(referrer_account)(referrer_percent)(broadcast) ) }
 
-   signed_transaction upgrade_account(string name, bool broadcast)
+   full_transaction upgrade_account(string name, bool broadcast)
    { try {
       FC_ASSERT( !self.is_locked() );
       account_object account_obj = get_account(name);
@@ -1979,7 +1979,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (name) ) }
 
-   signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol, bool broadcast)
+   full_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2001,7 +2001,7 @@ public:
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(asset_orign)(asset_target)(symbol)(broadcast))
    }
-   signed_transaction cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
+   full_transaction cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
    {
 	   try {
 		   auto guarantee_obj = _remote_db->get_gurantee_object(id);
@@ -2056,7 +2056,7 @@ public:
       }
    }
    
-   signed_transaction create_account_with_private_key(fc::ecc::private_key owner_privkey,
+   full_transaction create_account_with_private_key(fc::ecc::private_key owner_privkey,
                                                       string account_name,
                                                       string registrar_account,
                                                       string referrer_account,
@@ -2131,7 +2131,7 @@ public:
          return tx;
    } FC_CAPTURE_AND_RETHROW( (account_name)(registrar_account)(referrer_account)(broadcast) ) }
 
-   signed_transaction create_account_with_brain_key(string brain_key,
+   full_transaction create_account_with_brain_key(string brain_key,
                                                     string account_name,
                                                     string registrar_account,
                                                     string referrer_account,
@@ -2209,7 +2209,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account_name))
    }
    
-   signed_transaction create_asset(string issuer,
+   full_transaction create_asset(string issuer,
                                    string symbol,
                                    uint8_t precision,
                                    asset_options common,
@@ -2234,7 +2234,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (issuer)(symbol)(precision)(common)(bitasset_opts)(broadcast) ) }
 
-   signed_transaction wallet_create_asset(string issuer,
+   full_transaction wallet_create_asset(string issuer,
 	   string symbol,
 	   uint8_t precision,
 	   share_type max_supply,
@@ -2264,7 +2264,7 @@ public:
    }
 
 
-   signed_transaction update_asset(string symbol,
+   full_transaction update_asset(string symbol,
                                    optional<string> new_issuer,
                                    asset_options new_options,
                                    bool broadcast /* = false */)
@@ -2306,7 +2306,7 @@ public:
       update_op.asset_to_update = asset_to_update->id;
       update_op.new_options = new_options;
 
-      signed_transaction tx;
+      full_transaction tx;
       tx.operations.push_back( update_op );
       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
       tx.validate();
@@ -2314,7 +2314,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (symbol)(new_options)(broadcast) ) }
 
-   signed_transaction update_asset_feed_producers(string symbol,
+   full_transaction update_asset_feed_producers(string symbol,
                                                   flat_set<string> new_feed_producers,
                                                   bool broadcast /* = false */)
    { try {
@@ -2338,7 +2338,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (symbol)(new_feed_producers)(broadcast) ) }
 
-   signed_transaction publish_asset_feed(string publishing_account,
+   full_transaction publish_asset_feed(string publishing_account,
                                          string symbol,
                                          price_feed feed,
                                          bool broadcast /* = false */)
@@ -2410,7 +2410,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (from)(symbol)(amount)(broadcast) ) }
 
-   signed_transaction reserve_asset(string from,
+   full_transaction reserve_asset(string from,
                                  string amount,
                                  string symbol,
                                  bool broadcast /* = false */)
@@ -2432,7 +2432,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (from)(amount)(symbol)(broadcast) ) }
 
-   signed_transaction global_settle_asset(string symbol,
+   full_transaction global_settle_asset(string symbol,
                                           price settle_price,
                                           bool broadcast /* = false */)
    { try {
@@ -2453,7 +2453,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (symbol)(settle_price)(broadcast) ) }
 
-   signed_transaction settle_asset(string account_to_settle,
+   full_transaction settle_asset(string account_to_settle,
                                    string amount_to_settle,
                                    string symbol,
                                    bool broadcast /* = false */)
@@ -2474,7 +2474,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_settle)(amount_to_settle)(symbol)(broadcast) ) }
 
-   signed_transaction whitelist_account(string authorizing_account,
+   full_transaction whitelist_account(string authorizing_account,
                                         string account_to_list,
                                         account_whitelist_operation::account_listing new_listing_status,
                                         bool broadcast /* = false */)
@@ -2502,7 +2502,7 @@ public:
    }
 
 
-   signed_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
+   full_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
                                       bool broadcast /* = false */)
    { try {
 	  //account should be register in the blockchian
@@ -2531,7 +2531,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
 
-   signed_transaction resign_guard_member(string proposing_account, string account, int64_t expiration_time, bool broadcast)
+   full_transaction resign_guard_member(string proposing_account, string account, int64_t expiration_time, bool broadcast)
    {
        try {
            //account should be register in the blockchian
@@ -2560,7 +2560,7 @@ public:
        } FC_CAPTURE_AND_RETHROW((proposing_account)(account)(expiration_time)(broadcast))
    }
 
-   signed_transaction update_guard_formal(string proposing_account, bool formal ,int64_t expiration_time,
+   full_transaction update_guard_formal(string proposing_account, bool formal ,int64_t expiration_time,
 	   bool broadcast /* = false */)
    {
 	   try {
@@ -2664,7 +2664,7 @@ public:
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
 
-   signed_transaction create_miner(string owner_account,
+   full_transaction create_miner(string owner_account,
                                      string url,
                                      bool broadcast /* = false */)
    { try {
@@ -2694,7 +2694,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
 
-   signed_transaction update_witness(string witness_name,
+   full_transaction update_witness(string witness_name,
                                      string url,
                                      string block_signing_key,
                                      bool broadcast /* = false */)
@@ -2727,7 +2727,7 @@ public:
       return result;
    }
 
-   signed_transaction create_worker(
+   full_transaction create_worker(
       string owner_account,
       time_point_sec work_begin_date,
       time_point_sec work_end_date,
@@ -2770,7 +2770,7 @@ public:
       return sign_transaction( tx, broadcast );
    }
 
-   signed_transaction update_worker_votes(
+   full_transaction update_worker_votes(
       string account,
       worker_vote_delta delta,
       bool broadcast
@@ -2863,7 +2863,7 @@ public:
    } FC_CAPTURE_AND_RETHROW( (account_name) )
    }
 
-   signed_transaction withdraw_vesting(
+   full_transaction withdraw_vesting(
       string witness_name,
       string amount,
       string asset_symbol,
@@ -2894,7 +2894,7 @@ public:
    } FC_CAPTURE_AND_RETHROW( (witness_name)(amount) )
    }
 
-   signed_transaction cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
+   full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	   try {
 		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
@@ -2920,7 +2920,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(trxid)(exception_time)(broadcast))
 
    }
-   signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
+   full_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2945,7 +2945,7 @@ public:
           }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
    }
 
-   signed_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+   full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2980,7 +2980,7 @@ public:
 	   get_asset_id(symbol);
 	   return _remote_db->get_multi_account_guard(multi_address,symbol);
    }
-   signed_transaction transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& expiration_time, bool broadcast)
+   full_transaction transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& expiration_time, bool broadcast)
    {
 	   try
 	   {
@@ -3041,7 +3041,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
    
-   signed_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
+   full_transaction sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
    {
 	   try {
 		   
@@ -3069,7 +3069,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(id)(broadcast))
    }
 
-   signed_transaction account_change_for_crosschain(const string& proposer,const string& symbol,const string& hot,const string& cold, int64_t expiration_time,bool broadcast)
+   full_transaction account_change_for_crosschain(const string& proposer,const string& symbol,const string& hot,const string& cold, int64_t expiration_time,bool broadcast)
    {
 	   try 
 	   {
@@ -3105,7 +3105,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(symbol)(hot)(cold)(expiration_time)(broadcast))
    }
    
-   signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true)
+   full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true)
    {
 	   try
 	   {
@@ -3118,7 +3118,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
    }
    
-   signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
+   full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
 	   try
 	   {
@@ -3150,7 +3150,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
    }
 
-   signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
+   full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
 	   try
 	   {
@@ -3192,7 +3192,7 @@ public:
 	   return _remote_db->lookup_multisig_account_pair(id);
    }
 
-   signed_transaction vote_for_committee_member(string voting_account,
+   full_transaction vote_for_committee_member(string voting_account,
                                         string committee_member,
                                         bool approve,
                                         bool broadcast /* = false */)
@@ -3226,7 +3226,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (voting_account)(committee_member)(approve)(broadcast) ) }
 
-   signed_transaction vote_for_witness(string voting_account,
+   full_transaction vote_for_witness(string voting_account,
                                         string witness,
                                         bool approve,
                                         bool broadcast /* = false */)
@@ -3260,7 +3260,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (voting_account)(witness)(approve)(broadcast) ) }
 
-   signed_transaction set_voting_proxy(string account_to_modify,
+   full_transaction set_voting_proxy(string account_to_modify,
                                        optional<string> voting_account,
                                        bool broadcast /* = false */)
    { try {
@@ -3291,7 +3291,7 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_modify)(voting_account)(broadcast) ) }
 
-   signed_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
+   full_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
                                                              uint16_t desired_number_of_witnesses,
                                                              uint16_t desired_number_of_committee_members,
                                                              bool broadcast /* = false */)
@@ -3464,7 +3464,7 @@ public:
       return tx;
    }
 
-   signed_transaction sell_asset(string seller_account,
+   full_transaction sell_asset(string seller_account,
                                  string amount_to_sell,
                                  string symbol_to_sell,
                                  string min_to_receive,
@@ -3491,7 +3491,7 @@ public:
       return sign_transaction( tx, broadcast );
    }
 
-   signed_transaction borrow_asset(string seller_name, string amount_to_borrow, string asset_symbol,
+   full_transaction borrow_asset(string seller_name, string amount_to_borrow, string asset_symbol,
                                        string amount_of_collateral, bool broadcast = false)
    {
       account_object seller = get_account(seller_name);
@@ -3739,7 +3739,7 @@ public:
 	   FC_ASSERT(miner_obj.valid(), "Miner is not exist");
 	   return _remote_db->get_miner_lock_balance(miner_obj->id);
    }
-   signed_transaction cancel_order(object_id_type order_id, bool broadcast = false)
+   full_transaction cancel_order(object_id_type order_id, bool broadcast = false)
    { try {
          FC_ASSERT(!is_locked());
          FC_ASSERT(order_id.space() == protocol_ids, "Invalid order ID ${id}", ("id", order_id));
@@ -3754,7 +3754,7 @@ public:
          trx.validate();
          return sign_transaction(trx, broadcast);
    } FC_CAPTURE_AND_RETHROW((order_id)) }
-   signed_transaction withdraw_cross_chain_transaction(string account_name,
+   full_transaction withdraw_cross_chain_transaction(string account_name,
 	   string amount,
 	   string asset_symbol,
 	   string crosschain_account,
@@ -3781,7 +3781,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account_name)(amount)(asset_symbol)(crosschain_account)(memo))
    }
-   signed_transaction transfer_guard_multi_account(string multi_account,
+   full_transaction transfer_guard_multi_account(string multi_account,
 	   string amount,
 	   string asset_symbol,
 	   string multi_to_account,
@@ -3818,7 +3818,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((multi_account)(amount)(asset_symbol)(multi_to_account)(memo))
    }
-   signed_transaction lock_balance_to_miner(string miner_account,
+   full_transaction lock_balance_to_miner(string miner_account,
 	   string lock_account,
 	   string amount,
 	   string asset_symbol,
@@ -3846,7 +3846,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((miner_account)(lock_account)(amount)(asset_symbol)(broadcast))
    }
-   signed_transaction guard_lock_balance(string guard_account,
+   full_transaction guard_lock_balance(string guard_account,
 	   string amount,
 	   string asset_symbol,
 	   bool broadcast = false) {
@@ -3874,7 +3874,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
-   signed_transaction foreclose_balance_from_miner(string miner_account,
+   full_transaction foreclose_balance_from_miner(string miner_account,
 	   string foreclose_account,
 	   string amount,
 	   string asset_symbol,
@@ -3902,7 +3902,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((miner_account)(foreclose_account)(amount)(asset_symbol)(broadcast))
    }
-   signed_transaction guard_foreclose_balance(string guard_account,
+   full_transaction guard_foreclose_balance(string guard_account,
 	   string amount,
 	   string asset_symbol,
 	   bool broadcast = false) {
@@ -3930,7 +3930,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
-   signed_transaction transfer_to_address(string from, string to, string amount,
+   full_transaction transfer_to_address(string from, string to, string amount,
 	   string asset_symbol, string memo, bool broadcast = false)
    {
 	   try {
@@ -3966,7 +3966,7 @@ public:
 
 
 
-   signed_transaction transfer(string from, string to, string amount,
+   full_transaction transfer(string from, string to, string amount,
                                string asset_symbol, string memo, bool broadcast = false)
    { try {
       FC_ASSERT( !self.is_locked() );
@@ -4001,7 +4001,7 @@ public:
       return sign_transaction(tx, broadcast);
    } FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(asset_symbol)(memo)(broadcast) ) }
 
-   signed_transaction issue_asset(string to_account, string amount, string symbol,
+   full_transaction issue_asset(string to_account, string amount, string symbol,
                                   string memo, bool broadcast = false)
    {
       auto asset_obj = get_asset(symbol);
@@ -4248,7 +4248,7 @@ public:
    
 
 	
-	signed_transaction propose_guard_pledge_change(
+	full_transaction propose_guard_pledge_change(
 	  const string& proposing_account,
 	  fc::time_point_sec expiration_time,
 	  const variant_object& changed_values,
@@ -4284,7 +4284,7 @@ public:
 
    
 
-   signed_transaction propose_parameter_change(
+   full_transaction propose_parameter_change(
       const string& proposing_account,
       fc::time_point_sec expiration_time,
       const variant_object& changed_values,
@@ -4320,7 +4320,7 @@ public:
 
 
 
-   signed_transaction propose_coin_destory(
+   full_transaction propose_coin_destory(
 	   const string& proposing_account,
 	   fc::time_point_sec expiration_time,
 	   const variant_object& destory_values,
@@ -4360,7 +4360,7 @@ public:
    }
 
 
-   signed_transaction propose_fee_change(
+   full_transaction propose_fee_change(
       const string& proposing_account,
       fc::time_point_sec expiration_time,
       const variant_object& changed_fees,
@@ -4442,7 +4442,7 @@ public:
       return sign_transaction(tx, broadcast);
    }
 
-   signed_transaction approve_proposal(
+   full_transaction approve_proposal(
       const string& fee_paying_account,
       const string& proposal_id,
       const approval_delta& delta,
@@ -5083,12 +5083,12 @@ transaction wallet_api::preview_builder_transaction(transaction_handle_type hand
    return my->preview_builder_transaction(handle);
 }
 
-signed_transaction wallet_api::sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast)
+full_transaction wallet_api::sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast)
 {
    return my->sign_builder_transaction(transaction_handle, broadcast);
 }
 
-signed_transaction wallet_api::propose_builder_transaction(
+full_transaction wallet_api::propose_builder_transaction(
    transaction_handle_type handle,
    time_point_sec expiration,
    uint32_t review_period_seconds,
@@ -5097,7 +5097,7 @@ signed_transaction wallet_api::propose_builder_transaction(
    return my->propose_builder_transaction(handle, expiration, review_period_seconds, broadcast);
 }
 
-signed_transaction wallet_api::propose_builder_transaction2(
+full_transaction wallet_api::propose_builder_transaction2(
    transaction_handle_type handle,
    string account_name_or_id,
    time_point_sec expiration,
@@ -5336,7 +5336,7 @@ return my->register_account( name, owner_pubkey, active_pubkey, registrar_accoun
 */
 
 
-signed_transaction wallet_api::register_account(string name, bool broadcast)
+full_transaction wallet_api::register_account(string name, bool broadcast)
 {
 	return my->register_account(name, broadcast);
 }
@@ -5344,7 +5344,7 @@ signed_transaction wallet_api::register_account(string name, bool broadcast)
 
 
 
-signed_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
+full_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
                                                              string registrar_account, string referrer_account,
                                                              bool broadcast /* = false */)
 {
@@ -5359,25 +5359,25 @@ address wallet_api::wallet_create_account(string account_name)
 	return my->create_account(account_name);
 }
 
-signed_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
+full_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
                                            string memo, bool broadcast)
 {
    return my->issue_asset(to_account, amount, symbol, memo, broadcast);
 }
 
-signed_transaction wallet_api::transfer(string from, string to, string amount,
+full_transaction wallet_api::transfer(string from, string to, string amount,
                                         string asset_symbol, string memo, bool broadcast /* = false */)
 {
    return my->transfer(from, to, amount, asset_symbol, memo, broadcast);
 }
 
-signed_transaction wallet_api::transfer_to_address(string from, string to, string amount,
+full_transaction wallet_api::transfer_to_address(string from, string to, string amount,
 	string asset_symbol, string memo, bool broadcast /* = false */)
 {
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
 
-signed_transaction wallet_api::transfer_to_account(string from, string to, string amount,
+full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
 	string asset_symbol, string memo, bool broadcast /* = false */)
 {
 	const auto acc = get_account(to);
@@ -5407,14 +5407,14 @@ optional<multisig_address_object> wallet_api::get_current_multi_address_obj(cons
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);
 }
-signed_transaction wallet_api::lock_balance_to_miner(string miner_account,
+full_transaction wallet_api::lock_balance_to_miner(string miner_account,
 	string lock_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->lock_balance_to_miner(miner_account, lock_account,amount, asset_symbol, broadcast);
 }
-signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
+full_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
 	string amount,
 	string asset_symbol,
 	string crosschain_account,
@@ -5422,7 +5422,7 @@ signed_transaction wallet_api::withdraw_cross_chain_transaction(string account_n
 	bool broadcast/* = false*/) {
 	return my->withdraw_cross_chain_transaction(account_name, amount, asset_symbol, crosschain_account, memo, broadcast);
 }
-signed_transaction wallet_api::transfer_guard_multi_account(string multi_account,
+full_transaction wallet_api::transfer_guard_multi_account(string multi_account,
 	string amount,
 	string asset_symbol,
 	string multi_to_account,
@@ -5430,27 +5430,27 @@ signed_transaction wallet_api::transfer_guard_multi_account(string multi_account
 	bool broadcast/* = false*/){
 	return my->transfer_guard_multi_account(multi_account, amount, asset_symbol, multi_to_account,memo, broadcast);
 }
-signed_transaction wallet_api::guard_lock_balance(string guard_account,
+full_transaction wallet_api::guard_lock_balance(string guard_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->guard_lock_balance(guard_account, amount, asset_symbol, broadcast);
 }
-signed_transaction wallet_api::foreclose_balance_from_miner(string miner_account,
+full_transaction wallet_api::foreclose_balance_from_miner(string miner_account,
 	string foreclose_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->foreclose_balance_from_miner(miner_account, foreclose_account, amount, asset_symbol, broadcast);
 }
-signed_transaction wallet_api::guard_foreclose_balance(string guard_account,
+full_transaction wallet_api::guard_foreclose_balance(string guard_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->guard_foreclose_balance(guard_account, amount, asset_symbol, broadcast);
 }
 
-signed_transaction wallet_api::create_asset(string issuer,
+full_transaction wallet_api::create_asset(string issuer,
                                             string symbol,
                                             uint8_t precision,
                                             asset_options common,
@@ -5462,7 +5462,7 @@ signed_transaction wallet_api::create_asset(string issuer,
 }
 
 
-signed_transaction wallet_api::wallet_create_asset(string issuer,
+full_transaction wallet_api::wallet_create_asset(string issuer,
 	string symbol,
 	uint8_t precision,
 	share_type max_supply,
@@ -5473,7 +5473,7 @@ signed_transaction wallet_api::wallet_create_asset(string issuer,
 	return my->wallet_create_asset(issuer, symbol, precision,max_supply, core_fee_paid, broadcast);
 }
 
-signed_transaction wallet_api::update_asset(string symbol,
+full_transaction wallet_api::update_asset(string symbol,
                                             optional<string> new_issuer,
                                             asset_options new_options,
                                             bool broadcast /* = false */)
@@ -5481,28 +5481,28 @@ signed_transaction wallet_api::update_asset(string symbol,
    return my->update_asset(symbol, new_issuer, new_options, broadcast);
 }
 
-signed_transaction wallet_api::update_bitasset(string symbol,
+full_transaction wallet_api::update_bitasset(string symbol,
                                                bitasset_options new_options,
                                                bool broadcast /* = false */)
 {
    return my->update_bitasset(symbol, new_options, broadcast);
 }
 
-signed_transaction wallet_api::update_asset_feed_producers(string symbol,
+full_transaction wallet_api::update_asset_feed_producers(string symbol,
                                                            flat_set<string> new_feed_producers,
                                                            bool broadcast /* = false */)
 {
    return my->update_asset_feed_producers(symbol, new_feed_producers, broadcast);
 }
 
-signed_transaction wallet_api::publish_asset_feed(string publishing_account,
+full_transaction wallet_api::publish_asset_feed(string publishing_account,
                                                   string symbol,
                                                   price_feed feed,
                                                   bool broadcast /* = false */)
 {
    return my->publish_asset_feed(publishing_account, symbol, feed, broadcast);
 }
-signed_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
+full_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
 	string symbol,
 	price_feed feed,
 	bool broadcast /* = false */)
@@ -5510,7 +5510,7 @@ signed_transaction wallet_api::publish_normal_asset_feed(string publishing_accou
 	return my->publish_normal_asset_feed(publishing_account, symbol, feed, broadcast);
 }
 
-signed_transaction wallet_api::fund_asset_fee_pool(string from,
+full_transaction wallet_api::fund_asset_fee_pool(string from,
                                                    string symbol,
                                                    string amount,
                                                    bool broadcast /* = false */)
@@ -5518,7 +5518,7 @@ signed_transaction wallet_api::fund_asset_fee_pool(string from,
    return my->fund_asset_fee_pool(from, symbol, amount, broadcast);
 }
 
-signed_transaction wallet_api::reserve_asset(string from,
+full_transaction wallet_api::reserve_asset(string from,
                                           string amount,
                                           string symbol,
                                           bool broadcast /* = false */)
@@ -5526,14 +5526,14 @@ signed_transaction wallet_api::reserve_asset(string from,
    return my->reserve_asset(from, amount, symbol, broadcast);
 }
 
-signed_transaction wallet_api::global_settle_asset(string symbol,
+full_transaction wallet_api::global_settle_asset(string symbol,
                                                    price settle_price,
                                                    bool broadcast /* = false */)
 {
    return my->global_settle_asset(symbol, settle_price, broadcast);
 }
 
-signed_transaction wallet_api::settle_asset(string account_to_settle,
+full_transaction wallet_api::settle_asset(string account_to_settle,
                                             string amount_to_settle,
                                             string symbol,
                                             bool broadcast /* = false */)
@@ -5541,7 +5541,7 @@ signed_transaction wallet_api::settle_asset(string account_to_settle,
    return my->settle_asset(account_to_settle, amount_to_settle, symbol, broadcast);
 }
 
-signed_transaction wallet_api::whitelist_account(string authorizing_account,
+full_transaction wallet_api::whitelist_account(string authorizing_account,
                                                  string account_to_list,
                                                  account_whitelist_operation::account_listing new_listing_status,
                                                  bool broadcast /* = false */)
@@ -5549,7 +5549,7 @@ signed_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-signed_transaction wallet_api::create_guard_member(string proposing_account, string account,string url,
+full_transaction wallet_api::create_guard_member(string proposing_account, string account,string url,
 	                                               int64_t expiration_time,
                                                    bool broadcast /* = false */)
 {
@@ -5557,13 +5557,13 @@ signed_transaction wallet_api::create_guard_member(string proposing_account, str
 }
 
 
-signed_transaction wallet_api::update_guard_formal(string proposing_account, bool formal,
+full_transaction wallet_api::update_guard_formal(string proposing_account, bool formal,
 	int64_t expiration_time,
 	bool broadcast /* = false */)
 {
 	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
 }
-signed_transaction wallet_api::resign_guard_member(string proposing_account, string account,
+full_transaction wallet_api::resign_guard_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
 {
     return my->resign_guard_member(proposing_account, account, expiration_time, broadcast);
@@ -5595,14 +5595,14 @@ guard_member_object wallet_api::get_guard_member(string owner_account)
    return my->get_guard_member(owner_account);
 }
 
-signed_transaction wallet_api::create_miner(string owner_account,
+full_transaction wallet_api::create_miner(string owner_account,
                                               string url,
                                               bool broadcast /* = false */)
 {
    return my->create_miner(owner_account, url, broadcast);
 }
 
-signed_transaction wallet_api::create_worker(
+full_transaction wallet_api::create_worker(
    string owner_account,
    time_point_sec work_begin_date,
    time_point_sec work_end_date,
@@ -5616,7 +5616,7 @@ signed_transaction wallet_api::create_worker(
       daily_pay, name, url, worker_settings, broadcast );
 }
 
-signed_transaction wallet_api::update_worker_votes(
+full_transaction wallet_api::update_worker_votes(
    string owner_account,
    worker_vote_delta delta,
    bool broadcast /* = false */)
@@ -5624,7 +5624,7 @@ signed_transaction wallet_api::update_worker_votes(
    return my->update_worker_votes( owner_account, delta, broadcast );
 }
 
-signed_transaction wallet_api::update_witness(
+full_transaction wallet_api::update_witness(
    string witness_name,
    string url,
    string block_signing_key,
@@ -5638,7 +5638,7 @@ vector< vesting_balance_object_with_info > wallet_api::get_vesting_balances( str
    return my->get_vesting_balances( account_name );
 }
 
-signed_transaction wallet_api::withdraw_vesting(
+full_transaction wallet_api::withdraw_vesting(
    string witness_name,
    string amount,
    string asset_symbol,
@@ -5647,7 +5647,7 @@ signed_transaction wallet_api::withdraw_vesting(
    return my->withdraw_vesting( witness_name, amount, asset_symbol, broadcast );
 }
 
-signed_transaction wallet_api::vote_for_committee_member(string voting_account,
+full_transaction wallet_api::vote_for_committee_member(string voting_account,
                                                  string witness,
                                                  bool approve,
                                                  bool broadcast /* = false */)
@@ -5655,7 +5655,7 @@ signed_transaction wallet_api::vote_for_committee_member(string voting_account,
    return my->vote_for_committee_member(voting_account, witness, approve, broadcast);
 }
 
-signed_transaction wallet_api::vote_for_witness(string voting_account,
+full_transaction wallet_api::vote_for_witness(string voting_account,
                                                 string witness,
                                                 bool approve,
                                                 bool broadcast /* = false */)
@@ -5663,14 +5663,14 @@ signed_transaction wallet_api::vote_for_witness(string voting_account,
    return my->vote_for_witness(voting_account, witness, approve, broadcast);
 }
 
-signed_transaction wallet_api::set_voting_proxy(string account_to_modify,
+full_transaction wallet_api::set_voting_proxy(string account_to_modify,
                                                 optional<string> voting_account,
                                                 bool broadcast /* = false */)
 {
    return my->set_voting_proxy(account_to_modify, voting_account, broadcast);
 }
 
-signed_transaction wallet_api::set_desired_miner_and_guard_member_count(string account_to_modify,
+full_transaction wallet_api::set_desired_miner_and_guard_member_count(string account_to_modify,
                                                                       uint16_t desired_number_of_witnesses,
                                                                       uint16_t desired_number_of_committee_members,
                                                                       bool broadcast /* = false */)
@@ -5742,7 +5742,7 @@ void wallet_api::flood_network(string prefix, uint32_t number_of_transactions)
    my->flood_network(prefix, number_of_transactions);
 }
 
-signed_transaction wallet_api::propose_parameter_change(
+full_transaction wallet_api::propose_parameter_change(
    const string& proposing_account,
    fc::time_point_sec expiration_time,
    const variant_object& changed_values,
@@ -5752,7 +5752,7 @@ signed_transaction wallet_api::propose_parameter_change(
    return my->propose_parameter_change( proposing_account, expiration_time, changed_values, broadcast );
 }
 
-signed_transaction wallet_api::propose_coin_destory(
+full_transaction wallet_api::propose_coin_destory(
 	const string& proposing_account,
 	fc::time_point_sec expiration_time,
 	const variant_object& destory_values,
@@ -5761,7 +5761,7 @@ signed_transaction wallet_api::propose_coin_destory(
 	return my->propose_coin_destory(proposing_account, expiration_time, destory_values, broadcast);
 }
 
-signed_transaction wallet_api::propose_guard_pledge_change(
+full_transaction wallet_api::propose_guard_pledge_change(
 	const string& proposing_account,
 	fc::time_point_sec expiration_time,
 	const variant_object& changed_values,
@@ -5773,7 +5773,7 @@ signed_transaction wallet_api::propose_guard_pledge_change(
 
 
 
-signed_transaction wallet_api::propose_fee_change(
+full_transaction wallet_api::propose_fee_change(
    const string& proposing_account,
    fc::time_point_sec expiration_time,
    const variant_object& changed_fees,
@@ -5783,7 +5783,7 @@ signed_transaction wallet_api::propose_fee_change(
    return my->propose_fee_change( proposing_account, expiration_time, changed_fees, broadcast );
 }
 
-signed_transaction wallet_api::approve_proposal(
+full_transaction wallet_api::approve_proposal(
    const string& fee_paying_account,
    const string& proposal_id,
    const approval_delta& delta,
@@ -5818,7 +5818,7 @@ std::pair<asset, share_type> wallet_api::register_native_contract_testing(const 
     return my->register_native_contract_testing(caller_account_name, native_contract_key);
 }
 
-signed_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
+full_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
 	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
@@ -5864,7 +5864,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }
 
-signed_transaction wallet_api::upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
+full_transaction wallet_api::upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
 {
 	return my->upgrade_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_name, contract_desc);
 }
@@ -5943,7 +5943,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	return res;
 }
 
-signed_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
+full_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
 {
     return my->transfer_to_contract(from, to,amount, asset_symbol, param, gas_price, gas_limit,broadcast);
 }
@@ -6161,20 +6161,20 @@ vector< signed_transaction > wallet_api::import_balance( string name_or_id, cons
    return my->import_balance( name_or_id, wif_keys, broadcast );
 }
 
-signed_transaction wallet_api::refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast )
+full_transaction wallet_api::refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast )
 {
 	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
 }
-signed_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
+full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
 }
-signed_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
 {
 	return my->update_asset_private_keys(from_account,symbol,broadcast);
 }
 
 
-signed_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
+full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
 {
 	return my->transfer_from_cold_to_hot(proposer,from_account,to_account,amount,asset_symbol, memo,exception_time,broadcast);
 }
@@ -6192,27 +6192,27 @@ vector<optional<multisig_address_object>> wallet_api::get_multi_address_obj(cons
 	return my->get_multi_address_obj(symbol,guard);
 }
 
-signed_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
+full_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
 {
 	return my->sign_multi_asset_trx(account,id, guard,broadcast);
 }
 
-signed_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, const string& hot, const string& cold,int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::account_change_for_crosschain(const string& proposer,const string& symbol, const string& hot, const string& cold,int64_t expiration_time, bool broadcast)
 {
 	return my->account_change_for_crosschain(proposer,symbol,hot,cold ,expiration_time,broadcast);
 }
 
-signed_transaction wallet_api::withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast)
+full_transaction wallet_api::withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast)
 {
 	return my->withdraw_from_link(account, symbol, amount, broadcast);
 }
 
-signed_transaction wallet_api::bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
+full_transaction wallet_api::bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
 {
 	return my->bind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
 
-signed_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
+full_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
 {
 	return my->unbind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
@@ -6367,15 +6367,15 @@ map<address, string> wallet_api::dump_private_key(string account_name)
 	return result;
 }
 
-signed_transaction wallet_api::upgrade_account( string name, bool broadcast )
+full_transaction wallet_api::upgrade_account( string name, bool broadcast )
 {
    return my->upgrade_account(name,broadcast);
 }
-signed_transaction wallet_api::create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
+full_transaction wallet_api::create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target, const string& symbol,bool broadcast)
 {
 	return my->create_guarantee_order(account,asset_orign,asset_target,symbol, broadcast);
 }
-signed_transaction wallet_api::cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
+full_transaction wallet_api::cancel_guarantee_order(const guarantee_object_id_type id, bool broadcast)
 {
 	return my->cancel_guarantee_order(id,broadcast);
 }
@@ -6405,7 +6405,7 @@ void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 
 
 
-signed_transaction wallet_api::sell_asset(string seller_account,
+full_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
                                           string symbol_to_sell,
                                           string min_to_receive,
@@ -6418,7 +6418,7 @@ signed_transaction wallet_api::sell_asset(string seller_account,
                          symbol_to_receive, expiration, fill_or_kill, broadcast);
 }
 
-signed_transaction wallet_api::sell( string seller_account,
+full_transaction wallet_api::sell( string seller_account,
                                      string base,
                                      string quote,
                                      double rate,
@@ -6429,7 +6429,7 @@ signed_transaction wallet_api::sell( string seller_account,
                           std::to_string( rate * amount ), quote, 0, false, broadcast );
 }
 
-signed_transaction wallet_api::buy( string buyer_account,
+full_transaction wallet_api::buy( string buyer_account,
                                     string base,
                                     string quote,
                                     double rate,
@@ -6451,14 +6451,14 @@ optional<multisig_account_pair_object> wallet_api::get_multisig_account_pair_by_
 {
 	return my->get_multisig_account_pair(id);
 }
-signed_transaction wallet_api::borrow_asset(string seller_name, string amount_to_sell,
+full_transaction wallet_api::borrow_asset(string seller_name, string amount_to_sell,
                                                 string asset_symbol, string amount_of_collateral, bool broadcast)
 {
    FC_ASSERT(!is_locked());
    return my->borrow_asset(seller_name, amount_to_sell, asset_symbol, amount_of_collateral, broadcast);
 }
 
-signed_transaction wallet_api::cancel_order(object_id_type order_id, bool broadcast)
+full_transaction wallet_api::cancel_order(object_id_type order_id, bool broadcast)
 {
    FC_ASSERT(!is_locked());
    return my->cancel_order(order_id, broadcast);
