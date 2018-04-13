@@ -641,18 +641,18 @@ class wallet_api
       /**
        * @ingroup Transaction Builder API
        */
-      signed_transaction sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast = true);
+      full_transaction sign_builder_transaction(transaction_handle_type transaction_handle, bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */
-      signed_transaction propose_builder_transaction(
+      full_transaction propose_builder_transaction(
           transaction_handle_type handle,
           time_point_sec expiration = time_point::now() + fc::minutes(1),
           uint32_t review_period_seconds = 0,
           bool broadcast = true
          );
 
-      signed_transaction propose_builder_transaction2(
+      full_transaction propose_builder_transaction2(
          transaction_handle_type handle,
          string account_name_or_id,
          time_point_sec expiration = time_point::now() + fc::minutes(1),
@@ -893,7 +893,7 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction registering the account
 	  */
-	  signed_transaction register_account(string name,bool broadcast = true);
+	  full_transaction register_account(string name,bool broadcast = true);
 
 
       /**
@@ -905,7 +905,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction upgrading the account
        */
-      signed_transaction upgrade_account(string name, bool broadcast);
+      full_transaction upgrade_account(string name, bool broadcast);
 
       /** Creates a new account and registers it on the blockchain.
        *
@@ -925,7 +925,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering the account
        */
-      signed_transaction create_account_with_brain_key(string brain_key,
+      full_transaction create_account_with_brain_key(string brain_key,
                                                        string account_name,
                                                        string registrar_account,
                                                        string referrer_account,
@@ -965,7 +965,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction transferring funds
        */
-      signed_transaction transfer(string from,
+      full_transaction transfer(string from,
                                   string to,
                                   string amount,
                                   string asset_symbol,
@@ -984,7 +984,7 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction transferring funds
 	  */
-	  signed_transaction transfer_to_address(string from,
+	  full_transaction transfer_to_address(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
@@ -1003,38 +1003,38 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction transferring funds
 	  */
-	  signed_transaction transfer_to_account(string from,
+	  full_transaction transfer_to_account(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
 		  string memo,
 		  bool broadcast = false);
 
-	  signed_transaction lock_balance_to_miner(string miner_account,
+	  full_transaction lock_balance_to_miner(string miner_account,
 		  string lock_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction guard_lock_balance(string guard_account,
+	  full_transaction guard_lock_balance(string guard_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction foreclose_balance_from_miner(string miner_account,
+	  full_transaction foreclose_balance_from_miner(string miner_account,
 		  string foreclose_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction guard_foreclose_balance(string guard_account,
+	  full_transaction guard_foreclose_balance(string guard_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  signed_transaction withdraw_cross_chain_transaction(string account_name,
+	  full_transaction withdraw_cross_chain_transaction(string account_name,
 		  string amount,
 		  string asset_symbol,
 		  string crosschain_account,
 		  string memo,
 		  bool broadcast = false);
-	  signed_transaction transfer_guard_multi_account( string multi_account,
+	  full_transaction transfer_guard_multi_account( string multi_account,
 		  string amount,
 		  string asset_symbol,
 		  string multi_to_account,
@@ -1174,7 +1174,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction selling the funds
        */
-      signed_transaction sell_asset(string seller_account,
+      full_transaction sell_asset(string seller_account,
                                     string amount_to_sell,
                                     string   symbol_to_sell,
                                     string min_to_receive,
@@ -1199,7 +1199,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network.
        * @returns The signed transaction selling the funds.                 
        */
-      signed_transaction sell( string seller_account,
+      full_transaction sell( string seller_account,
                                string base,
                                string quote,
                                double rate,
@@ -1221,7 +1221,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network.
        * @param The signed transaction selling the funds.
        */
-      signed_transaction buy( string buyer_account,
+      full_transaction buy( string buyer_account,
                               string base,
                               string quote,
                               double rate,
@@ -1242,7 +1242,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction borrowing the asset
        */
-      signed_transaction borrow_asset(string borrower_name, string amount_to_borrow, string asset_symbol,
+      full_transaction borrow_asset(string borrower_name, string amount_to_borrow, string asset_symbol,
                                       string amount_of_collateral, bool broadcast = false);
 
       /** Cancel an existing order
@@ -1251,7 +1251,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction canceling the order
        */
-      signed_transaction cancel_order(object_id_type order_id, bool broadcast = false);
+      full_transaction cancel_order(object_id_type order_id, bool broadcast = false);
 
       /** Creates a new user-issued or market-issued asset.
        *
@@ -1275,7 +1275,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction creating a new asset
        */
-      signed_transaction create_asset(string issuer,
+      full_transaction create_asset(string issuer,
                                       string symbol,
                                       uint8_t precision,
                                       asset_options common,
@@ -1305,7 +1305,7 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction creating a new asset
 	  */
-	  signed_transaction wallet_create_asset(string issuer,
+	  full_transaction wallet_create_asset(string issuer,
 		  string symbol,
 		  uint8_t precision,
 		  share_type max_supply,
@@ -1321,7 +1321,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction issuing the new shares
        */
-      signed_transaction issue_asset(string to_account, string amount,
+      full_transaction issue_asset(string to_account, string amount,
                                      string symbol,
                                      string memo,
                                      bool broadcast = false);
@@ -1342,7 +1342,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction updating the asset
        */
-      signed_transaction update_asset(string symbol,
+      full_transaction update_asset(string symbol,
                                       optional<string> new_issuer,
                                       asset_options new_options,
                                       bool broadcast = false);
@@ -1360,7 +1360,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction updating the bitasset
        */
-      signed_transaction update_bitasset(string symbol,
+      full_transaction update_bitasset(string symbol,
                                          bitasset_options new_options,
                                          bool broadcast = false);
 
@@ -1374,7 +1374,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction updating the bitasset's feed producers
        */
-      signed_transaction update_asset_feed_producers(string symbol,
+      full_transaction update_asset_feed_producers(string symbol,
                                                      flat_set<string> new_feed_producers,
                                                      bool broadcast = false);
       
@@ -1398,12 +1398,12 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction updating the price feed for the given asset
        */
-      signed_transaction publish_asset_feed(string publishing_account,
+      full_transaction publish_asset_feed(string publishing_account,
                                             string symbol,
                                             price_feed feed,
                                             bool broadcast = false);
 
-	  signed_transaction publish_normal_asset_feed(string publishing_account,
+	  full_transaction publish_normal_asset_feed(string publishing_account,
 		  string symbol,
 		  price_feed feed,
 		  bool broadcast = false);
@@ -1421,7 +1421,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction funding the fee pool
        */
-      signed_transaction fund_asset_fee_pool(string from,
+      full_transaction fund_asset_fee_pool(string from,
                                              string symbol,
                                              string amount,
                                              bool broadcast = false);
@@ -1436,7 +1436,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction burning the asset
        */
-      signed_transaction reserve_asset(string from,
+      full_transaction reserve_asset(string from,
                                     string amount,
                                     string symbol,
                                     bool broadcast = false);
@@ -1458,7 +1458,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction settling the named asset
        */
-      signed_transaction global_settle_asset(string symbol,
+      full_transaction global_settle_asset(string symbol,
                                              price settle_price,
                                              bool broadcast = false);
 
@@ -1477,7 +1477,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction settling the named asset
        */
-      signed_transaction settle_asset(string account_to_settle,
+      full_transaction settle_asset(string account_to_settle,
                                       string amount_to_settle,
                                       string symbol,
                                       bool broadcast = false);
@@ -1502,7 +1502,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction changing the whitelisting status
        */
-      signed_transaction whitelist_account(string authorizing_account,
+      full_transaction whitelist_account(string authorizing_account,
                                            string account_to_list,
                                            account_whitelist_operation::account_listing new_listing_status,
                                            bool broadcast = false);
@@ -1517,7 +1517,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a guard_member
        */
-      signed_transaction create_guard_member(string proposing_account, string account, string url,
+      full_transaction create_guard_member(string proposing_account, string account, string url,
 		                                     int64_t expiration_time,
                                              bool broadcast = false);
 
@@ -1529,7 +1529,7 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction registering a committee_member
 	  */
-	  signed_transaction update_guard_formal(string proposing_account, bool formal,
+	  full_transaction update_guard_formal(string proposing_account, bool formal,
 		  int64_t expiration_time,
 		  bool broadcast = false);
 
@@ -1541,7 +1541,7 @@ class wallet_api
       * @param broadcast true to broadcast the transaction on the network
       * @returns the signed transaction registering a guard_member
       */
-      signed_transaction resign_guard_member(string proposing_account, string account,
+      full_transaction resign_guard_member(string proposing_account, string account,
           int64_t expiration_time, bool broadcast /* = false */);
 
       /** Lists all witnesses registered in the blockchain.
@@ -1612,7 +1612,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a witness
        */
-      signed_transaction create_miner(string owner_account,
+      full_transaction create_miner(string owner_account,
                                         string url,
                                         bool broadcast = false);
 
@@ -1624,7 +1624,7 @@ class wallet_api
        * @param block_signing_key The new block signing public key.  The empty string makes it remain the same.
        * @param broadcast true if you wish to broadcast the transaction.
        */
-      signed_transaction update_witness(string witness_name,
+      full_transaction update_witness(string witness_name,
                                         string url,
                                         string block_signing_key,
                                         bool broadcast = false);
@@ -1642,7 +1642,7 @@ class wallet_api
        * @param worker_settings {"type" : "burn"|"refund"|"vesting", "pay_vesting_period_days" : x}
        * @param broadcast true if you wish to broadcast the transaction.
        */
-      signed_transaction create_worker(
+      full_transaction create_worker(
          string owner_account,
          time_point_sec work_begin_date,
          time_point_sec work_end_date,
@@ -1660,7 +1660,7 @@ class wallet_api
        * @param worker_vote_delta {"vote_for" : [...], "vote_against" : [...], "vote_abstain" : [...]}
        * @param broadcast true if you wish to broadcast the transaction.
        */
-      signed_transaction update_worker_votes(
+      full_transaction update_worker_votes(
          string account,
          worker_vote_delta delta,
          bool broadcast = false
@@ -1681,7 +1681,7 @@ class wallet_api
        * @param asset_symbol The symbol of the asset to withdraw.
        * @param broadcast true if you wish to broadcast the transaction
        */
-      signed_transaction withdraw_vesting(
+      full_transaction withdraw_vesting(
          string witness_name,
          string amount,
          string asset_symbol,
@@ -1704,7 +1704,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote for the given committee_member
        */
-      signed_transaction vote_for_committee_member(string voting_account,
+      full_transaction vote_for_committee_member(string voting_account,
                                            string committee_member,
                                            bool approve,
                                            bool broadcast = false);
@@ -1726,7 +1726,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote for the given witness
        */
-      signed_transaction vote_for_witness(string voting_account,
+      full_transaction vote_for_witness(string voting_account,
                                           string witness,
                                           bool approve,
                                           bool broadcast = false);
@@ -1749,7 +1749,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      signed_transaction set_voting_proxy(string account_to_modify,
+      full_transaction set_voting_proxy(string account_to_modify,
                                           optional<string> voting_account,
                                           bool broadcast = false);
       
@@ -1773,7 +1773,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      signed_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
+      full_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
@@ -1821,19 +1821,19 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed version of the transaction
        */
-      signed_transaction propose_parameter_change(
+      full_transaction propose_parameter_change(
          const string& proposing_account,
          fc::time_point_sec expiration_time,
          const variant_object& changed_values,
          bool broadcast = false);
 
-	  signed_transaction propose_coin_destory(
+	  full_transaction propose_coin_destory(
 		  const string& proposing_account,
 		  fc::time_point_sec expiration_time,
 		  const variant_object& destory_values,
 		  bool broadcast = false);
 
-	  signed_transaction propose_guard_pledge_change(
+	  full_transaction propose_guard_pledge_change(
 		  const string& proposing_account,
 		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
@@ -1847,7 +1847,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed version of the transaction
        */
-      signed_transaction propose_fee_change(
+      full_transaction propose_fee_change(
          const string& proposing_account,
          fc::time_point_sec expiration_time,
          const variant_object& changed_values,
@@ -1865,7 +1865,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed version of the transaction
        */
-      signed_transaction approve_proposal(
+      full_transaction approve_proposal(
          const string& fee_paying_account,
          const string& proposal_id,
          const approval_delta& delta,
@@ -1896,15 +1896,15 @@ class wallet_api
       std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
       std::pair<asset, share_type> register_native_contract_testing(const string& caller_account_name,  const string& native_contract_key);
 
-	  signed_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+	  full_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
       share_type invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 
       string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-	  signed_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
+	  full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
       share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
-      signed_transaction transfer_to_contract(string from,
+      full_transaction transfer_to_contract(string from,
           string to,
           string amount,
           string asset_symbol,
@@ -1937,34 +1937,34 @@ class wallet_api
                                          string symbol,
                                          bool broadcast = false,
                                          bool to_temp = false );
-      
-	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
-	  signed_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
-	  signed_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
+
+	  full_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
+	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
+	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
-	  signed_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
-	  signed_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
-	  signed_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
-	  signed_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
+	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
+	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
+	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
+	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
-	  signed_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
+	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
-	  signed_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
+	  full_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
 	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
-	  signed_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
-	  signed_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
+	  full_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
+	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
 	  vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all = true);
 	  transaction get_transaction(transaction_id_type id)const;
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
-	  string signrawtransaction(const string& from,const fc::variant_object& trx,bool broadcast=true);
+	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
 	  vector<transaction_id_type> list_transactions() const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
       fc::signal<void(bool)> lock_changed;

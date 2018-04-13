@@ -60,11 +60,12 @@ namespace graphene {
 				auto coldhot_without_sign_tx_iter = coldhot_without_sign_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_without_sign_tx_iter == coldhot_without_sign_tx_dbs.end(), "coldhot trx without sign has been created");
 				
-				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-				auto crosschain_handle = manager.get_crosschain_handle(std::string(o.asset_symbol));
-				if (!crosschain_handle->valid_config()) {
+				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+				if (!instance.contain_crosschain_handles(o.asset_symbol))
 					return void_result();
-				}
+				auto crosschain_handle = instance.get_crosschain_handle(o.asset_symbol);
+				if (!crosschain_handle->valid_config())
+					return void_result();
 				auto created_trx = crosschain_handle->turn_trxs(o.coldhot_trx_original_chain);
 				
 				//FC_ASSERT(created_trx.size() == 1);
@@ -182,6 +183,8 @@ namespace graphene {
 					FC_ASSERT(sign_iter != sign_ids.end());
 				}
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.asset_symbol))
+					return void_result();
 				auto crosschain_plugin = manager.get_crosschain_handle(o.asset_symbol);
 				if (crosschain_plugin->valid_config()) {
 					return void_result();
@@ -231,6 +234,8 @@ namespace graphene {
 					}
 				}
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.coldhot_trx_original_chain.asset_symbol))
+					return void_result();
 				auto crosschain_plugin = manager.get_crosschain_handle(o.coldhot_trx_original_chain.asset_symbol);
 				if (crosschain_plugin->valid_config()) {
 					return void_result();

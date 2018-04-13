@@ -365,6 +365,14 @@ void_result account_upgrade_evaluator::do_apply(const account_upgrade_evaluator:
 void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
 { try {
 	// One-to-one binding between link account and tunnel address.
+	auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+	if (!instance.contain_crosschain_handles(o.crosschain_type))
+		return void_result();
+	auto crosschain_interface = instance.get_crosschain_handle(o.crosschain_type);
+	if (!crosschain_interface->valid_config())
+		return void_result();
+	FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
+
 	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 	auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 	FC_ASSERT(bind_itr == bind_idx.end());
@@ -393,6 +401,15 @@ void_result account_unbind_evaluator::do_evaluate(const account_unbind_operation
 {
 	try {
 		// One-to-one binding between link account and tunnel address.
+		// One-to-one binding between link account and tunnel address.
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		if (!instance.contain_crosschain_handles(o.crosschain_type))
+			return void_result();
+		auto crosschain_interface = instance.get_crosschain_handle(o.crosschain_type);
+		if (!crosschain_interface->valid_config())
+			return void_result();
+		FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
+
 		auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 		auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 		FC_ASSERT(bind_itr != bind_idx.end());
