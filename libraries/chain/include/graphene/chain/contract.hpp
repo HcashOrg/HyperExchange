@@ -58,8 +58,11 @@ namespace graphene {
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
             std::map<asset_id_type,share_type> transfer_fees;
 			std::vector<contract_event_notify_info> events;
-
-			void clear();
+            bool exec_succeed = true;
+            share_type acctual_fee;
+            std::vector<std::string> logs;
+			void reset();
+            void set_failed(const share_type & fee);
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
 			string ordered_digest() const;
 		};

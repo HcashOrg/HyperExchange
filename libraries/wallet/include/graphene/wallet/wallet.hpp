@@ -1919,6 +1919,7 @@ class wallet_api
           const string& param);
 
       vector<asset> get_contract_balance(const string& contract_address) const;
+      contract_invoke_result_object get_contract_invoke_object(const std::string& );
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -1936,7 +1937,7 @@ class wallet_api
                                          string symbol,
                                          bool broadcast = false,
                                          bool to_temp = false );
-
+      
 	  signed_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
 	  signed_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  signed_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
@@ -2223,4 +2224,5 @@ FC_API( graphene::wallet::wallet_api,
 		(decoderawtransaction)
 		(createrawtransaction)
 		(get_my_guarantee_order)
+        (get_contract_invoke_object)
       )

@@ -17,7 +17,7 @@ namespace graphene {
 		using namespace uvm::blockchain;
 		using namespace jsondiff;
 
-		void contract_invoke_result::clear()
+		void contract_invoke_result::reset()
 		{
 			api_result.clear();
 			storage_changes.clear();
@@ -26,9 +26,25 @@ namespace graphene {
 			deposit_to_address.clear();
 			deposit_contract.clear();
             transfer_fees.clear();
+            events.clear();
+            exec_succeed = true;
 		}
 
-		string contract_invoke_result::ordered_digest() const
+        void contract_invoke_result::set_failed(const share_type & fee)
+        {
+            api_result.clear();
+            storage_changes.clear();
+            contract_withdraw.clear();
+            contract_balances.clear();
+            deposit_to_address.clear();
+            deposit_contract.clear();
+            transfer_fees.clear();
+            events.clear();
+            exec_succeed = false;
+            acctual_fee = fee;
+        }
+
+        string contract_invoke_result::ordered_digest() const
 		{
 			JsonArray result_array;
 			result_array.push_back(api_result);
@@ -123,7 +139,7 @@ namespace graphene {
 			// base fee
 			share_type core_fee_required = schedule.fee;
 			// bytes size fee
-			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
+            core_fee_required += count_contract_register_fee(contract_code);//calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
             core_fee_required += count_gas_fee(gas_price, init_cost);
 			return core_fee_required;
 		}

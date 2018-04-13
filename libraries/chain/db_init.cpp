@@ -311,7 +311,7 @@ void database::initialize_indexes()
    add_index<primary_index<contract_balance_index>>();
    add_index<primary_index<contract_storage_object_index>>();
    add_index<primary_index<contract_event_notify_index>>();
-
+   add_index<primary_index<contract_invoke_result_index>>();
    add_index <primary_index<guarantee_index                               > >();
   
 }

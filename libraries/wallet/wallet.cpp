@@ -5935,6 +5935,10 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
+graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
+{
+    return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
+}
 std::string wallet_api::add_script(const string& script_path) 
 {
     script_object spt;

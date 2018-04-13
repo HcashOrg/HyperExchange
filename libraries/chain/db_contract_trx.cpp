@@ -134,6 +134,43 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
+        contract_invoke_result_object database::get_contract_invoke_result(const transaction_id_type& trx_id)const
+        {
+            try {
+                auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trx_id>();
+                auto res = res_db.find(trx_id);
+                if (res == res_db.end())
+                {
+
+                    FC_ASSERT(false, "result exsited");
+                }
+                else
+                {
+                    return *res;
+                }
+            }FC_CAPTURE_AND_RETHROW((trx_id))
+        }
+        void database::store_invoke_result(const transaction_id_type& trx_id, const contract_invoke_result& res)
+        {
+            try {
+                auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trx_id>();
+                auto con = con_db.find(trx_id);
+                if (con == con_db.end())
+                {
+                    create<contract_invoke_result_object>([res,trx_id](contract_invoke_result_object & obj) {
+                        obj.acctual_fee = res.acctual_fee;
+                        obj.api_result = res.api_result;
+                        obj.exec_succeed = res.exec_succeed;
+                        obj.logs = res.logs;
+                        obj.trx_id = trx_id;
+                    });     
+                }
+                else
+                {
+                    FC_ASSERT(false, "result exsited");
+                }
+            }FC_CAPTURE_AND_RETHROW((trx_id))
+        }
 
         void database::store_contract(const contract_object & contract)
         {

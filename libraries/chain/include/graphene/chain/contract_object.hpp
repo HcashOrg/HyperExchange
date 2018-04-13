@@ -4,6 +4,7 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
+#include <vector>
 namespace graphene {
     namespace chain {
 
@@ -134,6 +135,25 @@ namespace graphene {
 		>;
 		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;
 
+        struct contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
+        {
+            static const uint8_t space_id = protocol_ids;
+            static const uint8_t type_id = contract_event_notify_object_type;
+            transaction_id_type trx_id;			
+            std::string api_result;
+            std::vector<std::string> logs;
+            bool exec_succeed = true;
+            share_type acctual_fee;
+        };
+        struct by_trx_id {};
+        using contract_invoke_result_multi_index_type = multi_index_container <
+            contract_invoke_result_object,
+            indexed_by <
+            ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+            ordered_unique<tag<by_trx_id>, member<contract_invoke_result_object, transaction_id_type, &contract_invoke_result_object::trx_id>>
+            >
+        >;
+        using contract_invoke_result_index = generic_index<contract_invoke_result_object, contract_invoke_result_multi_index_type>;
     }
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
@@ -144,3 +164,5 @@ FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::obje
     (owner)(balance)(vesting_policy)(last_claim_date))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num))
+FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
+    (trx_id)(api_result)(logs)(exec_succeed)(acctual_fee))
