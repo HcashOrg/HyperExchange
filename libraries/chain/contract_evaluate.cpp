@@ -58,7 +58,6 @@ namespace graphene {
 	    share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
 			// every 100 gas cost 1 min-precision base-asset
 
-            printf("gas_price==%s\n", fc::json::to_string(gas_price).c_str());
 			share_type fee = ((gas_count / 100) + ((gas_count % 100) == 0 ? 0 : 1)) * gas_price;
 			FC_ASSERT(fee >= 0, "gas fee wrong");
 			return fee;
@@ -70,7 +69,6 @@ namespace graphene {
 
         contract_operation_result_info contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
-            printf("o==%s\n",fc::json::to_string(o).c_str());
 			// check contract id unique
             if (d.get_node_properties().skip_flags&database::validation_steps::check_gas_price)
             {
@@ -114,21 +112,12 @@ namespace graphene {
 					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 				}
 
-				gas_used = engine->gas_used();
-				FC_ASSERT(gas_used <= o.init_cost && gas_used > 0, "costs of execution can be only between 0 and init_cost");
+				gas_used_counts = engine->gas_used();
+				FC_ASSERT(gas_used_counts <= o.init_cost && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = count_contract_register_fee(o.contract_code);
-#ifdef NO_FEE
 
-                auto required = 0;
-#else
-
-                printf("o==%s\n", fc::json::to_string(o).c_str());
-                auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-
-                printf("o==%s\n", fc::json::to_string(o).c_str());
-#endif
 				
-                gas_count = gas_used;
+                gas_count = gas_used_counts;
 				// TODO: deposit margin balance to contract
 				
                 new_contract.contract_address = o.calculate_contract_id();
@@ -138,7 +127,8 @@ namespace graphene {
                 new_contract.inherit_from = o.inherit_from;
                 if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
                     new_contract.type_of_contract = contract_based_on_template;
-                unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - required;
+                unspent_fee = count_gas_fee(o.gas_price, o.init_cost) -count_gas_fee(o.gas_price, gas_used_counts);
+
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
 			}
@@ -182,17 +172,13 @@ namespace graphene {
 
 				auto invoke_result = native_contract->invoke("init", "");
 
-				gas_used = native_contract->gas_count_for_api_invoke("init");
-				FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and init_cost");
+				gas_used_counts = native_contract->gas_count_for_api_invoke("init");
+				FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = native_contract_register_fee;
-#ifdef NO_FEE
-                auto required = 0;
-#else
-                auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-#endif
+
 				// TODO: deposit margin balance to contract
 
-                gas_count = gas_used;
+                gas_count = gas_used_counts;
 
 				this->invoke_contract_result = invoke_result;
 
@@ -202,7 +188,7 @@ namespace graphene {
 				new_contract.owner_address = o.owner_addr;
 				new_contract.create_time = o.register_time;
                 new_contract.inherit_from = address();
-                unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - required;
+                unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
                 invoke_result.acctual_fee = total_fee - unspent_fee;
                 invoke_result.exec_succeed = true;
 			}
@@ -248,14 +234,12 @@ namespace graphene {
 					FC_ASSERT(native_contract);
 					auto invoke_result = native_contract->invoke(o.contract_api, o.contract_arg);
 					this->invoke_contract_result = invoke_result;
-					gas_used = native_contract->gas_count_for_api_invoke(o.contract_api);
-                    gas_count = gas_used;
+					gas_used_counts = native_contract->gas_count_for_api_invoke(o.contract_api);
+                    gas_count = gas_used_counts;
 					if (!o.offline)
-						FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-					auto register_fee = native_contract_register_fee;
-					auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-					//gas_fees.push_back(asset(required, asset_id_type(0)));
-                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - required;
+						FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+                    //gas_fees.push_back(asset(required, asset_id_type(0)));
+                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
 				else
 				{
@@ -287,17 +271,12 @@ namespace graphene {
 						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 					}
 
-					gas_used = engine->gas_used();
-                    gas_count = gas_used;
+					gas_used_counts = engine->gas_used();
+                    gas_count = gas_used_counts;
 					if(!offline)
-						FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-#ifdef NO_FEE
-                    auto required = 0;
-#else
-                    auto required = count_gas_fee(o.gas_price, gas_used);;
-#endif
-                    
-                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)- required;
+						FC_ASSERT(gas_used_counts <= o.invoke_cost && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+
+                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
@@ -351,17 +330,11 @@ namespace graphene {
 					FC_ASSERT(native_contract);
 					auto invoke_result = native_contract->invoke("on_upgrade", o.contract_name);
 					this->invoke_contract_result = invoke_result;
-					gas_used = native_contract->gas_count_for_api_invoke("on_upgrade");
-					FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-					auto register_fee = native_contract_register_fee;
-#ifdef NO_FEE
-                    auto required = 0;
-#else
-                    auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;;
-#endif
-					//gas_fees.push_back(asset(required, asset_id_type(0)));
-                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - required;
-                    gas_count = gas_used;
+					gas_used_counts = native_contract->gas_count_for_api_invoke("on_upgrade");
+					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+                    //gas_fees.push_back(asset(required, asset_id_type(0)));
+                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
+                    gas_count = gas_used_counts;
 				}
 				else
 				{
@@ -392,16 +365,12 @@ namespace graphene {
 						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 					}
 
-					gas_used = engine->gas_used();
-                    gas_count = gas_used;
-					FC_ASSERT(gas_used <= o.invoke_cost && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-#ifdef NO_FEE
-                    auto required = 0;
-#else
-                    auto required = count_gas_fee(o.gas_price, gas_used);
-#endif
-					//gas_fees.push_back(asset(required, asset_id_type(0)));
-                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - required;
+					gas_used_counts = engine->gas_used();
+                    gas_count = gas_used_counts;
+					FC_ASSERT(gas_used_counts <= o.invoke_cost && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+
+                    //gas_fees.push_back(asset(required, asset_id_type(0)));
+                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
@@ -915,17 +884,13 @@ namespace graphene {
 
                         auto invoke_result = native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
 
-						gas_used = native_contract->gas_count_for_api_invoke("on_deposit_asset");
-                        gas_count = gas_used;
-                        FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
+						gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
+                        gas_count = gas_used_counts;
+                        FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 						auto register_fee = native_contract_register_fee;
-#ifdef NO_FEE
-                        auto required = 0;
-#else
-                        auto required = count_gas_fee(o.gas_price, gas_used) + register_fee;
-#endif
-						//gas_fees.push_back(asset(required, asset_id_type(0)));
-						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)- required;
+
+                        //gas_fees.push_back(asset(required, asset_id_type(0)));
+                        unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 					}
 					else
 					{
@@ -971,16 +936,12 @@ namespace graphene {
 							FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 						}
 
-						gas_used = engine->gas_used();
+						gas_used_counts = engine->gas_used();
 
-                        gas_count = gas_used;
-						FC_ASSERT(gas_used <= limit && gas_used > 0, "costs of execution can be only between 0 and invoke_cost");
-#ifdef NO_FEE
-                        auto required = 0;
-#else
-                        auto required = count_gas_fee(o.gas_price, gas_used);
-#endif
-						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost)-required;
+                        gas_count = gas_used_counts;
+						FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+
+                        unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 					}
 					else
 					{

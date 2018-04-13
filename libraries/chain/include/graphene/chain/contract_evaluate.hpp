@@ -27,7 +27,7 @@ namespace graphene {
 
             share_type total_fee;
             share_type unspent_fee;
-            gas_count_type gas_used;
+            gas_count_type gas_used_counts;
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
         public:
@@ -62,7 +62,6 @@ namespace graphene {
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
-			gas_count_type gas_used;
 			contract_register_operation origin_op;
 			contract_object new_contract;
 		public:
@@ -83,7 +82,6 @@ namespace graphene {
 
 		class native_contract_register_evaluate :public evaluator<native_contract_register_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			native_contract_register_operation origin_op;
 			contract_object new_contract;
 		public:
@@ -104,7 +102,6 @@ namespace graphene {
 
 		class contract_invoke_evaluate : public evaluator<contract_invoke_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
     	public:
 			typedef contract_invoke_operation operation_type;
@@ -122,7 +119,6 @@ namespace graphene {
 
 		class contract_upgrade_evaluate : public evaluator<contract_upgrade_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			contract_upgrade_operation origin_op;
 		public:
 			typedef contract_upgrade_operation operation_type;
