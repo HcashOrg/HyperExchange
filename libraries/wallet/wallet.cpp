@@ -916,6 +916,14 @@ public:
 		  create_account(account_name_or_id);
 		  account = get_account(account_name_or_id);
 	  }
+	  else
+	  {
+		  if (account.addr != address(wif_pub_key))
+		  {
+			  if (_wallet.my_accounts.get<by_address>().count(account.addr) > 0)
+				  FC_THROW("there is same account in this wallet.");
+		  }
+	  }
 		  
 	  string addr = account.addr.operator fc::string();
       // make a list of all current public keys for the named account
