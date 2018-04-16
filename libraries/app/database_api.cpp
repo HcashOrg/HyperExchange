@@ -1657,7 +1657,9 @@ graphene::chain::contract_invoke_result_object database_api_impl::get_contract_i
 {
     try {
         auto res = _db.get_contract_invoke_result(trx_id);
-        return res;
+        if(res.valid())
+            return *res;
+        FC_THROW("No Invoke result for this trx",("transaction_id",trx_id));
     }FC_CAPTURE_AND_RETHROW((trx_id))
 }
 

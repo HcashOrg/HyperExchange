@@ -168,6 +168,9 @@ const uint8_t transaction_contract_storage_diff_object::type_id;
 const uint8_t contract_event_notify_object::space_id;
 const uint8_t contract_event_notify_object::type_id;
 
+const uint8_t contract_invoke_result_object::space_id;
+const uint8_t contract_invoke_result_object::type_id;
+
 const uint8_t guarantee_object::space_id;
 const uint8_t guarantee_object::type_id;
 

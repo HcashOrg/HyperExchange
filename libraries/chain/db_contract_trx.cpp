@@ -134,7 +134,7 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
-        contract_invoke_result_object database::get_contract_invoke_result(const transaction_id_type& trx_id)const
+        optional<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id)const
         {
             try {
                 auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trx_id>();
@@ -142,7 +142,7 @@ namespace graphene {
                 if (res == res_db.end())
                 {
 
-                    FC_ASSERT(false, "result exsited");
+                    return optional<contract_invoke_result_object>();
                 }
                 else
                 {

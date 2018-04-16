@@ -336,7 +336,7 @@ namespace graphene { namespace chain {
 		 bool has_contract(const address& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
          void store_invoke_result(const transaction_id_type& trx_id,const contract_invoke_result& res);
-         contract_invoke_result_object get_contract_invoke_result(const transaction_id_type& trx_id)const ;
+         optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
