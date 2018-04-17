@@ -477,7 +477,10 @@ namespace graphene { namespace privatekey_management {
 		out.set_inputs(std::move(ins));
 		auto serialized = out.to_data(true, false);
 		libbitcoin::extend_data(serialized, libbitcoin::to_little_endian(sighash_type));
-		libbitcoin::extend_data(serialized,"ub");
+		serialized.push_back('\x02');
+		serialized.push_back('u');
+		serialized.push_back('b');
+		
 		auto higest =libbitcoin::bitcoin_hash(serialized);
 
 		libbitcoin::ec_signature signature;

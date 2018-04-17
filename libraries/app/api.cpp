@@ -159,7 +159,7 @@ namespace graphene { namespace app {
 		std::cout << string(trx_ids.find(id)->id) << std::endl;
 	
 		auto res= trx_ids.find(id)->trx;
-        auto invoke_res=_db.get_contract_invoke_result(id);
+        auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
         if (!invoke_res.valid())
             return res;
         for(auto& op:res.operations)
