@@ -147,6 +147,7 @@ namespace graphene { namespace chain {
       contract_balance_object_type,
 	  contract_storage_object_type,
 	  contract_event_notify_object_type,
+      contract_invoke_result_object_type,
       script_object_type,
       script_binding_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
@@ -208,7 +209,7 @@ namespace graphene { namespace chain {
    class contract_storage_object;
    class transaction_contract_storage_diff_object;
    class contract_event_notify_object;
-
+   class contract_invoke_result_object;
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
    typedef object_id< protocol_ids, force_settlement_object_type,   force_settlement_object>      force_settlement_id_type;
@@ -234,6 +235,7 @@ namespace graphene { namespace chain {
    typedef object_id<protocol_ids, contract_storage_object_type, contract_storage_object> contract_storage_id_type;
    typedef object_id<protocol_ids, contract_storage_diff_type, transaction_contract_storage_diff_object> transaction_contract_storage_diff_object_id_type;
    typedef object_id<protocol_ids, contract_event_notify_object_type, contract_event_notify_object> contract_event_notify_object_id_type;
+   typedef object_id<protocol_ids, contract_invoke_result_object_type, contract_invoke_result_object> contract_invoke_result_object_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;
@@ -399,7 +401,10 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (contract_storage_object_type)
 				 (contract_storage_diff_type)
 				 (contract_event_notify_object_type)
+				 (contract_invoke_result_object_type)
 				 (coldhot_transfer_object_type)
+				 (script_object_type)
+				 (script_binding_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,

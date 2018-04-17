@@ -677,7 +677,24 @@ public:
 	   FC_ASSERT(rec);
 	   return *rec;
    }
-
+   account_object change_account_name(const string& oldname, const string& newname) 
+   {
+	   int local_account_count = _wallet.my_accounts.get<by_name>().count(oldname);
+	   FC_ASSERT((local_account_count != 0), "This account dosen`t belong to local wallet");
+	   auto local_account = *_wallet.my_accounts.get<by_name>().find(oldname);
+	   auto blockchain_account = _remote_db->lookup_account_names({ oldname }).front();
+	   if (blockchain_account)
+	   {
+		   FC_ASSERT((local_account.addr != blockchain_account->addr), "This account has been registed");
+	   }
+	   int local_new_account_count = _wallet.my_accounts.get<by_name>().count(newname);
+	   FC_ASSERT((local_new_account_count == 0), "New name has been used in local wallet");
+	   auto blockchain_new_account = _remote_db->lookup_account_names({ newname }).front();
+	   FC_ASSERT((!blockchain_new_account),"New name has been used in blockchain");
+	   local_account.name = newname;
+	   _wallet.updata_account_name(local_account,oldname);
+	   return *_wallet.my_accounts.get<by_name>().find(newname);
+   }
    account_object get_account(string account_name_or_id) const
    {
       FC_ASSERT( account_name_or_id.size() > 0 );
@@ -5124,7 +5141,10 @@ account_object wallet_api::get_account(string account_name_or_id) const
 {
    return my->get_account(account_name_or_id);
 }
-
+account_object wallet_api::change_account_name(const string& oldname, const string& newname)
+{
+	return my->change_account_name(oldname, newname);
+}
 asset_object wallet_api::get_asset(string asset_name_or_id) const
 {
    auto a = my->find_asset(asset_name_or_id);
@@ -5964,6 +5984,33 @@ share_type wallet_api::transfer_to_contract_testing(string from, string to, stri
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+}
+vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if(address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto addr_res= my->_remote_db->get_contract_addresses_by_owner(owner_addr);
+    vector<string> res;
+    for(auto& out: addr_res)
+    {
+        res.push_back(out.address_to_string());
+    }
+    return res;
+}
+vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& addr)
+{
+    return my->_remote_db->get_contracts_by_owner(address(addr));
+}
+graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
+{
+    return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
 }
 std::string wallet_api::add_script(const string& script_path) 
 {

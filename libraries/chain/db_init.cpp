@@ -168,6 +168,9 @@ const uint8_t transaction_contract_storage_diff_object::type_id;
 const uint8_t contract_event_notify_object::space_id;
 const uint8_t contract_event_notify_object::type_id;
 
+const uint8_t contract_invoke_result_object::space_id;
+const uint8_t contract_invoke_result_object::type_id;
+
 const uint8_t guarantee_object::space_id;
 const uint8_t guarantee_object::type_id;
 
@@ -311,7 +314,7 @@ void database::initialize_indexes()
    add_index<primary_index<contract_balance_index>>();
    add_index<primary_index<contract_storage_object_index>>();
    add_index<primary_index<contract_event_notify_index>>();
-
+   add_index<primary_index<contract_invoke_result_index>>();
    add_index <primary_index<guarantee_index                               > >();
   
 }

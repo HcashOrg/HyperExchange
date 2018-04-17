@@ -18,6 +18,7 @@
 namespace graphene {
 	namespace chain {
         share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count);
+        share_type count_contract_register_fee(const uvm::blockchain::Code& code);
 		class contract_common_evaluate  {
 		protected:
             generic_evaluator* gen_eval=nullptr;
@@ -26,10 +27,9 @@ namespace graphene {
 
             share_type total_fee;
             share_type unspent_fee;
-            gas_count_type gas_used;
+            gas_count_type gas_used_counts;
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
-            bool exec_succeed = true;
         public:
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
@@ -42,7 +42,7 @@ namespace graphene {
             asset asset_from_sting(const string& symbol, const string& amount);
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_from_db_by_id(const string &contract_id) const;
             //void add_gas_fee(const asset& fee);
-            void undo_contract_effected();
+            void undo_contract_effected(const share_type& fee);
             void deposit_to_contract(const address& contract, const asset& amount);
             //void do_apply_fees_balance(const address& caller_addr);
             void do_apply_balance();
@@ -62,8 +62,6 @@ namespace graphene {
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
-		private:
-			gas_count_type gas_used;
 			contract_register_operation origin_op;
 			contract_object new_contract;
 		public:
@@ -84,7 +82,6 @@ namespace graphene {
 
 		class native_contract_register_evaluate :public evaluator<native_contract_register_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			native_contract_register_operation origin_op;
 			contract_object new_contract;
 		public:
@@ -105,7 +102,6 @@ namespace graphene {
 
 		class contract_invoke_evaluate : public evaluator<contract_invoke_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			contract_invoke_operation origin_op;
     	public:
 			typedef contract_invoke_operation operation_type;
@@ -123,7 +119,6 @@ namespace graphene {
 
 		class contract_upgrade_evaluate : public evaluator<contract_upgrade_evaluate>, public contract_common_evaluate {
 		private:
-			gas_count_type gas_used;
 			contract_upgrade_operation origin_op;
 		public:
 			typedef contract_upgrade_operation operation_type;
