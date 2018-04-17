@@ -612,6 +612,8 @@ class database_api
       contract_object get_contract_info(const string& contract_address)const;
 	  contract_object get_contract_info_by_name(const string& contract_name)const;
       vector<asset> get_contract_balance(const address& contract_address) const;
+      vector<address> get_contract_addresses_by_owner(const address&)const ;
+      vector<contract_object> get_contracts_by_owner(const address&)const;
 
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all=true) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
@@ -752,4 +754,6 @@ FC_API(graphene::app::database_api,
 	(list_guarantee_object)
     (get_contract_event_notify_by_id)
     (get_contract_invoke_object)
+    (get_contract_addresses_by_owner)
+    (get_contracts_by_owner)
 );

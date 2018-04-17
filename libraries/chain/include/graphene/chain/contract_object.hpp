@@ -35,7 +35,8 @@ namespace graphene {
             indexed_by<
             ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
             ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>,
-			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>
+			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>,
+            ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
 

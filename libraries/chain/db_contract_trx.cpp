@@ -251,7 +251,32 @@ namespace graphene {
 			FC_ASSERT(itr != index.end());
 			return *itr;
 		}
-
+        vector<contract_object> database::get_contract_by_owner(const address& owner)
+		{
+            vector<contract_object> res;
+            auto& index = get_index_type<contract_object_index>().indices().get<by_owner>();
+            auto itr = index.lower_bound(owner);
+            auto itr_end = index.upper_bound(owner);
+            while(itr!= itr_end)
+            {
+                res.push_back(*itr);
+                itr++;
+            }
+            return res;
+		}
+        vector<address> database::get_contract_address_by_owner(const address& owner)
+		{
+            vector<address> res;
+            auto& index = get_index_type<contract_object_index>().indices().get<by_owner>();
+            auto itr = index.lower_bound(owner);
+            auto itr_end = index.upper_bound(owner);
+            while (itr != itr_end)
+            {
+                res.push_back(itr->contract_address);
+                itr++;
+            }
+            return res;
+		}
 		bool database::has_contract(const address& contract_address)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();

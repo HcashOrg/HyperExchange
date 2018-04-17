@@ -5965,6 +5965,29 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
+vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if(address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto addr_res= my->_remote_db->get_contract_addresses_by_owner(owner_addr);
+    vector<string> res;
+    for(auto& out: addr_res)
+    {
+        res.push_back(out.address_to_string());
+    }
+    return res;
+}
+vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& addr)
+{
+    return my->_remote_db->get_contracts_by_owner(address(addr));
+}
 graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
     return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));

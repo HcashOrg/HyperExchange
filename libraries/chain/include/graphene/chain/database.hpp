@@ -333,6 +333,9 @@ namespace graphene { namespace chain {
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
 		 contract_object get_contract_of_name(const string& contract_name);
+         vector<contract_object> get_contract_by_owner(const address& owner);
+
+         vector<address> get_contract_address_by_owner(const address& owner);
 		 bool has_contract(const address& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
          void store_invoke_result(const transaction_id_type& trx_id,const contract_invoke_result& res);
