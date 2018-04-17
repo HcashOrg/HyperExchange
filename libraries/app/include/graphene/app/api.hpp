@@ -91,12 +91,13 @@ namespace graphene { namespace app {
    class transaction_api
    {
    public:
-	   transaction_api(graphene::chain::database& db);
+	   transaction_api(application& app);
 	   ~transaction_api();
-	   optional<transaction> get_transaction(transaction_id_type trx_id);
+	   optional<graphene::chain::transaction> get_transaction(transaction_id_type trx_id);
 	   vector<transaction_id_type> list_transactions();
+	   void set_tracked_addr(const address& addr);
    private:
-	   graphene::chain::database& _db;
+	   application & _app;
    };
 
 
@@ -440,6 +441,7 @@ FC_API(graphene::app::block_api,
 FC_API(graphene::app::transaction_api,
 	(get_transaction)
 	(list_transactions)
+	(set_tracked_addr)
 	)
 FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
