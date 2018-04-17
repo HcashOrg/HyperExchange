@@ -22,6 +22,7 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
 		db_lock_balance.cpp
 	db_crosschain_trx.cpp
 	db_coldhot_trx.cpp
+	db_pay_back.cpp
       )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
@@ -70,6 +71,8 @@ add_library( graphene_chain
              account_object.cpp
              evaluator.cpp
              balance_evaluator.cpp
+	     pay_back.cpp
+	     pay_back_evaluator.cpp
              account_evaluator.cpp
              assert_evaluator.cpp
              witness_evaluator.cpp
