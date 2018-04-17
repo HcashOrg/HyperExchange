@@ -510,7 +510,23 @@ namespace graphene { namespace privatekey_management {
 	}
 	std::string ub_privatekey::sign_trx(const std::string& script, const std::string& raw_trx, int index)
 	{
-		return this->crosschain_privatekey_base::sign_trx(script, raw_trx,index);
+		auto out = create_endorsement_ub(get_wif_key(), script, raw_trx, index);
+		FC_ASSERT(out != "");
+		libbitcoin::endorsement out;
+		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
+		libbitcoin::chain::script   libbitcoin_script;//(libbitcoin::data_chunk(base),true);
+		libbitcoin_script.from_string(script);
+
+		libbitcoin::chain::transaction  trx;
+		trx.from_data(libbitcoin::config::base16(raw_trx));
+		uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
+		libbitcoin::wallet::ec_public libbitcoin_pub = libbitcoin_priv.to_public();
+		std::string pub_hex = libbitcoin_pub.encoded();
+		std::string endorsment_script = "[" + out + "]" + " [" + pub_hex + "] ";
+		libbitcoin_script.from_string(endorsment_script);
+		trx.inputs()[index].set_script(libbitcoin_script);
+		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());
+		return signed_trx;
 	}
 
 	crosschain_management::crosschain_management()
