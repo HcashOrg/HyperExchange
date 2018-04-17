@@ -677,7 +677,24 @@ public:
 	   FC_ASSERT(rec);
 	   return *rec;
    }
-
+   account_object change_account_name(const string& oldname, const string& newname) 
+   {
+	   int local_account_count = _wallet.my_accounts.get<by_name>().count(oldname);
+	   FC_ASSERT((local_account_count != 0), "This account dosen`t belong to local wallet");
+	   auto local_account = *_wallet.my_accounts.get<by_name>().find(oldname);
+	   auto blockchain_account = _remote_db->lookup_account_names({ oldname }).front();
+	   if (blockchain_account)
+	   {
+		   FC_ASSERT((local_account.addr != blockchain_account->addr), "This account has been registed");
+	   }
+	   int local_new_account_count = _wallet.my_accounts.get<by_name>().count(newname);
+	   FC_ASSERT((local_new_account_count == 0), "New name has been used in local wallet");
+	   auto blockchain_new_account = _remote_db->lookup_account_names({ newname }).front();
+	   FC_ASSERT((!blockchain_new_account),"New name has been used in blockchain");
+	   local_account.name = newname;
+	   _wallet.updata_account_name(local_account,oldname);
+	   return *_wallet.my_accounts.get<by_name>().find(newname);
+   }
    account_object get_account(string account_name_or_id) const
    {
       FC_ASSERT( account_name_or_id.size() > 0 );
@@ -5124,7 +5141,10 @@ account_object wallet_api::get_account(string account_name_or_id) const
 {
    return my->get_account(account_name_or_id);
 }
-
+account_object wallet_api::change_account_name(const string& oldname, const string& newname)
+{
+	return my->change_account_name(oldname, newname);
+}
 asset_object wallet_api::get_asset(string asset_name_or_id) const
 {
    auto a = my->find_asset(asset_name_or_id);

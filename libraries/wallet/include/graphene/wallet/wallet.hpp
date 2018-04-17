@@ -194,6 +194,12 @@ struct wallet_data
          return true;
       }
    }
+   void updata_account_name(const account_object& acct, const string& old_name) {
+	   auto& idx = my_accounts.get<by_name>();
+	   auto itr = idx.find(old_name);
+	   FC_ASSERT((itr != idx.end()), "account couldnt found");
+	   idx.replace(itr, acct);
+   }
    vector<script_object> list_scripts()
    {
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -553,6 +559,7 @@ class wallet_api
        * @returns the public account data stored in the blockchain
        */
       account_object                    get_account(string account_name_or_id) const;
+	  account_object change_account_name(const string& oldname, const string& newname);
 
       /** Returns information about the given asset.
        * @param asset_name_or_id the symbol or id of the asset in question
@@ -2108,6 +2115,7 @@ FC_API( graphene::wallet::wallet_api,
         (set_voting_proxy)
         (set_desired_miner_and_guard_member_count)
         (get_account)
+		(change_account_name)
         (get_account_id)
         (get_block)
         (get_account_count)
