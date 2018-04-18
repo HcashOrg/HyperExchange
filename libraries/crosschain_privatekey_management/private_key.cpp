@@ -512,7 +512,6 @@ namespace graphene { namespace privatekey_management {
 	{
 		auto out = create_endorsement_ub(get_wif_key(), script, raw_trx, index);
 		FC_ASSERT(out != "");
-		libbitcoin::endorsement out;
 		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
 		libbitcoin::chain::script   libbitcoin_script;//(libbitcoin::data_chunk(base),true);
 		libbitcoin_script.from_string(script);

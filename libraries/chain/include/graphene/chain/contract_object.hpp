@@ -156,7 +156,20 @@ namespace graphene {
             >
         >;
         using contract_invoke_result_index = generic_index<contract_invoke_result_object, contract_invoke_result_multi_index_type>;
+        class contract_hash_entry
+        {
+        public:
+            std::string contract_address;
+            std::string hash;
+        public:
+            inline contract_hash_entry(const chain::contract_object& cont)
+            {
+                contract_address = cont.contract_address.address_to_contract_string();
+                hash = cont.code.GetHash();
+            }
+        };
     }
+
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
@@ -168,3 +181,4 @@ FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db:
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
     (trx_id)(api_result)(logs)(exec_succeed)(acctual_fee))
+FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
