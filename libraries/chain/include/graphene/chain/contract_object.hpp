@@ -136,8 +136,9 @@ namespace graphene {
 		>;
 		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;
 
-        struct contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
+        class contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
         {
+        public:
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_invoke_result_object_type;
             transaction_id_type trx_id;			

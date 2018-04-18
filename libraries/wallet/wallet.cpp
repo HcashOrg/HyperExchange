@@ -6000,7 +6000,7 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
     vector<string> res;
     for(auto& out: addr_res)
     {
-        res.push_back(out.address_to_string());
+        res.push_back(out.address_to_contract_string());
     }
     return res;
 }
