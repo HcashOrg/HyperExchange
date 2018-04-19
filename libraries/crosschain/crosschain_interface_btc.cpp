@@ -145,38 +145,52 @@ namespace graphene {
 		{
 			return fc::variant_object();
 		}
-		std::map<std::string, graphene::crosschain::hd_trx> crosschain_interface_btc::turn_trxs(const fc::variant_object & trx)
+		crosschain_trx crosschain_interface_btc::turn_trxs(const fc::variant_object & trx)
 		{
 			hd_trx hdtx;
-			std::map<std::string, graphene::crosschain::hd_trx> hdtxs;
+			crosschain_trx hdtxs;
 			try {
 				auto tx = trx["trx"].get_object();
 				hdtx.asset_symbol = chain_type;
 				hdtx.trx_id = tx["hash"].as_string();
 				const std::string to_addr = tx["vout"].get_array()[0].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				const std::string from_trx_id = tx["vin"].get_array()[0].get_object()["txid"].as_string();
-				const auto index = tx["vin"].get_array()[0].get_object()["vout"].as_uint64();
-				auto from_trx = transaction_query(from_trx_id);
-				const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
-				hdtx.from_account = from_addr;
+				
+				double total_vin = 0.0;
+				double total_vout = 0.0;
+				// need to get the fee 
+				for (auto vin : tx["vin"].get_array())
+				{
+					auto index = vin.get_object()["vout"].as_uint64();
+					auto from_trx_id = vin.get_object()["txid"].as_string();
+					auto from_trx = transaction_query(from_trx_id);
+					const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
+					hdtx.from_account = from_addr;
+					total_vin += from_trx["vout"].get_array()[index].get_object()["value"].as_double();
+				}
 				for (auto vouts : tx["vout"].get_array())
 				{
 					auto addrs = vouts.get_object()["scriptPubKey"].get_object()["addresses"].get_array();
 					for (auto addr : addrs)
 					{
-						if (addr.as_string() == from_addr)
-							continue;
+						
 						hdtx.to_account = addr.as_string();
 						auto amount = vouts.get_object()["value"].as_double();
+						if (addr.as_string() == hdtx.from_account)
+						{
+							total_vout = amount;
+							continue;
+						}
 						char temp[1024];
 						std::sprintf(temp, "%.8f", amount);
+						
 						hdtx.amount = graphene::utilities::remove_zero_for_str_amount(temp);
-						hdtxs[hdtx.to_account] = hdtx;
+						total_vout += amount;
+						hdtxs.trxs[hdtx.to_account] = hdtx;
 
 					}
 
 				}
-
+				hdtxs.fee = total_vin - total_vout;
 			}
 			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtxs;

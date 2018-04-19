@@ -37,7 +37,7 @@ namespace graphene {
 			std::string trx_id;
 			std::string from_account;
 			std::string to_account;
-			std::string amount;
+			std::string amount;   
 			std::string asset_symbol;
 			int64_t block_num;
 		}hd_trx;
@@ -46,7 +46,10 @@ namespace graphene {
 			std::string account;
 			graphene::chain::asset balance;
 		};
-
+		typedef struct crosschain_trx {
+			std::map<std::string, graphene::crosschain::hd_trx> trxs;
+			double fee;
+		};
 		class abstract_crosschain_interface
 		{
 		public:
@@ -103,7 +106,7 @@ namespace graphene {
 			virtual bool validate_address(const std::string& addr) = 0;
 			//Turn plugin transaction to handle transaction
 			virtual hd_trx turn_trx(const fc::variant_object & trx) = 0;
-			virtual std::map<std::string, graphene::crosschain::hd_trx> turn_trxs(const fc::variant_object & trx) = 0;
+			virtual crosschain_trx turn_trxs(const fc::variant_object & trx) = 0;
 			// Validate signature. Now it is used to validate signature of multi-signed addresses.
 			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;
 
