@@ -255,7 +255,7 @@ namespace graphene { namespace chain {
 		 void reset_current_collected_fee();
 
 		 void modify_current_collected_fee(share_type changed_fee);
-
+		 void modify_current_collected_fee(asset changed_fee);
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 
@@ -592,7 +592,7 @@ namespace graphene { namespace chain {
          vector<uint64_t>                  _guard_count_histogram_buffer;
          uint64_t                          _total_voting_stake;
 		 share_type						   _total_collected_fee;
-
+		 map<asset_id_type, share_type>     _total_collected_fees;
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
          node_property_object              _node_property_object;

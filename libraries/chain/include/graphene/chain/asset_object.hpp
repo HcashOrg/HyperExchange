@@ -65,6 +65,7 @@ namespace graphene { namespace chain {
          share_type confidential_supply; ///< total asset held in confidential balances
          share_type accumulated_fees; ///< fees accumulate to be paid out over time
          share_type fee_pool;         ///< in core asset
+		 map<asset_id_type, share_type> fees_pool;
    };
 
    /**

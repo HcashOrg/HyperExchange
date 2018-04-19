@@ -123,6 +123,7 @@ namespace graphene {
 			void db_adjust_frozen(const address& fee_payer, asset fee_from_account);
 			asset                            fee_from_account;
 			share_type                       core_fee_paid;
+			asset                            core_fees_paid;
             share_type                       unused_contract_fee=0;
 			const account_object*            fee_paying_account = nullptr;
 			const account_statistics_object* fee_paying_account_statistics = nullptr;
@@ -161,15 +162,22 @@ namespace graphene {
 			{
 				auto* eval = static_cast<DerivedEvaluator*>(this);
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
-				prepare_fee(op.fee_payer(), op.fee);
-				if (!trx_state->skip_fee_schedule_check)
+				optional<asset> fee = op.get_fee();
+				if (!fee.valid())
+					prepare_fee(op.fee_payer(), op.fee);
+				else
 				{
-					share_type required_fee = calculate_fee_for_operation(op);
-					GRAPHENE_ASSERT(core_fee_paid >= required_fee,
-						insufficient_fee,
-						"Insufficient Fee Paid",
-						("core_fee_paid", core_fee_paid)("required", required_fee));
+					prepare_fee(op.fee_payer(), *fee);
+					if (!trx_state->skip_fee_schedule_check)
+					{
+						share_type required_fee = calculate_fee_for_operation(op);
+						GRAPHENE_ASSERT(core_fees_paid.amount >= required_fee,
+							insufficient_fee,
+							"Insufficient Fee Paid",
+							("core_fee_paid", core_fee_paid)("required", required_fee));
+					}
 				}
+					
 
 				return eval->do_evaluate(op);
 			}
@@ -179,12 +187,13 @@ namespace graphene {
 				auto* eval = static_cast<DerivedEvaluator*>(this);
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
 
-				convert_fee();
+				//convert_fee();
 				pay_fee();
 				auto result = eval->do_apply(op);
 				if (!op.get_guarantee_id().valid())
 				{
-					db_adjust_balance(op.fee_payer(), -fee_from_account);
+					if (fee_from_account.asset_id == asset_id_type())
+						db_adjust_balance(op.fee_payer(), -fee_from_account);
 				}
 				else
 				{

@@ -61,16 +61,7 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 	   FC_ASSERT(fee.amount >= 0);
 	   fee_paying_address = addr;
 	   fee_asset = &fee.asset_id(d);
-	   if (fee_from_account.asset_id == asset_id_type())
-		   core_fee_paid = fee_from_account.amount;
-	   else
-	   {
-		   asset fee_from_pool = fee_from_account * fee_asset->options.core_exchange_rate;
-		   FC_ASSERT(fee_from_pool.asset_id == asset_id_type());
-		   core_fee_paid = fee_from_pool.amount;
-		   FC_ASSERT(core_fee_paid <= fee_asset_dyn_data->fee_pool, "Fee pool balance of '${b}' is less than the ${r} required to convert ${c}",
-			   ("r", db().to_pretty_string(fee_from_pool))("b", db().to_pretty_string(fee_asset_dyn_data->fee_pool))("c", db().to_pretty_string(fee)));
-	   }
+	   core_fees_paid = fee;
    }
 
    void generic_evaluator::prepare_fee(account_id_type account_id, asset fee)
@@ -127,7 +118,7 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 			  {
 				  s.pay_fee(core_fee_paid, d.get_global_properties().parameters.cashback_vesting_threshold);
 			  });*/
-			  d.modify_current_collected_fee(core_fee_paid);
+			  d.modify_current_collected_fee(core_fees_paid);
 		  }
          
       }

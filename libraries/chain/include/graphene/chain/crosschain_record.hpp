@@ -61,6 +61,8 @@ namespace graphene {
 				return miner_address;
 			}
 			void            validate()const;
+			asset crosschain_fee;
+			optional<asset> get_fee()const { return crosschain_fee; }
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 			void get_required_authorities(vector<authority>& a)const {
 				a.push_back(authority(1, miner_address, 1));
@@ -136,7 +138,7 @@ FC_REFLECT(graphene::chain::crosschain_record_operation, (fee)(cross_chain_trx)(
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation::fee_parameters_type,(fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation,(fee)(withdraw_account)(amount)(asset_symbol)(asset_id)(crosschain_account)(memo))
 FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation,(fee)(ccw_trx_ids)(withdraw_source_trx)(miner_broadcast)(miner_address)(asset_id)(asset_symbol))
+FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation,(fee)(ccw_trx_ids)(withdraw_source_trx)(miner_broadcast)(miner_address)(asset_id)(asset_symbol)(crosschain_fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_with_sign_operation,(fee)(ccw_trx_id)(asset_symbol)(withdraw_source_trx)(sign_guard)(guard_address)(ccw_trx_signature))
 FC_REFLECT(graphene::chain::crosschain_withdraw_combine_sign_operation::fee_parameters_type, (fee))

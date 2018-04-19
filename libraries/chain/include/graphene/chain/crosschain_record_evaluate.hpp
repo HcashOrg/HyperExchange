@@ -47,7 +47,6 @@ namespace graphene {
 
 			void_result do_evaluate(const crosschain_withdraw_combine_sign_operation& o);
 			void_result do_apply(const crosschain_withdraw_combine_sign_operation& o);
-
 			virtual void pay_fee() override;
 		};
 		class crosschain_withdraw_result_evaluate :public evaluator<crosschain_withdraw_result_evaluate> {
