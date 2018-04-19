@@ -6039,7 +6039,7 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
     }
     return res;
 }
-graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
+vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
     return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
 }

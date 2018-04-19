@@ -621,7 +621,7 @@ class database_api
       vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
-      contract_invoke_result_object get_contract_invoke_object(const transaction_id_type& trx_id)const ;
+      vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const ;
    private:
       std::shared_ptr< database_api_impl > my;
 };

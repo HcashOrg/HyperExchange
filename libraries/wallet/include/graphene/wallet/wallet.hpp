@@ -1926,7 +1926,7 @@ class wallet_api
           const string& param);
 
       vector<asset> get_contract_balance(const string& contract_address) const;
-      contract_invoke_result_object get_contract_invoke_object(const std::string& );
+      vector<contract_invoke_result_object> get_contract_invoke_object(const std::string& );
       vector<string> get_contract_addresses_by_owner(const std::string&);
       vector<contract_object> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);

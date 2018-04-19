@@ -160,32 +160,34 @@ namespace graphene { namespace app {
 	
 		auto res= trx_ids.find(id)->trx;
         auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
-        if (!invoke_res.valid())
+        if (!invoke_res.size()==0)
             return res;
-        for(auto& op:res.operations)
+        for(auto& ir : invoke_res)
         {
+            FC_ASSERT(ir.op_num < res.operations.size());
+            auto& op = res.operations[ir.op_num];
             switch (op.which())
             {
             case operation::tag<contract_invoke_operation>::value:
-                op.get<contract_invoke_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_invoke_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<contract_register_operation>::value:
-                op.get<contract_register_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_register_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<native_contract_register_operation>::value:
-                op.get<native_contract_register_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<native_contract_register_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<contract_upgrade_operation>::value:
-                op.get<contract_upgrade_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_upgrade_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<transfer_contract_operation>::value:
-                op.get<transfer_contract_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<transfer_contract_operation>().fee.amount = ir.acctual_fee;
                 break;
             default:
                 FC_THROW("Invoke result exsited but no operation related to contract");
-            }  
-            return res;
+            }
         }
+        return res;
 	}
 	vector<transaction_id_type> transaction_api::list_transactions()
 	{
