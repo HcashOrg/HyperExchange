@@ -429,7 +429,7 @@ namespace graphene {
                 do_apply_balance();
             }
 
-            d.store_invoke_result(trx_id, invoke_contract_result);
+            d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -459,7 +459,7 @@ namespace graphene {
 
             }
 
-            db().store_invoke_result(trx_id, invoke_contract_result);
+            db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -487,7 +487,7 @@ namespace graphene {
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
             }
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -521,7 +521,7 @@ namespace graphene {
                 do_apply_balance();
 
             }
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -995,7 +995,7 @@ namespace graphene {
                 db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
 
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
         }
 

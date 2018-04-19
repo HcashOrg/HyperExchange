@@ -6000,15 +6000,46 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
     vector<string> res;
     for(auto& out: addr_res)
     {
-        res.push_back(out.address_to_string());
+        res.push_back(out.address_to_contract_string());
     }
     return res;
 }
 vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& addr)
 {
-    return my->_remote_db->get_contracts_by_owner(address(addr));
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    return my->_remote_db->get_contracts_by_owner(owner_addr);
 }
-graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
+
+vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto contracts= my->_remote_db->get_contracts_by_owner(owner_addr);
+    vector<contract_hash_entry> res;
+    for(auto& co:contracts)
+    {
+        res.push_back(co);
+    }
+    return res;
+}
+vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
     return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
 }

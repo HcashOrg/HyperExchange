@@ -136,26 +136,46 @@ namespace graphene {
 		>;
 		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;
 
-        struct contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
+        class contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
         {
+        public:
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_invoke_result_object_type;
-            transaction_id_type trx_id;			
+            transaction_id_type trx_id;
+            int op_num;
             std::string api_result;
             std::vector<std::string> logs;
             bool exec_succeed = true;
             share_type acctual_fee;
         };
-        struct by_trx_id {};
+        struct by_trxid_and_opnum {};
+        struct by_trxid {};
         using contract_invoke_result_multi_index_type = multi_index_container <
             contract_invoke_result_object,
             indexed_by <
             ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-            ordered_unique<tag<by_trx_id>, member<contract_invoke_result_object, transaction_id_type, &contract_invoke_result_object::trx_id>>
+            ordered_non_unique<tag<by_trxid>, member<contract_invoke_result_object, transaction_id_type, &contract_invoke_result_object::trx_id>>,
+            ordered_unique<tag<by_trxid_and_opnum>, 
+            composite_key<contract_invoke_result_object,
+                member<contract_invoke_result_object, transaction_id_type, &contract_invoke_result_object::trx_id>,
+                member<contract_invoke_result_object, int, &contract_invoke_result_object::op_num>>>
             >
         >;
         using contract_invoke_result_index = generic_index<contract_invoke_result_object, contract_invoke_result_multi_index_type>;
+        class contract_hash_entry
+        {
+        public:
+            std::string contract_address;
+            std::string hash;
+        public:
+            inline contract_hash_entry(const chain::contract_object& cont)
+            {
+                contract_address = cont.contract_address.address_to_contract_string();
+                hash = cont.code.GetHash();
+            }
+        };
     }
+
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
@@ -166,4 +186,5 @@ FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::obje
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(api_result)(logs)(exec_succeed)(acctual_fee))
+    (trx_id)(op_num)(api_result)(logs)(exec_succeed)(acctual_fee))
+FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
