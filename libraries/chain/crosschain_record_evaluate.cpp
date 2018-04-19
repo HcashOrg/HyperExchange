@@ -186,7 +186,7 @@ namespace graphene {
 			{
 				FC_ASSERT(create_trxs.count(one_balance.first) == 1);
 				const auto asset_itr = asset_idx.find(create_trxs[one_balance.first].asset_symbol);
-				FC_ASSERT(one_balance.second.amount == asset_itr->amount_from_string(create_trxs[one_balance.first].amount).amount);
+				FC_ASSERT(one_balance.second.amount == asset_itr->amount_from_string(create_trxs[one_balance.first].amount).amount + o.crosschain_fee.amount);
 			}
 
 			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());

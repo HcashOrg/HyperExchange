@@ -306,7 +306,7 @@ namespace graphene {
 					}*/
 					//the average fee is 0.001
 					FC_ASSERT(fee.count(one_asset.first)>0);
-					auto t_fee = opt_asset->amount_from_string(fc::variant(fee[one_asset.first]).as_string());
+					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(fee[one_asset.first]).as_string()));
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
