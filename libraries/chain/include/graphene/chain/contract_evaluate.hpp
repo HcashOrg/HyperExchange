@@ -57,7 +57,7 @@ namespace graphene {
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			string get_api_result() const;
 			gas_count_type get_gas_limit() const;
-
+            void pay_fee_and_refund() const;
 			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
 		};
 

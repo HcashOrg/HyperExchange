@@ -1367,5 +1367,12 @@ namespace graphene {
 			 return gas_limit;
 		 }
 
+         void contract_common_evaluate::pay_fee_and_refund() const
+		{
+             if (unspent_fee != 0)
+                 get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+             get_db().modify_current_collected_fee(total_fee - unspent_fee);
+		}
+
 }
 }
