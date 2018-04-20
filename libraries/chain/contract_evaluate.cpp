@@ -526,92 +526,19 @@ namespace graphene {
 		}
 
 		void contract_register_evaluate::pay_fee() {
-#ifndef NO_FEE
-			if (!origin_op.get_guarantee_id().valid())
-			{
-				if (unspent_fee != 0)
-					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-			}
-			else {
-				if (unspent_fee == 0)
-					return;
-				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
-				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
-				auto unspent = asset(unspent_fee, asset_id_type());
-				auto unspent_to_return = unspent * p;
-				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
-				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
-				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
-			}
-			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
-          
-#endif
+            pay_fee_and_refund();
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
-#ifndef NO_FEE
-			if (!origin_op.get_guarantee_id().valid())
-			{
-				if (unspent_fee != 0)
-					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-			}
-			else {
-				if (unspent_fee == 0)
-					return;
-				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
-				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
-				auto unspent = asset(unspent_fee, asset_id_type());
-				auto unspent_to_return = unspent * p;
-				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
-				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
-				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
-			}
-			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
-#endif
+            pay_fee_and_refund();
 		}
 
 		void contract_invoke_evaluate::pay_fee() {
-#ifndef NO_FEE
-			if (!origin_op.get_guarantee_id().valid())
-			{
-				if (unspent_fee != 0)
-					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-			}
-			else {
-				if (unspent_fee == 0)
-					return;
-				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
-				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
-				auto unspent = asset(unspent_fee, asset_id_type());
-				auto unspent_to_return = unspent * p;
-				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
-				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
-				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
-			}
-			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
-#endif
+            pay_fee_and_refund();
 		}
 
 		void contract_upgrade_evaluate::pay_fee() {
-#ifndef NO_FEE
-			if (!origin_op.get_guarantee_id().valid())
-			{
-				if (unspent_fee != 0)
-					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-			}
-			else {
-				if (unspent_fee == 0)
-					return;
-				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
-				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
-				auto unspent = asset(unspent_fee, asset_id_type());
-				auto unspent_to_return = unspent * p;
-				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
-				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
-				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
-			}
-			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
-#endif
+            pay_fee_and_refund();
 		}
 
 		std::shared_ptr<UvmContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
@@ -878,27 +805,42 @@ namespace graphene {
 		{
 			return calculate_fee_for_operation(origin_op);
 		}
-
+        optional<guarantee_object_id_type> contract_register_evaluate::get_guarantee_id()const
+        {
+            return origin_op.get_guarantee_id();
+        }
 		share_type native_contract_register_evaluate::origin_op_fee() const
 		{
 			return calculate_fee_for_operation(origin_op);
 		}
-
+        optional<guarantee_object_id_type> native_contract_register_evaluate::get_guarantee_id()const
+        {
+            return origin_op.get_guarantee_id();
+        }
 		share_type contract_invoke_evaluate::origin_op_fee() const
 		{
 			return calculate_fee_for_operation(origin_op);
 		}
-
+        optional<guarantee_object_id_type> contract_invoke_evaluate::get_guarantee_id()const
+        {
+            return origin_op.get_guarantee_id();
+        }
 		share_type contract_upgrade_evaluate::origin_op_fee() const
 		{
 			return calculate_fee_for_operation(origin_op);
 		}
-
+        optional<guarantee_object_id_type> contract_upgrade_evaluate::get_guarantee_id()const
+        {
+            return origin_op.get_guarantee_id();
+        }
 		share_type contract_transfer_evaluate::origin_op_fee() const
 		{
 			return calculate_fee_for_operation(origin_op);
 		}
-
+        optional<guarantee_object_id_type> contract_transfer_evaluate::get_guarantee_id()const
+        {
+            return origin_op.get_guarantee_id();
+        }
 		address native_contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
@@ -1058,11 +1000,7 @@ namespace graphene {
 
         void contract_transfer_evaluate::pay_fee()
         {
-#ifndef NO_FEE
-            if(unspent_fee!=0)
-                db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-            db().modify_current_collected_fee(total_fee-unspent_fee);
-#endif
+            pay_fee_and_refund();
         }
 
 
@@ -1423,6 +1361,31 @@ namespace graphene {
 		 {
 			 return gas_limit;
 		 }
+
+         void contract_common_evaluate::pay_fee_and_refund() const
+		{
+             if (unspent_fee != 0)
+                 get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+             get_db().modify_current_collected_fee(total_fee - unspent_fee);
+
+             if (get_guarantee_id().valid())
+             {
+                 if (unspent_fee != 0)
+                     get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+             }
+             else {
+                 if (unspent_fee == 0)
+                     return;
+                 auto guarantee_obj = get_db().get(*get_guarantee_id());
+                 price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+                 auto unspent = asset(unspent_fee, asset_id_type());
+                 auto unspent_to_return = unspent * p;
+                 get_db().adjust_frozen(guarantee_obj.owner_addr, unspent);
+                 get_db().adjust_guarantee(*get_guarantee_id(), -unspent_to_return);
+                 get_db().adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+             }
+             get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
+		}
 
 }
 }
