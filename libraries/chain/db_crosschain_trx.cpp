@@ -306,10 +306,14 @@ namespace graphene {
 					}*/
 					//the average fee is 0.001
 					FC_ASSERT(fee.count(one_asset.first)>0);
-					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(fee[one_asset.first]).as_string()));
+					char temp_fee[1024];
+					string format = "%."+fc::variant(opt_asset->precision).as_string()+"f";
+					std::sprintf(temp_fee, format.c_str(), fee[one_asset.first]);
+					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
 					auto hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
-					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(hdtrxs.fee).as_string()));
+					std::sprintf(temp_fee, format.c_str(), hdtrxs.fee);
+					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
 					trx_op.miner_broadcast = miner;
