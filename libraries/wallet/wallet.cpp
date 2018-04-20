@@ -3639,7 +3639,7 @@ public:
 	   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
 	   string temp_guard(guard);
 	   auto handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
-	   FC_ASSERT(handled_trx.size() == 1, "Transcation turn error in guard sign cold hot transaction");
+	   FC_ASSERT(handled_trx.trxs.size() == 1, "Transcation turn error in guard sign cold hot transaction");
 	   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
 	   string redeemScript = "";
 	   string guard_address = "";
@@ -3647,7 +3647,7 @@ public:
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
 	   for (auto multi_obj : multi_objs) {
-		   if (multi_obj->bind_account_hot == handled_trx.begin()->second.from_account) {
+		   if (multi_obj->bind_account_hot == handled_trx.trxs.begin()->second.from_account) {
 			   redeemScript = multi_obj->redeemScript_hot;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -3657,7 +3657,7 @@ public:
 			   }
 			   break;
 		   }
-		   if (multi_obj->bind_account_cold == handled_trx.begin()->second.from_account) {
+		   if (multi_obj->bind_account_cold == handled_trx.trxs.begin()->second.from_account) {
 			   redeemScript = multi_obj->redeemScript_cold;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -6027,7 +6027,61 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 {
     return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
-graphene::chain::contract_invoke_result_object wallet_api::get_contract_invoke_object(const std::string&trx_id)
+vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if(address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto addr_res= my->_remote_db->get_contract_addresses_by_owner(owner_addr);
+    vector<string> res;
+    for(auto& out: addr_res)
+    {
+        res.push_back(out.address_to_contract_string());
+    }
+    return res;
+}
+vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    return my->_remote_db->get_contracts_by_owner(owner_addr);
+}
+
+vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const std::string& addr)
+{
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = my->get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto contracts= my->_remote_db->get_contracts_by_owner(owner_addr);
+    vector<contract_hash_entry> res;
+    for(auto& co:contracts)
+    {
+        res.push_back(co);
+    }
+    return res;
+}
+vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
     return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
 }

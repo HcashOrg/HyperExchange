@@ -429,7 +429,7 @@ namespace graphene {
                 do_apply_balance();
             }
 
-            d.store_invoke_result(trx_id, invoke_contract_result);
+            d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -459,7 +459,7 @@ namespace graphene {
 
             }
 
-            db().store_invoke_result(trx_id, invoke_contract_result);
+            db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -487,7 +487,7 @@ namespace graphene {
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
             }
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
@@ -521,39 +521,96 @@ namespace graphene {
                 do_apply_balance();
 
             }
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
 		}
 
 		void contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-           if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
+          
 #endif
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-           if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
 		void contract_invoke_evaluate::pay_fee() {
 #ifndef NO_FEE
-          if (unspent_fee != 0)
-              db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-          db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
 		void contract_upgrade_evaluate::pay_fee() {
 #ifndef NO_FEE
-          if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
@@ -995,7 +1052,7 @@ namespace graphene {
                 db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
 
-            db().store_invoke_result(get_current_trx_id(), invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
         }
 

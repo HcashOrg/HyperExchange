@@ -38,10 +38,16 @@
 // 	return key_to_compressed_wif(key.get_secret());
 // }
 
+namespace graphene {
+	namespace privatekey_management {
+		extern std::string create_endorsement_ub(const std::string& signer_wif, const std::string& redeemscript_hex, const std::string& raw_trx, int vin_index);
 
+	}
+}
 int main(int argc, char** argv)
 {
 	using namespace graphene::privatekey_management;
+	
 	
 // 	// test private key generation
 // 	btc_privatekey btc_priv;
@@ -147,13 +153,13 @@ int main(int argc, char** argv)
 // 
 // 	libbitcoin::der_signature out;
 // 	printf("the result is %s\n", libbitcoin::encode_base16(out).c_str());
-ltc_privatekey pkey;
-pkey.import_private_key("TAsCFXH8ebtQVfs1hs21DyZANkz2NqdG1b59J7YAGNPpHHcnBgfz");
-std::string raw_transaction = "02000000015714b71b0d009e82b4b567e32bb2b683447c56ee5223bb7728a1d4954511d65f010000006a47304402202aa3092f9b2f38e49eb711713d4b6cd307b882c48363855d44ab82e9124ee59e02205f2eaa3c9e42cbb18db26b328a294ce2584c97e1f149a6d0f4a162d8b80bb82b012102fbe8fadaa20b1cf4b913266763458808dd7f5e82f7e3acced1c142bf88585f65ffffffff0214ab15350000000017a914aa8bd720f81981f3d95f955617af1f47cfc6c980874c988306000000001976a914e700f114bf2c28cdc63dfaa3b90c53ae6aa21b0f88ac00000000";
-auto str = graphene::utxo::decoderawtransaction(raw_transaction);
-std::cout << str << std::endl;
-
-
+ub_privatekey pkey;
+pkey.import_private_key("L2LBS5mGLJK4crnMZLpKMTFMCJCCKH33NyY1mg1aXBr64WTZMR1y");
+std::string raw_transaction = "020000000181b0b0ad36493b0644196adfcd738647dd9655a798d6f3d04fa0e07033b9ec020100000000ffffffff0200a3e1110000000017a914ebc513241b86490f3fa2522aa0c6d6a219e4c5e28760fe87dc0000000017a9144793bc24aa771ace38743e29c6455a5d8d8e5cdb8700000000";
+std::string redeemscript = "552102446a06a4a97a39de16690d8f8cea380cc5466a416b59a6a5ca7d8c3df3440f7221022939d622cb0280fab4fdbd8abac0c583ed9e9db85c5e54b7fa99b09e502d8f0f21036d7cce8ea2f03f695589b6272e6f4b4f85f16ef3725f5e2797ae0830b56d6bf5210277484d6ea40f56175850bd9d6567d1e8bce55beb8932638faa63735aa00d52d221027b9cb70830cbf072fea92c67eac038c4a853f856f5bfc42008c02a79555bf0f52103cd302ee16538438b2a4f23d9f4870ffe11bcb74ea57d6319d1020ef14e7b9a722103250196f0056dde2d0f25e07ec63bafd29148051036d674eadeda04bc9e91046957ae";
+auto endorse = create_endorsement_ub(pkey.get_wif_key(), redeemscript, raw_transaction, 0);
+auto str = graphene::privatekey_management::mutisign_trx(endorse,redeemscript,raw_transaction,0);
+std::cout << endorse << std::endl;
 	getchar();
 	return 0;
 }

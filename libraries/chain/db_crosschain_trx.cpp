@@ -229,6 +229,7 @@ namespace graphene {
 				std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
 				std::map<std::string, std::string> memo_info;
 				std::map<std::string, vector<transaction_id_type>> ccw_trx_ids;
+				map<asset_id_type, double> fee;
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				for (auto & cross_chain_trx : boost::make_iterator_range(withdraw_range.first,withdraw_range.second)) {
 					if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1) {
@@ -255,11 +256,14 @@ namespace graphene {
 					if (!valid_address) {
 						continue;
 					}
+					auto temp_amount = fc::variant(withop.amount).as_double()- 0.001;
+					fee[withop.asset_id] += 0.001;
+						
 					if (temp_map.count(withop.crosschain_account)>0){
-						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + to_double(withop.amount)).c_str();
+						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + temp_amount).c_str();
 					}
 					else{
-						temp_map[withop.crosschain_account] = withop.amount;
+						temp_map[withop.crosschain_account] = fc::variant(temp_amount).as_string();
 					}
 					temp_vector.push_back(cross_chain_trx.real_transaction.id());
 					dest_info[withop.asset_id] = temp_map;
@@ -300,8 +304,12 @@ namespace graphene {
 					const std::string value = itr.second;
 					temp_map.insert(std::make_pair(key,value));
 					}*/
-					
+					//the average fee is 0.001
+					FC_ASSERT(fee.count(one_asset.first)>0);
+					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(fee[one_asset.first]).as_string()));
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
+					auto hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
+					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(hdtrxs.fee).as_string()));
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
 					trx_op.miner_broadcast = miner;
@@ -310,6 +318,7 @@ namespace graphene {
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
+					trx_op.crosschain_fee = t_fee-cross_fee;
 					signed_transaction tx;
 
 					uint32_t expiration_time_offset = 0;
@@ -508,7 +517,7 @@ namespace graphene {
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
 					trx_op.miner_broadcast = miner;
-					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).begin()->second.trx_id;
+					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;

@@ -134,35 +134,35 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
-        optional<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id)const
+        vector<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id)const
         {
             try {
-                auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trx_id>();
-                auto res = res_db.find(trx_id);
-                if (res == res_db.end())
+                vector<contract_invoke_result_object> res;
+                auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid>();
+                auto it = res_db.lower_bound(trx_id);
+                auto end_it= res_db.upper_bound(trx_id);
+                while(it!=end_it)
                 {
-
-                    return optional<contract_invoke_result_object>();
+                    res.push_back(*it);
+                    it++;
                 }
-                else
-                {
-                    return *res;
-                }
+                return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
-        void database::store_invoke_result(const transaction_id_type& trx_id, const contract_invoke_result& res)
+        void database::store_invoke_result(const transaction_id_type& trx_id, int op_num, const contract_invoke_result& res)
         {
             try {
-                auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trx_id>();
-                auto con = con_db.find(trx_id);
+                auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid_and_opnum>();
+                auto con = con_db.find(boost::make_tuple(trx_id,op_num));
                 if (con == con_db.end())
                 {
-                    create<contract_invoke_result_object>([res,trx_id](contract_invoke_result_object & obj) {
+                    create<contract_invoke_result_object>([res,trx_id, op_num](contract_invoke_result_object & obj) {
                         obj.acctual_fee = res.acctual_fee;
                         obj.api_result = res.api_result;
                         obj.exec_succeed = res.exec_succeed;
                         obj.logs = res.logs;
                         obj.trx_id = trx_id;
+                        obj.op_num = op_num;
                     });     
                 }
                 else
@@ -251,7 +251,32 @@ namespace graphene {
 			FC_ASSERT(itr != index.end());
 			return *itr;
 		}
-
+        vector<contract_object> database::get_contract_by_owner(const address& owner)
+		{
+            vector<contract_object> res;
+            auto& index = get_index_type<contract_object_index>().indices().get<by_owner>();
+            auto itr = index.lower_bound(owner);
+            auto itr_end = index.upper_bound(owner);
+            while(itr!= itr_end)
+            {
+                res.push_back(*itr);
+                itr++;
+            }
+            return res;
+		}
+        vector<address> database::get_contract_address_by_owner(const address& owner)
+		{
+            vector<address> res;
+            auto& index = get_index_type<contract_object_index>().indices().get<by_owner>();
+            auto itr = index.lower_bound(owner);
+            auto itr_end = index.upper_bound(owner);
+            while (itr != itr_end)
+            {
+                res.push_back(itr->contract_address);
+                itr++;
+            }
+            return res;
+		}
 		bool database::has_contract(const address& contract_address)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();

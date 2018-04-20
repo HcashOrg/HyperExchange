@@ -32,9 +32,9 @@ namespace graphene {
 			save_wallet_file(_plugin_wallet_filepath + wallet_name);
 
 		}
-		std::map<std::string, graphene::crosschain::hd_trx> crosschain_interface_emu::turn_trxs(const fc::variant_object & trx)
+		crosschain_trx crosschain_interface_emu::turn_trxs(const fc::variant_object & trx)
 		{
-			std::map<std::string, graphene::crosschain::hd_trx> hdtxs;
+			crosschain_trx hdtxs;
 			
 			return hdtxs;
 		}

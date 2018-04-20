@@ -43,6 +43,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
+#include <graphene/transaction/transaction_plugin.hpp>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)
@@ -128,7 +129,7 @@ namespace graphene { namespace app {
 	   }
 	   else if (api_name == "transaction_api")
 	   {
-		   _transaction_api = std::make_shared<transaction_api>(std::ref(*_app.chain_database()));
+		   _transaction_api = std::make_shared<transaction_api>(std::ref(_app));
 	   }
        return;
     }
@@ -148,55 +149,65 @@ namespace graphene { namespace app {
     }
 
 	//transaction_api
-	transaction_api::transaction_api(graphene::chain::database& db) :_db(db) {}
+	transaction_api::transaction_api(application& app) :_app(app) {}
 	transaction_api::~transaction_api() {}
 
-	optional<transaction> transaction_api::get_transaction(transaction_id_type id)
+	optional<graphene::chain::transaction> transaction_api::get_transaction(transaction_id_type id)
 	{
-		const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_trx_id>();
+		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
 		std::cout << string(trx_ids.find(id)->id) << std::endl;
 	
 		auto res= trx_ids.find(id)->trx;
-        auto invoke_res=_db.get_contract_invoke_result(id);
-        if (!invoke_res.valid())
+        auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
+        if (!invoke_res.size()==0)
             return res;
-        for(auto& op:res.operations)
+        for(auto& ir : invoke_res)
         {
+            FC_ASSERT(ir.op_num < res.operations.size());
+            auto& op = res.operations[ir.op_num];
             switch (op.which())
             {
             case operation::tag<contract_invoke_operation>::value:
-                op.get<contract_invoke_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_invoke_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<contract_register_operation>::value:
-                op.get<contract_register_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_register_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<native_contract_register_operation>::value:
-                op.get<native_contract_register_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<native_contract_register_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<contract_upgrade_operation>::value:
-                op.get<contract_upgrade_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<contract_upgrade_operation>().fee.amount = ir.acctual_fee;
                 break;
             case operation::tag<transfer_contract_operation>::value:
-                op.get<transfer_contract_operation>().fee.amount = invoke_res->acctual_fee;
+                op.get<transfer_contract_operation>().fee.amount = ir.acctual_fee;
                 break;
             default:
                 FC_THROW("Invoke result exsited but no operation related to contract");
-            }  
-            return res;
+            }
         }
+        return res;
 	}
 	vector<transaction_id_type> transaction_api::list_transactions()
 	{
 		vector<transaction_id_type> result;
-		const auto& history_ids = _db.get_index_type<history_transaction_index>().indices().get<by_id>();
-		const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_id>();
+		const auto& history_ids = _app.chain_database()->get_index_type<history_transaction_index>().indices().get<by_id>();
+		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_id>();
 		for (auto history : history_ids)
 		{
-			auto obj = _db.get(history.trx_obj_id);
+			auto obj = _app.chain_database()->get(history.trx_obj_id);
 			result.push_back(obj.trx_id);
 		}
 		return result;
+	}
+	void transaction_api::set_tracked_addr(const address& addr)
+	{
+		auto ptr = _app.get_plugin("transaction_plugin");
+		auto plugin_ptr = dynamic_cast<graphene::transaction::transaction_plugin*>(ptr.get());
+		vector<address> vec;
+		vec.push_back(addr);
+		plugin_ptr->add_tracked_address(vec);
 	}
 
     network_broadcast_api::network_broadcast_api(application& a):_app(a)

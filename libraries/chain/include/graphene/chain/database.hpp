@@ -255,7 +255,7 @@ namespace graphene { namespace chain {
 		 void reset_current_collected_fee();
 
 		 void modify_current_collected_fee(share_type changed_fee);
-
+		 void modify_current_collected_fee(asset changed_fee);
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 
@@ -336,10 +336,13 @@ namespace graphene { namespace chain {
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
 		 contract_object get_contract_of_name(const string& contract_name);
+         vector<contract_object> get_contract_by_owner(const address& owner);
+
+         vector<address> get_contract_address_by_owner(const address& owner);
 		 bool has_contract(const address& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
-         void store_invoke_result(const transaction_id_type& trx_id,const contract_invoke_result& res);
-         optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
+         void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res);
+         vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
@@ -592,7 +595,7 @@ namespace graphene { namespace chain {
          vector<uint64_t>                  _guard_count_histogram_buffer;
          uint64_t                          _total_voting_stake;
 		 share_type						   _total_collected_fee;
-
+		 map<asset_id_type, share_type>     _total_collected_fees;
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
          node_property_object              _node_property_object;

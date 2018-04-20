@@ -695,6 +695,7 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    auto op_id = push_applied_operation( op );
    auto result = eval->evaluate( eval_state, op, true );
    set_applied_operation_result( op_id, result );
+   eval_state.op_num++;
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 

@@ -95,8 +95,8 @@ namespace graphene {
 						++withdraw_account_count;
 					}
 					FC_ASSERT((withdraw_account_count == o.withdraw_account_count),"withdraw multi account count error");
-					FC_ASSERT(created_trx.count(coldhot_transfer_op.multi_account_deposit) == 1);
-					auto one_trx = created_trx[coldhot_transfer_op.multi_account_deposit];
+					FC_ASSERT(created_trx.trxs.count(coldhot_transfer_op.multi_account_deposit) == 1);
+					auto one_trx = created_trx.trxs[coldhot_transfer_op.multi_account_deposit];
 					FC_ASSERT(one_trx.to_account == coldhot_transfer_op.multi_account_deposit);
 					FC_ASSERT(one_trx.from_account == coldhot_transfer_op.multi_account_withdraw);
 					const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
@@ -190,7 +190,7 @@ namespace graphene {
 					return void_result();
 				}
 				auto coldhot_trx = crosschain_plugin->turn_trxs(o.coldhot_trx_original_chain);
-				FC_ASSERT(coldhot_trx.begin()->second.trx_id == o.original_trx_id);
+				FC_ASSERT(coldhot_trx.trxs.begin()->second.trx_id == o.original_trx_id);
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			

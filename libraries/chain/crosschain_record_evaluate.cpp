@@ -158,8 +158,8 @@ namespace graphene {
 				FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
 				const auto withdraw_op = trx_itr->real_transaction.operations[0].get<crosschain_withdraw_evaluate::operation_type>();
 				
-				FC_ASSERT(create_trxs.count(withdraw_op.crosschain_account) == 1);
-				auto one_trx = create_trxs[withdraw_op.crosschain_account];
+				FC_ASSERT(create_trxs.trxs.count(withdraw_op.crosschain_account) == 1);
+				auto one_trx = create_trxs.trxs[withdraw_op.crosschain_account];
 				
 				FC_ASSERT(one_trx.to_account == withdraw_op.crosschain_account);
 				{
@@ -181,14 +181,22 @@ namespace graphene {
 				
 				
 			}
-			FC_ASSERT(all_balances.size() == create_trxs.size());
+			FC_ASSERT(all_balances.size() == create_trxs.trxs.size());
+			const auto opt_asset = db().get(o.asset_id);
+			auto cross_fee = opt_asset.amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(create_trxs.fee).as_string()));
+			share_type total_amount = 0;
+			share_type total_op_amount = 0;
 			for (auto& one_balance : all_balances)
 			{
-				FC_ASSERT(create_trxs.count(one_balance.first) == 1);
-				const auto asset_itr = asset_idx.find(create_trxs[one_balance.first].asset_symbol);
-				FC_ASSERT(one_balance.second.amount == asset_itr->amount_from_string(create_trxs[one_balance.first].amount).amount);
+				FC_ASSERT(create_trxs.trxs.count(one_balance.first) == 1);
+				total_amount += one_balance.second.amount;
 			}
 
+			for (auto& trx : create_trxs.trxs)
+			{
+				total_op_amount += opt_asset.amount_from_string(trx.second.amount).amount;
+			}
+			FC_ASSERT(total_amount == (total_op_amount + o.crosschain_fee.amount + cross_fee.amount));
 			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
 			
 			

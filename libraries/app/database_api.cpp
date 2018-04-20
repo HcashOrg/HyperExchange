@@ -171,7 +171,10 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
-      contract_invoke_result_object get_contract_invoke_object(const transaction_id_type& trx_id)const;
+      vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const;
+      vector<address> get_contract_addresses_by_owner(const address&)const;
+      vector<contract_object> get_contracts_by_owner(const address&addr )const ;
+
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -404,6 +407,14 @@ void database_api::cancel_all_subscriptions()
 vector<asset> database_api::get_contract_balance(const address & contract_address) const
 {
     return my->get_contract_balance(contract_address);
+}
+vector<address> database_api::get_contract_addresses_by_owner(const address&addr)const
+{
+    return my->get_contract_addresses_by_owner(addr);
+}
+vector<contract_object> database_api::get_contracts_by_owner(const address&addr)const 
+{
+    return my->get_contracts_by_owner(addr);
 }
 void database_api_impl::cancel_all_subscriptions()
 {
@@ -1654,13 +1665,18 @@ optional<contract_event_notify_object> database_api_impl::get_contract_event_not
 
 }
 
-graphene::chain::contract_invoke_result_object database_api_impl::get_contract_invoke_object(const transaction_id_type& trx_id) const
+vector<address> database_api_impl::get_contract_addresses_by_owner(const address& addr)const
+{
+    return _db.get_contract_address_by_owner(addr);
+}
+vector<contract_object> database_api_impl::get_contracts_by_owner(const address& addr) const
+{
+    return _db.get_contract_by_owner(addr);
+}
+vector<graphene::chain::contract_invoke_result_object> database_api_impl::get_contract_invoke_object(const transaction_id_type& trx_id) const
 {
     try {
-        auto res = _db.get_contract_invoke_result(trx_id);
-        if(res.valid())
-            return *res;
-        FC_THROW("No Invoke result for this trx",("transaction_id",trx_id));
+        return _db.get_contract_invoke_result(trx_id);
     }FC_CAPTURE_AND_RETHROW((trx_id))
 }
 
@@ -2182,7 +2198,7 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 {
 	return my->get_gurantee_object(id);
 }
-contract_invoke_result_object database_api::get_contract_invoke_object(const transaction_id_type& trx_id)const
+vector<contract_invoke_result_object> database_api::get_contract_invoke_object(const transaction_id_type& trx_id)const
 {
     return my->get_contract_invoke_object(trx_id);
 }

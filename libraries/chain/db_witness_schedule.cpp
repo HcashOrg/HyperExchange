@@ -113,12 +113,18 @@ void database::update_witness_random_seed(const SecretHashType& new_secret)
 void database::reset_current_collected_fee()
 {
 	_total_collected_fee = 0;
+	_total_collected_fees.clear();
 }
 
 void database::modify_current_collected_fee(share_type changed_fee)
 {
 	_total_collected_fee += changed_fee;
 }
+void database::modify_current_collected_fee(asset changed_fee)
+{
+	_total_collected_fees[changed_fee.asset_id] += changed_fee.amount;
+}
+
 
 void database::pay_miner(const miner_id_type& miner_id)
 {

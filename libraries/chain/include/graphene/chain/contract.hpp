@@ -85,7 +85,8 @@ namespace graphene {
 			uvm::blockchain::Code  contract_code;
             address     inherit_from;
 			extensions_type   extensions;
-
+			optional<guarantee_object_id_type> guarantee_id;
+			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 			address fee_payer()const { return owner_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
@@ -114,7 +115,8 @@ namespace graphene {
 			string contract_desc;
 
 			extensions_type   extensions;
-
+			optional<guarantee_object_id_type> guarantee_id;
+			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 			address fee_payer()const { return caller_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
@@ -143,7 +145,8 @@ namespace graphene {
 			bool offline = false;
 
 			extensions_type   extensions;
-
+			optional<guarantee_object_id_type> guarantee_id;
+			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 			address fee_payer()const { return caller_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
@@ -175,7 +178,8 @@ namespace graphene {
             asset amount;
             std::string param;
             extensions_type   extensions;
-
+			optional<guarantee_object_id_type> guarantee_id;
+			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
             address fee_payer()const { return caller_addr; }
             void            validate()const;
             share_type      calculate_fee(const fee_parameters_type& k)const;
@@ -202,11 +206,11 @@ namespace graphene {
 }
 FC_REFLECT(graphene::chain::contract_event_notify_info,(contract_address)(event_name)(event_arg)(block_num))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code)(inherit_from))
+FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code)(inherit_from)(guarantee_id))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_api)(contract_arg)(offline))
+FC_REFLECT(graphene::chain::contract_invoke_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_api)(contract_arg)(offline)(guarantee_id))
 FC_REFLECT(graphene::chain::contract_upgrade_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc))
+FC_REFLECT(graphene::chain::contract_upgrade_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(contract_name)(contract_desc)(guarantee_id))
 FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::transfer_contract_operation::transfer_param, (num)(symbol)(param))
-FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount)(param))
+FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount)(param)(guarantee_id))
