@@ -256,7 +256,7 @@ namespace graphene {
 					trx_op.coldhot_transfer_trx_id = relate_tx_iter->current_id;
 					
 					auto hdl_trx = crosschain_plugin->turn_trxs(trx_op.coldhot_trx_original_chain);
-					trx_op.original_trx_id = hdl_trx.begin()->second.trx_id;
+					trx_op.original_trx_id = hdl_trx.trxs.begin()->second.trx_id;
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;
 					auto dyn_props = get_dynamic_global_properties();

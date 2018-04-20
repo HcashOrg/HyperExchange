@@ -43,6 +43,7 @@
 #include <graphene/chain/protocol/worker.hpp>
 #include <graphene/chain/protocol/guard_lock_balance.hpp>
 #include <graphene/chain/protocol/guard_refund_balance.hpp>
+#include <graphene/chain/pay_back.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/storage.hpp>
@@ -127,6 +128,7 @@ namespace graphene { namespace chain {
 	   graphene::chain::coldhot_transfer_combine_sign_operation,
 	   graphene::chain::coldhot_transfer_result_operation,
 	   graphene::chain::coldhot_cancel_transafer_transaction_operation,
+	   pay_back_operation,
 	        guard_update_multi_account_operation,
 	        asset_real_create_operation,
 	   contract_register_operation,

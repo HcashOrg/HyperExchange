@@ -610,6 +610,7 @@ void_result asset_real_create_evaluator::do_evaluate(const asset_real_create_ope
 		auto id = o.issuer;
 		const auto& guards = d.get_index_type<guard_member_index>().indices().get<by_account>();
 		FC_ASSERT(guards.find(o.issuer) != guards.end());
+		FC_ASSERT(guards.find(o.issuer)->formal == true); // only formal guard can create asset.
 		const auto& accounts = d.get_index_type<account_index>().indices().get<by_id>();
 		FC_ASSERT(accounts.find(o.issuer)->addr == o.issuer_addr);
 		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();

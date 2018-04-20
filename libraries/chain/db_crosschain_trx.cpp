@@ -308,6 +308,8 @@ namespace graphene {
 					FC_ASSERT(fee.count(one_asset.first)>0);
 					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(fee[one_asset.first]).as_string()));
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
+					auto hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
+					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(hdtrxs.fee).as_string()));
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
 					//std::cout << trx_op.ccw_trx_id.str() << std::endl;
 					trx_op.miner_broadcast = miner;
@@ -316,7 +318,7 @@ namespace graphene {
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
-					trx_op.crosschain_fee = t_fee;
+					trx_op.crosschain_fee = t_fee-cross_fee;
 					signed_transaction tx;
 
 					uint32_t expiration_time_offset = 0;
@@ -515,7 +517,7 @@ namespace graphene {
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
 					trx_op.miner_broadcast = miner;
-					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).begin()->second.trx_id;
+					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;

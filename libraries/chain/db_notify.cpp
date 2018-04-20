@@ -95,6 +95,7 @@ struct get_impacted_account_visitor
    void operator()(const lockbalance_operation& op) {}
    void operator()(const foreclose_balance_operation& op) {}
    void operator()(const guard_lock_balance_operation& op) {}
+   void operator()(const pay_back_operation& op) {}
    void operator()(const guard_foreclose_balance_operation& op) {}
    void operator()(const crosschain_record_operation& op) {}
    void operator()(const crosschain_withdraw_operation& op) {}

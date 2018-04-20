@@ -163,7 +163,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
@@ -179,20 +179,20 @@ void database::pay_miner(const miner_id_type& miner_id)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
 
 
 				}
 			}
 
-			adjust_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)));
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)));
 		}
 		else
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
 			auto all_paid = gpo.parameters.miner_pay_per_block;
 			all_paid += _total_collected_fee;
-			adjust_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
 		}
 		
 

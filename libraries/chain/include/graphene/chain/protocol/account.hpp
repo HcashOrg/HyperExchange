@@ -96,7 +96,8 @@ namespace graphene { namespace chain {
 	  address         payer;
       account_options options;
       extension< ext > extensions;
-
+	  optional<guarantee_object_id_type> guarantee_id;
+	  optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
       address fee_payer()const { return payer; }
       void            validate()const;
       share_type      calculate_fee(const fee_parameters_type& )const;
@@ -106,6 +107,7 @@ namespace graphene { namespace chain {
          // registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure
 		  a.push_back(authority(1, payer, 1));
       }
+	  
    };
 
    /**
@@ -279,7 +281,8 @@ namespace graphene { namespace chain {
 	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
-
+	   optional<guarantee_object_id_type> guarantee_id;
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 	   address fee_payer()const { return addr; }
 	   void        validate()const;
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; };
@@ -310,7 +313,8 @@ namespace graphene { namespace chain {
 	   signature_type account_signature;
 	   std::string tunnel_address;
 	   std::string tunnel_signature;
-
+	   optional<guarantee_object_id_type> guarantee_id;
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 	   address fee_payer()const { return addr; }
 	   void        validate()const;
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
@@ -364,7 +368,7 @@ FC_REFLECT(graphene::chain::account_create_operation::ext, (null_ext)(owner_spec
 FC_REFLECT(graphene::chain::account_create_operation,
 (fee)(registrar)
 (referrer)(referrer_percent)
-(name)(owner)(active)(payer)(options)(extensions)
+(name)(owner)(active)(payer)(options)(extensions)(guarantee_id)
 )
 
 FC_REFLECT(graphene::chain::account_update_operation::ext, (null_ext)(owner_special_authority)(active_special_authority) )
@@ -385,9 +389,8 @@ FC_REFLECT( graphene::chain::account_transfer_operation::fee_parameters_type, (f
 FC_REFLECT( graphene::chain::account_transfer_operation, (fee)(account_id)(new_owner)(extensions) )
 
 FC_REFLECT(graphene::chain::account_bind_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature))
+FC_REFLECT(graphene::chain::account_bind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature)(guarantee_id))
 FC_REFLECT(graphene::chain::account_unbind_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature))
-
+FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature)(guarantee_id))
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))
