@@ -47,6 +47,7 @@
 #include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include <graphene/chain/pay_back_object.hpp>
 #include <fc/api.hpp>
 #include <fc/optional.hpp>
 #include <fc/variant_object.hpp>
@@ -607,7 +608,7 @@ class database_api
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
-
+	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
       //contract 
       contract_object get_contract_info(const string& contract_address)const;
 	  contract_object get_contract_info_by_name(const string& contract_name)const;
@@ -743,6 +744,7 @@ FC_API(graphene::app::database_api,
 	(get_multisig_account_pair)
 	(lookup_multisig_account_pair)
 	(get_guarantee_orders)
+	(get_pay_back_balances)
     //contract
     (get_contract_info)
 	(get_contract_info_by_name)

@@ -666,7 +666,8 @@ class wallet_api
          uint32_t review_period_seconds = 0,
          bool broadcast = true
         );
-
+	  std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
+	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol,bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */
@@ -2052,6 +2053,8 @@ FC_API( graphene::wallet::wallet_api,
         (sign_builder_transaction)
         (propose_builder_transaction)
         (propose_builder_transaction2)
+	    (get_address_pay_back_balance)
+	    (obtain_pay_back_balance)
         (remove_builder_transaction)
         (is_new)
         (is_locked)

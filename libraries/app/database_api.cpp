@@ -158,6 +158,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
+	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
@@ -2202,6 +2203,9 @@ vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_tran
 vector<optional<multisig_address_object>> database_api::get_multi_account_guard(const string & multi_address, const string& symbol) const {
 	return my->get_multi_account_guard(multi_address, symbol);
 }
+std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
+	return my->get_pay_back_balances(pay_back_owner);
+}
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
 }
@@ -2238,6 +2242,12 @@ vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(cons
 	}
 	
 	return result;
+}
+std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
+	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>();
+	auto pay_back_iter = payback_db.find(pay_back_owner);
+	FC_ASSERT(pay_back_iter != payback_db.end(),"pay back owner doesnt exist");
+	return pay_back_iter->owner_balance;
 }
 vector<optional<multisig_address_object>> database_api_impl::get_multi_account_guard(const string & multi_address, const string& symbol)const {
 	vector<optional<multisig_address_object>> result;
