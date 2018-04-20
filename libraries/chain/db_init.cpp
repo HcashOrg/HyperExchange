@@ -76,6 +76,8 @@
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/native_contract.hpp>
+#include <graphene/chain/pay_back_object.hpp>
+#include <graphene/chain/pay_back_evaluator.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -174,11 +176,14 @@ const uint8_t contract_invoke_result_object::type_id;
 const uint8_t guarantee_object::space_id;
 const uint8_t guarantee_object::type_id;
 
+const uint8_t pay_back_object::space_id;
+const uint8_t pay_back_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
    register_evaluator<lockbalance_evaluator>();
    register_evaluator<foreclose_balance_evaluator>();
+   register_evaluator<pay_back_evaluator>();
    register_evaluator<crosschain_record_evaluate>(); 
    register_evaluator<crosschain_withdraw_evaluate>();
    register_evaluator<crosschain_withdraw_without_sign_evaluate>();
@@ -265,6 +270,7 @@ void database::initialize_indexes()
    add_index< primary_index<asset_index> >();
    add_index< primary_index<force_settlement_index> >();
    add_index<primary_index<lockbalance_index>>();
+   add_index<primary_index<payback_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
    add_index<primary_index<crosschain_trx_index>>();
    add_index<primary_index<coldhot_transfer_index>>();
