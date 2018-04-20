@@ -527,33 +527,90 @@ namespace graphene {
 
 		void contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-           if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
+          
 #endif
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
 #ifndef NO_FEE
-           if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
 		void contract_invoke_evaluate::pay_fee() {
 #ifndef NO_FEE
-          if (unspent_fee != 0)
-              db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-          db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
 		void contract_upgrade_evaluate::pay_fee() {
 #ifndef NO_FEE
-          if (unspent_fee != 0)
-               db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-           db().modify_current_collected_fee(total_fee - unspent_fee);
+			if (!origin_op.get_guarantee_id().valid())
+			{
+				if (unspent_fee != 0)
+					db_adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
+			}
+			else {
+				if (unspent_fee == 0)
+					return;
+				auto guarantee_obj = db_get_guarantee(*origin_op.get_guarantee_id());
+				price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+				auto unspent = asset(unspent_fee, asset_id_type());
+				auto unspent_to_return = unspent * p;
+				db_adjust_frozen(guarantee_obj.owner_addr, unspent);
+				db_adjust_guarantee(*origin_op.get_guarantee_id(), -unspent_to_return);
+				db_adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+			}
+			db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 #endif
 		}
 
