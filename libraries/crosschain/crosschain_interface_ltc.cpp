@@ -405,7 +405,7 @@ namespace graphene {
 						auto amount = vouts.get_object()["value"].as_double();
 						if (addr.as_string() == hdtx.from_account)
 						{
-							total_vout = amount;
+							total_vout += amount;
 							continue;
 						}
 						char temp[1024];

@@ -183,7 +183,10 @@ namespace graphene {
 			}
 			FC_ASSERT(all_balances.size() == create_trxs.trxs.size());
 			const auto opt_asset = db().get(o.asset_id);
-			auto cross_fee = opt_asset.amount_from_string(graphene::utilities::remove_zero_for_str_amount(fc::variant(create_trxs.fee).as_string()));
+			char temp_fee[1024];
+			string format = "%." + fc::variant(opt_asset.precision).as_string() + "f";
+			std::sprintf(temp_fee, format.c_str(), create_trxs.fee);
+			auto cross_fee = opt_asset.amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 			share_type total_amount = 0;
 			share_type total_op_amount = 0;
 			for (auto& one_balance : all_balances)

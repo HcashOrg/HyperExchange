@@ -312,6 +312,7 @@ namespace graphene {
 					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
 					auto hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
+					memset(temp_fee,0,1024);
 					std::sprintf(temp_fee, format.c_str(), hdtrxs.fee);
 					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
 					trx_op.ccw_trx_ids = ccw_trx_ids[asset_symbol];
