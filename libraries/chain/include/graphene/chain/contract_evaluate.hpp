@@ -58,7 +58,8 @@ namespace graphene {
 			string get_api_result() const;
 			gas_count_type get_gas_limit() const;
             void pay_fee_and_refund() const;
-			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
+			static contract_common_evaluate* get_contract_evaluator(lua_State *L); 
+            virtual optional<guarantee_object_id_type> get_guarantee_id()const = 0;
 		};
 
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
@@ -78,6 +79,7 @@ namespace graphene {
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			address origin_op_contract_id() const;
 			virtual share_type origin_op_fee() const;
+            optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
 
 		class native_contract_register_evaluate :public evaluator<native_contract_register_evaluate>, public contract_common_evaluate {
@@ -98,6 +100,8 @@ namespace graphene {
 			contract_object get_contract_by_name(const string& contract_name) const;
 			address origin_op_contract_id() const;
 			virtual share_type origin_op_fee() const;
+
+            optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
 
 		class contract_invoke_evaluate : public evaluator<contract_invoke_evaluate>, public contract_common_evaluate {
@@ -115,6 +119,8 @@ namespace graphene {
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
+
+            optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
 
 		class contract_upgrade_evaluate : public evaluator<contract_upgrade_evaluate>, public contract_common_evaluate {
@@ -133,6 +139,7 @@ namespace graphene {
 			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
+            optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
 
         class contract_transfer_evaluate : public evaluator<contract_transfer_evaluate>, public contract_common_evaluate {
@@ -152,6 +159,7 @@ namespace graphene {
             contract_object get_contract_by_name(const string& contract_name) const;
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
+            optional<guarantee_object_id_type> get_guarantee_id()const;
         };
 
 	}
