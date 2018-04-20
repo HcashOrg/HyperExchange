@@ -100,6 +100,17 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		addresses.insert(address(sig));
 	}
 
+	for (auto op : trx.operations)
+	{
+		if (op.which() == operation::tag<transfer_operation>::value)
+		{
+			auto op_transfer = op.get<transfer_operation>();
+			addresses.insert(op_transfer.from_addr);
+			addresses.insert(op_transfer.to_addr);
+		}
+	}
+
+
 	const auto& trx_ids = db.get_index_type<trx_index>().indices().get<by_trx_id>();
 	auto iter_ids = trx_ids.find(trx.id());
 	if (iter_ids == trx_ids.end())
