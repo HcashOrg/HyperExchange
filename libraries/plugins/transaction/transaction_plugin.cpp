@@ -82,6 +82,7 @@ void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 	   db.create<trx_object>([&](trx_object& obj) {
 		   obj.trx = trx;
 		   obj.trx_id = trx.id();
+		   obj.block_num = b.block_num();
 	   });
 	   add_transaction_history(trx);
    }   
@@ -123,6 +124,7 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		db.create<history_transaction_object>([&](history_transaction_object& obj) {
 			obj.addr = addr;
 			obj.trx_obj_id = iter_ids->id;
+			obj.block_num = iter_ids->block_num;
 		});
 	}
 }

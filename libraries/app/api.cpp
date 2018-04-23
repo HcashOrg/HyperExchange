@@ -157,8 +157,10 @@ namespace graphene { namespace app {
 		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
 		std::cout << string(trx_ids.find(id)->id) << std::endl;
-	
-		auto res= trx_ids.find(id)->trx;
+		auto res_ids = trx_ids.find(id);
+		auto res= res_ids->trx;
+		res.ref_block_num = res_ids->block_num;
+		
         auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
         if (!invoke_res.size()==0)
             return res;
@@ -189,16 +191,21 @@ namespace graphene { namespace app {
         }
         return res;
 	}
-	vector<transaction_id_type> transaction_api::list_transactions()
+	vector<transaction_id_type> transaction_api::list_transactions(uint32_t blocknum , uint32_t nums)
 	{
 		vector<transaction_id_type> result;
-		const auto& history_ids = _app.chain_database()->get_index_type<history_transaction_index>().indices().get<by_id>();
+		const auto& history_idx = _app.chain_database()->get_index_type<history_transaction_index>();
 		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_id>();
-		for (auto history : history_ids)
-		{
-			auto obj = _app.chain_database()->get(history.trx_obj_id);
-			result.push_back(obj.trx_id);
-		}
+		int32_t ncount = 0;
+		history_idx.inspect_all_objects([&](const object& obj) {
+			const history_transaction_object& p = static_cast<const history_transaction_object&>(obj);
+			if (p.block_num >= blocknum && ncount <= nums)
+			{
+				ncount++;
+				auto trx_obj = _app.chain_database()->get(p.trx_obj_id);
+				result.push_back(trx_obj.trx_id);
+			}
+		});
 		return result;
 	}
 	void transaction_api::set_tracked_addr(const address& addr)

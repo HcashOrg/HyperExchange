@@ -755,11 +755,11 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
 
-   vector<transaction_id_type> list_transactions() const
+   vector<transaction_id_type> list_transactions(uint32_t blocknum , uint32_t nums ) const
    {
 	   try {
 
-		   auto result = _remote_trx->list_transactions();
+		   auto result = _remote_trx->list_transactions(blocknum,nums);
 		   return result;
 
 
@@ -1248,7 +1248,7 @@ public:
 		   account_create_op.active = authority(1, graphene::chain::public_key_type(active), 1);
 		   account_create_op.payer = acc_register.addr;
 		   account_create_op.options.memo_key = active;
-
+		   account_create_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(account_create_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1301,7 +1301,7 @@ public:
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
 		   contract_register_op.fee.amount = 0;
 		   contract_register_op.fee.asset_id = asset_id_type(0);
-
+		   contract_register_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_register_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1344,7 +1344,7 @@ public:
            contract_register_op.contract_id = contract_register_op.calculate_contract_id();
            contract_register_op.fee.amount = 0;
            contract_register_op.fee.asset_id = asset_id_type(0);
-
+		   contract_register_op.guarantee_id = get_guarantee_id();
            signed_transaction tx;
            tx.operations.push_back(contract_register_op);
            auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1450,7 +1450,7 @@ public:
 		   n_contract_register_op.contract_id = n_contract_register_op.calculate_contract_id();
 		   n_contract_register_op.fee.amount = 0;
 		   n_contract_register_op.fee.asset_id = asset_id_type(0);
-
+		   n_contract_register_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(n_contract_register_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1615,7 +1615,7 @@ public:
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
 		   contract_invoke_op.fee.asset_id = asset_id_type(0);
-
+		   contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1667,7 +1667,7 @@ public:
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
 		   contract_invoke_op.fee.asset_id = asset_id_type(0);
-
+		   contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1738,7 +1738,7 @@ public:
 		   contract_upgrade_op.contract_desc = contract_desc;
 		   contract_upgrade_op.fee.amount = 0;
 		   contract_upgrade_op.fee.asset_id = asset_id_type(0);
-
+		   contract_upgrade_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_upgrade_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -1893,7 +1893,7 @@ public:
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
        transfer_to_contract_op.param = param;
-
+	   transfer_to_contract_op.guarantee_id = get_guarantee_id();
        signed_transaction tx;
        tx.operations.push_back(transfer_to_contract_op);
        auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
@@ -2315,7 +2315,6 @@ public:
 		   op.precision = precision;
 		   op.max_supply = max_supply;
 		   op.symbol = symbol;
-
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
@@ -3192,6 +3191,7 @@ public:
 		   op.tunnel_address = tunnel_account;
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
 		   string config = (*_crosschain_manager)->get_config();
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
@@ -3224,6 +3224,7 @@ public:
 		   op.tunnel_address = tunnel_account;
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
 		   string config = (*_crosschain_manager)->get_config();
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
@@ -6520,9 +6521,9 @@ transaction wallet_api::get_transaction(transaction_id_type id) const
 	return my->get_transaction(id);
 }
 
-vector<transaction_id_type> wallet_api::list_transactions() const
+vector<transaction_id_type> wallet_api::list_transactions(uint32_t blocknum , uint32_t nums) const
 {
-	return my->list_transactions();
+	return my->list_transactions(blocknum,nums);
 }
 
 
