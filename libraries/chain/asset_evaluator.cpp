@@ -647,23 +647,10 @@ void_result gurantee_create_evaluator::do_evaluate(const gurantee_create_operati
 {
 	try {
 		const auto& _db = db();
-		const auto& gran_index =_db.get_index_type<guarantee_index>().indices();
-		const auto& range = gran_index.get<by_symbol_owner>().equal_range(boost::make_tuple(o.owner_addr,o.symbol));
-		share_type frozen = 0;
-		std::for_each(range.first, range.second, [&](const guarantee_object& obj) {
-			if (!obj.finished)
-			{
-				asset left = obj.asset_orign - obj.asset_finished * price(obj.asset_orign, obj.asset_target);
-				frozen += left.amount;
-			}
-				
-		});
-		//we need to check if this  is equal to the frozen assets
 		const auto& balances = _db.get_index_type<balance_index>().indices().get<by_owner>();
 		const auto balance_obj = balances.find(boost::make_tuple(o.owner_addr, o.asset_origin.asset_id));
 		FC_ASSERT(balance_obj != balances.end());
 		FC_ASSERT(balance_obj->balance >= o.asset_origin);
-		FC_ASSERT(balance_obj->frozen == frozen);
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
