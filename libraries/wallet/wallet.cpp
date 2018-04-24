@@ -6047,8 +6047,9 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
     }
     return res;
 }
-vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& addr)
+vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::string& addr)
 {
+    vector<ContractEntryPrintable> res;
     address owner_addr;
     if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
     {
@@ -6059,7 +6060,12 @@ vector<contract_object> wallet_api::get_contracts_by_owner(const std::string& ad
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    return my->_remote_db->get_contracts_by_owner(owner_addr);
+    auto objs= my->_remote_db->get_contracts_by_owner(owner_addr);
+    for(auto& obj:objs)
+    {
+        res.push_back(FormatContract(obj));
+    }
+    return res;
 }
 
 vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const std::string& addr)
