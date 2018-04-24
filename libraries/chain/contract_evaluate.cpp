@@ -1368,7 +1368,7 @@ namespace graphene {
                  get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
              get_db().modify_current_collected_fee(total_fee - unspent_fee);
 
-             if (get_guarantee_id().valid())
+             if (!get_guarantee_id().valid())
              {
                  if (unspent_fee != 0)
                      get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
