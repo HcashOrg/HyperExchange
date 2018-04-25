@@ -2240,6 +2240,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)
+		(signrawtransaction)
 		(get_my_guarantee_order)
         (get_contract_invoke_object)
       )

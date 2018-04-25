@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 #include <graphene/chain/protocol/account.hpp>
-#include <graphene/chain/hardfork.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
 
@@ -66,9 +65,6 @@ bool is_valid_name( const string& name )
      * allow them after this time.   This check can be removed from the code after HARDFORK_385_TIME
      * has passed.
      */
-    if( fc::time_point::now() < fc::time_point(HARDFORK_385_TIME) )
-       FC_ASSERT( len >= 3 );
-
     if( len < GRAPHENE_MIN_ACCOUNT_NAME_LENGTH )
     {
           ilog( ".");

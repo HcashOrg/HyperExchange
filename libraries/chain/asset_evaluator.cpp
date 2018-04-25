@@ -27,7 +27,6 @@
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/exceptions.hpp>
-#include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/balance_object.hpp>
@@ -471,19 +470,9 @@ void_result asset_publish_feeds_evaluator::do_evaluate(const asset_publish_feed_
    FC_ASSERT( !bitasset.has_settlement(), "No further feeds may be published after a settlement event" );
 
    FC_ASSERT( o.feed.settlement_price.quote.asset_id == bitasset.options.short_backing_asset );
-   if( d.head_block_time() > HARDFORK_480_TIME )
+   if (!o.feed.core_exchange_rate.is_null())
    {
-      if( !o.feed.core_exchange_rate.is_null() )
-      {
-         FC_ASSERT( o.feed.core_exchange_rate.quote.asset_id == asset_id_type() );
-      }
-   }
-   else
-   {
-      if( (!o.feed.settlement_price.is_null()) && (!o.feed.core_exchange_rate.is_null()) )
-      {
-         FC_ASSERT( o.feed.settlement_price.quote.asset_id == o.feed.core_exchange_rate.quote.asset_id );
-      }
+	   FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
    }
 
    //Verify that the publisher is authoritative to publish a feed
@@ -579,7 +568,6 @@ void_result normal_asset_publish_feeds_evaluator::do_apply(const normal_asset_pu
 
 void_result asset_claim_fees_evaluator::do_evaluate( const asset_claim_fees_operation& o )
 { try {
-   FC_ASSERT( db().head_block_time() > HARDFORK_413_TIME );
    FC_ASSERT( o.amount_to_claim.asset_id(db()).issuer == o.issuer, "Asset fees may only be claimed by the issuer" );
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }

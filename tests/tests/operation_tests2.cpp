@@ -26,8 +26,6 @@
 
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/exceptions.hpp>
-#include <graphene/chain/hardfork.hpp>
-
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/balance_object.hpp>
@@ -1410,10 +1408,6 @@ BOOST_AUTO_TEST_CASE( vbo_withdraw_different )
 BOOST_AUTO_TEST_CASE( top_n_special )
 {
    ACTORS( (alice)(bob)(chloe)(dan)(izzy)(stan) );
-
-   generate_blocks( HARDFORK_516_TIME );
-   generate_blocks( HARDFORK_599_TIME );
-
    try
    {
       {
@@ -1562,11 +1556,6 @@ BOOST_AUTO_TEST_CASE( buyback )
 {
    ACTORS( (alice)(bob)(chloe)(dan)(izzy)(philbin) );
    upgrade_to_lifetime_member(philbin_id);
-
-   generate_blocks( HARDFORK_538_TIME );
-   generate_blocks( HARDFORK_555_TIME );
-   generate_blocks( HARDFORK_599_TIME );
-
    try
    {
       {

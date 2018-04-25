@@ -24,8 +24,6 @@
 
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/db_with.hpp>
-#include <graphene/chain/hardfork.hpp>
-
 #include <graphene/chain/block_summary_object.hpp>
 #include <graphene/chain/global_property_object.hpp>
 #include <graphene/chain/operation_history_object.hpp>
