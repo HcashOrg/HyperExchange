@@ -1284,11 +1284,12 @@ public:
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto owner_pubkey = privkey.get_public_key();
 		   
-		   contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+           fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+           contract_register_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
+
 		   contract_register_op.init_cost = std::stoll(gas_limit);
 		   contract_register_op.owner_addr = acc_caller.addr;
 		   contract_register_op.owner_pubkey = owner_pubkey;
-
 		   std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
 		   FC_ASSERT(in.is_open());
 		   std::vector<unsigned char> contract_filedata((std::istreambuf_iterator<char>(in)),
@@ -1333,7 +1334,9 @@ public:
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
-           contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+           fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+           contract_register_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
+
            contract_register_op.init_cost = std::stoll(gas_limit);
            contract_register_op.owner_addr = acc_caller.addr;
            contract_register_op.owner_pubkey = owner_pubkey;
@@ -1439,7 +1442,9 @@ public:
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto owner_pubkey = privkey.get_public_key();
 
-		   n_contract_register_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+           fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+           n_contract_register_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
+
 		   n_contract_register_op.init_cost = std::stoll(gas_limit);
 		   n_contract_register_op.owner_addr = acc_caller.addr;
 		   n_contract_register_op.owner_pubkey = owner_pubkey;
@@ -1605,8 +1610,9 @@ public:
 			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
+           fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+           contract_invoke_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
 
-		   contract_invoke_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
 		   contract_invoke_op.invoke_cost = std::stoll(gas_limit);
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
@@ -1729,7 +1735,9 @@ public:
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
 
-		   contract_upgrade_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+           fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+           contract_upgrade_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
+
 		   contract_upgrade_op.invoke_cost = std::stoll(gas_limit);
 		   contract_upgrade_op.caller_addr = acc_caller.addr;
 		   contract_upgrade_op.caller_pubkey = caller_pubkey;
@@ -1884,7 +1892,9 @@ public:
        auto privkey = *wif_to_key(_keys[acc_caller.addr]);
        auto caller_pubkey = privkey.get_public_key();
 
-       transfer_to_contract_op.gas_price = std::stod(gas_price) * GRAPHENE_BLOCKCHAIN_PRECISION;
+       fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
+       transfer_to_contract_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
+
        transfer_to_contract_op.invoke_cost = std::stoll(gas_limit);
        transfer_to_contract_op.caller_addr = acc_caller.addr;
        transfer_to_contract_op.caller_pubkey = caller_pubkey;
