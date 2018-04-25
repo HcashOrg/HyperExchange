@@ -465,7 +465,7 @@ namespace graphene {
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
             try {
 
-                asset transfer_amount = evaluator->asset_from_sting(asset_type, "0");
+                asset transfer_amount = evaluator->asset_from_string(asset_type, "0");
                 transfer_amount.amount = amount;
                 evaluator->transfer_to_address(f_addr, transfer_amount,t_addr);
             }
@@ -519,7 +519,7 @@ namespace graphene {
 
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
                 try {
-                    asset transfer_amount = evaluator->asset_from_sting(asset_symbol, "0");
+                    asset transfer_amount = evaluator->asset_from_string(asset_symbol, "0");
                     return evaluator->get_contract_balance(c_addr, transfer_amount.asset_id).value;
                 }
                 catch (blockchain::contract_engine::invalid_asset_symbol& e)
