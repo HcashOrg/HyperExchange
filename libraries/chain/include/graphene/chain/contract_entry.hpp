@@ -125,7 +125,7 @@ namespace graphene {
 
 		typedef uint64_t gas_price_type;
 		typedef uint64_t gas_count_type;
-        
+        ContractEntryPrintable FormatContract(const contract_object& obj);
 	}
 }
 FC_REFLECT_ENUM(graphene::chain::contract_type, (normal_contract)(native_contract)(contract_based_on_template))
