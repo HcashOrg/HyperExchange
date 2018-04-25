@@ -24,7 +24,6 @@
 #include <graphene/chain/transfer_evaluator.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/exceptions.hpp>
-#include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/crosschain/crosschain.hpp>
@@ -117,11 +116,6 @@ void_result override_transfer_evaluator::do_evaluate( const override_transfer_op
 
    FC_ASSERT( is_authorized_asset( d, to_account, asset_type ) );
    FC_ASSERT( is_authorized_asset( d, from_account, asset_type ) );
-
-   if( d.head_block_time() <= HARDFORK_419_TIME )
-   {
-      FC_ASSERT( is_authorized_asset( d, from_account, asset_type ) );
-   }
    // the above becomes no-op after hardfork because this check will then be performed in evaluator
 
    FC_ASSERT( d.get_balance( from_account, asset_type ).amount >= op.amount.amount,

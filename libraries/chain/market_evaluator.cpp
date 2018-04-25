@@ -29,7 +29,6 @@
 
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/exceptions.hpp>
-#include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
 
 #include <graphene/chain/protocol/market.hpp>
@@ -64,10 +63,7 @@ void_result limit_order_create_evaluator::do_evaluate(const limit_order_create_o
 
 void limit_order_create_evaluator::pay_fee()
 {
-   if( db().head_block_time() <= HARDFORK_445_TIME )
-      generic_evaluator::pay_fee();
-   else
-      _deferred_fee = core_fee_paid;
+	generic_evaluator::pay_fee();
 }
 
 object_id_type limit_order_create_evaluator::do_apply(const limit_order_create_operation& op)
