@@ -3102,8 +3102,7 @@ public:
 		   return _remote_db->get_multisig_address_obj(symbol,guard);
 	   }FC_CAPTURE_AND_RETHROW()
    }
-
-
+  
    multisig_asset_transfer_object get_multisig_asset_tx(multisig_asset_transfer_id_type id)
    {
 	   try {
@@ -3614,6 +3613,8 @@ public:
 	   return result;
    }
 
+   
+
    optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
    {
 	   auto vec_objs = get_multi_address_obj(symbol,guard);
@@ -3637,6 +3638,29 @@ public:
 	   }
 	   return ret;
    }
+
+   optional<multisig_account_pair_object> get_current_multi_address(const string& symbol) const
+   {
+	   auto guard_ids = get_global_properties().active_committee_members;
+	   auto guards = _remote_db->get_guard_members(guard_ids);
+	   account_id_type guard_acc;
+	   for (auto guard : guards)
+	   {
+		   if (guard.valid())
+		   {
+			   if (guard->formal == true)
+			   {
+				   guard_acc = guard->guard_member_account;
+				   break;
+			   }
+		   }
+	   }
+	   auto ret = get_current_multi_address_obj(symbol, guard_acc);
+	   if (!ret.valid())
+		   return optional<multisig_account_pair_object>();
+	   return get_multisig_account_pair(ret->multisig_account_pair_object_id);
+   }
+
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
@@ -6336,6 +6360,11 @@ vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
 vector<optional<multisig_address_object>> wallet_api::get_multi_address_obj(const string& symbol,const account_id_type& guard) const
 {
 	return my->get_multi_address_obj(symbol,guard);
+}
+
+optional<multisig_account_pair_object> wallet_api::get_current_multi_address(const string& symbol) const
+{
+	return my->get_current_multi_address(symbol);
 }
 
 full_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
