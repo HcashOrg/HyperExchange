@@ -1101,7 +1101,7 @@ namespace graphene {
             *ccode = code;
             return ccode;
         }
-        asset contract_common_evaluate::asset_from_sting(const string & symbol, const string & amount)
+        asset contract_common_evaluate::asset_from_string(const string & symbol, const string & amount)
         {
             auto& asset_indx = get_db().get_index_type<asset_index>().indices().get<by_symbol>();
             auto asset_symbol_itr = asset_indx.find(symbol);
@@ -1368,7 +1368,7 @@ namespace graphene {
                  get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
              get_db().modify_current_collected_fee(total_fee - unspent_fee);
 
-             if (get_guarantee_id().valid())
+             if (!get_guarantee_id().valid())
              {
                  if (unspent_fee != 0)
                      get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));

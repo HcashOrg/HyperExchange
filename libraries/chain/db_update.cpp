@@ -27,7 +27,6 @@
 
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/global_property_object.hpp>
-#include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
@@ -438,10 +437,7 @@ void database::update_expired_feeds()
 
       const asset_bitasset_data_object& b = a.bitasset_data(*this);
       bool feed_is_expired;
-      if( head_block_time() < HARDFORK_615_TIME )
-         feed_is_expired = b.feed_is_expired_before_hardfork_615( head_block_time() );
-      else
-         feed_is_expired = b.feed_is_expired( head_block_time() );
+      feed_is_expired = b.feed_is_expired( head_block_time() );
       if( feed_is_expired )
       {
          modify(b, [this](asset_bitasset_data_object& a) {

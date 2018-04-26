@@ -1937,7 +1937,7 @@ class wallet_api
       vector<asset> get_contract_balance(const string& contract_address) const;
       vector<contract_invoke_result_object> get_contract_invoke_object(const std::string& );
       vector<string> get_contract_addresses_by_owner(const std::string&);
-      vector<contract_object> get_contracts_by_owner(const std::string&);
+      vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);
       // end contract wallet apis
       // begin script wallet apis
@@ -1976,6 +1976,7 @@ class wallet_api
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
+	  optional<multisig_account_pair_object> get_current_multi_address(const string& symbol) const;
 	  full_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
@@ -1984,7 +1985,7 @@ class wallet_api
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
-	  vector<transaction_id_type> list_transactions() const;
+	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
@@ -2215,6 +2216,7 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
+		(get_current_multi_address)
 		(register_contract)
 		(register_native_contract)
         (register_contract_like)
@@ -2250,6 +2252,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)
+		(signrawtransaction)
 		(get_my_guarantee_order)
         (get_contract_invoke_object)
       )

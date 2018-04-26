@@ -29,6 +29,7 @@ namespace graphene {
             address inherit_from;
 
         };
+        struct by_owner{};
         struct by_contract_obj_id {};
         typedef multi_index_container<
             contract_object,

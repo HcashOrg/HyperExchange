@@ -94,7 +94,7 @@ namespace graphene { namespace app {
 	   transaction_api(application& app);
 	   ~transaction_api();
 	   optional<graphene::chain::transaction> get_transaction(transaction_id_type trx_id);
-	   vector<transaction_id_type> list_transactions();
+	   vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1);
 	   void set_tracked_addr(const address& addr);
    private:
 	   application & _app;

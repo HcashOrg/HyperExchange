@@ -138,6 +138,8 @@ namespace graphene {
 			string  native_contract_key;
 
 			extensions_type   extensions;
+			optional<guarantee_object_id_type> guarantee_id;
+			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 
 			address fee_payer()const { return owner_addr; }
 			void            validate()const;
@@ -153,4 +155,4 @@ namespace graphene {
 
 FC_REFLECT(graphene::chain::demo_native_contract, (contract_id))
 FC_REFLECT(graphene::chain::native_contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
-FC_REFLECT(graphene::chain::native_contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(native_contract_key))
+FC_REFLECT(graphene::chain::native_contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(native_contract_key)(guarantee_id))

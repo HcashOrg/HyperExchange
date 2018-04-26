@@ -99,7 +99,7 @@ namespace uvm {
 
 	}
 }
-
+#include <graphene/chain/contract_object.hpp>
 namespace graphene {
 	namespace chain {
 		CodePrintAble::CodePrintAble(const uvm::blockchain::Code& code) : abi(code.abi), offline_abi(code.offline_abi), events(code.events), code_hash(code.code_hash)
@@ -114,6 +114,26 @@ namespace graphene {
 			}
 
 			free(code_buf);
+		}
+        ContractEntryPrintable FormatContract(const contract_object& obj)
+		{
+            ContractEntryPrintable res;
+            res.id = obj.contract_address.address_to_contract_string();
+            res.owner_address = obj.owner_address;
+            res.name = obj.name;
+            res.description = obj.contract_desc;
+            res.type_of_contract = obj.type_of_contract;
+            res.code_printable = obj.code;
+            if(obj.inherit_from!=address())
+            {
+                res.inherit_from = obj.inherit_from.address_to_contract_string();
+            }
+            for(auto& addr: obj.derived)
+            {
+                res.derived.push_back(addr.address_to_contract_string());
+            }
+            return res;
+
 		}
 	}
 }
