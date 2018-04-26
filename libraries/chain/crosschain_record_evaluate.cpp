@@ -1,6 +1,8 @@
 #include <graphene/chain/crosschain_record_evaluate.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
+#include <fc/smart_ref_impl.hpp>
+
 namespace graphene {
 	namespace chain {
 		void_result crosschain_record_evaluate::do_evaluate(const crosschain_record_operation& o) {
@@ -62,6 +64,7 @@ namespace graphene {
 				return void_result();
 			bool valid_address = hdl->validate_address(o.crosschain_account);
 			FC_ASSERT(valid_address, "crosschain address isn`t valid");
+			FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 			//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
 			
 			return void_result();
@@ -229,6 +232,7 @@ namespace graphene {
 				auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 				FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
 			}
+			FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
             return void_result();
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_apply(const crosschain_withdraw_combine_sign_operation& o) {

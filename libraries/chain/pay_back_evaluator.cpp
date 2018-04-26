@@ -10,9 +10,15 @@ namespace graphene {
 				FC_ASSERT(pay_back_iter != payback_db.end(),"This address doesnt own pay back balace!");
 				auto temp_payback_balance = pay_back_iter->owner_balance;
 				for (const auto& pay_back_obj : o.pay_back_balance) {
+					share_type min_payback_balance = d.get_global_properties().parameters.min_pay_back_balance;
+					auto other_payback_balance = d.get_global_properties().parameters.min_pay_back_balance_other_asset;
+					if (other_payback_balance.count(pay_back_obj.first) != 0){
+						min_payback_balance = other_payback_balance[pay_back_obj.first].amount;
+					}
 					auto temp_iter = temp_payback_balance.find(pay_back_obj.first);
 					FC_ASSERT(temp_iter != temp_payback_balance.end());
 					FC_ASSERT(pay_back_obj.second.amount > 0);
+					FC_ASSERT(pay_back_obj.second.amount >= min_payback_balance,"doesnt get enough pay back");
 					FC_ASSERT(temp_iter->second >= pay_back_obj.second);
 				}
 				return void_result();

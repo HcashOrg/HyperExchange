@@ -157,6 +157,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
+	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
@@ -2216,6 +2217,9 @@ vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(con
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }
+vector<crosschain_trx_object>  database_api::get_account_crosschain_transaction(const string& account)const {
+	return my->get_account_crosschain_transaction(account);
+}
 vector<optional<multisig_address_object>> database_api::get_multi_account_guard(const string & multi_address, const string& symbol) const {
 	return my->get_multi_account_guard(multi_address, symbol);
 }
@@ -2238,6 +2242,14 @@ vector<coldhot_transfer_object> database_api_impl::get_coldhot_transaction(const
 		result.push_back(*coldhot_tx_iter);
 		return result;
 	}
+}
+vector<crosschain_trx_object>  database_api_impl::get_account_crosschain_transaction(const string& account)const {
+	vector<crosschain_trx_object> result;
+	auto cross_trx_range = _db.get_index_type<crosschain_trx_index>().indices().get<by_withdraw_link_account>().equal_range(account);
+	for (const auto crosschain_trx_obj : boost::make_iterator_range(cross_trx_range.first,cross_trx_range.second)){
+		result.push_back(crosschain_trx_obj);
+	}
+	return result;
 }
 vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	vector<crosschain_trx_object> result;
