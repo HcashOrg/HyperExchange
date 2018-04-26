@@ -256,8 +256,10 @@ namespace graphene {
 					if (!valid_address) {
 						continue;
 					}
-					auto temp_amount = fc::variant(withop.amount).as_double()- 0.001;
-					fee[withop.asset_id] += 0.001;
+					auto crosschain_fee = opt_asset->amount_to_string(opt_asset->dynamic_data(*this).fee_pool);
+
+					auto temp_amount = fc::variant(withop.amount).as_double()- fc::variant(crosschain_fee).as_double();
+					fee[withop.asset_id] += fc::variant(crosschain_fee).as_double();
 						
 					if (temp_map.count(withop.crosschain_account)>0){
 						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + temp_amount).c_str();

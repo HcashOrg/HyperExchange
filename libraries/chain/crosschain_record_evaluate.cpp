@@ -199,7 +199,9 @@ namespace graphene {
 			{
 				total_op_amount += opt_asset.amount_from_string(trx.second.amount).amount;
 			}
+			FC_ASSERT(o.crosschain_fee.amount >= 0);
 			FC_ASSERT(total_amount == (total_op_amount + o.crosschain_fee.amount + cross_fee.amount));
+			
 			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
 			
 			

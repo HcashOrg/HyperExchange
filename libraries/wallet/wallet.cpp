@@ -2325,6 +2325,7 @@ public:
 		   op.precision = precision;
 		   op.max_supply = max_supply;
 		   op.symbol = symbol;
+		   op.core_fee_paid = core_fee_paid;
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
