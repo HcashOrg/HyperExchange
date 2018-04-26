@@ -39,7 +39,7 @@ namespace graphene {
             database& get_db() const;
             StorageDataType get_storage(const string &contract_id, const string &storage_name) const;
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(const string &contract_name) const;
-            asset asset_from_sting(const string& symbol, const string& amount);
+            asset asset_from_string(const string& symbol, const string& amount);
             std::shared_ptr<uvm::blockchain::Code> get_contract_code_from_db_by_id(const string &contract_id) const;
             //void add_gas_fee(const asset& fee);
             void undo_contract_effected(const share_type& fee);

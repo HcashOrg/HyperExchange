@@ -92,13 +92,13 @@ namespace graphene {
 			printf("api %s called with arg %s\n", api_name.c_str(), api_arg.c_str());
 			if (api_name == "contract_balance")
 			{
-				auto system_asset_id = _evaluate->asset_from_sting(string(GRAPHENE_SYMBOL), string("0")).asset_id;
+				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
 				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
 				result.api_result = std::to_string(balance.value);
 			}
 			else if (api_name == "withdraw")
 			{
-				auto system_asset_id = _evaluate->asset_from_sting(string(GRAPHENE_SYMBOL), string("0")).asset_id;
+				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
 				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
 				if(balance.value <= 0)
 					THROW_CONTRACT_ERROR("can't withdraw because of empty balance");
