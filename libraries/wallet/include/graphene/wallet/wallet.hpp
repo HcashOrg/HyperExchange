@@ -560,6 +560,7 @@ class wallet_api
        */
       account_object                    get_account(string account_name_or_id) const;
 	  account_object change_account_name(const string& oldname, const string& newname);
+	  void remove_local_account(const string & account_name);
 
       /** Returns information about the given asset.
        * @param asset_name_or_id the symbol or id of the asset in question
@@ -1786,6 +1787,7 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id);
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
@@ -1846,6 +1848,12 @@ class wallet_api
 		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
 		  bool broadcast = false);
+	  full_transaction propose_pay_back_asset_rate_change(
+		  const string& proposing_account,
+		  fc::time_point_sec expiration_time,
+		  const variant_object& changed_values,
+		  bool broadcast = false
+	  );
       /** Propose a fee change.
        * 
        * @param proposing_account The account paying the fee to propose the tx
@@ -2121,6 +2129,7 @@ FC_API( graphene::wallet::wallet_api,
         (set_desired_miner_and_guard_member_count)
         (get_account)
 		(change_account_name)
+	    (remove_local_account)
         (get_account_id)
         (get_block)
         (get_account_count)
@@ -2142,6 +2151,7 @@ FC_API( graphene::wallet::wallet_api,
         (sign_transaction)
         (get_prototype_operation)
 		(propose_guard_pledge_change)
+		(propose_pay_back_asset_rate_change)
         (propose_parameter_change)
 		(propose_coin_destory)
         (propose_fee_change)

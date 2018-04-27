@@ -72,6 +72,8 @@ namespace graphene { namespace chain {
       uint8_t                 max_authority_depth                 = GRAPHENE_MAX_SIG_CHECK_DEPTH;
 	  uint64_t				  minimum_pledge_weight_line		  = GRAPHENE_MIN_PLEDGE_WEIGHT_LINE;
 	  flat_map<string,asset>         minimum_guard_pledge_line			  ;
+	  share_type			 min_pay_back_balance = GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE;
+	  flat_map<string, asset>  min_pay_back_balance_other_asset;
       extensions_type         extensions;
 
       /** defined in fee_schedule.cpp */
@@ -110,5 +112,7 @@ FC_REFLECT( graphene::chain::chain_parameters,
             (accounts_per_fee_scale)
             (account_fee_scale_bitshifts)
             (max_authority_depth)
+			(min_pay_back_balance)
+			(min_pay_back_balance_other_asset)
             (extensions)
           )
