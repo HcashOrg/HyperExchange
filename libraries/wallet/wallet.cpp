@@ -1797,12 +1797,11 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
-		   auto scripts = trx["scriptPubKey"].as<vector<string>>();
+		   auto vins = trx["trx"].get_object()["vin"].get_array();
 		   string raw = trx["hex"].as_string();
-		   for (auto index=0;index < scripts.size(); index++)
+		   for (auto index=0;index < vins.size(); index++)
 		   {
-			   auto script = scripts.at(index);
-			   raw=prk_ptr->sign_trx(script,raw,index);
+			   raw=prk_ptr->sign_trx(raw,index);
 		   }
 		   if (broadcast)
 		   {
