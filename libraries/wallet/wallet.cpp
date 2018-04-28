@@ -775,6 +775,10 @@ public:
 	   }FC_CAPTURE_AND_RETHROW()
    }
 
+   optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id)
+   {
+	   return _remote_db->get_gurantee_object(id);
+   }
 
    void set_guarantee_id(const guarantee_object_id_type id)
    {
@@ -6639,7 +6643,10 @@ vector<transaction_id_type> wallet_api::list_transactions(uint32_t blocknum , ui
 {
 	return my->list_transactions(blocknum,nums);
 }
-
+optional<guarantee_object> wallet_api::get_guarantee_order(const guarantee_object_id_type id)
+{
+	return my->get_guarantee_order(id);
+}
 
 void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 {
