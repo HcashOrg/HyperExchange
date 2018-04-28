@@ -791,8 +791,6 @@ BOOST_AUTO_TEST_CASE(guard_refund_balance_operation_test)
 		db.adjust_balance(acct.addr, asset(0, emu.get_id()));
 		guard_refund_balance_operation op;
 		op.refund_addr = acct.addr;
-		op.refund_amount = 1000;
-		op.refund_asset_id = get_asset("BTC").get_id();
 		op.txid = "fdsfsddsfsd";
 
 		signed_transaction trx;
