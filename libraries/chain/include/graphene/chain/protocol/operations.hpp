@@ -116,6 +116,7 @@ namespace graphene { namespace chain {
 			graphene::chain::guard_lock_balance_operation,
 			graphene::chain::guard_foreclose_balance_operation,
 	        graphene::chain::guard_refund_balance_operation,
+			
 	   graphene::chain::crosschain_record_operation,
 	   graphene::chain::crosschain_withdraw_operation,
 	   graphene::chain::crosschain_withdraw_without_sign_operation,
@@ -138,7 +139,8 @@ namespace graphene { namespace chain {
 	   storage_operation,
 	   transfer_contract_operation,
 	        gurantee_create_operation,
-	   gurantee_cancel_operation
+	   gurantee_cancel_operation,
+	   guard_refund_crosschain_trx_operation
          > operation;
 
    /// @} // operations group

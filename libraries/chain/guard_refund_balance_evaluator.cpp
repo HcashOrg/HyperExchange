@@ -49,5 +49,59 @@ namespace graphene {
 				FC_ASSERT(addrs.find(o.refund_addr) != addrs.end() ,"withdraw is not created by this account.");
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
+		void_result guard_refund_crosschain_trx_evaluator::do_evaluate(const guard_refund_crosschain_trx_operation& o) {
+			try {
+				const database& d = db();
+				const auto& trx_db = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+				const auto iter = trx_db.find(o.not_enough_sign_trx_id);
+				FC_ASSERT(iter != trx_db.end(), "transaction not exist.");
+				FC_ASSERT(iter->trx_state != withdraw_without_sign_trx_create, "cross chain trx state error");
+				FC_ASSERT(iter->real_transaction.operations.size() == 1, "operation size error");
+				auto op = iter->real_transaction.operations[0];
+				FC_ASSERT(op.which() == operation::tag<crosschain_withdraw_without_sign_operation>::value, "operation type error");
+				auto without_sign_op = op.get<crosschain_withdraw_without_sign_operation>();
+				auto asset_symbol = without_sign_op.asset_symbol;
+				const asset_object&   asset_type = without_sign_op.asset_id(d);
+				FC_ASSERT(asset_symbol == asset_type.symbol);
+				for (const auto& op : without_sign_op.ccw_trx_ids) {
+					const auto source_trx_iter = trx_db.find(op);
+					FC_ASSERT(source_trx_iter != trx_db.end(), "source trx exist error");
+					FC_ASSERT(source_trx_iter->real_transaction.operations.size() == 1, "source trx operation size error");
+					auto op = source_trx_iter->real_transaction.operations[0];
+					auto source_op = op.get<crosschain_withdraw_operation>();
+					FC_ASSERT(asset_symbol == source_op.asset_symbol);
+					FC_ASSERT(without_sign_op.asset_id == source_op.asset_id);
+				}
+			}FC_CAPTURE_AND_RETHROW((o))			
+		}
+		void_result guard_refund_crosschain_trx_evaluator::do_apply(const guard_refund_crosschain_trx_operation& o) {
+			try {
+				database& d = db();
+				auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+				auto iter = crosschain_trxs.find(transaction_id_type(o.not_enough_sign_trx_id));
+				auto crosschain_sign_trxs_range = d.get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(iter->transaction_id);
+				for (auto sign_trx : boost::make_iterator_range(crosschain_sign_trxs_range.first, crosschain_sign_trxs_range.second)) {
+					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
+					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
+						obj.trx_state = withdraw_canceled;
+					});
+				}
+				auto op = iter->real_transaction.operations[0];
+				auto without_sign_op = op.get<crosschain_withdraw_without_sign_operation>();
+				const asset_object&   asset_type = without_sign_op.asset_id(d);
+				for (const auto& source_trx_id : without_sign_op.ccw_trx_ids) {
+					auto source_iter = crosschain_trxs.find(source_trx_id);
+					auto op = source_iter->real_transaction.operations[0];
+					auto source_op = op.get<crosschain_withdraw_operation>();
+					d.adjust_balance(source_op.withdraw_account, asset(asset_type.amount_from_string(source_op.amount).amount, source_op.asset_id));
+					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
+						obj.trx_state = withdraw_canceled;
+					});
+				}
+				d.modify(*iter, [&](crosschain_trx_object& obj) {
+					obj.trx_state = withdraw_canceled;
+				});
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
 	}
 }
