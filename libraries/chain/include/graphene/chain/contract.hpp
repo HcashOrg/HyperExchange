@@ -20,7 +20,9 @@ namespace graphene {
 			address contract_address;
 			string event_name;
 			string event_arg;
+            string caller_addr;
             uint64_t block_num;
+            uint32_t op_num;
 		};
 
 		struct comparator_for_contract_invoke_result_balance {
@@ -204,7 +206,7 @@ namespace graphene {
 
 	}
 }
-FC_REFLECT(graphene::chain::contract_event_notify_info,(contract_address)(event_name)(event_arg)(block_num))
+FC_REFLECT(graphene::chain::contract_event_notify_info,(contract_address)(caller_addr)(event_name)(event_arg)(block_num)(op_num))
 FC_REFLECT(graphene::chain::contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(contract_code)(inherit_from)(guarantee_id))
 FC_REFLECT(graphene::chain::contract_invoke_operation::fee_parameters_type, (fee)(price_per_kbyte))
