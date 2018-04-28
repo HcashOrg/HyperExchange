@@ -7,15 +7,17 @@ namespace graphene {
 		{
 			try
 			{
-			  //adjust the balance of refund_addr
 				database& d = db();
-				const asset_object&   asset_type = o.refund_asset_id(d);
+			  //adjust the balance of refund_addr
+				const auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+				const auto iter = crosschain_trxs.find(transaction_id_type(o.txid));
+				auto op = iter->real_transaction.operations[0];
+				auto asset_id = op.get<crosschain_withdraw_operation>().asset_id;
+
+				auto amount = op.get<crosschain_withdraw_operation>().amount;
+				auto obj = d.get(asset_id);
 				const auto refund_addr = o.refund_addr;
-				const auto amount = o.refund_amount;
-				//check if the status of trx is correct or not
-				auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-				auto iter = crosschain_trxs.find(transaction_id_type(o.txid));
-				d.adjust_balance(refund_addr,asset(amount,asset_type.get_id()));
+				d.adjust_balance(refund_addr, obj.amount_from_string(amount));
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
 				});
@@ -27,7 +29,6 @@ namespace graphene {
 			try
 			{
 				const database& d = db();
-				const asset_object&   asset_type = o.refund_asset_id(d);
 				//if status of last crosschain transaction is Failed,
 				//refund, and need change the status of that status
 				//TODO
@@ -35,6 +36,9 @@ namespace graphene {
 				const auto iter = crosschain_trxs.find(transaction_id_type(o.txid));
 				FC_ASSERT( iter != crosschain_trxs.end(),"transaction not exist.");
 				FC_ASSERT(iter->trx_state == withdraw_without_sign_trx_uncreate, "refund if only crosschain transaction is not created.");
+				FC_ASSERT(iter->real_transaction.operations.size() == 1, "operation size error");
+				auto op = iter->real_transaction.operations[0];
+				FC_ASSERT(op.which() == operation::tag<crosschain_withdraw_operation>::value, "operation type error");
 				auto trx = iter->real_transaction;
 				flat_set<public_key_type> keys = trx.get_signature_keys(d.get_chain_id());
 				flat_set<address> addrs;

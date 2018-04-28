@@ -10,8 +10,6 @@ namespace graphene {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
 			asset fee;
-			asset_id_type refund_asset_id;
-			share_type refund_amount;
 			address    refund_addr;
 			string     txid;
 			void       validate()const;
@@ -43,6 +41,6 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::guard_refund_balance_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_asset_id)(refund_amount)(refund_addr)(txid))
+FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_addr)(txid))
 FC_REFLECT(graphene::chain::guard_refund_crosschain_trx_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::guard_refund_crosschain_trx_operation, (fee)(guard_address)(not_enough_sign_trx_id))

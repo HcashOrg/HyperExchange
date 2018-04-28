@@ -526,6 +526,7 @@ namespace graphene {
 					trx_op.cross_chain_trx = hdl->merge_multisig_transaction(with_sign_op.withdraw_source_trx, guard_signed);
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
+					trx_op.crosschain_fee = with_sign_op.crosschain_fee;
 					trx_op.miner_broadcast = miner;
 					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;
 					optional<miner_object> miner_iter = get(miner);

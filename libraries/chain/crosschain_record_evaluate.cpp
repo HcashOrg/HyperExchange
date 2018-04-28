@@ -215,11 +215,9 @@ namespace graphene {
 			{
 				db().adjust_crosschain_transaction(one_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_without_sign_operation>::value), withdraw_without_sign_trx_create, o.ccw_trx_ids);
 			}
-			
-
 			return void_result();
 		}
-		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
+		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
 
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
@@ -235,6 +233,8 @@ namespace graphene {
 				FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
 			}
 			FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
+			FC_ASSERT(o.get_fee().valid(), "doenst set fee");
+			fee = *o.get_fee();
             return void_result();
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_apply(const crosschain_withdraw_combine_sign_operation& o) {
@@ -251,9 +251,10 @@ namespace graphene {
 			hdl->broadcast_transaction(o.cross_chain_trx);
 			return void_result();
 		}
-		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
-
+		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
+			db().modify_current_collected_fee(core_fees_paid);
 		}
+		
 		void_result crosschain_withdraw_with_sign_evaluate::do_evaluate(const crosschain_withdraw_with_sign_operation& o) {
 			//auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			//auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));

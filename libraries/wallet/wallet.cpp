@@ -1807,12 +1807,11 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
-		   auto scripts = trx["scriptPubKey"].as<vector<string>>();
+		   auto vins = trx["trx"].get_object()["vin"].get_array();
 		   string raw = trx["hex"].as_string();
-		   for (auto index=0;index < scripts.size(); index++)
+		   for (auto index=0;index < vins.size(); index++)
 		   {
-			   auto script = scripts.at(index);
-			   raw=prk_ptr->sign_trx(script,raw,index);
+			   raw=prk_ptr->sign_trx(raw,index);
 		   }
 		   if (broadcast)
 		   {
@@ -3002,18 +3001,15 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(trxid)(exception_time)(broadcast))
 
    }
-   full_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
+   full_transaction refund_request(const string& refund_account, const string& txid, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
 		   auto acc = get_account(refund_account);
 		   auto addr = acc.addr;
 		   FC_ASSERT(addr != address(), "wallet has no this account.");
-		   asset_object asset_obj = get_asset(symbol);
 		   guard_refund_balance_operation op;
 		   op.refund_addr = addr;
-		   op.refund_amount = asset_obj.amount_from_string(amount).amount;
-		   op.refund_asset_id = asset_obj.get_id();
 		   op.txid = txid;
 
 		   signed_transaction trx;
@@ -3024,7 +3020,7 @@ public:
 		   return sign_transaction(trx,broadcast);
 
 
-          }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
+          }FC_CAPTURE_AND_RETHROW((refund_account)(txid)(broadcast))
    }
 
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
@@ -6403,9 +6399,9 @@ vector< signed_transaction > wallet_api::import_balance( string name_or_id, cons
    return my->import_balance( name_or_id, wif_keys, broadcast );
 }
 
-full_transaction wallet_api::refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast )
+full_transaction wallet_api::refund_request(const string& refund_account, const string txid, bool broadcast )
 {
-	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
+	return my->refund_request(refund_account,txid,broadcast);
 }
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
