@@ -37,29 +37,24 @@ namespace graphene { namespace privatekey_management {
 		return _key;
 	}
 
-	std::string  crosschain_privatekey_base::sign_trx(const std::string& script, const std::string& raw_trx,int index)
+	std::string  crosschain_privatekey_base::sign_trx(const std::string& raw_trx,int index)
 	{
 		//get endorsement
 		libbitcoin::endorsement out;
 		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
-// 		libbitcoin::wallet::ec_private libbitcoin_priv("L5d83SNdFb6EvyZvMDY7zGAhpgZc8hhr57onBo2YxUbdja8PZ7WL");
-		//libbitcoin::config::base16  base(script);
-		libbitcoin::chain::script   libbitcoin_script;//(libbitcoin::data_chunk(base),true);
-		libbitcoin_script.from_string(script);
-	
+		auto prev_script = libbitcoin::chain::script::to_pay_key_hash_pattern(libbitcoin_priv.to_payment_address().hash());
+		libbitcoin::chain::script   libbitcoin_script;//(libbitcoin::data_chunk(base),true);	
 		libbitcoin::chain::transaction  trx;
 		trx.from_data(libbitcoin::config::base16(raw_trx));
 		uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
 
-		auto result = libbitcoin::chain::script::create_endorsement(out, libbitcoin_priv.secret(), libbitcoin_script, trx, index, hash_type);
+		auto result = libbitcoin::chain::script::create_endorsement(out, libbitcoin_priv.secret(), prev_script, trx, index, hash_type);
 		assert( result == true);
 // 		printf("endorsement is %s\n", libbitcoin::encode_base16(out).c_str());
 
 		//get public hex
 		libbitcoin::wallet::ec_public libbitcoin_pub = libbitcoin_priv.to_public();
 		std::string pub_hex = libbitcoin_pub.encoded();
-// 		printf("public hex is %s\n", pub_hex.c_str());
-
 		//get signed raw-trx
 		std::string endorsment_script = "[" + libbitcoin::encode_base16(out) + "]" + " [" + pub_hex + "] ";
 // 		printf("endorsement script is %s\n", endorsment_script.c_str());
@@ -68,12 +63,7 @@ namespace graphene { namespace privatekey_management {
 		//trx.from_data(libbitcoin::config::base16(raw_trx));
 		trx.inputs()[index].set_script(libbitcoin_script);	    
 		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());
-
 // 		printf("signed trx is %s\n", signed_trx.c_str());
-
-
-
-
 		return signed_trx;
 	}
 
@@ -164,9 +154,9 @@ namespace graphene { namespace privatekey_management {
 	{
 		return this->crosschain_privatekey_base::sign_message(msg);
 	}
-	std::string btc_privatekey::sign_trx(const std::string& script, const std::string& raw_trx,int index)
+	std::string btc_privatekey::sign_trx(const std::string& raw_trx,int index)
 	{
-		return this->crosschain_privatekey_base::sign_trx(script,raw_trx,index);
+		return this->crosschain_privatekey_base::sign_trx(raw_trx,index);
 	}
 
 	fc::optional<fc::ecc::private_key>   btc_privatekey::import_private_key(const std::string& wif_key)
@@ -346,9 +336,9 @@ namespace graphene { namespace privatekey_management {
 		return key;
 
 	}
-	std::string ltc_privatekey::sign_trx(const std::string& script, const std::string& raw_trx,int index)
+	std::string ltc_privatekey::sign_trx( const std::string& raw_trx,int index)
 	{
-		return this->crosschain_privatekey_base::sign_trx(script, raw_trx, index);
+		return this->crosschain_privatekey_base::sign_trx(raw_trx, index);
 	}
 
 	void ub_privatekey::init()
@@ -508,14 +498,15 @@ namespace graphene { namespace privatekey_management {
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
 	}
-	std::string ub_privatekey::sign_trx(const std::string& script, const std::string& raw_trx, int index)
+	std::string ub_privatekey::sign_trx(const std::string& raw_trx, int index)
 	{
-		auto out = create_endorsement_ub(get_wif_key(), script, raw_trx, index);
-		FC_ASSERT(out != "");
 		libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
+		libbitcoin::chain::script script = libbitcoin::chain::script::to_pay_key_hash_pattern(libbitcoin_priv.to_payment_address().hash());
+		auto prev = libbitcoin::encode_base16(script.to_data(false));
+		auto out = create_endorsement_ub(get_wif_key(), prev, raw_trx, index);
+		FC_ASSERT(out != "");
+		
 		libbitcoin::chain::script   libbitcoin_script;//(libbitcoin::data_chunk(base),true);
-		libbitcoin_script.from_string(script);
-
 		libbitcoin::chain::transaction  trx;
 		trx.from_data(libbitcoin::config::base16(raw_trx));
 		uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;

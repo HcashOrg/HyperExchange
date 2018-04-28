@@ -58,12 +58,14 @@ namespace graphene {
 
 			try {
 				if (op_type == operation::tag<crosschain_withdraw_evaluate::operation_type>::value) {
-					
+					auto op = real_transaction.operations[0];
+					auto withdraw_op = op.get<crosschain_withdraw_operation>();
 					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_transaction_id = transaction_id_type();
 						obj.transaction_id = transaction_id;
 						obj.real_transaction = real_transaction;
+						obj.without_link_account = string(withdraw_op.withdraw_account);
 						obj.trx_state = withdraw_without_sign_trx_uncreate;
 					});
 				}
@@ -99,7 +101,8 @@ namespace graphene {
 					//	auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 					//	FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
 					//}
-					
+					auto op = real_transaction.operations[0];
+					auto combine_op = op.get<crosschain_withdraw_combine_sign_operation>();
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_combine_trx_create;
 					});
@@ -107,6 +110,7 @@ namespace graphene {
 						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 						modify(*tx_user_crosschain_iter, [&](crosschain_trx_object& obj) {
 							obj.trx_state = withdraw_combine_trx_create;
+							obj.crosschain_trx_id = combine_op.crosschain_trx_id;
 						});
 					}
 // 					auto& sign_trx_db = get_index_type< crosschain_trx_index >().indices().get<by_trx_relate_type_stata>();
@@ -138,8 +142,7 @@ namespace graphene {
 							});
 						}
 					}*/
-					auto op = real_transaction.operations[0];
-					auto combine_op = op.get<crosschain_withdraw_combine_sign_operation>();
+					
 					create<crosschain_trx_object>([&](crosschain_trx_object& obj) {
 						obj.op_type = op_type;
 						obj.relate_transaction_id = relate_transaction_id;
@@ -256,8 +259,10 @@ namespace graphene {
 					if (!valid_address) {
 						continue;
 					}
-					auto temp_amount = fc::variant(withop.amount).as_double()- 0.001;
-					fee[withop.asset_id] += 0.001;
+					auto crosschain_fee = opt_asset->amount_to_string(opt_asset->dynamic_data(*this).fee_pool);
+
+					auto temp_amount = fc::variant(withop.amount).as_double()- fc::variant(crosschain_fee).as_double();
+					fee[withop.asset_id] += fc::variant(crosschain_fee).as_double();
 						
 					if (temp_map.count(withop.crosschain_account)>0){
 						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + temp_amount).c_str();
@@ -521,6 +526,7 @@ namespace graphene {
 					trx_op.cross_chain_trx = hdl->merge_multisig_transaction(with_sign_op.withdraw_source_trx, guard_signed);
 					trx_op.asset_symbol = with_sign_op.asset_symbol;
 					trx_op.signed_trx_ids.swap(trxs.second);
+					trx_op.crosschain_fee = with_sign_op.crosschain_fee;
 					trx_op.miner_broadcast = miner;
 					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;
 					optional<miner_object> miner_iter = get(miner);

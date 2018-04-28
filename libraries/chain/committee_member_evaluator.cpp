@@ -86,16 +86,19 @@ namespace graphene {
 				auto guard_iter = guard_idx.find(op.guard_member_account);
                 FC_ASSERT(guard_iter != guard_idx.end());
 				FC_ASSERT(db().get(op.guard_member_account).addr == op.owner_addr);
+				share_type nCount = 0;
+				for (auto acc : guard_idx)
+				{
+					if (acc.formal == true)
+						nCount++;
+				}
+				FC_ASSERT(nCount <= GRAPHENE_DEFAULT_MAX_GUARDS);
 				if (op.formal.valid()&& *op.formal == true)
 				{
 					const auto& guard_lock_balances = db().get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
-					
-					
 					const auto& global_prop = db().get_global_properties();
 					for (auto& one_asset_iter : global_prop.parameters.minimum_guard_pledge_line)
 					{
-						
-
 						auto guard_balance_iter = guard_lock_balances.find(boost::make_tuple(guard_iter->id, one_asset_iter.second.asset_id));
 						FC_ASSERT(guard_balance_iter != guard_lock_balances.end());
 						FC_ASSERT(guard_balance_iter->lock_asset_amount >= one_asset_iter.second.amount);

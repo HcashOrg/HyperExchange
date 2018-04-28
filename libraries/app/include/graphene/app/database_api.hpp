@@ -604,6 +604,7 @@ class database_api
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
 
+	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
@@ -742,6 +743,7 @@ FC_API(graphene::app::database_api,
 	(lookup_multisig_asset)
 	(get_binding_account)
 	(get_crosschain_transaction)
+	(get_account_crosschain_transaction)
 	(get_coldhot_transaction)
 	(get_multi_account_guard)
 	(get_multisig_address_obj)

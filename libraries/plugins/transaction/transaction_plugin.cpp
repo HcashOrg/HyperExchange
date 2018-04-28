@@ -109,6 +109,13 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 			addresses.insert(op_transfer.from_addr);
 			addresses.insert(op_transfer.to_addr);
 		}
+		else if (op.which() == operation::tag<graphene::chain::crosschain_record_operation>::value)
+		{
+			auto op_record = op.get<graphene::chain::crosschain_record_operation>();
+			const auto& tunnel_idx = db.get_index_type<account_binding_index>().indices().get<by_binded_account>();
+			const auto tunnel_itr = tunnel_idx.find(boost::make_tuple(op_record.cross_chain_trx.from_account, op_record.cross_chain_trx.asset_symbol));
+			addresses.insert(tunnel_itr->owner);
+		}
 	}
 
 

@@ -8,8 +8,8 @@ namespace graphene {
 				FC_ASSERT(obj.second.amount > 0);
 			}			
 		}
-		share_type      pay_back_operation::calculate_fee(const fee_parameters_type& k)const {
-			return share_type(0);
-		}
+// 		share_type      pay_back_operation::calculate_fee(const fee_parameters_type& k)const {
+// 			return share_type(0);
+// 		}
 	}
 }

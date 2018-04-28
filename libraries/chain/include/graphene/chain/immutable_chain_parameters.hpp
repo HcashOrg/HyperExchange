@@ -33,7 +33,8 @@ namespace graphene { namespace chain {
 
 struct immutable_chain_parameters
 {
-   uint16_t min_guard_count = GRAPHENE_DEFAULT_MIN_GUARD_COUNT;
+   uint16_t min_guard_count = GRAPHENE_DEFAULT_MIN_GUARDS;
+   uint16_t max_guard_count = GRAPHENE_DEFAULT_MAX_GUARDS;
    uint16_t min_miner_count = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
    uint32_t num_special_accounts = 0;
    uint32_t num_special_assets = 0;

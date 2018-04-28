@@ -162,23 +162,15 @@ namespace graphene {
 			{
 				auto* eval = static_cast<DerivedEvaluator*>(this);
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
-				optional<asset> fee = op.get_fee();
-				if (!fee.valid())
-					prepare_fee(op.fee_payer(), op.fee);
-				else
+				prepare_fee(op.fee_payer(), op.fee);
+				if (!trx_state->skip_fee_schedule_check)
 				{
-					prepare_fee(op.fee_payer(), *fee);
-					if (!trx_state->skip_fee_schedule_check)
-					{
-						share_type required_fee = calculate_fee_for_operation(op);
-						GRAPHENE_ASSERT(core_fees_paid.amount >= required_fee,
-							insufficient_fee,
-							"Insufficient Fee Paid",
-							("core_fee_paid", core_fee_paid)("required", required_fee));
-					}
+					share_type required_fee = calculate_fee_for_operation(op);
+					GRAPHENE_ASSERT(core_fees_paid.amount >= required_fee,
+						insufficient_fee,
+						"Insufficient Fee Paid",
+						("core_fee_paid", core_fee_paid)("required", required_fee));
 				}
-					
-
 				return eval->do_evaluate(op);
 			}
 

@@ -62,7 +62,6 @@ namespace graphene {
 			}
 			void            validate()const;
 			asset crosschain_fee;
-			optional<asset> get_fee()const { return crosschain_fee; }
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 			void get_required_authorities(vector<authority>& a)const {
 				a.push_back(authority(1, miner_address, 1));
@@ -106,6 +105,8 @@ namespace graphene {
 			address fee_payer()const {
 				return miner_address;
 			}
+			asset crosschain_fee;
+			optional<asset> get_fee()const { return crosschain_fee; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 			void get_required_authorities(vector<authority>& a)const {

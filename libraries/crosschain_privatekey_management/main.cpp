@@ -153,13 +153,12 @@ int main(int argc, char** argv)
 // 
 // 	libbitcoin::der_signature out;
 // 	printf("the result is %s\n", libbitcoin::encode_base16(out).c_str());
-ub_privatekey pkey;
-pkey.import_private_key("L2LBS5mGLJK4crnMZLpKMTFMCJCCKH33NyY1mg1aXBr64WTZMR1y");
-std::string raw_transaction = "020000000181b0b0ad36493b0644196adfcd738647dd9655a798d6f3d04fa0e07033b9ec020100000000ffffffff0200a3e1110000000017a914ebc513241b86490f3fa2522aa0c6d6a219e4c5e28760fe87dc0000000017a9144793bc24aa771ace38743e29c6455a5d8d8e5cdb8700000000";
-std::string redeemscript = "552102446a06a4a97a39de16690d8f8cea380cc5466a416b59a6a5ca7d8c3df3440f7221022939d622cb0280fab4fdbd8abac0c583ed9e9db85c5e54b7fa99b09e502d8f0f21036d7cce8ea2f03f695589b6272e6f4b4f85f16ef3725f5e2797ae0830b56d6bf5210277484d6ea40f56175850bd9d6567d1e8bce55beb8932638faa63735aa00d52d221027b9cb70830cbf072fea92c67eac038c4a853f856f5bfc42008c02a79555bf0f52103cd302ee16538438b2a4f23d9f4870ffe11bcb74ea57d6319d1020ef14e7b9a722103250196f0056dde2d0f25e07ec63bafd29148051036d674eadeda04bc9e91046957ae";
-auto endorse = create_endorsement_ub(pkey.get_wif_key(), redeemscript, raw_transaction, 0);
-auto str = graphene::privatekey_management::mutisign_trx(endorse,redeemscript,raw_transaction,0);
-std::cout << endorse << std::endl;
+btc_privatekey pkey;
+pkey.import_private_key("KwbYc3Vzs6d52Rz9UsEPMvAF8DLddthU2g8KpqQ2eHyUVTC1tPeq");
+std::string raw_transaction = "020000000101efc30cb46b3561d1ade9df3800ca560325beb92b15993b1078f53c73153be70000000000ffffffff026043993b000000001976a914bbad6509cda94ef4cc7735d41be492c2e9bab45488ac00286bee0000000017a9140f4d3a1d1b70386fe0846ef8432c8ebcc3c9ee058700000000";
+std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
+auto str = pkey.sign_trx(raw_transaction,0);
+std::cout << str << std::endl;
 	getchar();
 	return 0;
 }

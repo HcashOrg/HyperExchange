@@ -695,6 +695,15 @@ public:
 	   _wallet.updata_account_name(local_account,oldname);
 	   return *_wallet.my_accounts.get<by_name>().find(newname);
    }
+   void remove_local_account(const string& account_name) {
+	   int local_account_count = _wallet.my_accounts.get<by_name>().count(account_name);
+	   FC_ASSERT((local_account_count != 0), "This account dosen`t belong to local wallet");
+	   auto& iter_db = _wallet.my_accounts.get<by_name>();
+	   auto iter_remove = iter_db.find(account_name);
+	   if (iter_remove != iter_db.end()) {
+		   iter_db.erase(iter_remove);
+	   }
+   }
    account_object get_account(string account_name_or_id) const
    {
       FC_ASSERT( account_name_or_id.size() > 0 );
@@ -766,6 +775,10 @@ public:
 	   }FC_CAPTURE_AND_RETHROW()
    }
 
+   optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id)
+   {
+	   return _remote_db->get_gurantee_object(id);
+   }
 
    void set_guarantee_id(const guarantee_object_id_type id)
    {
@@ -1215,6 +1228,7 @@ public:
 		   FC_ASSERT(*owner_asset.begin() >= asset_obj->amount_from_string(amount));
 		   payback_balance[asset_symbol] = asset_obj->amount_from_string(amount);
 		   trx_op.pay_back_balance = payback_balance;
+		   trx_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 
 		   tx.operations.push_back(trx_op);
@@ -1797,12 +1811,11 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
-		   auto scripts = trx["scriptPubKey"].as<vector<string>>();
+		   auto vins = trx["trx"].get_object()["vin"].get_array();
 		   string raw = trx["hex"].as_string();
-		   for (auto index=0;index < scripts.size(); index++)
+		   for (auto index=0;index < vins.size(); index++)
 		   {
-			   auto script = scripts.at(index);
-			   raw=prk_ptr->sign_trx(script,raw,index);
+			   raw=prk_ptr->sign_trx(raw,index);
 		   }
 		   if (broadcast)
 		   {
@@ -2325,6 +2338,7 @@ public:
 		   op.precision = precision;
 		   op.max_supply = max_supply;
 		   op.symbol = symbol;
+		   op.core_fee_paid = core_fee_paid;
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
@@ -2991,18 +3005,15 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(trxid)(exception_time)(broadcast))
 
    }
-   full_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string& txid, bool broadcast)
+   full_transaction refund_request(const string& refund_account, const string& txid, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
 		   auto acc = get_account(refund_account);
 		   auto addr = acc.addr;
 		   FC_ASSERT(addr != address(), "wallet has no this account.");
-		   asset_object asset_obj = get_asset(symbol);
 		   guard_refund_balance_operation op;
 		   op.refund_addr = addr;
-		   op.refund_amount = asset_obj.amount_from_string(amount).amount;
-		   op.refund_asset_id = asset_obj.get_id();
 		   op.txid = txid;
 
 		   signed_transaction trx;
@@ -3013,7 +3024,7 @@ public:
 		   return sign_transaction(trx,broadcast);
 
 
-          }FC_CAPTURE_AND_RETHROW((refund_account)(amount)(symbol)(txid)(broadcast))
+          }FC_CAPTURE_AND_RETHROW((refund_account)(txid)(broadcast))
    }
 
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
@@ -3101,8 +3112,7 @@ public:
 		   return _remote_db->get_multisig_address_obj(symbol,guard);
 	   }FC_CAPTURE_AND_RETHROW()
    }
-
-
+  
    multisig_asset_transfer_object get_multisig_asset_tx(multisig_asset_transfer_id_type id)
    {
 	   try {
@@ -3585,6 +3595,22 @@ public:
 
       return sign_transaction(trx, broadcast);
    }
+   std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id) {
+	   
+	   auto temp = address(account_address);
+	   auto crosschain_all = _remote_db->get_account_crosschain_transaction(account_address);
+	   if (transaction_id_type(trx_id) == transaction_id_type()){
+		   return crosschain_all;
+	   }
+	   std::vector<crosschain_trx_object> resluts;
+	   for (auto obj : crosschain_all) {
+		   if (transaction_id_type(trx_id) == obj.transaction_id){
+			   resluts.push_back(obj);
+			   break;
+		   }
+	   }
+	   return resluts;
+   }
    std::map<transaction_id_type, signed_transaction>get_coldhot_transaction(const int & type) {
 	   std::map<transaction_id_type, signed_transaction> results;
 	   std::vector<coldhot_transfer_object> coldhot_txs = _remote_db->get_coldhot_transaction((coldhot_trx_state)type, transaction_id_type());
@@ -3613,6 +3639,8 @@ public:
 	   return result;
    }
 
+   
+
    optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
    {
 	   auto vec_objs = get_multi_address_obj(symbol,guard);
@@ -3636,6 +3664,29 @@ public:
 	   }
 	   return ret;
    }
+
+   optional<multisig_account_pair_object> get_current_multi_address(const string& symbol) const
+   {
+	   auto guard_ids = get_global_properties().active_committee_members;
+	   auto guards = _remote_db->get_guard_members(guard_ids);
+	   account_id_type guard_acc;
+	   for (auto guard : guards)
+	   {
+		   if (guard.valid())
+		   {
+			   if (guard->formal == true)
+			   {
+				   guard_acc = guard->guard_member_account;
+				   break;
+			   }
+		   }
+	   }
+	   auto ret = get_current_multi_address_obj(symbol, guard_acc);
+	   if (!ret.valid())
+		   return optional<multisig_account_pair_object>();
+	   return get_multisig_account_pair(ret->multisig_account_pair_object_id);
+   }
+
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
@@ -4354,6 +4405,38 @@ public:
 	  return sign_transaction(tx, broadcast);
 	}
 
+	full_transaction propose_pay_back_asset_rate_change(
+		const string& proposing_account,
+		fc::time_point_sec expiration_time,
+		const variant_object& changed_values,
+		bool broadcast = false
+	) {
+		FC_ASSERT(changed_values.contains("min_pay_back_balance_other_asset"));
+		variant_object temp_asset_set1 = changed_values.find("min_pay_back_balance_other_asset")->value().get_object();
+		const chain_parameters& current_params = get_global_properties().parameters;
+		chain_parameters new_params = current_params;
+		for (const auto& item : temp_asset_set1) {
+			new_params.min_pay_back_balance_other_asset[item.key()] = asset(item.value().as_uint64(), get_asset_id(item.key()));
+		}
+		committee_member_update_global_parameters_operation update_op;
+		update_op.new_parameters = new_params;
+
+		proposal_create_operation prop_op;
+		prop_op.proposer = get_account(proposing_account).get_id();
+		prop_op.expiration_time = expiration_time;
+
+		prop_op.fee_paying_account = get_account(proposing_account).addr;
+
+		prop_op.proposed_ops.emplace_back(update_op);
+		current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+
+		signed_transaction tx;
+		tx.operations.push_back(prop_op);
+		set_operation_fees(tx, current_params.current_fees);
+		tx.validate();
+
+		return sign_transaction(tx, broadcast);
+	}
 
    
 
@@ -5198,6 +5281,9 @@ account_object wallet_api::change_account_name(const string& oldname, const stri
 {
 	return my->change_account_name(oldname, newname);
 }
+void wallet_api::remove_local_account(const string & account_name) {
+	return my->remove_local_account(account_name);
+}
 asset_object wallet_api::get_asset(string asset_name_or_id) const
 {
    auto a = my->find_asset(asset_name_or_id);
@@ -5464,6 +5550,9 @@ full_transaction wallet_api::transfer_to_account(string from, string to, string 
 	const auto acc = get_account(to);
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
+}
+std::vector<crosschain_trx_object> wallet_api::get_account_crosschain_transaction(string account_address, string trx_id) {
+	return my->get_account_crosschain_transaction(account_address, trx_id);
 }
 std::map<transaction_id_type, signed_transaction> wallet_api::get_coldhot_transaction(const int& type) {
 	return my->get_coldhot_transaction(type);
@@ -5850,6 +5939,14 @@ full_transaction wallet_api::propose_guard_pledge_change(
 {
 	return my->propose_guard_pledge_change(proposing_account, expiration_time, changed_values, broadcast);
 
+}
+full_transaction wallet_api::propose_pay_back_asset_rate_change(
+	const string& proposing_account,
+	fc::time_point_sec expiration_time,
+	const variant_object& changed_values,
+	bool broadcast
+) {
+	return my->propose_pay_back_asset_rate_change(proposing_account, expiration_time, changed_values, broadcast);
 }
 
 
@@ -6311,9 +6408,9 @@ vector< signed_transaction > wallet_api::import_balance( string name_or_id, cons
    return my->import_balance( name_or_id, wif_keys, broadcast );
 }
 
-full_transaction wallet_api::refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast )
+full_transaction wallet_api::refund_request(const string& refund_account, const string txid, bool broadcast )
 {
-	return my->refund_request(refund_account,amount,symbol,txid,broadcast);
+	return my->refund_request(refund_account,txid,broadcast);
 }
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
@@ -6340,6 +6437,11 @@ vector<multisig_asset_transfer_object> wallet_api::get_multisig_asset_tx() const
 vector<optional<multisig_address_object>> wallet_api::get_multi_address_obj(const string& symbol,const account_id_type& guard) const
 {
 	return my->get_multi_address_obj(symbol,guard);
+}
+
+optional<multisig_account_pair_object> wallet_api::get_current_multi_address(const string& symbol) const
+{
+	return my->get_current_multi_address(symbol);
 }
 
 full_transaction wallet_api::sign_multi_asset_trx(const string& account, multisig_asset_transfer_id_type id,const string& guard, bool broadcast)
@@ -6546,7 +6648,10 @@ vector<transaction_id_type> wallet_api::list_transactions(uint32_t blocknum , ui
 {
 	return my->list_transactions(blocknum,nums);
 }
-
+optional<guarantee_object> wallet_api::get_guarantee_order(const guarantee_object_id_type id)
+{
+	return my->get_guarantee_order(id);
+}
 
 void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 {

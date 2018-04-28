@@ -85,6 +85,7 @@ namespace graphene {
 			transaction_id_type transaction_id;
 			vector<transaction_id_type> all_related_origin_transaction_ids;
 			signed_transaction real_transaction;
+			string without_link_account;
 			uint64_t op_type;
 			transaction_stata trx_state;
 			string crosschain_trx_id;
@@ -97,6 +98,7 @@ namespace graphene {
 		struct by_trx_relate_type_stata;
 		struct by_trx_type_state;
 		struct by_original_id_optype;
+		struct by_withdraw_link_account;
 		using crosschain_multi_index_type = multi_index_container <
 			crosschain_trx_object,
 			indexed_by <
@@ -126,6 +128,13 @@ namespace graphene {
 			std::less< transaction_id_type >,
 			std::less<transaction_stata>
 			>*/
+			>,
+			ordered_non_unique<
+			tag<by_withdraw_link_account>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, string, &crosschain_trx_object::without_link_account>
+			>
 			>,
 			ordered_non_unique<
 			tag<by_original_id_optype>,
@@ -165,6 +174,7 @@ FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object)
 	(transaction_id)
 	(real_transaction)
 	(crosschain_trx_id)
+	(without_link_account)
 	(all_related_origin_transaction_ids)
 	(op_type)
 	(trx_state)

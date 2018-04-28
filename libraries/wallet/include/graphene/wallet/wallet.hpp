@@ -560,6 +560,7 @@ class wallet_api
        */
       account_object                    get_account(string account_name_or_id) const;
 	  account_object change_account_name(const string& oldname, const string& newname);
+	  void remove_local_account(const string & account_name);
 
       /** Returns information about the given asset.
        * @param asset_name_or_id the symbol or id of the asset in question
@@ -1786,6 +1787,7 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id);
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
@@ -1846,6 +1848,12 @@ class wallet_api
 		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
 		  bool broadcast = false);
+	  full_transaction propose_pay_back_asset_rate_change(
+		  const string& proposing_account,
+		  fc::time_point_sec expiration_time,
+		  const variant_object& changed_values,
+		  bool broadcast = false
+	  );
       /** Propose a fee change.
        * 
        * @param proposing_account The account paying the fee to propose the tx
@@ -1950,7 +1958,7 @@ class wallet_api
                                          bool broadcast = false,
                                          bool to_temp = false );
 
-	  full_transaction refund_request(const string& refund_account,const string& amount, const string& symbol, const string txid, bool broadcast = false);
+	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
@@ -1969,6 +1977,7 @@ class wallet_api
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
 	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
+	  optional<multisig_account_pair_object> get_current_multi_address(const string& symbol) const;
 	  full_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
@@ -1979,6 +1988,7 @@ class wallet_api
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
+	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2121,6 +2131,7 @@ FC_API( graphene::wallet::wallet_api,
         (set_desired_miner_and_guard_member_count)
         (get_account)
 		(change_account_name)
+	    (remove_local_account)
         (get_account_id)
         (get_block)
         (get_account_count)
@@ -2142,6 +2153,7 @@ FC_API( graphene::wallet::wallet_api,
         (sign_transaction)
         (get_prototype_operation)
 		(propose_guard_pledge_change)
+		(propose_pay_back_asset_rate_change)
         (propose_parameter_change)
 		(propose_coin_destory)
         (propose_fee_change)
@@ -2206,6 +2218,7 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
+		(get_current_multi_address)
 		(register_contract)
 		(register_native_contract)
         (register_contract_like)
@@ -2245,4 +2258,5 @@ FC_API( graphene::wallet::wallet_api,
 		(signrawtransaction)
 		(get_my_guarantee_order)
         (get_contract_invoke_object)
+		(get_guarantee_order)
       )
