@@ -6195,6 +6195,11 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
     }
     return res;
 }
+
+vector<contract_event_notify_object> wallet_api::get_contract_events(const std::string&addr)
+{
+    return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+}
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
     return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));

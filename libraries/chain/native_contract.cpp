@@ -57,9 +57,13 @@ namespace graphene {
 		{
 			FC_ASSERT(!event_name.empty());
 			contract_event_notify_info info;
-			info.contract_address = contract_address;
-			info.event_name = event_name;
-			info.event_arg = event_arg;
+            info.op_num = _evaluate->get_gen_eval()->get_trx_eval_state()->op_num;
+            info.event_name = event_name;
+            info.event_arg = event_arg;
+            //todo
+		    //info.caller_addr = caller_address->address_to_string();
+            info.block_num = 1 + _evaluate->get_db().head_block_num();
+
 			_contract_invoke_result.events.push_back(info);
 		}
 

@@ -78,7 +78,8 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
 		}
 
-		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num)
+		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
+		                                         op_num)
 		{
 			try {
 				contract_event_notify_object obj;
@@ -87,6 +88,7 @@ namespace graphene {
 				obj.event_name = event_name;
 				obj.event_arg = event_arg;
                 obj.block_num = block_num;
+                obj.op_num = op_num;
 				auto& conn_db = get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
 				create<contract_event_notify_object>([&](contract_event_notify_object & o) {
 					o.contract_address = obj.contract_address;
@@ -94,6 +96,7 @@ namespace graphene {
 					o.event_name = obj.event_name;
 					o.event_arg = obj.event_arg;
                     o.block_num = obj.block_num;
+                    o.op_num = obj.op_num;
 
 				});
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(event_name)(event_arg));
@@ -146,6 +149,7 @@ namespace graphene {
                     res.push_back(*it);
                     it++;
                 }
+                std::sort(res.begin(), res.end());
                 return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
@@ -154,14 +158,16 @@ namespace graphene {
             try {
                 auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid_and_opnum>();
                 auto con = con_db.find(boost::make_tuple(trx_id,op_num));
+                auto block_num=head_block_num();
                 if (con == con_db.end())
                 {
-                    create<contract_invoke_result_object>([res,trx_id, op_num](contract_invoke_result_object & obj) {
+                    create<contract_invoke_result_object>([res,trx_id, op_num, block_num](contract_invoke_result_object & obj) {
                         obj.acctual_fee = res.acctual_fee;
                         obj.api_result = res.api_result;
                         obj.exec_succeed = res.exec_succeed;
-                        obj.logs = res.logs;
+                        obj.events = res.events;
                         obj.trx_id = trx_id;
+                        obj.block_num = block_num;
                         obj.op_num = op_num;
                     });     
                 }
@@ -171,7 +177,45 @@ namespace graphene {
                 }
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
+        class event_compare
+        {
+		public:
+            const database* _db;
+            event_compare(const database* _db):_db(_db){}
+            bool operator()(const contract_event_notify_object& obj1,const contract_event_notify_object& obj2)
+            {
+                if (obj1.block_num < obj2.block_num)
+                    return true;
+                if (obj1.block_num > obj2.block_num)
+                    return false;
+                auto blk=_db->fetch_block_by_number(obj1.block_num);
+                FC_ASSERT(blk.valid());
+                for(auto trx:blk->transactions)
+                {
+                    if (trx.id() == obj1.trx_id)
+                        return true;
+                    if (trx.id() == obj2.trx_id)
+                        return false;
+                }
+                return false;
+            }
+        };
+        vector<contract_event_notify_object> database::get_contract_events_by_contract_ordered(const address &addr) const
+		{
+            vector<contract_event_notify_object> res;
+            auto& con_db = get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
 
+            auto evit = con_db.lower_bound(addr);
+            auto ubit = con_db.upper_bound(addr);
+            while(evit != ubit )
+            {
+                res.push_back(*evit);
+                evit++;
+            }
+            event_compare cmp(this);
+            sort(res.begin(),res.end(), cmp);
+            return res;
+		}
         void database::store_contract(const contract_object & contract)
         {
             try {

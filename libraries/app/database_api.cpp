@@ -175,6 +175,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const;
       vector<address> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
+      vector<contract_event_notify_object> get_contract_events(const address&)const;
 
    //private:
       template<typename T>
@@ -1674,6 +1675,10 @@ vector<contract_object> database_api_impl::get_contracts_by_owner(const address&
 {
     return _db.get_contract_by_owner(addr);
 }
+vector<contract_event_notify_object> database_api_impl::get_contract_events(const address &addr) const
+{
+    return _db.get_contract_events_by_contract_ordered(addr);
+}
 vector<graphene::chain::contract_invoke_result_object> database_api_impl::get_contract_invoke_object(const transaction_id_type& trx_id) const
 {
     try {
@@ -2202,6 +2207,11 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 vector<contract_invoke_result_object> database_api::get_contract_invoke_object(const transaction_id_type& trx_id)const
 {
     return my->get_contract_invoke_object(trx_id);
+}
+
+vector<contract_event_notify_object> database_api::get_contract_events(const address&addr)const
+{
+    return my->get_contract_events(addr);
 }
 optional<contract_event_notify_object> database_api::get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id)
 {

@@ -1226,7 +1226,7 @@ namespace graphene {
             auto trx_id = get_current_trx_id();
             for (const auto &obj : invoke_contract_result.events)
             {
-                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num);
+                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num,obj.op_num);
             }
         }
          void contract_common_evaluate::transfer_to_address(const address & contract, const asset & amount, const address & to)
@@ -1343,10 +1343,11 @@ namespace graphene {
 		 void contract_common_evaluate::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
 		 {
 			 contract_event_notify_info info;
+             info.op_num = gen_eval->get_trx_eval_state()->op_num;
 			 info.contract_address = contract_addr;
 			 info.event_name = event_name;
 			 info.event_arg = event_arg;
-
+             info.caller_addr=caller_address->address_to_string();
              info.block_num=1+ get_db().head_block_num();
 			 invoke_contract_result.events.push_back(info);
 		 }

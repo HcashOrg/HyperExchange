@@ -624,6 +624,8 @@ class database_api
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
       vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const ;
+
+      vector<contract_event_notify_object> get_contract_events(const address&)const ;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -760,4 +762,5 @@ FC_API(graphene::app::database_api,
     (get_contract_invoke_object)
     (get_contract_addresses_by_owner)
     (get_contracts_by_owner)
+    (get_contract_events)
 );
