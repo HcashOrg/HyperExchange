@@ -2266,4 +2266,5 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_invoke_object)
 		(get_guarantee_order)
 		(guard_appointed_publisher)
+		(miner_appointed_crosschain_fee)
       )
