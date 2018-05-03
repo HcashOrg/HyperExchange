@@ -1905,8 +1905,8 @@ class wallet_api
       vector< variant > network_get_connected_peers();
 
 	  // contract wallet apis
-	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-      std::string register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
+      full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+      full_transaction register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
       std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
 
       std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
@@ -1959,6 +1959,8 @@ class wallet_api
                                          bool to_temp = false );
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
+	  full_transaction refund_uncombined_transaction(const string guard,const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
@@ -2204,6 +2206,8 @@ FC_API( graphene::wallet::wallet_api,
 		(sign_multi_asset_trx)
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
+		(refund_uncombined_transaction)
+		(cancel_coldhot_uncombined_transaction)
 		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_coldhot_transaction)

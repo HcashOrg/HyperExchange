@@ -1283,7 +1283,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
 
-   string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+   full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
 	   // TODO: register_contract_testing
 	   try {
@@ -1328,12 +1328,13 @@ public:
 		   tx.validate();
 
 		   bool broadcast = true;
-		   auto signed_tx = sign_transaction(tx, broadcast);
-		   return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           full_transaction res = sign_transaction(tx, broadcast);
+           res.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           return res;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
 
-   std::string register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+   full_transaction register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
    {
        // TODO: register_contract_testing
        try {
@@ -1373,8 +1374,9 @@ public:
            tx.validate();
 
            bool broadcast = true;
-           auto signed_tx = sign_transaction(tx, broadcast);
-           return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           full_transaction trx= sign_transaction(tx, broadcast);
+           trx.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           return trx;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(base))
    }
    std::pair<asset, share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath)
@@ -3079,7 +3081,63 @@ public:
 
           }FC_CAPTURE_AND_RETHROW((refund_account)(txid)(broadcast))
    }
+   full_transaction refund_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+	   auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(txid));
+	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+	   auto account = get_account(guard);
+	   auto guard_obj = get_guard_member(guard);
+	   auto addr = account.addr;
+	   FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+	   FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+	   proposal_create_operation prop_op;
+	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+	   prop_op.proposer = get_account(guard).get_id();
+	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
+	   guard_refund_crosschain_trx_operation guard_refund_op;
+	   guard_refund_op.not_enough_sign_trx_id = transaction_id_type(txid);
+	   guard_refund_op.guard_address = addr;
+	   guard_refund_op.guard_id = guard_obj.id;
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   prop_op.proposed_ops.emplace_back(guard_refund_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+	   signed_transaction trx;
+	   trx.operations.emplace_back(prop_op);
+	   set_operation_fees(trx, current_params.current_fees);
+	   trx.validate();
 
+	   return sign_transaction(trx, broadcast);
+   }
+   full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+	   auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(txid));
+	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+	   auto account = get_account(guard);
+	   auto guard_obj = get_guard_member(guard);
+	   auto addr = account.addr;
+	   FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+	   FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+	   proposal_create_operation prop_op;
+	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+	   prop_op.proposer = get_account(guard).get_id();
+	   prop_op.fee_paying_account = addr;
+	   coldhot_cancel_uncombined_trx_operaion cancel_op;
+	   cancel_op.trx_id = transaction_id_type(txid);
+	   cancel_op.guard = addr;
+	   cancel_op.guard_id = guard_obj.id;
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   prop_op.proposed_ops.emplace_back(cancel_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+	   signed_transaction trx;
+	   trx.operations.emplace_back(prop_op);
+	   set_operation_fees(trx, current_params.current_fees);
+	   trx.validate();
+
+	   return sign_transaction(trx, broadcast);
+   }
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
    {
 	   try {
@@ -6024,12 +6082,12 @@ full_transaction wallet_api::approve_proposal(
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
 
-std::string wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+full_transaction wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
 }
 
-std::string wallet_api::register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+full_transaction wallet_api::register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
 {
     return my->register_contract_like(caller_account_name,gas_price,gas_limit,base);
 }
@@ -6464,6 +6522,12 @@ vector< signed_transaction > wallet_api::import_balance( string name_or_id, cons
 full_transaction wallet_api::refund_request(const string& refund_account, const string txid, bool broadcast )
 {
 	return my->refund_request(refund_account,txid,broadcast);
+}
+full_transaction wallet_api::refund_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->refund_uncombined_transaction(guard,txid,expiration_time, broadcast);
+}
+full_transaction wallet_api::cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->cancel_coldhot_uncombined_transaction(guard, txid, expiration_time, broadcast);
 }
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
