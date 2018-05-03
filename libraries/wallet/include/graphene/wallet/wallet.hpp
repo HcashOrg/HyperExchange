@@ -1905,8 +1905,8 @@ class wallet_api
       vector< variant > network_get_connected_peers();
 
 	  // contract wallet apis
-	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-      std::string register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
+      full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+      full_transaction register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
       std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
 
       std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
