@@ -31,6 +31,7 @@ namespace graphene {
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
         public:
+            inline const generic_evaluator* get_gen_eval() { return gen_eval; }
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
 			void set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes);

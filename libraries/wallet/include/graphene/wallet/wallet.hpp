@@ -1905,8 +1905,8 @@ class wallet_api
       vector< variant > network_get_connected_peers();
 
 	  // contract wallet apis
-	  std::string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
-      std::string register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
+      full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
+      full_transaction register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
       std::pair<asset,share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath);
 
       std::string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key);
@@ -1939,6 +1939,7 @@ class wallet_api
       vector<string> get_contract_addresses_by_owner(const std::string&);
       vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);
+      vector<contract_event_notify_object> get_contract_events(const std::string&);
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -1990,6 +1991,7 @@ class wallet_api
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
+	  //full_transaction update_price_feed_for_lock(const string& account,const string& amount,const string& symbol);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2235,6 +2237,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_addresses_by_owner)
         (get_contracts_by_owner)
         (get_contracts_hash_entry_by_owner)
+        (get_contract_events)
         (add_script)
         (list_scripts)
         (remove_script)

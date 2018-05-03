@@ -328,7 +328,8 @@ namespace graphene { namespace chain {
 		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
 		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
-		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num);
+		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
+		                                op_num);
 
          vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
@@ -343,6 +344,8 @@ namespace graphene { namespace chain {
 		 bool has_contract_of_name(const string& contract_name);
          void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
+
+         vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//

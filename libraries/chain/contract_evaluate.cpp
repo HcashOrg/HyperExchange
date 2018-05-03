@@ -1226,7 +1226,7 @@ namespace graphene {
             auto trx_id = get_current_trx_id();
             for (const auto &obj : invoke_contract_result.events)
             {
-                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num);
+                get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num,obj.op_num);
             }
         }
          void contract_common_evaluate::transfer_to_address(const address & contract, const asset & amount, const address & to)
@@ -1343,10 +1343,11 @@ namespace graphene {
 		 void contract_common_evaluate::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
 		 {
 			 contract_event_notify_info info;
+             info.op_num = gen_eval->get_trx_eval_state()->op_num;
 			 info.contract_address = contract_addr;
 			 info.event_name = event_name;
 			 info.event_arg = event_arg;
-
+             info.caller_addr=caller_address->address_to_string();
              info.block_num=1+ get_db().head_block_num();
 			 invoke_contract_result.events.push_back(info);
 		 }
@@ -1364,28 +1365,25 @@ namespace graphene {
 
          void contract_common_evaluate::pay_fee_and_refund() const
 		{
-             if (unspent_fee != 0)
-                 get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
-             get_db().modify_current_collected_fee(total_fee - unspent_fee);
-
              if (!get_guarantee_id().valid())
              {
                  if (unspent_fee != 0)
                      get_db().adjust_balance(*caller_address, asset(unspent_fee, asset_id_type()));
              }
              else {
-                 if (unspent_fee == 0)
-                     return;
-                 auto guarantee_obj = get_db().get(*get_guarantee_id());
-                 price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
-                 auto unspent = asset(unspent_fee, asset_id_type());
-                 auto unspent_to_return = unspent * p;
-                 get_db().adjust_frozen(guarantee_obj.owner_addr, unspent);
-                 get_db().adjust_guarantee(*get_guarantee_id(), -unspent_to_return);
-                 get_db().adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+				 if (unspent_fee != 0)
+				 {
+					 auto guarantee_obj = get_db().get(*get_guarantee_id());
+					 price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
+					 auto unspent = asset(unspent_fee, asset_id_type());
+					 auto unspent_to_return = unspent * p;
+					 get_db().adjust_frozen(guarantee_obj.owner_addr, unspent);
+					 get_db().adjust_guarantee(*get_guarantee_id(), -unspent_to_return);
+					 get_db().adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
+					 get_db().adjust_balance(*caller_address, unspent_to_return);
+				 }
              }
              get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 		}
-
 }
 }

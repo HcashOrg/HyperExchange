@@ -1283,7 +1283,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
 
-   string register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+   full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
 	   // TODO: register_contract_testing
 	   try {
@@ -1328,12 +1328,13 @@ public:
 		   tx.validate();
 
 		   bool broadcast = true;
-		   auto signed_tx = sign_transaction(tx, broadcast);
-		   return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           full_transaction res = sign_transaction(tx, broadcast);
+           res.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           return res;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
 
-   std::string register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+   full_transaction register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
    {
        // TODO: register_contract_testing
        try {
@@ -1373,8 +1374,9 @@ public:
            tx.validate();
 
            bool broadcast = true;
-           auto signed_tx = sign_transaction(tx, broadcast);
-           return contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           full_transaction trx= sign_transaction(tx, broadcast);
+           trx.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           return trx;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(base))
    }
    std::pair<asset, share_type> register_contract_testing(const string& caller_account_name, const string& contract_filepath)
@@ -6027,12 +6029,12 @@ full_transaction wallet_api::approve_proposal(
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
 
-std::string wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
+full_transaction wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
 }
 
-std::string wallet_api::register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
+full_transaction wallet_api::register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
 {
     return my->register_contract_like(caller_account_name,gas_price,gas_limit,base);
 }
@@ -6250,6 +6252,11 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
         res.push_back(co);
     }
     return res;
+}
+
+vector<contract_event_notify_object> wallet_api::get_contract_events(const std::string&addr)
+{
+    return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {

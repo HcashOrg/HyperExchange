@@ -162,7 +162,7 @@ namespace graphene { namespace app {
 		res.ref_block_num = res_ids->block_num;
 		
         auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
-        if (!invoke_res.size()==0)
+        if (invoke_res.size()==0)
             return res;
         for(auto& ir : invoke_res)
         {

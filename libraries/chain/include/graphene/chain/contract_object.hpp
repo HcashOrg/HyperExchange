@@ -126,6 +126,7 @@ namespace graphene {
 			string event_arg;
 			transaction_id_type trx_id;
             uint64_t block_num;
+            uint64_t op_num;
 		};
 
 		using contract_event_notify_multi_index_type = multi_index_container<
@@ -143,11 +144,20 @@ namespace graphene {
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_invoke_result_object_type;
             transaction_id_type trx_id;
+            uint32_t block_num;
             int op_num;
             std::string api_result;
-            std::vector<std::string> logs;
+            std::vector<contract_event_notify_info> events;
             bool exec_succeed = true;
             share_type acctual_fee;
+            inline bool operator<(const contract_invoke_result_object& obj) const
+            {
+                if (block_num < obj.block_num)
+                    return true;
+                if(block_num == obj.block_num)
+                    return op_num < obj.op_num;
+                return false;
+            }
         };
         struct by_trxid_and_opnum {};
         struct by_trxid {};
@@ -185,7 +195,7 @@ FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::obje
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
     (owner)(balance)(vesting_policy)(last_claim_date))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
-	(contract_address)(event_name)(event_arg)(trx_id)(block_num))
+	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(op_num)(api_result)(logs)(exec_succeed)(acctual_fee))
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee))
 FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))

@@ -180,7 +180,6 @@ namespace graphene {
 				const auto& op = o.get<typename DerivedEvaluator::operation_type>();
 
 				//convert_fee();
-				pay_fee();
 				auto result = eval->do_apply(op);
 				if (!op.get_guarantee_id().valid())
 				{
@@ -198,7 +197,7 @@ namespace graphene {
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
 					db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
 				}
-
+				pay_fee();
 				return result;
 			}
 		};
