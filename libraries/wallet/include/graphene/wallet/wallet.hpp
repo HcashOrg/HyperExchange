@@ -1989,6 +1989,7 @@ class wallet_api
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
+	  //full_transaction update_price_feed_for_lock(const string& account,const string& amount,const string& symbol);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
