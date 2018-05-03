@@ -128,9 +128,6 @@ namespace graphene {
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
-			void get_required_authorities(vector<authority>& a)const {
-				a.push_back(authority(1, guard, 1));
-			}
 		};
 		struct coldhot_cancel_uncombined_trx_operaion :public base_operation {
 			struct fee_parameters_type {
