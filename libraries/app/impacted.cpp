@@ -196,6 +196,7 @@ struct get_impacted_account_visitor
    void operator()(const coldhot_transfer_combine_sign_operation& op) {}
    void operator()(const coldhot_transfer_result_operation& op) {}
    void operator()(const coldhot_cancel_transafer_transaction_operation& op){}
+   void operator()(const coldhot_cancel_uncombined_trx_operaion& op) {}
    void operator()( const balance_claim_operation& op ) {}
    void operator() (const gurantee_create_operation& op) {}
    void operator() (const gurantee_cancel_operation& op) {}

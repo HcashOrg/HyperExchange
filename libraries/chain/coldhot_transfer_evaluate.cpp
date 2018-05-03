@@ -280,5 +280,28 @@ namespace graphene {
 		void coldhot_cancel_transafer_transaction_evaluate::pay_fee() {
 
 		}
+		void_result coldhot_cancel_uncombined_trx_evaluate::do_evaluate(const coldhot_cancel_uncombined_trx_operaion& o) {
+			try {
+				database & d = db();
+				auto & coldhot_db = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				auto coldhot_iter = coldhot_db.find(o.trx_id);
+				FC_ASSERT(coldhot_iter != coldhot_db.end());
+				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_without_sign_trx_create, "Coldhot transaction state error");
+				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
+				FC_ASSERT(source_trx != coldhot_db.end(),"source trx exist error");
+				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+
+		}
+		void_result coldhot_cancel_uncombined_trx_evaluate::do_apply(const coldhot_cancel_uncombined_trx_operaion& o) {
+			try {
+				db().adjust_coldhot_transaction(o.trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_cancel_uncombined_trx_operaion>::value));
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		void coldhot_cancel_uncombined_trx_evaluate::pay_fee() {
+
+		}
 	}
 }

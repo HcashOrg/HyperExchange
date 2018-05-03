@@ -1958,6 +1958,8 @@ class wallet_api
                                          bool to_temp = false );
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
+	  full_transaction refund_uncombined_transaction(const string guard,const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
@@ -2201,6 +2203,8 @@ FC_API( graphene::wallet::wallet_api,
 		(sign_multi_asset_trx)
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
+		(refund_uncombined_transaction)
+		(cancel_coldhot_uncombined_transaction)
 		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_coldhot_transaction)
