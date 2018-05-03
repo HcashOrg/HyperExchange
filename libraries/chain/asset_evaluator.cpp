@@ -464,31 +464,9 @@ void_result asset_publish_feeds_evaluator::do_evaluate(const asset_publish_feed_
 
    const asset_object& base = o.asset_id(d);
    //Verify that this feed is for a market-issued asset and that asset is backed by the base
-   FC_ASSERT(base.is_market_issued());
-
-   const asset_bitasset_data_object& bitasset = base.bitasset_data(d);
-   FC_ASSERT( !bitasset.has_settlement(), "No further feeds may be published after a settlement event" );
-
-   FC_ASSERT( o.feed.settlement_price.quote.asset_id == bitasset.options.short_backing_asset );
-   if (!o.feed.core_exchange_rate.is_null())
-   {
-	   FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
-   }
-
-   //Verify that the publisher is authoritative to publish a feed
-   if( base.options.flags & witness_fed_asset )
-   {
-      FC_ASSERT( d.get(GRAPHENE_MINER_ACCOUNT).active.account_auths.count(o.publisher) );
-   }
-   else if( base.options.flags & committee_fed_asset )
-   {
-      FC_ASSERT( d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher) );
-   }
-   else
-   {
-      FC_ASSERT(bitasset.feeds.count(o.publisher));
-   }
-
+   auto publisher = d.get(o.publisher);
+   FC_ASSERT(publisher.addr != address());
+   FC_ASSERT(base.publishers.count(publisher.addr) >=0);
    return void_result();
 } FC_CAPTURE_AND_RETHROW((o)) }
 
@@ -533,12 +511,7 @@ void_result normal_asset_publish_feeds_evaluator::do_evaluate(const normal_asset
 // 		{
 // 			FC_ASSERT(o.feed.core_exchange_rate.quote.asset_id == asset_id_type());
 // 		}
-		auto aa = d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher);
-		auto bb = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.count(o.publisher_addr);
-		auto cc = d.get(GRAPHENE_GUARD_ACCOUNT).active.address_auths.size();
-		
-		FC_ASSERT(d.get(GRAPHENE_GUARD_ACCOUNT).active.account_auths.count(o.publisher));
-
+		FC_ASSERT(base.publishers.count(o.publisher_addr)>0);
 		return void_result();
 	} FC_CAPTURE_AND_RETHROW((o))
 }
@@ -554,7 +527,7 @@ void_result normal_asset_publish_feeds_evaluator::do_apply(const normal_asset_pu
 		auto old_feed = base.current_feed;
 		// Store medians for this asset
 		d.modify(base, [&o, &d](asset_object& a) {
-			a.feeds[o.publisher] = make_pair(d.head_block_time(), o.feed);
+			a.feeds[o.publisher_addr] = make_pair(d.head_block_time(), o.feed);
 			a.update_median_feeds(d.head_block_time());
 		});
 
@@ -685,4 +658,51 @@ void_result gurantee_cancel_evaluator::do_apply(const gurantee_cancel_operation&
 
 }
 
+void_result publisher_appointed_evaluator::do_evaluate(const publisher_appointed_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		FC_ASSERT(iter != asset_indx.end());
+		FC_ASSERT(iter->publishers.count(o.publisher)== 0);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result publisher_appointed_evaluator::do_apply(const publisher_appointed_operation& o)
+{
+	try {
+		auto& d = db();
+		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		auto iter = asset_indx.find(o.asset_symbol) ;
+		d.modify(*iter, [&](asset_object& obj) {
+			obj.publishers.insert(o.publisher);
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result asset_fee_modification_evaluator::do_evaluate(const asset_fee_modification_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		FC_ASSERT(iter != asset_indx.end());
+		const auto& dymic_asset_info = iter->dynamic_data(d);
+		FC_ASSERT(dymic_asset_info.fee_pool != o.crosschain_fee);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result asset_fee_modification_evaluator::do_apply(const asset_fee_modification_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		auto& dymic_asset_info = iter->dynamic_data(d);
+		d.modify(dymic_asset_info, [&](asset_dynamic_data_object& obj) {
+			obj.fee_pool = o.crosschain_fee;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 } } // graphene::chain
