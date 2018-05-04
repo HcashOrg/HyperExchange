@@ -189,6 +189,14 @@ share_type account_create_operation::calculate_fee( const fee_parameters_type& k
    return core_fee_required;
 }
 
+share_type account_bind_operation::calculate_fee(const fee_parameters_type& k)const
+{
+	return k.fee;
+}
+share_type account_unbind_operation::calculate_fee(const fee_parameters_type& k)const
+{
+	return k.fee;
+}
 
 void account_create_operation::validate()const
 {
