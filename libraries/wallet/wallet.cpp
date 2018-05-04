@@ -6313,9 +6313,9 @@ vector<contract_event_notify_object> wallet_api::get_contract_events(const std::
 {
     return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
-vector<string> wallet_api::get_contract_addresses(const uint32_t block_num)
+vector<contract_resgister_record> wallet_api::get_contract_registered(const uint32_t block_num)
 {
-    return my->_remote_db->get_contract_addresses(block_num);
+    return my->_remote_db->get_contract_registered(block_num);
 }
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {

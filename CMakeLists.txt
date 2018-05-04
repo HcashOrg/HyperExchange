@@ -103,7 +103,8 @@ if( WIN32 )
 
     SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
     SET(TCL_LIBRARY ${TCL_LIBS})
-
+	
+    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP" )
 else( WIN32 ) # Apple AND Linux
 
     find_library(READLINE_LIBRARIES NAMES readline)
