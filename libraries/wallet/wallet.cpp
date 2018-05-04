@@ -3337,8 +3337,9 @@ public:
 		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
 		   trx.validate();
-
+		   
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
    }
@@ -3371,8 +3372,8 @@ public:
 		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
 		   trx.validate();
-
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
    }
