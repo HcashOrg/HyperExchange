@@ -1,6 +1,6 @@
 #include <graphene/chain/guard_refund_balance_evaluator.hpp>
 #include <graphene/chain/database.hpp>
-
+#include <graphene/chain/committee_member_object.hpp>
 namespace graphene {
 	namespace chain {
 		void_result guard_refund_balance_evaluator::do_apply(const guard_refund_balance_operation& o)
@@ -52,10 +52,17 @@ namespace graphene {
 		void_result guard_refund_crosschain_trx_evaluator::do_evaluate(const guard_refund_crosschain_trx_operation& o) {
 			try {
 				const database& d = db();
+				const auto& guard_db = d.get_index_type<guard_member_index>().indices().get<by_id>();
+				auto guard_iter = guard_db.find(o.guard_id);
+				FC_ASSERT(guard_iter != guard_db.end(),"cant find this guard");
+				const auto& account_db = d.get_index_type<account_index>().indices().get<by_id>();
+				auto account_iter = account_db.find(guard_iter->guard_member_account);
+				FC_ASSERT(account_iter != account_db.end(), "cant find this account");
+				FC_ASSERT(account_iter->addr == o.guard_address, "guard address error");
 				const auto& trx_db = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				const auto iter = trx_db.find(o.not_enough_sign_trx_id);
 				FC_ASSERT(iter != trx_db.end(), "transaction not exist.");
-				FC_ASSERT(iter->trx_state != withdraw_without_sign_trx_create, "cross chain trx state error");
+				FC_ASSERT(iter->trx_state == withdraw_without_sign_trx_create, "cross chain trx state error");
 				FC_ASSERT(iter->real_transaction.operations.size() == 1, "operation size error");
 				auto op = iter->real_transaction.operations[0];
 				FC_ASSERT(op.which() == operation::tag<crosschain_withdraw_without_sign_operation>::value, "operation type error");

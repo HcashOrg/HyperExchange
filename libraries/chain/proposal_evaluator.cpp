@@ -50,6 +50,9 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
       for( auto& op : o.proposed_ops )
       {
          operation_get_required_authorities(op.op, auths, auths, other);
+		 if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value){
+			 FC_ASSERT(o.type == vote_id_type::cancel_commit,"vote Type error");
+		 }
       }
 
       //FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
@@ -115,6 +118,16 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
 		  });
 	  }
+	  else if (o.type == vote_id_type::cancel_commit)
+	  {
+		  const auto& iter = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)
+
+		  {
+			  if (a.formal)  //only formal guard can vote
+				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
+		  });
+	  }
 	  else
 	  {
 		  const auto& iter = d.get_index_type<miner_index>().indices().get<by_account>();
@@ -149,7 +162,6 @@ void_result proposal_update_evaluator::do_evaluate(const proposal_update_operati
       FC_ASSERT( _proposal->available_owner_approvals.find(id) != _proposal->available_owner_approvals.end(),
                  "", ("id", id)("available", _proposal->available_owner_approvals) );
    }
-
    /*  All authority checks happen outside of evaluators
    if( (d.get_node_properties().skip_flags & database::skip_authority_check) == 0 )
    {

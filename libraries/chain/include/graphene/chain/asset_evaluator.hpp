@@ -178,5 +178,21 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const gurantee_cancel_operation& o);
 	   void_result do_apply(const gurantee_cancel_operation& o);
    };
+   class publisher_appointed_evaluator : public evaluator <publisher_appointed_evaluator>
+   {
+   public:
+	   typedef publisher_appointed_operation operation_type;
+	   void_result do_evaluate(const publisher_appointed_operation& o);
+	   void_result do_apply(const publisher_appointed_operation& o);
+   };
+
+   class asset_fee_modification_evaluator: public evaluator <asset_fee_modification_evaluator>
+   {
+   public:
+	   typedef asset_fee_modification_operation operation_type;
+	   void_result do_evaluate(const asset_fee_modification_operation& o);
+	   void_result do_apply(const asset_fee_modification_operation& o);
+   };
+
 
 } } // graphene::chain

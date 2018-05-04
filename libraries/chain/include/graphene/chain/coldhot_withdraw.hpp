@@ -23,9 +23,6 @@ namespace graphene {
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
-			void get_required_authorities(vector<authority>& a)const {
-				a.push_back(authority(1, guard, 1));
-			}
 		};
 		struct coldhot_transfer_without_sign_operation :public base_operation {
 			struct fee_parameters_type {
@@ -131,9 +128,21 @@ namespace graphene {
 			}
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;
-			void get_required_authorities(vector<authority>& a)const {
-				a.push_back(authority(1, guard, 1));
+		};
+		struct coldhot_cancel_uncombined_trx_operaion :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+			};
+
+			transaction_id_type trx_id;
+			asset fee;
+			address guard;
+			guard_member_id_type guard_id;
+			address fee_payer()const {
+				return guard;
 			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const { return share_type(0); };
 		};
 	}
 }
@@ -149,3 +158,5 @@ FC_REFLECT(graphene::chain::coldhot_transfer_result_operation::fee_parameters_ty
 FC_REFLECT(graphene::chain::coldhot_transfer_result_operation, (fee)(coldhot_trx_original_chain)(miner_broadcast)(miner_address))
 FC_REFLECT(graphene::chain::coldhot_cancel_transafer_transaction_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::coldhot_cancel_transafer_transaction_operation, (fee)(trx_id)(guard)(guard_id))
+FC_REFLECT(graphene::chain::coldhot_cancel_uncombined_trx_operaion::fee_parameters_type,(fee))
+FC_REFLECT(graphene::chain::coldhot_cancel_uncombined_trx_operaion, (fee)(trx_id)(guard)(guard_id))

@@ -1960,6 +1960,8 @@ class wallet_api
                                          bool to_temp = false );
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
+	  full_transaction refund_uncombined_transaction(const string guard,const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
@@ -1990,7 +1992,8 @@ class wallet_api
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
-	  //full_transaction update_price_feed_for_lock(const string& account,const string& amount,const string& symbol);
+	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2204,6 +2207,8 @@ FC_API( graphene::wallet::wallet_api,
 		(sign_multi_asset_trx)
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
+		(refund_uncombined_transaction)
+		(cancel_coldhot_uncombined_transaction)
 		(transfer_guard_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_coldhot_transaction)
@@ -2262,4 +2267,6 @@ FC_API( graphene::wallet::wallet_api,
 		(get_my_guarantee_order)
         (get_contract_invoke_object)
 		(get_guarantee_order)
+		(guard_appointed_publisher)
+		(miner_appointed_crosschain_fee)
       )

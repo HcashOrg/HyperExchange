@@ -91,12 +91,14 @@ struct get_impacted_account_visitor
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
    void operator()( const asset_publish_feed_operation& op ) {}
+   void operator() (const publisher_appointed_operation& op) {}
    void operator()(const normal_asset_publish_feed_operation& op) {}
    void operator()(const lockbalance_operation& op) {}
    void operator()(const foreclose_balance_operation& op) {}
    void operator()(const guard_lock_balance_operation& op) {}
    void operator()(const pay_back_operation& op) {}
    void operator()(const guard_foreclose_balance_operation& op) {}
+   void operator() (const asset_fee_modification_operation& op) {}
    void operator()(const crosschain_record_operation& op) {}
    void operator()(const crosschain_withdraw_operation& op) {}
    void operator()(const crosschain_withdraw_without_sign_operation& op) {}
@@ -109,6 +111,7 @@ struct get_impacted_account_visitor
    void operator()(const coldhot_transfer_combine_sign_operation& op) {}
    void operator()(const coldhot_transfer_result_operation& op) {}
    void operator()(const coldhot_cancel_transafer_transaction_operation& op) {}
+   void operator()(const coldhot_cancel_uncombined_trx_operaion& op) {}
    void operator()(const guard_update_multi_account_operation& op) {}
    void operator()(const miner_generate_multi_asset_operation& op) {}
    void operator() (const miner_merge_signatures_operation& op) {}

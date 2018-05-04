@@ -94,7 +94,7 @@ void graphene::chain::asset_object::update_median_feeds(time_point_sec current_t
 {
 	current_feed_publication_time = current_time;
 	vector<std::reference_wrapper<const price_feed>> current_feeds;
-	for (const pair<account_id_type, pair<time_point_sec, price_feed>>& f : feeds)
+	for (const pair<address, pair<time_point_sec, price_feed>>& f : feeds)
 	{
 		if ((current_time - f.second.first).to_seconds() < GRAPHENE_DEFAULT_PRICE_FEED_LIFETIME * 30 &&
 			f.second.first != time_point_sec())

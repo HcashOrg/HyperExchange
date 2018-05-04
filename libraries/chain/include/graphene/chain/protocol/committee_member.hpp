@@ -42,7 +42,7 @@ namespace graphene { namespace chain {
       /// The account which owns the committee_member. This account pays the fee for this operation.
       account_id_type                       guard_member_account;
       string                                url;
-
+	  share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
       account_id_type fee_payer()const { return guard_member_account; }
       void            validate()const;
    };
@@ -65,6 +65,7 @@ namespace graphene { namespace chain {
 	  address                       owner_addr;
       optional< string >                    new_url;
 	  optional<bool >                       formal;
+	  share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
       address fee_payer()const { return owner_addr; }
       void            validate()const;
    };
@@ -115,7 +116,7 @@ namespace graphene { namespace chain {
 
        asset                                 fee;
        account_id_type                       guard_member_account;  //!< guard memeber to resign
-
+	   share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
        account_id_type fee_payer()const { return guard_member_account; }
        void            validate()const;
    };

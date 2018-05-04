@@ -129,6 +129,7 @@ namespace graphene { namespace chain {
 	   graphene::chain::coldhot_transfer_combine_sign_operation,
 	   graphene::chain::coldhot_transfer_result_operation,
 	   graphene::chain::coldhot_cancel_transafer_transaction_operation,
+	   coldhot_cancel_uncombined_trx_operaion,
 	   pay_back_operation,
 	        guard_update_multi_account_operation,
 	        asset_real_create_operation,
@@ -140,7 +141,9 @@ namespace graphene { namespace chain {
 	   transfer_contract_operation,
 	        gurantee_create_operation,
 	   gurantee_cancel_operation,
-	   guard_refund_crosschain_trx_operation
+	   guard_refund_crosschain_trx_operation,
+	   publisher_appointed_operation,
+	   asset_fee_modification_operation
          > operation;
 
    /// @} // operations group

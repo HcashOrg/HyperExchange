@@ -188,8 +188,6 @@ share_type account_create_operation::calculate_fee( const fee_parameters_type& k
 
    return core_fee_required;
 }
-
-
 void account_create_operation::validate()const
 {
    FC_ASSERT( fee.amount >= 0 );

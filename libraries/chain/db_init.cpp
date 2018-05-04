@@ -196,6 +196,7 @@ void database::initialize_evaluators()
    register_evaluator<coldhot_transfer_combine_sign_evaluate>();
    register_evaluator<coldhot_transfer_result_evaluate>();
    register_evaluator<coldhot_cancel_transafer_transaction_evaluate>();
+   register_evaluator<coldhot_cancel_uncombined_trx_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
@@ -260,6 +261,8 @@ void database::initialize_evaluators()
    register_evaluator<contract_transfer_evaluate>();
    register_evaluator<gurantee_create_evaluator>();
    register_evaluator<gurantee_cancel_evaluator>();
+   register_evaluator<publisher_appointed_evaluator>();
+   register_evaluator<asset_fee_modification_evaluator>();
 }
 
 void database::initialize_indexes()

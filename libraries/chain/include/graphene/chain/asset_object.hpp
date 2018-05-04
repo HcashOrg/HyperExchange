@@ -135,8 +135,8 @@ namespace graphene { namespace chain {
 		 /// Feeds published for this asset. If issuer is not committee, the keys in this map are the feed publishing
 		 /// accounts; otherwise, the feed publishers are the currently active committee_members and witnesses and this map
 		 /// should be treated as an implementation detail. The timestamp on each feed is the time it was published.
-
-		 flat_map<account_id_type, pair<time_point_sec, price_feed>> feeds;
+		 flat_set<address> publishers; 
+		 flat_map<address, pair<time_point_sec, price_feed>> feeds;
 		 /// This is the currently active price feed, calculated as the median of values from the currently active
 		 /// feeds.
 		 price_feed current_feed;
