@@ -3113,7 +3113,7 @@ public:
    full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
-	   auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_without_sign_trx_create, transaction_id_type(txid));
+	   auto without_sign_trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(txid));
 	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
 	   auto account = get_account(guard);
 	   auto guard_obj = get_guard_member(guard);
