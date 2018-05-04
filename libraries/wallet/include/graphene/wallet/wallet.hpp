@@ -1940,6 +1940,7 @@ class wallet_api
       vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);
       vector<contract_event_notify_object> get_contract_events(const std::string&);
+      vector<string> get_contract_addresses(const uint32_t block_num = 0);
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -2248,6 +2249,7 @@ FC_API( graphene::wallet::wallet_api,
         (register_contract_testing)
         (register_native_contract_testing)
         (upgrade_contract_testing)
+        (get_contract_addresses)
 		(get_transaction)
 		(list_transactions)
 		(dump_crosschain_private_key)

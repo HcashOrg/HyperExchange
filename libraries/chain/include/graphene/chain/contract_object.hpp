@@ -15,7 +15,7 @@ namespace graphene {
         public:
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_object_type;
-
+            uint32_t  registered_block;
             uvm::blockchain::Code code;
             address owner_address;
             time_point_sec create_time;
@@ -31,13 +31,15 @@ namespace graphene {
         };
         struct by_owner{};
         struct by_contract_obj_id {};
+        struct by_registered_block {};
         typedef multi_index_container<
             contract_object,
             indexed_by<
             ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
             ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>,
 			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>,
-            ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>
+            ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>,
+            ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
 
@@ -189,7 +191,7 @@ namespace graphene {
 
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
+    (registered_block)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),

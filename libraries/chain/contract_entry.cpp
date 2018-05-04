@@ -124,6 +124,7 @@ namespace graphene {
             res.description = obj.contract_desc;
             res.type_of_contract = obj.type_of_contract;
             res.code_printable = obj.code;
+            res.registered_block = obj.registered_block;
             if(obj.inherit_from!=address())
             {
                 res.inherit_from = obj.inherit_from.address_to_contract_string();

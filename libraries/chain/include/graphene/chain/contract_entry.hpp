@@ -116,6 +116,7 @@ namespace graphene {
 			string name;
 			string description;
             contract_type type_of_contract;
+            uint32_t registered_block;
             optional<std::string> inherit_from;
 
             std::vector<std::string> derived;
@@ -133,5 +134,5 @@ FC_REFLECT_ENUM(graphene::chain::contract_type, (normal_contract)(native_contrac
 FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));
 
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
-FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner_address)(owner_name)(name)(description)(type_of_contract)(inherit_from)(derived)(code_printable)(createtime));
+FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner_address)(owner_name)(name)(description)(type_of_contract)(registered_block)(inherit_from)(derived)(code_printable)(createtime));
 

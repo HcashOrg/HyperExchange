@@ -404,6 +404,7 @@ namespace graphene {
 			// commit contract result to db
             if (invoke_contract_result.exec_succeed)
             {
+                new_contract.registered_block = d.head_block_num();
                 d.store_contract(new_contract);
                 if (new_contract.inherit_from != address())
                 {
@@ -440,6 +441,7 @@ namespace graphene {
             {
 			database& d = db();
 			// commit contract result to db
+            new_contract.registered_block = d.head_block_num();
 			d.store_contract(new_contract);
 			for (const auto &pair1 : invoke_contract_result.storage_changes)
 			{

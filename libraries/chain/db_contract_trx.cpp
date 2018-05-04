@@ -216,6 +216,23 @@ namespace graphene {
             sort(res.begin(),res.end(), cmp);
             return res;
 		}
+
+        vector<contract_object> database::get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const
+        {
+            vector<contract_object> res;
+            auto& con_db = get_index_type<contract_object_index>().indices().get<by_registered_block>();
+            auto evit = con_db.lower_bound(start_with);
+
+            auto ubit = con_db.upper_bound(start_with + num);
+            if (num == 0|| start_with + num<start_with)
+                ubit = con_db.upper_bound(head_block_num());
+            while (evit != ubit)
+            {
+                res.push_back(*evit);
+                evit++;
+            }
+            return res;
+        }
         void database::store_contract(const contract_object & contract)
         {
             try {
@@ -235,6 +252,7 @@ namespace graphene {
 					obj.native_contract_key = contract.native_contract_key;
                     obj.inherit_from = contract.inherit_from;
                     obj.derived = contract.derived;
+                    obj.registered_block = contract.registered_block;
                 });
             }
             else
@@ -263,6 +281,7 @@ namespace graphene {
 						obj.native_contract_key = contract.native_contract_key;
                         obj.inherit_from = contract.inherit_from;
                         obj.derived = contract.derived;
+                        obj.registered_block = contract.registered_block;
 					});
 				}
 				else

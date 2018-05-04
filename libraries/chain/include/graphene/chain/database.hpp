@@ -346,6 +346,7 @@ namespace graphene { namespace chain {
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 
          vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
+         vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//

@@ -6093,6 +6093,7 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	res.description = cont.contract_desc;;
     res.createtime=cont.create_time;
     res.derived.clear();
+    res.registered_block = cont.registered_block;
     for (auto i:cont.derived)
     {
         res.derived.push_back(i.address_to_contract_string());
@@ -6201,6 +6202,10 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
 vector<contract_event_notify_object> wallet_api::get_contract_events(const std::string&addr)
 {
     return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+}
+vector<string> wallet_api::get_contract_addresses(const uint32_t block_num)
+{
+    return my->_remote_db->get_contract_addresses(block_num);
 }
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {

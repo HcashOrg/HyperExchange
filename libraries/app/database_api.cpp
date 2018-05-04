@@ -176,6 +176,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<address> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
       vector<contract_event_notify_object> get_contract_events(const address&)const;
+      vector<contract_object> get_contract_addresses(const uint32_t start_with, const uint32_t num)const ;
 
    //private:
       template<typename T>
@@ -1678,6 +1679,20 @@ vector<contract_object> database_api_impl::get_contracts_by_owner(const address&
 vector<contract_event_notify_object> database_api_impl::get_contract_events(const address &addr) const
 {
     return _db.get_contract_events_by_contract_ordered(addr);
+}
+vector<contract_object> database_api_impl::get_contract_addresses(const uint32_t start_with, const uint32_t num)const
+{
+    return _db.get_registered_contract_according_block(start_with, num);
+}
+vector<string> database_api::get_contract_addresses(const uint32_t block_num) const
+{
+    vector<string> res;
+    auto contracts=my->get_contract_addresses(block_num,0);
+    for(auto co:contracts)
+    {
+        res.push_back(co.contract_address.address_to_contract_string());
+    }
+    return res;
 }
 vector<graphene::chain::contract_invoke_result_object> database_api_impl::get_contract_invoke_object(const transaction_id_type& trx_id) const
 {
