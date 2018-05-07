@@ -156,12 +156,13 @@ namespace fc { namespace http {
             {
             }
 
-            virtual void send_message( const std::string& message )override
+            virtual bool send_message( const std::string& message )override
             {
                idump((message));
                //std::cerr<<"send: "<<message<<"\n";
                auto ec = _ws_connection->send( message );
                FC_ASSERT( !ec, "websocket send failed: ${msg}", ("msg",ec.message() ) );
+               return true;
             }
             virtual void close( int64_t code, const std::string& reason  )override
             {

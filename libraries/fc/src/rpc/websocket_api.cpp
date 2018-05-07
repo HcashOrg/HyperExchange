@@ -58,8 +58,11 @@ variant websocket_api_connection::send_call(
    variants args /* = variants() */ )
 {
    auto request = _rpc_state.start_remote_call(  "call", {api_id, std::move(method_name), std::move(args) } );
-   _connection.send_message( fc::json::to_string(request) );
-   return _rpc_state.wait_for_response( *request.id );
+   if(_connection.send_message( fc::json::to_string(request) ))
+   {
+       return _rpc_state.wait_for_response(*request.id);
+   }
+   return variant();
 }
 
 variant websocket_api_connection::send_callback(

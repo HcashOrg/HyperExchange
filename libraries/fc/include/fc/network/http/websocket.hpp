@@ -17,8 +17,11 @@ namespace fc { namespace http {
    class websocket_connection
    {
       public:
-         virtual ~websocket_connection(){}
-         virtual void send_message( const std::string& message ) = 0;
+         virtual ~websocket_connection(){
+         }
+         virtual bool send_message( const std::string& message ) {
+             return false;
+         };
          virtual void close( int64_t code, const std::string& reason  ){};
          void on_message( const std::string& message ) { _on_message(message); }
          string on_http( const std::string& message ) { return _on_http(message); }
