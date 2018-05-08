@@ -1991,6 +1991,7 @@ class wallet_api
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
+	  void remove_guarantee_id();
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
@@ -2269,4 +2270,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_guarantee_order)
 		(guard_appointed_publisher)
 		(miner_appointed_crosschain_fee)
+	    (remove_guarantee_id)
       )
