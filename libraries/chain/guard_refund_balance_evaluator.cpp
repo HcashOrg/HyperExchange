@@ -74,8 +74,8 @@ namespace graphene {
 					const auto source_trx_iter = trx_db.find(op);
 					FC_ASSERT(source_trx_iter != trx_db.end(), "source trx exist error");
 					FC_ASSERT(source_trx_iter->real_transaction.operations.size() == 1, "source trx operation size error");
-					auto op = source_trx_iter->real_transaction.operations[0];
-					auto source_op = op.get<crosschain_withdraw_operation>();
+					auto op1 = source_trx_iter->real_transaction.operations[0];
+					auto source_op = op1.get<crosschain_withdraw_operation>();
 					FC_ASSERT(asset_symbol == source_op.asset_symbol);
 					FC_ASSERT(without_sign_op.asset_id == source_op.asset_id);
 				}
