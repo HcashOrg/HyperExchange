@@ -786,6 +786,10 @@ public:
 		   _guarantee_id = id;
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
+   void remove_guarantee_id()
+   {
+	   _guarantee_id = optional<guarantee_object_id_type>();
+   }
    optional<guarantee_object_id_type> get_guarantee_id()
    {
 	   auto id = _guarantee_id;
@@ -6780,7 +6784,10 @@ void wallet_api::set_guarantee_id(const guarantee_object_id_type id)
 {
 	return my->set_guarantee_id(id);
 }
-
+void wallet_api::remove_guarantee_id()
+{
+	return my->remove_guarantee_id();
+}
 full_transaction wallet_api::guard_appointed_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->guard_appointed_publisher(account,publisher,symbol, expiration_time,broadcast);
