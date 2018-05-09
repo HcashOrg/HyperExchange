@@ -119,6 +119,7 @@ namespace graphene {
 			extensions_type   extensions;
 			optional<guarantee_object_id_type> guarantee_id;
 			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
+            static bool contract_name_check(const string& contract);
 			address fee_payer()const { return caller_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;

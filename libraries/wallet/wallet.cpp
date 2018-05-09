@@ -1762,6 +1762,7 @@ public:
 		   contract_upgrade_op.caller_addr = acc_caller.addr;
 		   contract_upgrade_op.caller_pubkey = caller_pubkey;
 		   contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_upgrade_operation::contract_name_check(contract_name);
 		   contract_upgrade_op.contract_name = contract_name;
 		   contract_upgrade_op.contract_desc = contract_desc;
 		   contract_upgrade_op.fee.amount = 0;
@@ -1856,6 +1857,7 @@ public:
            contract_upgrade_op.caller_addr = acc_caller.addr;
            contract_upgrade_op.caller_pubkey = caller_pubkey;
            contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
            contract_upgrade_op.contract_desc = contract_desc;
            contract_upgrade_op.fee.amount = 0;
