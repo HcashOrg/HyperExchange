@@ -53,8 +53,8 @@ namespace graphene {
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
 			virtual share_type origin_op_fee() const = 0;
-            virtual  std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const=0;
-            virtual contract_object get_contract_by_name(const string& contract_name) const=0;
+            virtual  std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
+            virtual contract_object get_contract_by_name(const string& contract_name) const;
             virtual std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			string get_api_result() const;
 			gas_count_type get_gas_limit() const;
@@ -76,7 +76,6 @@ namespace graphene {
 			virtual void pay_fee() override;
 
 			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
-			contract_object get_contract_by_name(const string& contract_name) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			address origin_op_contract_id() const;
 			virtual share_type origin_op_fee() const;
@@ -98,7 +97,6 @@ namespace graphene {
 			virtual void pay_fee() override;
 
 			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
-			contract_object get_contract_by_name(const string& contract_name) const;
 			address origin_op_contract_id() const;
 			virtual share_type origin_op_fee() const;
 
@@ -116,9 +114,6 @@ namespace graphene {
 
 			virtual void pay_fee() override;
 
-			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
-			contract_object get_contract_by_name(const string& contract_name) const;
-			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
 
             optional<guarantee_object_id_type> get_guarantee_id()const;
@@ -135,10 +130,6 @@ namespace graphene {
             contract_operation_result_info do_apply(const operation_type& o);
 
 			virtual void pay_fee() override;
-
-			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
-			contract_object get_contract_by_name(const string& contract_name) const;
-			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
             optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
@@ -156,9 +147,6 @@ namespace graphene {
             contract_operation_result_info do_apply(const operation_type& o);
             void pay_fee();
             
-            std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
-            contract_object get_contract_by_name(const string& contract_name) const;
-            std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			virtual share_type origin_op_fee() const;
             optional<guarantee_object_id_type> get_guarantee_id()const;
         };

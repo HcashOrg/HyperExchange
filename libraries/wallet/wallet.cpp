@@ -1398,7 +1398,7 @@ public:
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
-           contract_register_op.gas_price = 1 * GRAPHENE_BLOCKCHAIN_PRECISION;
+           contract_register_op.gas_price = 0 ;
            contract_register_op.init_cost = (GRAPHENE_CONTRACT_TESTING_GAS);
            contract_register_op.owner_addr = acc_caller.addr;
            contract_register_op.owner_pubkey = owner_pubkey;
@@ -1507,7 +1507,7 @@ public:
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
-           n_contract_register_op.gas_price =  GRAPHENE_BLOCKCHAIN_PRECISION;
+           n_contract_register_op.gas_price =  0;
            n_contract_register_op.init_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            n_contract_register_op.owner_addr = acc_caller.addr;
            n_contract_register_op.owner_pubkey = owner_pubkey;
@@ -1572,7 +1572,7 @@ public:
 			   contract_address = string(cont.contract_address);
 		   }
 
-           contract_invoke_op.gas_price =  GRAPHENE_BLOCKCHAIN_PRECISION;
+           contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
            contract_invoke_op.caller_pubkey = caller_pubkey;
@@ -1841,7 +1841,6 @@ public:
    share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
        try {
-           // TODO: invoke_contract_testing
            FC_ASSERT(!self.is_locked());
            FC_ASSERT(is_valid_account_name(caller_account_name));
 
@@ -1853,7 +1852,7 @@ public:
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto caller_pubkey = privkey.get_public_key();
 
-           contract_upgrade_op.gas_price = GRAPHENE_BLOCKCHAIN_PRECISION;
+           contract_upgrade_op.gas_price = 0;
            contract_upgrade_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_upgrade_op.caller_addr = acc_caller.addr;
            contract_upgrade_op.caller_pubkey = caller_pubkey;
@@ -1953,7 +1952,7 @@ public:
        auto privkey = *wif_to_key(_keys[acc_caller.addr]);
        auto caller_pubkey = privkey.get_public_key();
 
-       transfer_to_contract_op.gas_price = GRAPHENE_BLOCKCHAIN_PRECISION;
+       transfer_to_contract_op.gas_price = 0;
        transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
        transfer_to_contract_op.caller_addr = acc_caller.addr;
        transfer_to_contract_op.caller_pubkey = caller_pubkey;
