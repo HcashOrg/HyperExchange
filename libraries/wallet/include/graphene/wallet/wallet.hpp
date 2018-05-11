@@ -1918,7 +1918,7 @@ class wallet_api
       string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
       share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
-      ContractEntryPrintable get_contract_object(const string& contract_address_or_name)const;
+      ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
       full_transaction transfer_to_contract(string from,
           string to,
@@ -2233,7 +2233,7 @@ FC_API( graphene::wallet::wallet_api,
 		(invoke_contract)
 		(invoke_contract_offline)
 		(upgrade_contract)
-        (get_contract_object)
+        (get_contract_info)
 		(get_simple_contract_info)
 		(transfer_to_contract)
         (get_contract_balance)
