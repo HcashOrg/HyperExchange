@@ -703,6 +703,7 @@ public:
 	   if (iter_remove != iter_db.end()) {
 		   iter_db.erase(iter_remove);
 	   }
+	   save_wallet_file();
    }
    account_object get_account(string account_name_or_id) const
    {
