@@ -336,6 +336,7 @@ namespace graphene { namespace chain {
 		 void update_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
+         contract_object get_contract(const string& name_or_id);
 		 contract_object get_contract_of_name(const string& contract_name);
          vector<contract_object> get_contract_by_owner(const address& owner);
 

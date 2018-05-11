@@ -293,12 +293,34 @@ namespace graphene {
 
         contract_object database::get_contract(const address & contract_address)
         {
+            contract_object res;
             auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
             auto itr = index.find(contract_address);
             FC_ASSERT(itr != index.end());
-            return *itr;
+            res =*itr;
+            if(res.inherit_from!=address())
+            {
+                res.code = get_contract(res.inherit_from).code;
+            }
+            return res;
         }
 
+        contract_object database::get_contract(const string& name_or_id)
+        {
+            auto& index_name = get_index_type<contract_object_index>().indices().get<by_contract_name>();
+            auto itr = index_name.find(name_or_id);
+            if(itr != index_name.end())
+            {
+                contract_object res;
+                res = *itr;
+                if (res.inherit_from != address())
+                {
+                    res.code = get_contract(res.inherit_from).code;
+                }
+                return res;
+            }
+            return get_contract(address(name_or_id,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+        }
         contract_object database::get_contract(const contract_id_type & id)
         {
             auto& index = get_index_type<contract_object_index>().indices().get<by_id>();
