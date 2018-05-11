@@ -74,6 +74,8 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
+
+            FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
             total_fee = o.fee.amount;
 			if (!global_uvm_chain_api)
@@ -156,6 +158,8 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
 			// check contract id unique
+
+            FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
@@ -216,6 +220,7 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+            FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 			FC_ASSERT(d.has_contract(o.contract_id));
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
@@ -307,6 +312,8 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+
+            FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
 			const auto &contract = d.get_contract(o.contract_id);
@@ -725,6 +732,8 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+
+            FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
             FC_ASSERT(d.has_contract(o.contract_id));
             const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
@@ -1230,6 +1239,13 @@ namespace graphene {
 			 return gas_limit;
 		 }
 
+         bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
+         {
+             auto obj=get_db().get_asset(GRAPHENE_SYMBOL);
+             FC_ASSERT(obj.valid());
+            auto balance= get_db().get_balance(addr, obj->get_id());
+            return count_gas_fee(gas_price, gas_count) <= balance.amount;
+         }
          void contract_common_evaluate::pay_fee_and_refund() const
 		{
              if (!get_guarantee_id().valid())

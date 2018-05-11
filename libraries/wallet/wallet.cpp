@@ -1567,7 +1567,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
 
@@ -1627,7 +1627,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
            fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
@@ -1679,7 +1679,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
 
@@ -6122,7 +6122,7 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 	}
 	else {
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
@@ -6137,7 +6137,7 @@ share_type wallet_api::invoke_contract_testing(const string & caller_account_nam
     }
     else {
 
-        auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+        auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
         contract_address = cont.contract_address.address_to_contract_string();
     }
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
@@ -6153,7 +6153,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	}
 	else {
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
@@ -6183,7 +6183,7 @@ share_type wallet_api::upgrade_contract_testing(const string & caller_account_na
     return  my->upgrade_contract_testing(caller_account_name, contract_address, contract_name, contract_desc);
 }
 
-ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address_or_name) const
+ContractEntryPrintable wallet_api::get_contract_object(const string & contract_address_or_name) const
 {
 	std::string contract_address;
 	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
@@ -6192,28 +6192,9 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	}
 	else
 	{
-
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.address_to_contract_string();
+		return my->_remote_db->get_contract_info_by_name(contract_address_or_name);
 	}
-    auto cont= my->_remote_db->get_contract_info(contract_address);
-    ContractEntryPrintable res;
-    res.code_printable = cont.code;
-    res.owner_address = cont.owner_address;
-    if(cont.inherit_from!=address())
-        res.inherit_from = cont.inherit_from.address_to_contract_string();
-    res.type_of_contract = cont.type_of_contract;
-	res.id = cont.contract_address.address_to_contract_string();
-	res.name = cont.contract_name;
-	res.description = cont.contract_desc;;
-    res.createtime=cont.create_time;
-    res.derived.clear();
-    res.registered_block = cont.registered_block;
-    for (auto i:cont.derived)
-    {
-        res.derived.push_back(i.address_to_contract_string());
-    }
-    return res;
+    return   my->_remote_db->get_contract_info(contract_address);
 }
 
 ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contract_address_or_name) const
@@ -6226,17 +6207,10 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	else
 	{
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
-	auto cont = my->_remote_db->get_contract_info(contract_address);
-	ContractEntryPrintable res;
-	res.owner_address = cont.owner_address;
-	res.id = cont.contract_address.address_to_contract_string();
-	res.name = cont.contract_name;
-	res.description = cont.contract_desc;;
-	res.createtime = cont.create_time;
-	return res;
+	return my->_remote_db->get_contract_object(contract_address);
 }
 
 full_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
@@ -6288,7 +6262,7 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
     auto objs= my->_remote_db->get_contracts_by_owner(owner_addr);
     for(auto& obj:objs)
     {
-        res.push_back(FormatContract(obj));
+        res.push_back(obj);
     }
     return res;
 }
@@ -6353,7 +6327,7 @@ void wallet_api::remove_script(const string& script_hash)
 }
 bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
 {
-    auto con_info=my->_remote_db->get_contract_info(contract);
+    auto con_info=my->_remote_db->get_contract_object(contract);
     FC_ASSERT(con_info.contract_address == address(contract,GRAPHENE_CONTRACT_ADDRESS_PREFIX), "");
     bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, GRAPHENE_CONTRACT_ADDRESS_PREFIX), event_name);
 
@@ -6362,7 +6336,7 @@ bool wallet_api::bind_script_to_event(const string& script_hash, const string& c
 }
 bool wallet_api::remove_event_handle(const string& script_hash, const string& contract, const string& event_name)
 {
-    auto con_info = my->_remote_db->get_contract_info(contract);
+    auto con_info = my->_remote_db->get_contract_object(contract);
     FC_ASSERT(con_info.contract_address == address(contract, ADDRESS_CONTRACT_PREFIX), "");
     bool res = my->_wallet.remove_event_handle(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
     save_wallet_file();

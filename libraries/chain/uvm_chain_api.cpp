@@ -129,7 +129,7 @@ namespace graphene {
             }FC_CAPTURE_AND_LOG((nullptr))
         }
 
-        static contract_object get_contract_info_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
+        static contract_object get_contract_object_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
             try {
                 if (evaluator) {
                     return evaluator->get_contract_by_name(contract_name);
@@ -178,7 +178,7 @@ namespace graphene {
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
 			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
-			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : get_contract_info_by_name(evaluator, contract_name).contract_address.address_to_contract_string();
+			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : get_contract_object_by_name(evaluator, contract_name).contract_address.address_to_contract_string();
 			if (code && !contract_addr.empty())
 			{
 				string address_str = contract_addr;

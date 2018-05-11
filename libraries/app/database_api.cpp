@@ -165,8 +165,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
       //contract 
-      contract_object get_contract_info(const string& contract_address)const ;
-	  contract_object get_contract_info_by_name(const string& contract_name) const;
+      contract_object get_contract_object(const string& contract_address)const ;
+	  contract_object get_contract_object_by_name(const string& contract_name) const;
       vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
@@ -348,22 +348,31 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-contract_object database_api::get_contract_info(const string& contract_address) const
+contract_object database_api::get_contract_object(const string& contract_address) const
 {
-    return my->get_contract_info(contract_address);
+    return my->get_contract_object(contract_address);
 }
-contract_object database_api::get_contract_info_by_name(const string& contract_name) const
+
+ContractEntryPrintable database_api::get_contract_info_by_name(const string& contract_name)const
 {
-	return my->get_contract_info_by_name(contract_name);
+    return my->get_contract_object_by_name(contract_name);
 }
-contract_object database_api_impl::get_contract_info(const string& contract_address) const
+ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
+{
+    return my->get_contract_object(contract_address);
+}
+contract_object database_api::get_contract_object_by_name(const string& contract_name) const
+{
+	return my->get_contract_object_by_name(contract_name);
+}
+contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
         auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
         return res;
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
-contract_object database_api_impl::get_contract_info_by_name(const string& contract_name) const
+contract_object database_api_impl::get_contract_object_by_name(const string& contract_name) const
 {
 	try {
 		auto res = _db.get_contract_of_name(contract_name);

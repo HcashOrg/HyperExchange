@@ -611,8 +611,12 @@ class database_api
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
       //contract 
-      contract_object get_contract_info(const string& contract_address)const;
-	  contract_object get_contract_info_by_name(const string& contract_name)const;
+      contract_object get_contract_object(const string& contract_address)const;
+	  contract_object get_contract_object_by_name(const string& contract_name)const;
+
+      ContractEntryPrintable get_contract_info(const string& contract_address)const;
+
+      ContractEntryPrintable get_contract_info_by_name(const string& contract_address)const;
       vector<asset> get_contract_balance(const address& contract_address) const;
       vector<address> get_contract_addresses_by_owner(const address&)const ;
       vector<contract_object> get_contracts_by_owner(const address&)const;
@@ -753,8 +757,10 @@ FC_API(graphene::app::database_api,
 	(get_guarantee_orders)
 	(get_pay_back_balances)
     //contract
+    (get_contract_object)
+	(get_contract_object_by_name)
     (get_contract_info)
-	(get_contract_info_by_name)
+    (get_contract_info_by_name)
     (get_contract_balance)
     (get_contract_event_notify)
 	(get_gurantee_object)

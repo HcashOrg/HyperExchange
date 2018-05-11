@@ -42,7 +42,8 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(contract_api_not_found, blockchain::contract_engine::contract_error, 35002, "contract api not found");
         FC_DECLARE_DERIVED_EXCEPTION(contract_not_exsited, blockchain::contract_engine::contract_error, 35003, "contract not exsited");
         FC_DECLARE_DERIVED_EXCEPTION(invalid_asset_symbol, blockchain::contract_engine::contract_error, 35004, "invalid asset symbol");
-		FC_DECLARE_DERIVED_EXCEPTION(invalid_contract_gas_limit, blockchain::contract_engine::contract_error, 35005, "invalid contract gas limit");
+        FC_DECLARE_DERIVED_EXCEPTION(invalid_contract_gas_limit, blockchain::contract_engine::contract_error, 35005, "invalid contract gas limit");
+        FC_DECLARE_DERIVED_EXCEPTION(invalid_contract_name, blockchain::contract_engine::contract_error, 35006, "invalid contract name");
 
 		class contract_api_result_error : public std::exception
 		{
@@ -110,6 +111,7 @@ namespace graphene {
 
 		struct ContractEntryPrintable
 		{
+            ContractEntryPrintable(){}
 			std::string  id; //contract address
 		    address owner_address;  //the owner address of the contract
 			string owner_name;  //the owner name of the contract
@@ -122,11 +124,11 @@ namespace graphene {
             std::vector<std::string> derived;
 			CodePrintAble code_printable; // code-related of contract
             fc::time_point_sec createtime;
+            ContractEntryPrintable(const contract_object& obj);
 		};
 
 		typedef uint64_t gas_price_type;
 		typedef uint64_t gas_count_type;
-        ContractEntryPrintable FormatContract(const contract_object& obj);
        struct contract_resgister_record
        {
            string contract_address;
