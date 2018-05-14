@@ -340,7 +340,9 @@ namespace graphene {
 					tx.operations.push_back(trx_op);
 					tx.validate();
 					tx.sign(pk, get_chain_id());
-					push_transaction(tx);
+					try {
+						push_transaction(tx);
+					}FC_CAPTURE_AND_LOG((0));
 				}
 			}FC_CAPTURE_AND_LOG((0))
 		}
@@ -413,7 +415,10 @@ namespace graphene {
 							tx.operations.push_back(op);
 							tx.validate();
 							tx.sign(pk, get_chain_id());
-							push_transaction(tx);
+							try {
+								push_transaction(tx);
+							}FC_CAPTURE_AND_LOG((0));
+							
 							continue;
 						}
 						if (multi_account_deposit_hot) {
@@ -440,7 +445,9 @@ namespace graphene {
 							tx.operations.push_back(op);
 							tx.validate();
 							tx.sign(pk, get_chain_id());
-							push_transaction(tx);
+							try {
+								push_transaction(tx);
+							}FC_CAPTURE_AND_LOG((0));
 							continue;
 						}
 						else if (multi_account_withdraw_hot) {
@@ -468,7 +475,9 @@ namespace graphene {
 							tx.operations.push_back(op);
 							tx.validate();
 							tx.sign(pk, get_chain_id());
-							push_transaction(tx);
+							try {
+								push_transaction(tx);
+							}FC_CAPTURE_AND_LOG((0));
 							continue;
 						}
 					}
@@ -543,7 +552,9 @@ namespace graphene {
 					tx.operations.push_back(trx_op);
 					tx.validate();
 					tx.sign(pk, get_chain_id());
-					push_transaction(tx);
+					try {
+						push_transaction(tx);
+					}FC_CAPTURE_AND_LOG((0));
 				}
 			}FC_CAPTURE_AND_LOG((0))
 		}
