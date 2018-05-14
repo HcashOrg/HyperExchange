@@ -1290,7 +1290,6 @@ public:
 
    full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
-	   // TODO: register_contract_testing
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1341,7 +1340,6 @@ public:
 
    full_transaction register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
    {
-       // TODO: register_contract_testing
        try {
            FC_ASSERT(!self.is_locked());
            FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1427,7 +1425,7 @@ public:
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res=_remote_db->validate_transaction(signed_tx);
+           auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1438,11 +1436,6 @@ public:
                }
            }
            asset res_data_fee= signed_tx.operations[0].get<contract_register_operation>().fee ;
-
-           std::cout << fc::json::to_string(res_data_fee) << std::endl;
-           res_data_fee.amount -= graphene::chain::count_gas_fee(contract_register_op.gas_price, contract_register_op.init_cost);
-           std::cout << fc::json::to_string(contract_register_op) << std::endl;
-           std::cout << fc::json::to_string(res_data_fee) << std::endl;
            std::pair<asset, share_type> res=make_pair(res_data_fee,gas_count);
            return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_filepath))
@@ -1450,7 +1443,6 @@ public:
 
    string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
    {
-	   // TODO: register_contract_testing
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1531,7 +1523,7 @@ public:
 
            auto signed_tx = sign_transaction(tx, false);
            
-           auto trx_res = _remote_db->validate_transaction(signed_tx);
+           auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1542,12 +1534,11 @@ public:
                }
            }
            asset res_data_fee = signed_tx.operations[0].get<native_contract_register_operation>().fee;
-           res_data_fee.amount -= graphene::chain::count_gas_fee(n_contract_register_op.gas_price, n_contract_register_op.init_cost);
            std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
            return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(native_contract_key))
    }
-   share_type invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+   std::pair<asset, share_type> invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
    {
        try {
            FC_ASSERT(!self.is_locked());
@@ -1593,7 +1584,7 @@ public:
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res=_remote_db->validate_transaction(signed_tx);
+           auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res:trx_res.operation_results)
            {
@@ -1603,7 +1594,9 @@ public:
 
                }
            }
-           return gas_count;
+           asset res_data_fee = signed_tx.operations[0].get<contract_invoke_operation>().fee;
+           std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+           return res;;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
 
    }
@@ -1744,7 +1737,6 @@ public:
    full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
    {
 	   try {
-		   // TODO: invoke_contract_testing
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
 
@@ -1839,7 +1831,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
    }
 
-   share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
+   std::pair<asset, share_type> upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
        try {
            FC_ASSERT(!self.is_locked());
@@ -1875,7 +1867,7 @@ public:
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res = _remote_db->validate_transaction(signed_tx);
+           auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1884,8 +1876,10 @@ public:
                {
 
                }
-           }
-           return gas_count;
+           }           
+           asset res_data_fee = signed_tx.operations[0].get<contract_upgrade_operation>().fee;
+           std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+           return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address)(contract_name)(contract_desc))
 
    }
@@ -1899,7 +1893,6 @@ public:
        const string& gas_limit,
        bool broadcast = false)
    {
-       // TODO: invoke_contract_testing
        FC_ASSERT(!self.is_locked());
        FC_ASSERT(is_valid_account_name(from));
 
@@ -1938,9 +1931,8 @@ public:
        auto signed_tx = sign_transaction(tx, broadcast);
        return signed_tx;
    }
-   share_type transfer_to_contract_testing(string from, string to, string amount, string asset_symbol,const string& param)
+   std::pair<asset, share_type> transfer_to_contract_testing(string from, string to, string amount, string asset_symbol,const string& param)
    {
-       // TODO: invoke_contract_testing
        FC_ASSERT(!self.is_locked());
        FC_ASSERT(is_valid_account_name(from));
 
@@ -1975,7 +1967,7 @@ public:
        tx.validate();
 
        auto signed_tx = sign_transaction(tx, false);
-       auto trx_res = _remote_db->validate_transaction(signed_tx);
+       auto trx_res = _remote_db->validate_transaction(signed_tx,true);
        share_type gas_count = 0;
        for (auto op_res : trx_res.operation_results)
        {
@@ -1985,7 +1977,9 @@ public:
 
            }
        }
-       return gas_count;
+       asset res_data_fee = signed_tx.operations[0].get<transfer_contract_operation>().fee;
+       std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+       return res;
    }
    full_transaction register_account(string name,
                                        public_key_type owner,
@@ -6129,7 +6123,7 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
 
-share_type wallet_api::invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
 {
     std::string contract_address;
     if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
@@ -6179,7 +6173,7 @@ string wallet_api::signrawtransaction(const string& from,const string& symbol ,c
 	return my->signrawtransaction(from,symbol,trx,broadcast);
 }
 
-share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
+std::pair<asset, share_type> wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
 {
     return  my->upgrade_contract_testing(caller_account_name, contract_address, contract_name, contract_desc);
 }
@@ -6219,7 +6213,7 @@ full_transaction wallet_api::transfer_to_contract(string from, string to, string
     return my->transfer_to_contract(from, to,amount, asset_symbol, param, gas_price, gas_limit,broadcast);
 }
 
-share_type wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param)
+std::pair<asset, share_type> wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param)
 {
     return my->transfer_to_contract_testing(from,to,amount,asset_symbol, param);
 }

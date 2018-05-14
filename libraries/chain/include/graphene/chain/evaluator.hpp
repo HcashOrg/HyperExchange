@@ -181,6 +181,8 @@ namespace graphene {
 
 				//convert_fee();
 				auto result = eval->do_apply(op);
+                if(trx_state->testing)
+                    return result;
 				if (!op.get_guarantee_id().valid())
 				{
 					if (fee_from_account.asset_id == asset_id_type())

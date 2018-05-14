@@ -48,5 +48,6 @@ namespace graphene { namespace chain {
          bool                             skip_fee = false;
          bool                             skip_fee_schedule_check = false;
          int                              op_num=0;
+         bool testing = false;
    };
 } } // namespace graphene::chain

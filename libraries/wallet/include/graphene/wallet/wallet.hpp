@@ -1913,11 +1913,11 @@ class wallet_api
       std::pair<asset, share_type> register_native_contract_testing(const string& caller_account_name,  const string& native_contract_key);
 
 	  full_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-      share_type invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+      std::pair<asset, share_type> invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 
       string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
-      share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
+      std::pair<asset, share_type> upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
       full_transaction transfer_to_contract(string from,
@@ -1928,7 +1928,7 @@ class wallet_api
           const string& gas_price,
           const string& gas_limit,
           bool broadcast = false);
-      share_type transfer_to_contract_testing(string from,
+      std::pair<asset, share_type> transfer_to_contract_testing(string from,
           string to,
           string amount,
           string asset_symbol,

@@ -137,7 +137,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       set<address> get_potential_address_signatures( const signed_transaction& trx )const;
       bool verify_authority( const signed_transaction& trx )const;
       bool verify_account_authority( const string& name_or_id, const flat_set<public_key_type>& signers )const;
-      processed_transaction validate_transaction( const signed_transaction& trx )const;
+      processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false)const;
       vector< fc::variant > get_required_fees( const vector<operation>& ops, asset_id_type id )const;
 
       // Proposed transactions
@@ -1957,14 +1957,14 @@ bool database_api_impl::verify_account_authority( const string& name_or_id, cons
    return verify_authority( trx );
 }
 
-processed_transaction database_api::validate_transaction( const signed_transaction& trx )const
+processed_transaction database_api::validate_transaction( const signed_transaction& trx , bool testing)const
 {
-   return my->validate_transaction( trx );
+   return my->validate_transaction( trx, testing);
 }
 
-processed_transaction database_api_impl::validate_transaction( const signed_transaction& trx )const
+processed_transaction database_api_impl::validate_transaction( const signed_transaction& trx ,bool testing)const
 {
-   return _db.validate_transaction(trx);
+   return _db.validate_transaction(trx, testing);
 }
 
 vector< fc::variant > database_api::get_required_fees( const vector<operation>& ops, asset_id_type id )const

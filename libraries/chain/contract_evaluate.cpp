@@ -870,7 +870,8 @@ namespace graphene {
 
                 do_apply_contract_event_notifies();
                 do_apply_balance();
-                db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
+                if(!gen_eval->get_trx_eval_state()->testing)
+                    db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
 
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);

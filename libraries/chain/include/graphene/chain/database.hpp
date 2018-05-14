@@ -496,7 +496,7 @@ namespace graphene { namespace chain {
           *  This method validates transactions without adding it to the pending state.
           *  @return true if the transaction would validate
           */
-         processed_transaction validate_transaction( const signed_transaction& trx );
+         processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false);
 
 
          /** when popping a block, the transactions that were removed get cached here so they
@@ -529,7 +529,7 @@ namespace graphene { namespace chain {
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
       private:
          void                  _apply_block( const signed_block& next_block );
-         processed_transaction _apply_transaction( const signed_transaction& trx );
+         processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 
          ///Steps involved in applying a new block
          ///@{

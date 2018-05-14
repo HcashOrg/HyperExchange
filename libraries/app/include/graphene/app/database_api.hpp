@@ -570,7 +570,7 @@ class database_api
       /**
        *  Validates a transaction against the current state without broadcasting it on the network.
        */
-      processed_transaction validate_transaction( const signed_transaction& trx )const;
+      processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false)const;
 
       /**
        *  For each operation calculate the required fee in the specified asset type.  If the asset type does
