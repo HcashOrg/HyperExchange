@@ -368,13 +368,7 @@ contract_object database_api::get_contract_object_by_name(const string& contract
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
-        if(res.inherit_from!=address())
-        {
-           auto base = _db.get_contract(res.inherit_from);
-           res.code = base.code;
-        }
-        return res;
+        return _db.get_contract(contract_address);
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
 contract_object database_api_impl::get_contract_object_by_name(const string& contract_name) const
