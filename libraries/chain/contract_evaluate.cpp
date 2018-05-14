@@ -169,7 +169,7 @@ namespace graphene {
 				FC_ASSERT(native_contract_finder::has_native_contract_with_key(o.native_contract_key));
 				auto limit = o.init_cost;
 				if (limit < 0 || limit == 0)
-					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+					FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 				gas_limit = limit;
 				auto native_contract = native_contract_finder::create_native_contract_by_key(this, o.native_contract_key, o.contract_id);
 				FC_ASSERT(native_contract);
@@ -261,7 +261,7 @@ namespace graphene {
 					engine->clear_exceptions();
 					auto limit = o.invoke_cost;
 					if (!offline && (limit < 0 || limit == 0))
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
 					invoke_contract_result.storage_changes.clear();
@@ -331,7 +331,7 @@ namespace graphene {
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
@@ -358,7 +358,7 @@ namespace graphene {
 					engine->clear_exceptions();
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
 					invoke_contract_result.storage_changes.clear();
@@ -747,7 +747,7 @@ namespace graphene {
                     FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
@@ -794,7 +794,7 @@ namespace graphene {
 						engine->clear_exceptions();
 						auto limit = o.invoke_cost;
 						if (limit < 0 || limit == 0)
-							FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+							FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 						gas_limit = limit;
 						engine->set_gas_limit(limit);
 						invoke_contract_result.reset();
