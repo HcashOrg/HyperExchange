@@ -543,6 +543,7 @@ namespace detail {
             wild_access.allowed_apis.push_back( "crypto_api" );
 			wild_access.allowed_apis.push_back("crosschain_api");
 			wild_access.allowed_apis.push_back("transaction_api");
+			wild_access.allowed_apis.push_back("network_node_api");
             _apiaccess.permission_map["*"] = wild_access;
          }
 

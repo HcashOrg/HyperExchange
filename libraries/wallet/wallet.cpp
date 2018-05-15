@@ -2296,8 +2296,9 @@ public:
 			   save_wallet_file();
 			   return address(result.get_public_key());
 		   };
-
-		   return get_private_key();
+		   auto addr = get_private_key();
+		   _remote_trx->set_tracked_addr(addr);
+		   return addr;
 		   
 	   }FC_CAPTURE_AND_RETHROW((account_name))
    }
