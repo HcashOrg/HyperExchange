@@ -253,10 +253,10 @@ processed_transaction database::_push_transaction( const signed_transaction& trx
    return processed_trx;
 }
 
-processed_transaction database::validate_transaction( const signed_transaction& trx )
+processed_transaction database::validate_transaction( const signed_transaction& trx,bool testing )
 {
    auto session = _undo_db.start_undo_session();
-   return _apply_transaction( trx );
+   return _apply_transaction( trx,testing );
 }
 
 processed_transaction database::push_proposal(const proposal_object& proposal)
@@ -604,7 +604,7 @@ processed_transaction database::apply_transaction(const signed_transaction& trx,
    return result;
 }
 
-processed_transaction database::_apply_transaction(const signed_transaction& trx)
+processed_transaction database::_apply_transaction(const signed_transaction& trx,bool testing)
 { try {
    uint32_t skip = get_node_properties().skip_flags;
 
@@ -623,7 +623,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    transaction_evaluation_state eval_state(this);
    const chain_parameters& chain_parameters = get_global_properties().parameters;
    eval_state._trx = &trx;
-
+   eval_state.testing = testing;
    if( !(skip & (skip_transaction_signatures | skip_authority_check) ) )
    {
       auto get_active = [&]( account_id_type id ) { return &id(*this).active; };

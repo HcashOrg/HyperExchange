@@ -151,6 +151,7 @@ namespace graphene { namespace chain {
       script_object_type,
       script_binding_object_type,
 	  pay_back_object_type,
+      contract_storage_change_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 

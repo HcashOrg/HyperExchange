@@ -137,7 +137,7 @@ namespace graphene {
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
+            share_type core_fee_required = 0;
 			// bytes size fee
             core_fee_required += count_contract_register_fee(contract_code);//calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
             core_fee_required += count_gas_fee(gas_price, init_cost);
@@ -180,9 +180,7 @@ namespace graphene {
 		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
-			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+			share_type core_fee_required =  count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
@@ -218,9 +216,7 @@ namespace graphene {
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
-			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+			share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
@@ -236,9 +232,7 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            share_type core_fee_required = schedule.fee;
-            core_fee_required += calculate_data_fee(fc::raw::pack_size(param), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+            share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
             return core_fee_required;
         }
 

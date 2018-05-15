@@ -169,7 +169,7 @@ namespace graphene {
 				FC_ASSERT(native_contract_finder::has_native_contract_with_key(o.native_contract_key));
 				auto limit = o.init_cost;
 				if (limit < 0 || limit == 0)
-					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+					FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 				gas_limit = limit;
 				auto native_contract = native_contract_finder::create_native_contract_by_key(this, o.native_contract_key, o.contract_id);
 				FC_ASSERT(native_contract);
@@ -261,7 +261,7 @@ namespace graphene {
 					engine->clear_exceptions();
 					auto limit = o.invoke_cost;
 					if (!offline && (limit < 0 || limit == 0))
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
 					invoke_contract_result.storage_changes.clear();
@@ -331,7 +331,7 @@ namespace graphene {
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
@@ -358,7 +358,7 @@ namespace graphene {
 					engine->clear_exceptions();
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
 					engine->set_gas_limit(limit);
 					invoke_contract_result.storage_changes.clear();
@@ -419,19 +419,7 @@ namespace graphene {
                     base_contract.derived.push_back(new_contract.contract_address);
                     d.update_contract(base_contract);
                 }
-                for (const auto &pair1 : invoke_contract_result.storage_changes)
-                {
-                    const auto &contract_id = pair1.first;
-                    address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-                    const auto &contract_storage_changes = pair1.second;
-                    for (const auto &pair2 : contract_storage_changes)
-                    {
-                        const auto &storage_name = pair2.first;
-                        const auto &change = pair2.second;
-                        d.set_contract_storage(contract_addr, storage_name, change.after);
-                        d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
-                    }
-                }
+                apply_storage_change(d,new_contract.registered_block, trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.owner_addr);
                 do_apply_balance();
@@ -450,19 +438,7 @@ namespace graphene {
 			// commit contract result to db
             new_contract.registered_block = d.head_block_num();
 			d.store_contract(new_contract);
-			for (const auto &pair1 : invoke_contract_result.storage_changes)
-			{
-				const auto &contract_id = pair1.first;
-				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-				const auto &contract_storage_changes = pair1.second;
-				for (const auto &pair2 : contract_storage_changes)
-				{
-					const auto &storage_name = pair2.first;
-					const auto &change = pair2.second;
-					d.set_contract_storage(contract_addr, storage_name, change.after);
-					d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
-				}
-			}
+            apply_storage_change(d, new_contract.registered_block, trx_id);
 			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
 
@@ -479,19 +455,8 @@ namespace graphene {
                 FC_ASSERT(d.has_contract(o.contract_id));
                 auto trx_id = get_current_trx_id();
                 // commit contract result to db
-                for (const auto &pair1 : invoke_contract_result.storage_changes)
-                {
-                    const auto &contract_id = pair1.first;
-                    address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-                    const auto &contract_storage_changes = pair1.second;
-                    for (const auto &pair2 : contract_storage_changes)
-                    {
-                        const auto &storage_name = pair2.first;
-                        const auto &change = pair2.second;
-                        d.set_contract_storage(contract_addr, storage_name, change.after);
-                        d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
-                    }
-                }
+
+                apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
@@ -512,19 +477,7 @@ namespace graphene {
                 d.update_contract(contract);
                 auto trx_id = get_current_trx_id();
                 // commit contract result to db
-                for (const auto &pair1 : invoke_contract_result.storage_changes)
-                {
-                    const auto &contract_id = pair1.first;
-                    address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-                    const auto &contract_storage_changes = pair1.second;
-                    for (const auto &pair2 : contract_storage_changes)
-                    {
-                        const auto &storage_name = pair2.first;
-                        const auto &change = pair2.second;
-                        d.set_contract_storage(contract_addr, storage_name, change.after);
-                        d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
-                    }
-                }
+                apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
@@ -747,7 +700,7 @@ namespace graphene {
                     FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
 					if (limit < 0 || limit == 0)
-						FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
@@ -794,7 +747,7 @@ namespace graphene {
 						engine->clear_exceptions();
 						auto limit = o.invoke_cost;
 						if (limit < 0 || limit == 0)
-							FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error);
+							FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
 						gas_limit = limit;
 						engine->set_gas_limit(limit);
 						invoke_contract_result.reset();
@@ -854,23 +807,12 @@ namespace graphene {
                 FC_ASSERT(d.has_contract(o.contract_id));
                 // commit contract result to db
                 auto trx_id = get_current_trx_id();
-                for (const auto &pair1 : invoke_contract_result.storage_changes)
-                {
-                    const auto &contract_id = pair1.first;
-                    address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-                    const auto &contract_storage_changes = pair1.second;
-                    for (const auto &pair2 : contract_storage_changes)
-                    {
-                        const auto &storage_name = pair2.first;
-                        const auto &change = pair2.second;
-                        d.set_contract_storage(contract_addr, storage_name, change.after);
-                        d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
-                    }
-                }
+                apply_storage_change(d, d.head_block_num(), trx_id);
 
                 do_apply_contract_event_notifies();
                 do_apply_balance();
-                db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
+                if(!gen_eval->get_trx_eval_state()->testing)
+                    db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
 
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
@@ -1238,7 +1180,30 @@ namespace graphene {
 		 {
 			 return gas_limit;
 		 }
+         void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const
+         {
 
+             set<address> contracts;
+             for (const auto &pair1 : invoke_contract_result.storage_changes)
+             {
+                 const auto &contract_id = pair1.first;
+
+                 address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+                 contracts.insert(contract_addr);
+                 const auto &contract_storage_changes = pair1.second;
+                 for (const auto &pair2 : contract_storage_changes)
+                 {
+                     const auto &storage_name = pair2.first;
+                     const auto &change = pair2.second;
+                     d.set_contract_storage(contract_addr, storage_name, change.after);
+                     d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
+                 }
+             }
+             for(auto& addr:contracts)
+             {
+                 d.store_contract_storage_change_obj(addr, block_num);
+             }
+         }
          bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
          {
              auto obj=get_db().get_asset(GRAPHENE_SYMBOL);

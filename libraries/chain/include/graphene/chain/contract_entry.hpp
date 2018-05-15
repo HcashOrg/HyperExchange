@@ -129,7 +129,7 @@ namespace graphene {
 
 		typedef uint64_t gas_price_type;
 		typedef uint64_t gas_count_type;
-       struct contract_resgister_record
+       struct contract_blocknum_pair
        {
            string contract_address;
            uint32_t block_num;
@@ -140,7 +140,7 @@ FC_REFLECT_ENUM(graphene::chain::contract_type, (normal_contract)(native_contrac
 
 FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)(code)(code_hash));
 
-FC_REFLECT(graphene::chain::contract_resgister_record, (contract_address)(block_num));
+FC_REFLECT(graphene::chain::contract_blocknum_pair, (contract_address)(block_num));
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
 FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner_address)(owner_name)(name)(description)(type_of_contract)(registered_block)(inherit_from)(derived)(code_printable)(createtime));
 

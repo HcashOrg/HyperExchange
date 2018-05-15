@@ -77,7 +77,48 @@ namespace graphene {
 				});
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
 		}
-
+        void  database::store_contract_storage_change_obj(const address& contract, uint32_t block_num)
+		{
+            try {
+                auto& conn_db = get_index_type<contract_storage_change_index>().indices().get<by_contract_id>();
+                auto it = conn_db.find(contract);
+                if (it == conn_db.end())
+                {
+                    create<contract_storage_change_object>([&](contract_storage_change_object& o)
+                    {
+                        o.contract_address = contract;
+                        o.block_num = block_num;
+                    });
+                }else
+                {
+                    modify<contract_storage_change_object>(*it, [&](contract_storage_change_object& obj) {obj.block_num = block_num; });
+                }
+            }FC_CAPTURE_AND_RETHROW((contract)(block_num));
+		}
+        vector<contract_blocknum_pair> database::get_contract_changed(uint32_t block_num, uint32_t duration)
+		{
+            try
+            {
+                contract_blocknum_pair tmp;
+                vector<contract_blocknum_pair> res;
+                auto& conn_db = get_index_type<contract_storage_change_index>().indices().get<by_block_num>();
+                auto lb = conn_db.lower_bound(block_num);
+                uint32_t last_block_num = block_num + duration;
+                if(duration==0)
+                {
+                    last_block_num = head_block_num();
+                }
+                auto ub = conn_db.lower_bound(last_block_num);
+                while(lb!=ub)
+                {
+                    tmp.block_num = lb->block_num;
+                    tmp.contract_address = lb->contract_address.address_to_contract_string();
+                    res.push_back(tmp);
+                    lb++;
+                }
+                return res;
+            }FC_CAPTURE_AND_RETHROW((block_num)(duration));
+		}
 		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
 		                                         op_num)
 		{
