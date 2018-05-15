@@ -60,6 +60,7 @@ namespace graphene {
 			gas_count_type get_gas_limit() const;
             void pay_fee_and_refund() const; 
             bool check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const;
+            void apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const;
 
 			static contract_common_evaluate* get_contract_evaluator(lua_State *L); 
             virtual optional<guarantee_object_id_type> get_guarantee_id()const = 0;
