@@ -1903,7 +1903,7 @@ class wallet_api
 
       void network_add_nodes( const vector<string>& nodes );
       vector< variant > network_get_connected_peers();
-
+	  fc::variant_object network_get_info();
 	  // contract wallet apis
       full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
       full_transaction register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
@@ -2273,4 +2273,5 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_appointed_publisher)
 		(miner_appointed_crosschain_fee)
 	    (remove_guarantee_id)
+		(network_get_info)
       )

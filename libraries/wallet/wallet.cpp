@@ -4869,6 +4869,12 @@ public:
       return result;
    }
 
+   fc::variant_object network_get_info()
+   {
+	   use_network_node_api();
+	   return (*_remote_net_node)->get_info();
+   }
+
    void flood_network(string prefix, uint32_t number_of_transactions)
    {
       try
@@ -6017,6 +6023,11 @@ void wallet_api::network_add_nodes( const vector<string>& nodes )
 vector< variant > wallet_api::network_get_connected_peers()
 {
    return my->network_get_connected_peers();
+}
+
+fc::variant_object wallet_api::network_get_info()
+{
+	return my->network_get_info();
 }
 
 void wallet_api::flood_network(string prefix, uint32_t number_of_transactions)

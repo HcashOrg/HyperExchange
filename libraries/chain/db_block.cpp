@@ -34,7 +34,7 @@
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/evaluator.hpp>
-
+#include <iostream>
 #include <fc/smart_ref_impl.hpp>
 
 namespace graphene { namespace chain {
@@ -638,13 +638,15 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
       if( !(skip & skip_tapos_check) )
       {
          const auto& tapos_block_summary = block_summary_id_type( trx.ref_block_num )(*this);
-
+		 std::cout << "trx.ref_block_prefix == tapos_block_summary.block_id._hash[1]" << (trx.ref_block_prefix == tapos_block_summary.block_id._hash[1]) << std::endl;
          //Verify TaPoS block summary has correct ID prefix, and that this block's time is not past the expiration
          FC_ASSERT( trx.ref_block_prefix == tapos_block_summary.block_id._hash[1] );
+		 
       }
 
       fc::time_point_sec now = head_block_time();
-
+	  std::cout << string(trx.expiration) << std::endl;
+	  std::cout << string(now) << std::endl;
       FC_ASSERT( trx.expiration <= now + chain_parameters.maximum_time_until_expiration, "",
                  ("trx.expiration",trx.expiration)("now",now)("max_til_exp",chain_parameters.maximum_time_until_expiration));
       FC_ASSERT( now <= trx.expiration, "", ("now",now)("trx.exp",trx.expiration) );
@@ -663,6 +665,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
 
    //Finally process the operations
    processed_transaction ptrx(trx);
+   std::cout << trx.id().str() << std::endl;
    _current_op_in_trx = 0;
    for( const auto& op : ptrx.operations )
    {

@@ -436,9 +436,9 @@ namespace graphene {
 				hdtx.from_account = trx["from_account"].as_string();
 				hdtx.to_account = trx["to_account"].as_string();
 				hdtx.block_num = trx["blockNum"].as_uint64();
-				hdtx.amount = trx["amount"].as_string();
-
-				
+				char temp[1024];
+				std::sprintf(temp, "%.8f", trx["amount"]);
+				hdtx.amount = graphene::utilities::remove_zero_for_str_amount(temp);
 			}
 			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtx;
