@@ -376,9 +376,7 @@ private:
                   {
                       break;
                   }
-                  //todo: undo execute
                   try {
-                      //todo: execute
                       undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
                       engine->clear_exceptions();
                       engine->add_global_string_variable("event_type", last_handled->second.event_name.c_str());
