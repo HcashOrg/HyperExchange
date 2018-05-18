@@ -143,6 +143,14 @@ namespace graphene {
 			virtual bool is_valid_contract_address(lua_State *L, const char *address_str);
 			virtual const char *get_system_asset_symbol(lua_State *L);
 			virtual uint64_t get_system_asset_precision(lua_State *L);
+
+			virtual std::vector<unsigned char> hex_to_bytes(const std::string& hex_string) override;
+			virtual std::string bytes_to_hex(std::vector<unsigned char> bytes) override;
+			virtual std::string sha256_hex(const std::string& hex_string) override;
+			virtual std::string sha1_hex(const std::string& hex_string) override;
+			virtual std::string sha3_hex(const std::string& hex_string) override;
+			virtual std::string ripemd160_hex(const std::string& hex_string) override;
+
 		};
 	}
 }
