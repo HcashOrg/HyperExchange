@@ -94,6 +94,8 @@ namespace graphene { namespace privatekey_management {
 	void btc_privatekey::init()
 	{
 		set_id(0);
+		//set_pubkey_prefix(0x6F);
+		//set_privkey_prefix(0xEF);
 		set_pubkey_prefix(0x0);
 		set_privkey_prefix(0x80);
 	}
@@ -191,6 +193,8 @@ namespace graphene { namespace privatekey_management {
 	void ltc_privatekey::init()
 	{
 		set_id(0);
+		//set_pubkey_prefix(0x6F);
+		//set_privkey_prefix(0xEF);
 		set_pubkey_prefix(0x30);
 		set_privkey_prefix(0xB0);
 	}

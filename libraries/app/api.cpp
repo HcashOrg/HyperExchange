@@ -152,15 +152,14 @@ namespace graphene { namespace app {
 	transaction_api::transaction_api(application& app) :_app(app) {}
 	transaction_api::~transaction_api() {}
 
-	optional<graphene::chain::transaction> transaction_api::get_transaction(transaction_id_type id)
+	optional<graphene::chain::full_transaction> transaction_api::get_transaction(transaction_id_type id)
 	{
 		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
 		std::cout << string(trx_ids.find(id)->id) << std::endl;
 		auto res_ids = trx_ids.find(id);
-		auto res= res_ids->trx;
-		res.ref_block_num = res_ids->block_num;
-		
+		full_transaction res= res_ids->trx;
+		res.block_num = res_ids->block_num;
         auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
         if (invoke_res.size()==0)
             return res;

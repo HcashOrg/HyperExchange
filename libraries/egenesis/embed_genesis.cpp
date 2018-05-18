@@ -143,7 +143,32 @@ void convert_to_c_array(
    std::cerr << "\n";
    return;
 }
+string  replace_all(const string str, const   string&   old_value, const   string&   new_value)
+{
+    string out;
+    int ol = old_value.length();
+    int nl = new_value.length();
+    const char* p_str = str.c_str();
 
+    const char* p_old_value = old_value.c_str();
+    int count = str.length()-ol+1;
+    int i = 0;
+    while (i < count)
+    {
+        if (memcmp(p_str + i, p_old_value, ol)==0)
+        {
+            out += new_value;
+            i += ol;
+        }
+        else
+        {
+            out.push_back(str[i]);
+            i++;
+        }
+    }
+    out += (p_str + i);
+    return   out;
+}
 struct egenesis_info
 {
    fc::optional< genesis_state_type > genesis;
@@ -174,9 +199,13 @@ struct egenesis_info
          std::cerr << "embed_genesis:  Need genesis or genesis_json\n";
          exit(1);
       }
+      string origin = *genesis_json;
+      genesis_json=replace_all(*genesis_json,"\r\n","\n" );
+
       // init genesis_json_hash from genesis_json
       if( !genesis_json_hash.valid() )
          genesis_json_hash = fc::sha256::hash( *genesis_json );
+      
       // init chain_id from genesis_json_hash
       if( !chain_id.valid() )
          chain_id = genesis_json_hash;

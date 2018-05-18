@@ -376,9 +376,7 @@ private:
                   {
                       break;
                   }
-                  //todo: undo execute
                   try {
-                      //todo: execute
                       undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
                       engine->clear_exceptions();
                       engine->add_global_string_variable("event_type", last_handled->second.event_name.c_str());
@@ -755,7 +753,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
 
-   transaction get_transaction(transaction_id_type id) const
+   full_transaction get_transaction(transaction_id_type id) const
    {
 	   try {
 		   auto trx = _remote_trx->get_transaction(id);
@@ -6752,7 +6750,7 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol,all);
 }
-transaction wallet_api::get_transaction(transaction_id_type id) const
+full_transaction wallet_api::get_transaction(transaction_id_type id) const
 {
 	return my->get_transaction(id);
 }
@@ -7389,6 +7387,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    : signed_block( block )
 {
    block_id = id();
+   number = block_num();
    signing_key = signee();
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )
