@@ -6485,6 +6485,7 @@ void wallet_api::lock()
    my->_keys.clear();
    my->_checksum = fc::sha512();
    my->self.lock_changed(true);
+   save_wallet_file();
 } FC_CAPTURE_AND_RETHROW() }
 
 void wallet_api::unlock(string password)
