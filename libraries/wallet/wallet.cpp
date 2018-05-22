@@ -1861,7 +1861,7 @@ public:
 
            auto dyn_props = get_dynamic_global_properties();
            tx.set_reference_block(dyn_props.head_block_id);
-           tx.set_expiration(dyn_props.time + fc::seconds(30));
+           tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
@@ -3608,7 +3608,7 @@ public:
 	  }
       for (;;)
       {
-         tx.set_expiration( dyn_props.time + fc::seconds(30 + expiration_time_offset) );
+         tx.set_expiration( dyn_props.time + fc::seconds(600 + expiration_time_offset) );
          tx.signatures.clear();
 
          for( auto& addr :  approving_key_set)
@@ -3639,7 +3639,7 @@ public:
          }
 
          // else we've generated a dupe, increment expiration time and re-sign it
-         ++expiration_time_offset;
+         expiration_time_offset+=10;
       }
 	  FC_ASSERT(tx.signatures.size()!=0);
       if( broadcast )
