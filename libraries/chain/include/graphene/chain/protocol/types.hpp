@@ -293,6 +293,21 @@ namespace graphene { namespace chain {
    typedef safe<int64_t>                                        share_type;
    typedef uint16_t                                             weight_type;
 
+   template<class T>
+   optional<T> maybe_id(const string& name_or_id)
+   {
+       if (std::isdigit(name_or_id.front()))
+       {
+           try
+           {
+               return fc::variant(name_or_id).as<T>();
+           }
+           catch (const fc::exception&)
+           {
+           }
+       }
+       return optional<T>();
+   }
    struct public_key_type
    {
        struct binary_key

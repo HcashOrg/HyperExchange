@@ -270,7 +270,14 @@ class database_api
        */
       std::map<string,full_account> get_full_accounts( const vector<string>& names_or_ids, bool subscribe );
 
-      optional<account_object> get_account_by_name( string name )const;
+      account_object                    get_account(const string& account_name_or_id) const;
+      account_object                    get_account_by_id(const account_id_type& id) const;
+      asset_object                      get_asset(const string& asset_name_or_id) const;
+      optional<asset_object>            get_asset_by_id(const asset_id_type& id)const;
+      account_id_type                   get_account_id(const string& account_name_or_id) const;
+      address                   		get_account_addr(const string& account_name) const;
+      asset_id_type                     get_asset_id(const string& asset_name_or_id) const;
+      optional<account_object>          get_account_by_name(const string& name )const;
 
       /**
        *  @return all accounts that referr to the key or account id in their owner or active authorities.
@@ -314,17 +321,17 @@ class database_api
        * @return Balances of the account
        */
       vector<asset> get_account_balances(account_id_type id, const flat_set<asset_id_type>& assets)const;
-
+      vector<asset>                     list_account_balances(const string& id) const;
       /// Semantically equivalent to @ref get_account_balances, but takes a name instead of an ID.
       vector<asset> get_named_account_balances(const std::string& name, const flat_set<asset_id_type>& assets)const;
-
+      vector<asset> get_account_balances_by_str(const string& account)const;
       /** @return all unclaimed balance objects for a set of addresses */
       vector<balance_object> get_balance_objects( const vector<address>& addrs )const;
-
+      vector<asset> get_addr_balances(const string& addr) const;
       vector<asset> get_vested_balances( const vector<balance_id_type>& objs )const;
 
       vector<vesting_balance_object> get_vesting_balances( account_id_type account_id )const;
-
+      vector< vesting_balance_object_with_info > get_vesting_balances_with_info(const string& account_name)const;
       /**
        * @brief Get the total number of accounts registered with the blockchain
        */
@@ -471,7 +478,7 @@ class database_api
        * @return The witness object, or null if the account does not have a witness
        */
       fc::optional<miner_object> get_miner_by_account(account_id_type account)const;
-
+      miner_object get_miner(const string& owner_account) const;
       /**
        * @brief Get names and IDs for registered witnesses
        * @param lower_bound_name Lower bound of the first name to return
@@ -497,7 +504,9 @@ class database_api
        * This function has semantics identical to @ref get_objects
        */
       vector<optional<guard_member_object>> get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const;
-
+      map<string, guard_member_id_type> list_guard_members(const string& lowerbound, uint32_t limit);
+      map<string, guard_member_id_type> list_all_guards(const string& lowerbound, uint32_t limit)const;
+      guard_member_object get_guard_member(const string& owner_account)const;
       /**
        * @brief Get the committee_member owned by a given account
        * @param account The ID of the account whose committee_member should be retrieved
@@ -542,7 +551,8 @@ class database_api
 
       /// @brief Get a hexdump of the serialized binary form of a transaction
       std::string get_transaction_hex(const signed_transaction& trx)const;
-
+      std::string serialize_transaction(const signed_transaction& tx)const;
+      transaction_id_type get_transaction_id(const signed_transaction& trx)const;
       /**
        *  This API will take a partially signed transaction and a set of public keys that the owner has the ability to sign for
        *  and return the minimal subset of public keys that should add signatures to the transaction.
@@ -588,6 +598,8 @@ class database_api
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
 	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
 	  vector<proposal_object> get_voter_transactions_waiting(address add)const;  //waiting to be voted
+      vector<proposal_object>  get_proposal(const string& proposer)const;
+      vector<proposal_object>  get_proposal_for_voter(const string& voter) const;
       //////////////////////
       // Blinded balances //
       //////////////////////
@@ -603,6 +615,7 @@ class database_api
 
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
+      variant_object decoderawtransaction(const string& raw_trx, const string& symbol) const;
 
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
@@ -610,6 +623,7 @@ class database_api
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
+      std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
       //contract 
       contract_object get_contract_object(const string& contract_address)const;
 	  contract_object get_contract_object_by_name(const string& contract_name)const;
@@ -618,16 +632,19 @@ class database_api
 
       ContractEntryPrintable get_contract_info_by_name(const string& contract_address)const;
       vector<asset> get_contract_balance(const address& contract_address) const;
-      vector<address> get_contract_addresses_by_owner(const address&)const ;
-      vector<contract_object> get_contracts_by_owner(const address&)const;
-
+      vector<address> get_contract_addresses_by_owner_address(const address&)const ;
+      vector<string>  get_contract_addresses_by_owner(const std::string& addr)const;
+      vector<contract_object> get_contract_objs_by_owner(const address&)const;
+      vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&) const;
+      vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&) const;
+      vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type, bool all = true)const ;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all=true) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
-      vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const ;
+      vector<contract_invoke_result_object> get_contract_invoke_object(const string& trx_id)const ;
 
       vector<contract_event_notify_object> get_contract_events(const address&)const ;
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
@@ -681,18 +698,25 @@ FC_API(graphene::app::database_api,
 	(lookup_accounts)
 	(get_account_count)
 	(get_accounts_addr)
-
+    (get_account)
+    (get_account_by_id)
+    (get_account_addr)
 	// Balances
 	(get_account_balances)
 	(get_named_account_balances)
 	(get_balance_objects)
 	(get_vested_balances)
 	(get_vesting_balances)
-
+    (get_addr_balances)
+    (list_account_balances)
+    (get_account_balances_by_str)
+    (get_vesting_balances_with_info)
 	// Assets
 	(get_assets)
 	(list_assets)
 	(lookup_asset_symbols)
+    (get_asset)
+    (get_asset_by_id)
 
 	// Markets / feeds
 	(get_order_book)
@@ -711,11 +735,14 @@ FC_API(graphene::app::database_api,
 	(get_miner_by_account)
 	(lookup_miner_accounts)
 	(get_miner_count)
-
+    (get_miner)
 	// Committee members
 	(get_guard_members)
+    (get_guard_member)
 	(get_guard_member_by_account)
 	(lookup_guard_member_accounts)
+    (list_guard_members)
+    (list_all_guards)
 
 	// workers
 	(get_workers_by_account)
@@ -724,6 +751,7 @@ FC_API(graphene::app::database_api,
 
 	// Authority / validation
 	(get_transaction_hex)
+    (serialize_transaction)
 	(get_required_signatures)
 	(get_potential_signatures)
 	(get_potential_address_signatures)
@@ -731,17 +759,23 @@ FC_API(graphene::app::database_api,
 	(verify_account_authority)
 	(validate_transaction)
 	(get_required_fees)
+    (decoderawtransaction)
+    (get_transaction_id)
 
 	// Proposed transactions
 	(get_proposed_transactions)
 	(get_proposer_transactions)
 	(get_voter_transactions_waiting)
+    (get_proposal)
+    (get_proposal_for_voter)
 	// Blinded balances
 	(get_blinded_balances)
 	// Lock balance
 	(get_account_lock_balance)
 	(get_asset_lock_balance)
 	(get_miner_lock_balance)
+
+
 
 	(get_guard_lock_balance)
 	(get_guard_asset_lock_balance)
@@ -756,7 +790,14 @@ FC_API(graphene::app::database_api,
 	(get_multisig_account_pair)
 	(lookup_multisig_account_pair)
 	(get_guarantee_orders)
+     (list_guarantee_order)
 	(get_pay_back_balances)
+    (get_address_pay_back_balance)
+
+
+
+
+
     //contract
     (get_contract_object)
 	(get_contract_object_by_name)
@@ -768,9 +809,12 @@ FC_API(graphene::app::database_api,
 	(list_guarantee_object)
     (get_contract_event_notify_by_id)
     (get_contract_invoke_object)
-    (get_contract_addresses_by_owner)
-    (get_contracts_by_owner)
+    (get_contract_addresses_by_owner_address)
+    (get_contract_objs_by_owner)
     (get_contract_events)
     (get_contract_registered)
     (get_contract_storage_changed)
+    (get_contracts_by_owner)
+    (get_contracts_hash_entry_by_owner)
+    (get_contract_addresses_by_owner)
 );
