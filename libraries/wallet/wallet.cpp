@@ -5126,7 +5126,16 @@ bool wallet_api::copy_wallet_file(string destination_filename)
 
 optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 {
-   return my->_remote_db->get_block(num);
+   auto block = my->_remote_db->get_block(num);
+   signed_block_with_info block_with_info(*block);
+   auto trxs = my->_remote_db->fetch_block_transactions(num);
+   vector <transaction_id_type> tx_ids;
+   for (const auto & full_trx :trxs)
+   {
+	   tx_ids.push_back(full_trx.trxid);
+   }
+   block_with_info.transaction_ids.swap(tx_ids);
+   return block_with_info;
 }
 
 uint64_t wallet_api::get_account_count() const
@@ -7406,7 +7415,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    signing_key = signee();
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )
-      transaction_ids.push_back( tx.id() );
+	   transaction_ids.push_back( tx.id() );
 }
 
 vesting_balance_object_with_info::vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now )

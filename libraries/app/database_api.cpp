@@ -487,8 +487,20 @@ optional<multisig_account_pair_object> database_api_impl::lookup_multisig_accoun
 
 optional<signed_block> database_api::get_block(uint32_t block_num)const
 {
-   return my->get_block( block_num );
+	auto block = my->get_block(block_num);
+   return block;
 }
+vector<full_transaction> database_api::fetch_block_transactions(uint32_t block_num)const
+{
+	vector<full_transaction> results;
+	auto block = my->get_block(block_num);
+	for (const auto& tx : block->transactions) {
+		//std::cout << "database get_block by numberx " << tx.id().str() << std::endl;
+		results.push_back(tx);
+	}
+	return results;
+}
+
 
 optional<signed_block> database_api_impl::get_block(uint32_t block_num)const
 {
