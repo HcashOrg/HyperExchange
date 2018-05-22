@@ -1163,7 +1163,6 @@ namespace graphene {
              FC_ASSERT(get_db().has_contract_of_name(contract_name));
              auto contract_info = std::make_shared<UvmContractInfo>();
              const auto &contract = get_db().get_contract_of_name(contract_name);
-             // TODO: when contract is native contract
              return contract;
          }
 

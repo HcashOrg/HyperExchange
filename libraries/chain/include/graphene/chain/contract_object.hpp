@@ -198,6 +198,7 @@ namespace graphene {
             std::string contract_address;
             std::string hash;
         public:
+            contract_hash_entry() {}
             inline contract_hash_entry(const chain::contract_object& cont)
             {
                 contract_address = cont.contract_address.address_to_contract_string();
