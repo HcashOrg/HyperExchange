@@ -62,7 +62,6 @@ namespace graphene {
 			std::vector<contract_event_notify_info> events;
             bool exec_succeed = true;
             share_type acctual_fee;
-            std::vector<std::string> logs;
 			void reset();
             void set_failed(const share_type & fee);
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
@@ -119,6 +118,7 @@ namespace graphene {
 			extensions_type   extensions;
 			optional<guarantee_object_id_type> guarantee_id;
 			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
+            static bool contract_name_check(const string& contract);
 			address fee_payer()const { return caller_addr; }
 			void            validate()const;
 			share_type      calculate_fee(const fee_parameters_type& k)const;

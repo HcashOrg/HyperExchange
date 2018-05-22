@@ -174,7 +174,7 @@ namespace graphene { namespace chain {
          uint32_t  push_applied_operation( const operation& op );
          void      set_applied_operation_result( uint32_t op_id, const operation_result& r );
          const vector<optional< operation_history_object > >& get_applied_operations()const;
-
+         optional<asset_object> get_asset(const string& symbol) const ;
          string to_pretty_string( const asset& a )const;
 		 /**
 		 *  This signal is emitted after all operations and virtual operation for a
@@ -330,12 +330,14 @@ namespace graphene { namespace chain {
 		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
 		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
 		                                op_num);
-
+         void  store_contract_storage_change_obj(const address& contract,uint32_t block_num);
+         vector<contract_blocknum_pair> get_contract_changed(uint32_t block_num, uint32_t duration);
          vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
 		 void update_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
+         contract_object get_contract(const string& name_or_id);
 		 contract_object get_contract_of_name(const string& contract_name);
          vector<contract_object> get_contract_by_owner(const address& owner);
 
@@ -495,7 +497,7 @@ namespace graphene { namespace chain {
           *  This method validates transactions without adding it to the pending state.
           *  @return true if the transaction would validate
           */
-         processed_transaction validate_transaction( const signed_transaction& trx );
+         processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false);
 
 
          /** when popping a block, the transactions that were removed get cached here so they
@@ -528,7 +530,7 @@ namespace graphene { namespace chain {
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
       private:
          void                  _apply_block( const signed_block& next_block );
-         processed_transaction _apply_transaction( const signed_transaction& trx );
+         processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 
          ///Steps involved in applying a new block
          ///@{

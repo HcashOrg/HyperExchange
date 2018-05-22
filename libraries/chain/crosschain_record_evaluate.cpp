@@ -66,7 +66,7 @@ namespace graphene {
 			FC_ASSERT(valid_address, "crosschain address isn`t valid");
 			FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 			//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
-			
+			FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >0);
 			return void_result();
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {

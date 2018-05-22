@@ -137,7 +137,7 @@ namespace graphene {
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
+            share_type core_fee_required = 0;
 			// bytes size fee
             core_fee_required += count_contract_register_fee(contract_code);//calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
             core_fee_required += count_gas_fee(gas_price, init_cost);
@@ -180,19 +180,34 @@ namespace graphene {
 		share_type contract_invoke_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
-			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_api) + fc::raw::pack_size(contract_arg), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+			share_type core_fee_required =  count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
-		void          contract_upgrade_operation::validate()const
+        bool contract_upgrade_operation::contract_name_check(const string & contract_name)
+        {
+            FC_ASSERT(contract_name.length() >= 2 && contract_name.length() <= 30);
+            int pos = -1;
+            for(auto c: contract_name)
+            {
+                ++pos;
+                if ((c >= 'a'&&c <= 'z') || (c >= 'A'&&c <= 'Z'))
+                    continue;
+                if((c>='0'&&c<='9')&&(pos!=0))
+                    continue;
+                FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_name,(contract_name));
+            }
+            return true;
+        }
+
+        void          contract_upgrade_operation::validate()const
 		{
 			FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
 			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
-			FC_ASSERT(contract_name.length() >= 2 && contract_name.length() <= 30); // TODO: validate contract_name rule, eg. only letters and digits, underscoreed allowed; it can't start with digit. etc.
-			FC_ASSERT(contract_desc.length() <= 200);
+			// TODO: validate contract_name rule, eg. only letters and digits, underscoreed allowed; it can't start with digit. etc.
+            contract_name_check(contract_name);
+		    FC_ASSERT(contract_desc.length() <= 200);
             FC_ASSERT(caller_addr != address());
             FC_ASSERT(address(caller_pubkey) == caller_addr);
             FC_ASSERT(contract_id != address());
@@ -201,9 +216,7 @@ namespace graphene {
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
 			// base fee
-			share_type core_fee_required = schedule.fee;
-			core_fee_required += calculate_data_fee(fc::raw::pack_size(contract_name) + fc::raw::pack_size(contract_desc), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+			share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
 			return core_fee_required;
 		}
 
@@ -219,9 +232,7 @@ namespace graphene {
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
-            share_type core_fee_required = schedule.fee;
-            core_fee_required += calculate_data_fee(fc::raw::pack_size(param), schedule.price_per_kbyte);
-            core_fee_required += count_gas_fee(gas_price, invoke_cost);
+            share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
             return core_fee_required;
         }
 

@@ -76,7 +76,7 @@
 #define GRAPHENE_DEFAULT_MAX_AUTHORITY_MEMBERSHIP               10
 #define GRAPHENE_DEFAULT_MAX_ASSET_WHITELIST_AUTHORITIES        10
 #define GRAPHENE_DEFAULT_MAX_ASSET_FEED_PUBLISHERS              10
-#define GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE					(600*GRAPHENE_BLOCKCHAIN_PRECISION)
+#define GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE					(50*GRAPHENE_BLOCKCHAIN_PRECISION)
 /**
  *  These ratios are fixed point numbers with a denominator of GRAPHENE_COLLATERAL_RATIO_DENOM, the
  *  minimum maitenance collateral is therefore 1.001x and the default

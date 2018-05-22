@@ -42,7 +42,24 @@ namespace graphene {
             ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
+        class contract_storage_change_object : public abstract_object<contract_storage_change_object> {
+        public:
+            static const uint8_t space_id = protocol_ids;
+            static const uint8_t type_id = contract_storage_change_object_type;
+            address contract_address;
+            uint32_t block_num;
+        };
 
+        struct by_block_num {};
+        typedef multi_index_container<
+            contract_storage_change_object,
+        indexed_by< 
+            ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
+            ordered_unique<tag<by_contract_id>, member<contract_storage_change_object, address, &contract_storage_change_object::contract_address>>,
+            ordered_non_unique<tag<by_block_num>, member<contract_storage_change_object, uint32_t, &contract_storage_change_object::block_num>>
+        >> contract_storage_change_object_multi_index_type;
+
+        typedef generic_index<contract_storage_change_object, contract_storage_change_object_multi_index_type> contract_storage_change_index;
 		class contract_storage_object : public abstract_object<contract_storage_object> {
 		public:
 			static const uint8_t space_id = protocol_ids;
@@ -181,6 +198,7 @@ namespace graphene {
             std::string contract_address;
             std::string hash;
         public:
+            contract_hash_entry() {}
             inline contract_hash_entry(const chain::contract_object& cont)
             {
                 contract_address = cont.contract_address.address_to_contract_string();
@@ -201,3 +219,5 @@ FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db:
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
     (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee))
 FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
+
+FC_REFLECT_DERIVED(graphene::chain::contract_storage_change_object, (graphene::db::object),(contract_address)(block_num))

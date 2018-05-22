@@ -380,26 +380,12 @@ struct signed_block_with_info : public signed_block
    signed_block_with_info( const signed_block& block );
    signed_block_with_info( const signed_block_with_info& block ) = default;
 
+   uint32_t      number;
    block_id_type block_id;
    public_key_type signing_key;
    vector< transaction_id_type > transaction_ids;
 };
 
-struct vesting_balance_object_with_info : public vesting_balance_object
-{
-   vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now );
-   vesting_balance_object_with_info( const vesting_balance_object_with_info& vbo ) = default;
-
-   /**
-    * How much is allowed to be withdrawn.
-    */
-   asset allowed_withdraw;
-
-   /**
-    * The time at which allowed_withdrawal was calculated.
-    */
-   fc::time_point_sec allowed_withdraw_time;
-};
 
 namespace detail {
 class wallet_api_impl;
@@ -1903,7 +1889,7 @@ class wallet_api
 
       void network_add_nodes( const vector<string>& nodes );
       vector< variant > network_get_connected_peers();
-
+	  fc::variant_object network_get_info();
 	  // contract wallet apis
       full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath);
       full_transaction register_contract_like(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& base);
@@ -1913,11 +1899,11 @@ class wallet_api
       std::pair<asset, share_type> register_native_contract_testing(const string& caller_account_name,  const string& native_contract_key);
 
 	  full_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-      share_type invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+      std::pair<asset, share_type> invoke_contract_testing(const string& caller_account_name,const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 
       string invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
 	  full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc);
-      share_type upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
+      std::pair<asset, share_type> upgrade_contract_testing(const string& caller_account_name, const string& contract_address, const string& contract_name, const string& contract_desc);
       ContractEntryPrintable get_contract_info(const string& contract_address_or_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string& contract_address_or_name)const;
       full_transaction transfer_to_contract(string from,
@@ -1928,7 +1914,7 @@ class wallet_api
           const string& gas_price,
           const string& gas_limit,
           bool broadcast = false);
-      share_type transfer_to_contract_testing(string from,
+      std::pair<asset, share_type> transfer_to_contract_testing(string from,
           string to,
           string amount,
           string asset_symbol,
@@ -1940,7 +1926,8 @@ class wallet_api
       vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);
       vector<contract_event_notify_object> get_contract_events(const std::string&);
-      vector<contract_resgister_record> get_contract_registered(const uint32_t block_num = 0);
+      vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num = 0);
+      vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0);
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -1985,7 +1972,7 @@ class wallet_api
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
 	  vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all = true);
-	  transaction get_transaction(transaction_id_type id)const;
+	  full_transaction get_transaction(transaction_id_type id)const;
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
@@ -2052,10 +2039,9 @@ FC_REFLECT( graphene::wallet::worker_vote_delta,
 )
 
 FC_REFLECT_DERIVED( graphene::wallet::signed_block_with_info, (graphene::chain::signed_block),
-   (block_id)(signing_key)(transaction_ids) )
+   (number)(block_id)(signing_key)(transaction_ids) )
 
-FC_REFLECT_DERIVED( graphene::wallet::vesting_balance_object_with_info, (graphene::chain::vesting_balance_object),
-   (allowed_withdraw)(allowed_withdraw_time) )
+
 
 FC_REFLECT( graphene::wallet::operation_detail, 
             (memo)(description)(op) )
@@ -2256,6 +2242,7 @@ FC_API( graphene::wallet::wallet_api,
         (register_native_contract_testing)
         (upgrade_contract_testing)
         (get_contract_registered)
+        (get_contract_storage_changed)
 		(get_transaction)
 		(list_transactions)
 		(dump_crosschain_private_key)
@@ -2271,4 +2258,5 @@ FC_API( graphene::wallet::wallet_api,
 		(guard_appointed_publisher)
 		(miner_appointed_crosschain_fee)
 	    (remove_guarantee_id)
+		(network_get_info)
       )

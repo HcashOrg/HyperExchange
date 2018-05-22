@@ -134,21 +134,7 @@ public:
    std::string operator()(const asset_create_operation& op)const;
 };
 
-template<class T>
-optional<T> maybe_id( const string& name_or_id )
-{
-   if( std::isdigit( name_or_id.front() ) )
-   {
-      try
-      {
-         return fc::variant(name_or_id).as<T>();
-      }
-      catch (const fc::exception&)
-      {
-      }
-   }
-   return optional<T>();
-}
+
 
 string address_to_shorthash( const address& addr )
 {
@@ -376,9 +362,7 @@ private:
                   {
                       break;
                   }
-                  //todo: undo execute
                   try {
-                      //todo: execute
                       undoed.push_back(std::make_pair(last_handled->first, last_handled->second));
                       engine->clear_exceptions();
                       engine->add_global_string_variable("event_type", last_handled->second.event_name.c_str());
@@ -755,7 +739,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
 
-   transaction get_transaction(transaction_id_type id) const
+   full_transaction get_transaction(transaction_id_type id) const
    {
 	   try {
 		   auto trx = _remote_trx->get_transaction(id);
@@ -1290,7 +1274,6 @@ public:
 
    full_transaction register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
    {
-	   // TODO: register_contract_testing
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1341,7 +1324,6 @@ public:
 
    full_transaction register_contract_like(const string & caller_account_name, const string & gas_price, const string & gas_limit, const string & base)
    {
-       // TODO: register_contract_testing
        try {
            FC_ASSERT(!self.is_locked());
            FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1427,7 +1409,7 @@ public:
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res=_remote_db->validate_transaction(signed_tx);
+           auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1438,11 +1420,6 @@ public:
                }
            }
            asset res_data_fee= signed_tx.operations[0].get<contract_register_operation>().fee ;
-
-           std::cout << fc::json::to_string(res_data_fee) << std::endl;
-           res_data_fee.amount -= graphene::chain::count_gas_fee(contract_register_op.gas_price, contract_register_op.init_cost);
-           std::cout << fc::json::to_string(contract_register_op) << std::endl;
-           std::cout << fc::json::to_string(res_data_fee) << std::endl;
            std::pair<asset, share_type> res=make_pair(res_data_fee,gas_count);
            return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_filepath))
@@ -1450,7 +1427,6 @@ public:
 
    string register_native_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& native_contract_key)
    {
-	   // TODO: register_contract_testing
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
@@ -1531,7 +1507,7 @@ public:
 
            auto signed_tx = sign_transaction(tx, false);
            
-           auto trx_res = _remote_db->validate_transaction(signed_tx);
+           auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1542,12 +1518,11 @@ public:
                }
            }
            asset res_data_fee = signed_tx.operations[0].get<native_contract_register_operation>().fee;
-           res_data_fee.amount -= graphene::chain::count_gas_fee(n_contract_register_op.gas_price, n_contract_register_op.init_cost);
            std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
            return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(native_contract_key))
    }
-   share_type invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+   std::pair<asset, share_type> invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
    {
        try {
            FC_ASSERT(!self.is_locked());
@@ -1568,7 +1543,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
 
@@ -1593,7 +1568,7 @@ public:
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res=_remote_db->validate_transaction(signed_tx);
+           auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res:trx_res.operation_results)
            {
@@ -1603,7 +1578,9 @@ public:
 
                }
            }
-           return gas_count;
+           asset res_data_fee = signed_tx.operations[0].get<contract_invoke_operation>().fee;
+           std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+           return res;;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
 
    }
@@ -1628,7 +1605,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
            fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
@@ -1680,7 +1657,7 @@ public:
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_info_by_name(contract_address_or_name);
+			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
 
@@ -1744,7 +1721,6 @@ public:
    full_transaction upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
    {
 	   try {
-		   // TODO: invoke_contract_testing
 		   FC_ASSERT(!self.is_locked());
 		   FC_ASSERT(is_valid_account_name(caller_account_name));
 
@@ -1763,6 +1739,7 @@ public:
 		   contract_upgrade_op.caller_addr = acc_caller.addr;
 		   contract_upgrade_op.caller_pubkey = caller_pubkey;
 		   contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_upgrade_operation::contract_name_check(contract_name);
 		   contract_upgrade_op.contract_name = contract_name;
 		   contract_upgrade_op.contract_desc = contract_desc;
 		   contract_upgrade_op.fee.amount = 0;
@@ -1838,7 +1815,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
    }
 
-   share_type upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
+   std::pair<asset, share_type> upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
    {
        try {
            FC_ASSERT(!self.is_locked());
@@ -1857,6 +1834,7 @@ public:
            contract_upgrade_op.caller_addr = acc_caller.addr;
            contract_upgrade_op.caller_pubkey = caller_pubkey;
            contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
            contract_upgrade_op.contract_desc = contract_desc;
            contract_upgrade_op.fee.amount = 0;
@@ -1869,11 +1847,11 @@ public:
 
            auto dyn_props = get_dynamic_global_properties();
            tx.set_reference_block(dyn_props.head_block_id);
-           tx.set_expiration(dyn_props.time + fc::seconds(30));
+           tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
-           auto trx_res = _remote_db->validate_transaction(signed_tx);
+           auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
            {
@@ -1882,8 +1860,10 @@ public:
                {
 
                }
-           }
-           return gas_count;
+           }           
+           asset res_data_fee = signed_tx.operations[0].get<contract_upgrade_operation>().fee;
+           std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+           return res;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address)(contract_name)(contract_desc))
 
    }
@@ -1897,7 +1877,6 @@ public:
        const string& gas_limit,
        bool broadcast = false)
    {
-       // TODO: invoke_contract_testing
        FC_ASSERT(!self.is_locked());
        FC_ASSERT(is_valid_account_name(from));
 
@@ -1936,9 +1915,8 @@ public:
        auto signed_tx = sign_transaction(tx, broadcast);
        return signed_tx;
    }
-   share_type transfer_to_contract_testing(string from, string to, string amount, string asset_symbol,const string& param)
+   std::pair<asset, share_type> transfer_to_contract_testing(string from, string to, string amount, string asset_symbol,const string& param)
    {
-       // TODO: invoke_contract_testing
        FC_ASSERT(!self.is_locked());
        FC_ASSERT(is_valid_account_name(from));
 
@@ -1973,7 +1951,7 @@ public:
        tx.validate();
 
        auto signed_tx = sign_transaction(tx, false);
-       auto trx_res = _remote_db->validate_transaction(signed_tx);
+       auto trx_res = _remote_db->validate_transaction(signed_tx,true);
        share_type gas_count = 0;
        for (auto op_res : trx_res.operation_results)
        {
@@ -1983,7 +1961,9 @@ public:
 
            }
        }
-       return gas_count;
+       asset res_data_fee = signed_tx.operations[0].get<transfer_contract_operation>().fee;
+       std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+       return res;
    }
    full_transaction register_account(string name,
                                        public_key_type owner,
@@ -2294,8 +2274,9 @@ public:
 			   save_wallet_file();
 			   return address(result.get_public_key());
 		   };
-
-		   return get_private_key();
+		   auto addr = get_private_key();
+		   _remote_trx->set_tracked_addr(addr);
+		   return addr;
 		   
 	   }FC_CAPTURE_AND_RETHROW((account_name))
    }
@@ -3613,7 +3594,7 @@ public:
 	  }
       for (;;)
       {
-         tx.set_expiration( dyn_props.time + fc::seconds(30 + expiration_time_offset) );
+         tx.set_expiration( dyn_props.time + fc::seconds(600 + expiration_time_offset) );
          tx.signatures.clear();
 
          for( auto& addr :  approving_key_set)
@@ -3644,7 +3625,7 @@ public:
          }
 
          // else we've generated a dupe, increment expiration time and re-sign it
-         ++expiration_time_offset;
+         expiration_time_offset+=10;
       }
 	  FC_ASSERT(tx.signatures.size()!=0);
       if( broadcast )
@@ -4872,6 +4853,12 @@ public:
       return result;
    }
 
+   fc::variant_object network_get_info()
+   {
+	   use_network_node_api();
+	   return (*_remote_net_node)->get_info();
+   }
+
    void flood_network(string prefix, uint32_t number_of_transactions)
    {
       try
@@ -5155,7 +5142,7 @@ map<string,account_id_type> wallet_api::list_accounts(const string& lowerbound, 
 
 vector<asset> wallet_api::list_account_balances(const string& id)
 {
-   if( auto real_id = detail::maybe_id<account_id_type>(id) )
+   if( auto real_id = maybe_id<account_id_type>(id) )
       return my->_remote_db->get_account_balances(*real_id, flat_set<asset_id_type>());
    return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
 }
@@ -6031,6 +6018,11 @@ vector< variant > wallet_api::network_get_connected_peers()
    return my->network_get_connected_peers();
 }
 
+fc::variant_object wallet_api::network_get_info()
+{
+	return my->network_get_info();
+}
+
 void wallet_api::flood_network(string prefix, uint32_t number_of_transactions)
 {
    FC_ASSERT(!is_locked());
@@ -6130,13 +6122,13 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 	}
 	else {
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
 
-share_type wallet_api::invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
 {
     std::string contract_address;
     if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
@@ -6145,7 +6137,7 @@ share_type wallet_api::invoke_contract_testing(const string & caller_account_nam
     }
     else {
 
-        auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+        auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
         contract_address = cont.contract_address.address_to_contract_string();
     }
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
@@ -6161,7 +6153,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	}
 	else {
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
@@ -6186,7 +6178,7 @@ string wallet_api::signrawtransaction(const string& from,const string& symbol ,c
 	return my->signrawtransaction(from,symbol,trx,broadcast);
 }
 
-share_type wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
+std::pair<asset, share_type> wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)
 {
     return  my->upgrade_contract_testing(caller_account_name, contract_address, contract_name, contract_desc);
 }
@@ -6200,28 +6192,9 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	}
 	else
 	{
-
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.address_to_contract_string();
+		return my->_remote_db->get_contract_info_by_name(contract_address_or_name);
 	}
-    auto cont= my->_remote_db->get_contract_info(contract_address);
-    ContractEntryPrintable res;
-    res.code_printable = cont.code;
-    res.owner_address = cont.owner_address;
-    if(cont.inherit_from!=address())
-        res.inherit_from = cont.inherit_from.address_to_contract_string();
-    res.type_of_contract = cont.type_of_contract;
-	res.id = cont.contract_address.address_to_contract_string();
-	res.name = cont.contract_name;
-	res.description = cont.contract_desc;;
-    res.createtime=cont.create_time;
-    res.derived.clear();
-    res.registered_block = cont.registered_block;
-    for (auto i:cont.derived)
-    {
-        res.derived.push_back(i.address_to_contract_string());
-    }
-    return res;
+    return   my->_remote_db->get_contract_info(contract_address);
 }
 
 ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contract_address_or_name) const
@@ -6234,17 +6207,10 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	else
 	{
 
-		auto cont = my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.address_to_contract_string();
 	}
-	auto cont = my->_remote_db->get_contract_info(contract_address);
-	ContractEntryPrintable res;
-	res.owner_address = cont.owner_address;
-	res.id = cont.contract_address.address_to_contract_string();
-	res.name = cont.contract_name;
-	res.description = cont.contract_desc;;
-	res.createtime = cont.create_time;
-	return res;
+	return my->_remote_db->get_contract_object(contract_address);
 }
 
 full_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
@@ -6252,7 +6218,7 @@ full_transaction wallet_api::transfer_to_contract(string from, string to, string
     return my->transfer_to_contract(from, to,amount, asset_symbol, param, gas_price, gas_limit,broadcast);
 }
 
-share_type wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param)
+std::pair<asset, share_type> wallet_api::transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param)
 {
     return my->transfer_to_contract_testing(from,to,amount,asset_symbol, param);
 }
@@ -6272,7 +6238,7 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto addr_res= my->_remote_db->get_contract_addresses_by_owner(owner_addr);
+    auto addr_res= my->_remote_db->get_contract_addresses_by_owner_address(owner_addr);
     vector<string> res;
     for(auto& out: addr_res)
     {
@@ -6293,10 +6259,10 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto objs= my->_remote_db->get_contracts_by_owner(owner_addr);
+    auto objs= my->_remote_db->get_contract_objs_by_owner(owner_addr);
     for(auto& obj:objs)
     {
-        res.push_back(FormatContract(obj));
+        res.push_back(obj);
     }
     return res;
 }
@@ -6313,7 +6279,7 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto contracts= my->_remote_db->get_contracts_by_owner(owner_addr);
+    auto contracts= my->_remote_db->get_contract_objs_by_owner(owner_addr);
     vector<contract_hash_entry> res;
     for(auto& co:contracts)
     {
@@ -6326,13 +6292,17 @@ vector<contract_event_notify_object> wallet_api::get_contract_events(const std::
 {
     return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
 }
-vector<contract_resgister_record> wallet_api::get_contract_registered(const uint32_t block_num)
+vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const uint32_t block_num)
+{
+    return  my->_remote_db->get_contract_storage_changed(block_num);
+}
+vector<contract_blocknum_pair> wallet_api::get_contract_registered(const uint32_t block_num)
 {
     return my->_remote_db->get_contract_registered(block_num);
 }
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
-    return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
+    return my->_remote_db->get_contract_invoke_object(trx_id);
 }
 std::string wallet_api::add_script(const string& script_path) 
 {
@@ -6361,7 +6331,7 @@ void wallet_api::remove_script(const string& script_hash)
 }
 bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
 {
-    auto con_info=my->_remote_db->get_contract_info(contract);
+    auto con_info=my->_remote_db->get_contract_object(contract);
     FC_ASSERT(con_info.contract_address == address(contract,GRAPHENE_CONTRACT_ADDRESS_PREFIX), "");
     bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, GRAPHENE_CONTRACT_ADDRESS_PREFIX), event_name);
 
@@ -6370,7 +6340,7 @@ bool wallet_api::bind_script_to_event(const string& script_hash, const string& c
 }
 bool wallet_api::remove_event_handle(const string& script_hash, const string& contract, const string& event_name)
 {
-    auto con_info = my->_remote_db->get_contract_info(contract);
+    auto con_info = my->_remote_db->get_contract_object(contract);
     FC_ASSERT(con_info.contract_address == address(contract, ADDRESS_CONTRACT_PREFIX), "");
     bool res = my->_wallet.remove_event_handle(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
     save_wallet_file();
@@ -6510,6 +6480,7 @@ void wallet_api::lock()
    my->_keys.clear();
    my->_checksum = fc::sha512();
    my->self.lock_changed(true);
+   save_wallet_file();
 } FC_CAPTURE_AND_RETHROW() }
 
 void wallet_api::unlock(string password)
@@ -6775,7 +6746,7 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol,all);
 }
-transaction wallet_api::get_transaction(transaction_id_type id) const
+full_transaction wallet_api::get_transaction(transaction_id_type id) const
 {
 	return my->get_transaction(id);
 }
@@ -7412,18 +7383,14 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    : signed_block( block )
 {
    block_id = id();
+   number = block_num();
    signing_key = signee();
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )
 	   transaction_ids.push_back( tx.id() );
 }
 
-vesting_balance_object_with_info::vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now )
-   : vesting_balance_object( vbo )
-{
-   //allowed_withdraw = get_allowed_withdraw( now );
-   allowed_withdraw_time = now;
-}
+
 
 } } // graphene::wallet
 

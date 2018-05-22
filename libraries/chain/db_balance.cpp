@@ -58,7 +58,17 @@ asset database::get_balance(const address& addr, const asset_id_type asset_id) c
 	}
 	return result;
 }
-
+optional<asset_object> database::get_asset(const string& symbol) const
+{
+    const auto asset_db = get_index_type<asset_index>().indices();
+    const auto& by_symbol_idx=asset_db.get<by_symbol>();
+    auto obj = by_symbol_idx.find(GRAPHENE_SYMBOL);
+    if(obj != by_symbol_idx.end())
+    {
+        return *obj;
+    }
+    return optional<asset_object>();
+}
 string database::to_pretty_string( const asset& a )const
 {
    return a.asset_id(*this).amount_to_pretty_string(a.amount);

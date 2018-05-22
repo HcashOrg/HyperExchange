@@ -137,7 +137,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       set<address> get_potential_address_signatures( const signed_transaction& trx )const;
       bool verify_authority( const signed_transaction& trx )const;
       bool verify_account_authority( const string& name_or_id, const flat_set<public_key_type>& signers )const;
-      processed_transaction validate_transaction( const signed_transaction& trx )const;
+      processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false)const;
       vector< fc::variant > get_required_fees( const vector<operation>& ops, asset_id_type id )const;
 
       // Proposed transactions
@@ -165,8 +165,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
       //contract 
-      contract_object get_contract_info(const string& contract_address)const ;
-	  contract_object get_contract_info_by_name(const string& contract_name) const;
+      contract_object get_contract_object(const string& contract_address)const ;
+	  contract_object get_contract_object_by_name(const string& contract_name) const;
       vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
@@ -177,6 +177,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
       vector<contract_event_notify_object> get_contract_events(const address&)const;
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
+
+      vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
 
    //private:
       template<typename T>
@@ -348,22 +350,30 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-contract_object database_api::get_contract_info(const string& contract_address) const
+contract_object database_api::get_contract_object(const string& contract_address) const
 {
-    return my->get_contract_info(contract_address);
+    return my->get_contract_object(contract_address);
 }
-contract_object database_api::get_contract_info_by_name(const string& contract_name) const
+
+ContractEntryPrintable database_api::get_contract_info_by_name(const string& contract_name)const
 {
-	return my->get_contract_info_by_name(contract_name);
+    return my->get_contract_object_by_name(contract_name);
 }
-contract_object database_api_impl::get_contract_info(const string& contract_address) const
+ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
+{
+    return my->get_contract_object(contract_address);
+}
+contract_object database_api::get_contract_object_by_name(const string& contract_name) const
+{
+	return my->get_contract_object_by_name(contract_name);
+}
+contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        auto res=  _db.get_contract(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
-        return res;
+        return _db.get_contract(contract_address);
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
-contract_object database_api_impl::get_contract_info_by_name(const string& contract_name) const
+contract_object database_api_impl::get_contract_object_by_name(const string& contract_name) const
 {
 	try {
 		auto res = _db.get_contract_of_name(contract_name);
@@ -411,13 +421,76 @@ vector<asset> database_api::get_contract_balance(const address & contract_addres
 {
     return my->get_contract_balance(contract_address);
 }
-vector<address> database_api::get_contract_addresses_by_owner(const address&addr)const
+vector<address> database_api::get_contract_addresses_by_owner_address(const address&addr)const
 {
     return my->get_contract_addresses_by_owner(addr);
 }
-vector<contract_object> database_api::get_contracts_by_owner(const address&addr)const 
+
+vector<string>  database_api::get_contract_addresses_by_owner(const std::string& addr)const
+{
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto addr_res = get_contract_addresses_by_owner_address(owner_addr);
+    vector<string> res;
+    for (auto& out : addr_res)
+    {
+        res.push_back(out.address_to_contract_string());
+    }
+    return res;
+}
+vector<contract_object> database_api::get_contract_objs_by_owner(const address&addr)const 
 {
     return my->get_contracts_by_owner(addr);
+}
+
+vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::string& addr) const
+{
+    vector<ContractEntryPrintable> res;
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto objs = get_contract_objs_by_owner(owner_addr);
+    for (auto& obj : objs)
+    {
+        res.push_back(obj);
+    }
+    return res;
+}
+
+vector<contract_hash_entry> database_api::get_contracts_hash_entry_by_owner(const std::string& addr) const
+{
+    address owner_addr;
+    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    {
+        owner_addr = address(addr);
+    }
+    else
+    {
+        auto acct = get_account(addr);
+        owner_addr = acct.addr;
+    }
+    auto contracts = get_contract_objs_by_owner(owner_addr);
+    vector<contract_hash_entry> res;
+    for (auto& co : contracts)
+    {
+        res.push_back(co);
+    }
+    return res;
 }
 void database_api_impl::cancel_all_subscriptions()
 {
@@ -739,7 +812,72 @@ std::map<string,full_account> database_api::get_full_accounts( const vector<stri
 {
    return my->get_full_accounts( names_or_ids, subscribe );
 }
+account_object database_api::get_account(const string& account_name_or_id) const
+{
+    FC_ASSERT(account_name_or_id.size() > 0);
 
+    if (auto id = maybe_id<account_id_type>(account_name_or_id))
+    {
+        // It's an ID
+        return get_account_by_id(*id);
+    }
+    else {
+
+        auto rec = lookup_account_names({ account_name_or_id }).front();
+        FC_ASSERT(rec && rec->name == account_name_or_id);
+        return *rec;
+    }
+}
+account_object database_api::get_account_by_id(const account_id_type& id) const
+{
+    vector<account_id_type> input;
+    input.push_back(id);
+    auto output = my->get_accounts(input);
+    FC_ASSERT(output.front().valid());
+    return *(output.front());
+}
+asset_object database_api::get_asset(const string& asset_name_or_id) const
+{
+    FC_ASSERT(asset_name_or_id.size() > 0);
+
+    if (auto id = maybe_id<asset_id_type>(asset_name_or_id))
+    {
+        // It's an ID
+        auto obj = get_asset_by_id(*id);
+        FC_ASSERT(obj.valid());
+        return *obj;
+    }
+    else {
+        // It's a symbol
+        auto rec = lookup_asset_symbols({ asset_name_or_id }).front();
+        FC_ASSERT(rec.valid());
+        FC_ASSERT(rec->symbol != asset_name_or_id);
+        return *rec;
+    }
+    return asset_object();
+}
+optional<asset_object> database_api::get_asset_by_id(const asset_id_type& id)const
+{
+    vector<asset_id_type> input;
+    input.push_back(id);
+    auto out = get_assets(input);
+    if (out.front().valid())
+        return *(out.front());
+    return optional<asset_object>();
+}
+
+account_id_type database_api::get_account_id(const string& account_name_or_id) const
+{
+    return get_account(account_name_or_id).get_id();
+}
+address database_api::get_account_addr(const string& account_name) const
+{
+    return my->_db.get_account_address(account_name);
+}
+asset_id_type database_api::get_asset_id(const string& asset_name_or_id) const
+{
+    return get_asset(asset_name_or_id).id;
+}
 std::map<std::string, full_account> database_api_impl::get_full_accounts( const vector<std::string>& names_or_ids, bool subscribe)
 {
    idump((names_or_ids));
@@ -852,7 +990,7 @@ std::map<std::string, full_account> database_api_impl::get_full_accounts( const 
    return results;
 }
 
-optional<account_object> database_api::get_account_by_name( string name )const
+optional<account_object> database_api::get_account_by_name(const string& name )const
 {
    return my->get_account_by_name( name );
 }
@@ -982,7 +1120,12 @@ vector<asset> database_api::get_account_balances(account_id_type id, const flat_
 {
    return my->get_account_balances( id, assets );
 }
-
+vector<asset> database_api::list_account_balances(const string& id) const
+{
+    if (auto real_id = maybe_id<account_id_type>(id))
+        return get_account_balances(*real_id, flat_set<asset_id_type>());
+    return get_account_balances(get_account(id).id, flat_set<asset_id_type>());
+}
 vector<asset> database_api_impl::get_account_balances(account_id_type acnt, const flat_set<asset_id_type>& assets)const
 {
    vector<asset> result;
@@ -1009,7 +1152,22 @@ vector<asset> database_api::get_named_account_balances(const std::string& name, 
 {
    return my->get_named_account_balances( name, assets );
 }
+vector<asset> database_api::get_account_balances_by_str(const string& account)const
+{
+    auto acc = get_account(account);
+    auto add = acc.addr;
+    FC_ASSERT(address() != acc.addr, "account is not in the chain.");
+    vector<address> vec;
+    vec.push_back(add);
+    auto vec_balance = get_balance_objects(vec);
+    vector<asset> ret;
+    for (auto balance : vec_balance)
+    {
+        ret.push_back(balance.balance);
+    }
 
+    return ret;
+}
 vector<asset> database_api_impl::get_named_account_balances(const std::string& name, const flat_set<asset_id_type>& assets) const
 {
    const auto& accounts_by_name = _db.get_index_type<account_index>().indices().get<by_name>();
@@ -1022,7 +1180,25 @@ vector<balance_object> database_api::get_balance_objects( const vector<address>&
 {
    return my->get_balance_objects( addrs );
 }
+vector<asset> database_api::get_addr_balances(const string& addr) const
+{
+    if (address::is_valid(addr) == false)
+    {
+        return vector<asset>();
+    }
+    auto add = address(addr);
+    vector<address> vec;
+    vec.push_back(add);
+    auto vec_balance = get_balance_objects(vec);
+    vector<asset> ret;
+    for (auto balance : vec_balance)
+    {
+        ret.push_back(balance.balance);
+    }
 
+    return ret;
+
+}
 vector<balance_object> database_api_impl::get_balance_objects( const vector<address>& addrs )const
 {
    try
@@ -1070,6 +1246,35 @@ vector<vesting_balance_object> database_api::get_vesting_balances( account_id_ty
    return my->get_vesting_balances( account_id );
 }
 
+vector< vesting_balance_object_with_info > database_api::get_vesting_balances_with_info(const string& account_name)const
+{
+    try {
+        fc::optional<vesting_balance_id_type> vbid = maybe_id<vesting_balance_id_type>(account_name);
+        std::vector<vesting_balance_object_with_info> result;
+        fc::time_point_sec now = get_dynamic_global_properties().time;
+        
+        if (vbid)
+        {
+            auto obj=get_objects({ *vbid }).front().as<vesting_balance_object>();
+            result.emplace_back(obj,now);
+            return result;
+        }
+      
+        // try casting to avoid a round-trip if we were given an account ID
+        fc::optional<account_id_type> acct_id = maybe_id<account_id_type>(account_name);
+        if (!acct_id)
+            acct_id = get_account(account_name).id;
+      
+        vector< vesting_balance_object > vbos = get_vesting_balances(*acct_id);
+        if (vbos.size() == 0)
+            return result;
+      
+        for (const vesting_balance_object& vbo : vbos)
+            result.emplace_back(vbo, now);
+      
+        return result;
+    } FC_CAPTURE_AND_RETHROW((account_name))
+}
 vector<vesting_balance_object> database_api_impl::get_vesting_balances( account_id_type account_id )const
 {
    try
@@ -1528,6 +1733,40 @@ fc::optional<miner_object> database_api::get_miner_by_account(account_id_type ac
    return my->get_miner_by_account( account );
 }
 
+miner_object database_api::get_miner(const string& owner_account) const
+{
+    try
+    {
+        fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
+        if (miner_id)
+        {
+            std::vector<miner_id_type> ids_to_get;
+            ids_to_get.push_back(*miner_id);
+            std::vector<fc::optional<miner_object>> miner_objects = get_miners(ids_to_get);
+            if (miner_objects.front())
+                return *miner_objects.front();
+            FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
+        }
+        else
+        {
+            // then maybe it's the owner account
+            try
+            {
+                account_id_type owner_account_id = get_account_id(owner_account);
+                fc::optional<miner_object> witness = get_miner_by_account(owner_account_id);
+                if (witness)
+                    return *witness;
+                else
+                    FC_THROW("No witness is registered for account ${account}", ("account", owner_account));
+            }
+            catch (const fc::exception&)
+            {
+                FC_THROW("No account or witness named ${account}", ("account", owner_account));
+            }
+        }
+    }
+    FC_CAPTURE_AND_RETHROW((owner_account))
+}
 fc::optional<miner_object> database_api_impl::get_miner_by_account(account_id_type account) const
 {
    const auto& idx = _db.get_index_type<miner_index>().indices().get<by_account>();
@@ -1585,7 +1824,48 @@ vector<optional<guard_member_object>> database_api::get_guard_members(const vect
 {
    return my->get_guard_members( committee_member_ids );
 }
-
+map<string, guard_member_id_type> database_api::list_guard_members(const string& lowerbound, uint32_t limit)
+{
+    return lookup_guard_member_accounts(lowerbound, limit, false);
+}
+map<string, guard_member_id_type> database_api::list_all_guards(const string& lowerbound, uint32_t limit)const
+{
+    return lookup_guard_member_accounts(lowerbound, limit, true);
+}
+guard_member_object database_api::get_guard_member(const string& owner_account)const
+{
+    try
+    {
+        fc::optional<guard_member_id_type> committee_member_id = maybe_id<guard_member_id_type>(owner_account);
+        if (committee_member_id)
+        {
+            std::vector<guard_member_id_type> ids_to_get;
+            ids_to_get.push_back(*committee_member_id);
+            std::vector<fc::optional<guard_member_object>> guard_member_objects = get_guard_members(ids_to_get);
+            if (guard_member_objects.front())
+                return *guard_member_objects.front();
+            FC_THROW("No committee_member is registered for id ${id}", ("id", owner_account));
+        }
+        else
+        {
+            // then maybe it's the owner account
+            try
+            {
+                account_id_type owner_account_id = get_account_id(owner_account);
+                fc::optional<guard_member_object> committee_member = get_guard_member_by_account(owner_account_id);
+                if (committee_member)
+                    return *committee_member;
+                else
+                    FC_THROW("No committee_member is registered for account ${account}", ("account", owner_account));
+            }
+            catch (const fc::exception&)
+            {
+                FC_THROW("No account or committee_member named ${account}", ("account", owner_account));
+            }
+        }
+    }
+    FC_CAPTURE_AND_RETHROW((owner_account))
+}
 vector<optional<guard_member_object>> database_api_impl::get_guard_members(const vector<guard_member_id_type>& committee_member_ids)const
 {
    vector<optional<guard_member_object>> result; result.reserve(committee_member_ids.size());
@@ -1696,13 +1976,21 @@ vector<contract_object> database_api_impl::get_contract_registered(const uint32_
 {
     return _db.get_registered_contract_according_block(start_with, num);
 }
-vector<contract_resgister_record> database_api::get_contract_registered(const uint32_t block_num) const
+vector<contract_blocknum_pair> database_api_impl::get_contract_storage_changed(const uint32_t block_num, const uint32_t num)const
 {
-    vector<contract_resgister_record> res;
+    return _db.get_contract_changed(block_num, num);
+}
+vector<contract_blocknum_pair> database_api::get_contract_storage_changed(const uint32_t block_num) const
+{
+    return my->get_contract_storage_changed(block_num,0);
+}
+vector<contract_blocknum_pair> database_api::get_contract_registered(const uint32_t block_num) const
+{
+    vector<contract_blocknum_pair> res;
     auto contracts=my->get_contract_registered(block_num,0);
     for(auto co:contracts)
     {
-        contract_resgister_record rec;
+        contract_blocknum_pair rec;
         rec.block_num = co.registered_block;
         rec.contract_address = co.contract_address.address_to_contract_string();
         res.push_back(rec);
@@ -1830,9 +2118,17 @@ vector<variant> database_api_impl::lookup_vote_ids( const vector<vote_id_type>& 
 
 std::string database_api::get_transaction_hex(const signed_transaction& trx)const
 {
-   return my->get_transaction_hex( trx );
+    return my->get_transaction_hex(trx);
+}
+std::string database_api::serialize_transaction(const signed_transaction& trx)const
+{
+    return my->get_transaction_hex(trx);
 }
 
+transaction_id_type database_api::get_transaction_id(const signed_transaction& trx)const
+{ 
+    return trx.id(); 
+}
 std::string database_api_impl::get_transaction_hex(const signed_transaction& trx)const
 {
    return fc::to_hex(fc::raw::pack(trx));
@@ -1961,14 +2257,14 @@ bool database_api_impl::verify_account_authority( const string& name_or_id, cons
    return verify_authority( trx );
 }
 
-processed_transaction database_api::validate_transaction( const signed_transaction& trx )const
+processed_transaction database_api::validate_transaction( const signed_transaction& trx , bool testing)const
 {
-   return my->validate_transaction( trx );
+   return my->validate_transaction( trx, testing);
 }
 
-processed_transaction database_api_impl::validate_transaction( const signed_transaction& trx )const
+processed_transaction database_api_impl::validate_transaction( const signed_transaction& trx ,bool testing)const
 {
-   return _db.validate_transaction(trx);
+   return _db.validate_transaction(trx, testing);
 }
 
 vector< fc::variant > database_api::get_required_fees( const vector<operation>& ops, asset_id_type id )const
@@ -2074,7 +2370,20 @@ vector<proposal_object> database_api::get_voter_transactions_waiting(address add
 {
 	return my->get_voter_transactions_waiting(addr);
 }
+vector<proposal_object>  database_api::get_proposal(const string& proposer)const 
+{
+    auto acc = get_account(proposer);
+    FC_ASSERT(acc.get_id() != account_object().get_id(), "the propser doesnt exist in the chain.");
 
+    return get_proposer_transactions(acc.get_id());
+}
+vector<proposal_object>  database_api::get_proposal_for_voter(const string& voter) const
+{
+    auto acc = get_account(voter);
+    FC_ASSERT(acc.get_id() != account_object().get_id(), "the propser doesnt exist in the chain.");
+
+    return get_voter_transactions_waiting(acc.addr);
+}
 vector<proposal_object> database_api_impl::get_voter_transactions_waiting(address addr)const
 {
 	const auto& idx = _db.get_index_type<proposal_index>();
@@ -2195,7 +2504,13 @@ vector<guard_lock_balance_object> database_api::get_guard_lock_balance(const gua
 
 vector<optional<account_binding_object>> database_api::get_binding_account(const string& account, const string& symbol) const
 {
-	return my->get_binding_account(account,symbol);
+    if (address::is_valid(account))
+    {
+        return my->get_binding_account(account, symbol);
+    }
+    auto acct = get_account(account);
+    FC_ASSERT(acct.addr != address());
+    return get_binding_account(string(acct.addr), symbol);
 }
 
 vector<optional<account_binding_object>> database_api_impl::get_binding_account(const string& account, const string& symbol) const
@@ -2226,6 +2541,14 @@ vector<optional<guarantee_object>> database_api::list_guarantee_object(const str
 {
 	return my->list_guarantee_object(chain_type,all);
 }
+vector<optional<guarantee_object>> database_api::list_guarantee_order(const string& chain_type, bool all )const
+{
+    try {
+        auto asset_obj = get_asset(chain_type);
+        return list_guarantee_object(chain_type, all);
+
+    }FC_CAPTURE_AND_RETHROW((chain_type))
+}
 vector<optional<guarantee_object>> database_api::get_guarantee_orders(const address& addr, bool all) const
 {
 	return my->get_guarantee_orders(addr, all);
@@ -2234,9 +2557,9 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 {
 	return my->get_gurantee_object(id);
 }
-vector<contract_invoke_result_object> database_api::get_contract_invoke_object(const transaction_id_type& trx_id)const
+vector<contract_invoke_result_object> database_api::get_contract_invoke_object(const string& trx_id)const
 {
-    return my->get_contract_invoke_object(trx_id);
+    return my->get_contract_invoke_object(transaction_id_type(trx_id));
 }
 
 vector<contract_event_notify_object> database_api::get_contract_events(const address&addr)const
@@ -2254,6 +2577,14 @@ vector<contract_event_notify_object> database_api::get_contract_event_notify(con
 vector<guard_lock_balance_object> database_api::get_guard_asset_lock_balance(const asset_id_type& id)const {
 	return my->get_guard_asset_lock_balance(id);
 }
+variant_object database_api::decoderawtransaction(const string& raw_trx, const string& symbol) const
+{
+    try {
+        auto cross_mgr = graphene::privatekey_management::crosschain_management::get_instance();
+        return cross_mgr.decoderawtransaction(raw_trx, symbol);
+
+    }FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
+}
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }
@@ -2265,6 +2596,21 @@ vector<optional<multisig_address_object>> database_api::get_multi_account_guard(
 }
 std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
 	return my->get_pay_back_balances(pay_back_owner);
+}
+std::vector<asset> database_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
+    std::vector<asset> results;
+    auto owner_balance = get_pay_back_balances(owner_addr);
+    if ("" == asset_symbol) {
+        for (const auto & pay_back_balance_obj : owner_balance) {
+            results.push_back(pay_back_balance_obj.second);
+        }
+    }
+    else {
+        auto pay_back_asset_iter = owner_balance.find(asset_symbol);
+        FC_ASSERT(pay_back_asset_iter != owner_balance.end(), "This asset doesnt exist");
+        results.push_back(pay_back_asset_iter->second);
+    }
+    return results;
 }
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
