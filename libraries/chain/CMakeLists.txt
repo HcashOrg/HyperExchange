@@ -104,6 +104,7 @@ add_library( graphene_chain
              uvm_chain_api.cpp
              db_contract_trx.cpp
              native_contract.cpp
+             Keccak.cpp
 
 	     crosschain_record_evaluate.cpp
              ${HEADERS}

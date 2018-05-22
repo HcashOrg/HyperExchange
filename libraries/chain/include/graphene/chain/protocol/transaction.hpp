@@ -174,6 +174,7 @@ namespace graphene { namespace chain {
    };
    struct full_transaction :signed_transaction
    {
+	   uint32_t block_num =0;
 	   transaction_id_type trxid;
        optional<string> contract_id;
 	   full_transaction(const signed_transaction& trx=signed_transaction()):signed_transaction(trx) { trxid = trx.id(); }
@@ -216,5 +217,5 @@ namespace graphene { namespace chain {
 
 FC_REFLECT( graphene::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration)(operations)(extensions) )
 FC_REFLECT_DERIVED( graphene::chain::signed_transaction, (graphene::chain::transaction), (signatures) )
-FC_REFLECT_DERIVED(graphene::chain::full_transaction, (graphene::chain::signed_transaction), (trxid)(contract_id))
+FC_REFLECT_DERIVED(graphene::chain::full_transaction, (graphene::chain::signed_transaction), (block_num)(trxid)(contract_id))
 FC_REFLECT_DERIVED( graphene::chain::processed_transaction, (graphene::chain::signed_transaction), (operation_results) )

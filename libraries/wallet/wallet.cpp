@@ -739,7 +739,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
 
-   transaction get_transaction(transaction_id_type id) const
+   full_transaction get_transaction(transaction_id_type id) const
    {
 	   try {
 		   auto trx = _remote_trx->get_transaction(id);
@@ -6471,6 +6471,7 @@ void wallet_api::lock()
    my->_keys.clear();
    my->_checksum = fc::sha512();
    my->self.lock_changed(true);
+   save_wallet_file();
 } FC_CAPTURE_AND_RETHROW() }
 
 void wallet_api::unlock(string password)
@@ -6736,7 +6737,7 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol,all);
 }
-transaction wallet_api::get_transaction(transaction_id_type id) const
+full_transaction wallet_api::get_transaction(transaction_id_type id) const
 {
 	return my->get_transaction(id);
 }
@@ -7373,6 +7374,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    : signed_block( block )
 {
    block_id = id();
+   number = block_num();
    signing_key = signee();
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )

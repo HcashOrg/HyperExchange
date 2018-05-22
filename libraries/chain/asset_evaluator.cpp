@@ -612,6 +612,8 @@ void_result gurantee_create_evaluator::do_evaluate(const gurantee_create_operati
 		const auto balance_obj = balances.find(boost::make_tuple(o.owner_addr, o.asset_origin.asset_id));
 		FC_ASSERT(balance_obj != balances.end());
 		FC_ASSERT(balance_obj->balance >= o.asset_origin);
+		FC_ASSERT(o.asset_origin.amount >0 );
+		FC_ASSERT(o.asset_target.amount > 0);
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
