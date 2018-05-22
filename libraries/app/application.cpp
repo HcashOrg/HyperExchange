@@ -389,16 +389,20 @@ namespace detail {
 				 //const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
 				 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
 				 auto chain_types_str = _options->at("chain-type").as<std::vector<std::string>>();
-				 auto chain_types = fc::json::from_string(chain_types_str[0]);
-				 for (auto chain_type : chain_types.as<vector<string>>())
+				 if (chain_types_str.size() > 0)
 				 {
-					 std::cout << chain_type << std::endl;
-					 auto fd = instance.get_crosschain_handle(chain_type);
-					 if (fd != nullptr)
-						 fd->initialize_config(config_var);
+					 auto chain_types = fc::json::from_string(chain_types_str[0]);
+					 for (auto chain_type : chain_types.as<vector<string>>())
+					 {
+						 std::cout << chain_type << std::endl;
+						 auto fd = instance.get_crosschain_handle(chain_type);
+						 if (fd != nullptr)
+							 fd->initialize_config(config_var);
+					 }
+					 _self->set_crosschain_chain_types(chain_types.as<vector<string>>());
+					 _self->set_crosschain_manager_config(config);
 				 }
-				 _self->set_crosschain_chain_types(chain_types.as<vector<string>>());
-				 _self->set_crosschain_manager_config(config);
+				 
 			 }
 		 }
          auto initial_state = [&] {
