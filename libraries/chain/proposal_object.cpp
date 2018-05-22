@@ -52,7 +52,7 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 		   approved_key_weights += iter->pledge_weight.value;
 	   }
 
-	   return approved_key_weights >= uint64_t(std::ceil(double(total_weights) * 2 / 3));
+	   return approved_key_weights >= uint64_t(std::ceil(double(total_weights) * 2.0 / 3.0));
    } 
    catch ( const fc::exception& e )
    {
