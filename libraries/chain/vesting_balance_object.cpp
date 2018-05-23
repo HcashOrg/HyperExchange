@@ -237,4 +237,11 @@ asset vesting_balance_object::get_allowed_withdraw(const time_point_sec& now)con
    return policy.visit(get_allowed_withdraw_visitor(balance, now, amount));
 }
 
+vesting_balance_object_with_info::vesting_balance_object_with_info(const vesting_balance_object& vbo, fc::time_point_sec now)
+    : vesting_balance_object(vbo)
+{
+    //allowed_withdraw = get_allowed_withdraw( now );
+    allowed_withdraw_time = now;
+}
+
 } } // graphene::chain

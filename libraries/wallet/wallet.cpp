@@ -134,21 +134,7 @@ public:
    std::string operator()(const asset_create_operation& op)const;
 };
 
-template<class T>
-optional<T> maybe_id( const string& name_or_id )
-{
-   if( std::isdigit( name_or_id.front() ) )
-   {
-      try
-      {
-         return fc::variant(name_or_id).as<T>();
-      }
-      catch (const fc::exception&)
-      {
-      }
-   }
-   return optional<T>();
-}
+
 
 string address_to_shorthash( const address& addr )
 {
@@ -1861,7 +1847,7 @@ public:
 
            auto dyn_props = get_dynamic_global_properties();
            tx.set_reference_block(dyn_props.head_block_id);
-           tx.set_expiration(dyn_props.time + fc::seconds(30));
+           tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
            auto signed_tx = sign_transaction(tx, false);
@@ -3608,7 +3594,7 @@ public:
 	  }
       for (;;)
       {
-         tx.set_expiration( dyn_props.time + fc::seconds(30 + expiration_time_offset) );
+         tx.set_expiration( dyn_props.time + fc::seconds(600 + expiration_time_offset) );
          tx.signatures.clear();
 
          for( auto& addr :  approving_key_set)
@@ -3639,7 +3625,7 @@ public:
          }
 
          // else we've generated a dupe, increment expiration time and re-sign it
-         ++expiration_time_offset;
+         expiration_time_offset+=10;
       }
 	  FC_ASSERT(tx.signatures.size()!=0);
       if( broadcast )
@@ -5127,7 +5113,16 @@ bool wallet_api::copy_wallet_file(string destination_filename)
 
 optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 {
-   return my->_remote_db->get_block(num);
+   auto block = my->_remote_db->get_block(num);
+   signed_block_with_info block_with_info(*block);
+   auto trxs = my->_remote_db->fetch_block_transactions(num);
+   vector <transaction_id_type> tx_ids;
+   for (const auto & full_trx :trxs)
+   {
+	   tx_ids.push_back(full_trx.trxid);
+   }
+   block_with_info.transaction_ids.swap(tx_ids);
+   return block_with_info;
 }
 
 uint64_t wallet_api::get_account_count() const
@@ -5147,7 +5142,7 @@ map<string,account_id_type> wallet_api::list_accounts(const string& lowerbound, 
 
 vector<asset> wallet_api::list_account_balances(const string& id)
 {
-   if( auto real_id = detail::maybe_id<account_id_type>(id) )
+   if( auto real_id = maybe_id<account_id_type>(id) )
       return my->_remote_db->get_account_balances(*real_id, flat_set<asset_id_type>());
    return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
 }
@@ -6243,7 +6238,7 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto addr_res= my->_remote_db->get_contract_addresses_by_owner(owner_addr);
+    auto addr_res= my->_remote_db->get_contract_addresses_by_owner_address(owner_addr);
     vector<string> res;
     for(auto& out: addr_res)
     {
@@ -6264,7 +6259,7 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto objs= my->_remote_db->get_contracts_by_owner(owner_addr);
+    auto objs= my->_remote_db->get_contract_objs_by_owner(owner_addr);
     for(auto& obj:objs)
     {
         res.push_back(obj);
@@ -6284,7 +6279,7 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
         auto acct = my->get_account(addr);
         owner_addr = acct.addr;
     }
-    auto contracts= my->_remote_db->get_contracts_by_owner(owner_addr);
+    auto contracts= my->_remote_db->get_contract_objs_by_owner(owner_addr);
     vector<contract_hash_entry> res;
     for(auto& co:contracts)
     {
@@ -6307,7 +6302,7 @@ vector<contract_blocknum_pair> wallet_api::get_contract_registered(const uint32_
 }
 vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_invoke_object(const std::string&trx_id)
 {
-    return my->_remote_db->get_contract_invoke_object(transaction_id_type(trx_id));
+    return my->_remote_db->get_contract_invoke_object(trx_id);
 }
 std::string wallet_api::add_script(const string& script_path) 
 {
@@ -7392,15 +7387,10 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    signing_key = signee();
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )
-      transaction_ids.push_back( tx.id() );
+	   transaction_ids.push_back( tx.id() );
 }
 
-vesting_balance_object_with_info::vesting_balance_object_with_info( const vesting_balance_object& vbo, fc::time_point_sec now )
-   : vesting_balance_object( vbo )
-{
-   //allowed_withdraw = get_allowed_withdraw( now );
-   allowed_withdraw_time = now;
-}
+
 
 } } // graphene::wallet
 

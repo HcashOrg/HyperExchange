@@ -59,6 +59,7 @@ void write_default_logging_config_to_stream(std::ostream& out);
 fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename);
 
 int main(int argc, char** argv) {
+   fc::time_point::start_ntp();
    app::application* node = new app::application();
    fc::oexception unhandled_exception;
    try {

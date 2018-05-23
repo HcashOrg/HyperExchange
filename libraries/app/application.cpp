@@ -1,27 +1,4 @@
 /*
-		    		_ooOoo_
-		    	   o8888888o
-		    	   88" . "88
-		    	   (| -_- |)
-		    	   O\  =  /O
-		    	____/`---'\____
-		      .'  \\|     |//  `.
-		     /  \\|||  :  |||//  \
-		    /  _||||| -:- |||||-  \
-		   |   | \\\  -  /// |   |
-		   | \_|  ''\---/''  |   |
-		    \  .-\__  `-`  ___/-. /
-		   ___`. .'  /--.--\  `. . __
-	    ."" '<  `.___\_<|>_/___.'  >'"".
-	  | | :  `- \`.;`\ _ /`;.`/ - ` : | |
-	  \  \ `-.   \_ __\ /__ _/   .-` /  /
-======`-.____`-.___\_____/___.-`____.-'======
-                   `=---='
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-·ð×æ±£ÓÓ       ÓÀÎÞBUG
-*/
-
-/*
  * Copyright (c) 2015 Cryptonomex, Inc., and contributors.
  *
  * The MIT License
@@ -381,19 +358,29 @@ namespace detail {
 			 auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 			 auto config = "{\"ip\":\"" + crosschain_ip + "\",\"port\":" + port + "}";
 			 auto config_var = fc::json::from_string(config).get_object();
+			 //std::cout << _options->count("chain-type") << std::endl;
 			 if (_options->count("chain-type"))
 			 {
 				 //std::set<std::string> _chain_types;
 				 //LOAD_VALUE_SET(_options, "chain-type", _chain_types, std::string);
-				 const std::vector<std::string>& chain_types = _options->at("chain-type").as<std::vector<std::string>>();
-				 for (auto chain_type : chain_types)
+				 //const std::string key_id_to_wif_pair_strings = options["private-key"].as<std::string>();
+				 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
+				 auto chain_types_str = _options->at("chain-type").as<std::string>();
+				 auto chain_type_vector = graphene::app::dejsonify<vector<string>>(chain_types_str);
+				 if (chain_type_vector.size() > 0)
 				 {
-					 auto fd = instance.get_crosschain_handle(chain_type);
-					 if (fd != nullptr)
-						 fd->initialize_config(config_var);
+					 auto chain_types = chain_type_vector;
+					 for (auto chain_type : chain_type_vector)
+					 {
+						 //std::cout << chain_type << std::endl;
+						 auto fd = instance.get_crosschain_handle(chain_type);
+						 if (fd != nullptr)
+							 fd->initialize_config(config_var);
+					 }
+					 _self->set_crosschain_chain_types(chain_types);
+					 _self->set_crosschain_manager_config(config);
 				 }
-				 _self->set_crosschain_chain_types(chain_types);
-				 _self->set_crosschain_manager_config(config);
+				 
 			 }
 		 }
          auto initial_state = [&] {
