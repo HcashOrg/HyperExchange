@@ -45,9 +45,11 @@ namespace fc {
     public:
         explicit time_point( microseconds e = microseconds() ) :elapsed(e){}
         static time_point now();
+
+        static time_point local_now();
         static time_point maximum() { return time_point( microseconds::maximum() ); }
         static time_point min() { return time_point();                      }
-
+        static void start_ntp();
         operator fc::string()const;
         static time_point from_iso_string( const fc::string& s );
 
