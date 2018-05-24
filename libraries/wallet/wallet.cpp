@@ -2247,7 +2247,9 @@ public:
 		   return is_valid_account_name(supername);
 	   } FC_CAPTURE_AND_RETHROW((name))
    }
-
+   void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum) {
+	  _remote_db->set_acquire_block_num(symbol, blocknum);
+   }
    address create_account(string account_name)
    {
 	   try{
@@ -5581,7 +5583,9 @@ bool wallet_api::import_account_keys( string filename, string password, string s
 
    return false;
 }
-
+void wallet_api::change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum) {
+	my->change_acquire_plugin_num(symbol, blocknum);
+}
 string wallet_api::normalize_brain_key(string s) const
 {
    return detail::normalize_brain_key( s );

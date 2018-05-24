@@ -430,7 +430,7 @@ class wallet_api
       bool copy_wallet_file( string destination_filename );
 
       fc::ecc::private_key derive_private_key(const std::string& prefix_string, int sequence_number) const;
-
+	  void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum);
       variant                           info();
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions
@@ -2126,6 +2126,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (remove_local_account)
         (get_account_id)
         (get_block)
+		(change_acquire_plugin_num)
         (get_account_count)
         (get_account_history)
         (get_relative_account_history)

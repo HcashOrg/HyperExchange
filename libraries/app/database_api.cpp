@@ -69,7 +69,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       map<uint32_t, optional<block_header>> get_block_header_batch(const vector<uint32_t> block_nums)const;
       optional<signed_block> get_block(uint32_t block_num)const;
       processed_transaction get_transaction( uint32_t block_num, uint32_t trx_in_block )const;
-
+	  void set_acquire_block_num(const string& symbol, const uint32_t& block_num)const;
       // Globals
       chain_property_object get_chain_properties()const;
       global_property_object get_global_properties()const;
@@ -573,8 +573,17 @@ vector<full_transaction> database_api::fetch_block_transactions(uint32_t block_n
 	}
 	return results;
 }
-
-
+void database_api::set_acquire_block_num(const string& symbol, const uint32_t& block_num)const {
+	my->set_acquire_block_num(symbol, block_num);
+}
+void database_api_impl::set_acquire_block_num(const string& symbol, const uint32_t& block_num)const {
+	auto& trx_iters = _db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+	auto symbol_iter = trx_iters.find(symbol);
+	FC_ASSERT((symbol_iter != trx_iters.end()), "symbol not found!");
+	_db.modify(*symbol_iter, [&](crosschain_transaction_history_count_object& obj) {
+		obj.local_count = block_num;
+	});
+}
 optional<signed_block> database_api_impl::get_block(uint32_t block_num)const
 {
    return _db.fetch_block_by_number(block_num);
