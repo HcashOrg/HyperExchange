@@ -180,6 +180,7 @@ namespace detail {
          {
             // https://blocklinkstalk.org/index.php/topic,23715.0.html
             vector<string> seeds = {
+				"117.78.44.37:9034"
 				/*
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
@@ -917,8 +918,13 @@ namespace detail {
             // if it's not, we pull it from the fork history
             if (low_block_num <= non_fork_high_block_num)
               synopsis.push_back(_chain_db->get_block_id_for_num(low_block_num));
-            else
-              synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
+			else
+			{
+				std::cout << low_block_num << std::endl;
+				std::cout << non_fork_high_block_num << std::endl;
+				synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
+			}
+              
             low_block_num += (true_high_block_num - low_block_num + 2) / 2;
           }
           while (low_block_num <= high_block_num);
