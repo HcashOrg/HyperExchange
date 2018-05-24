@@ -6,16 +6,46 @@
 #include <fc/string.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/exception/exception.hpp>
-
+#include <fc/ntp.hpp>
+#include <atomic>
+#include <fc/thread/mutex.hpp>
+#include <fc/thread/scoped_lock.hpp>
 namespace fc {
 
   namespace bch = boost::chrono;
+  namespace detail
+  {
+      std::atomic<fc::ntp*> ntp_service(nullptr);
+      fc::mutex ntp_service_initialization_mutex;
+  }
 
   time_point time_point::now()
   {
-     return time_point( microseconds( bch::duration_cast<bch::microseconds>( bch::system_clock::now().time_since_epoch() ).count() ) );
+     fc::ntp* actual_ntp_service = detail::ntp_service.load();
+     if (actual_ntp_service)
+     {
+         return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count())) + fc::microseconds(actual_ntp_service->get_delta_microseconds());
+     }
+     return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count()));
   }
-
+  time_point time_point::local_now()
+  {
+      return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count()));
+  }
+ void time_point::start_ntp()
+{
+      fc::ntp* actual_ntp_service = detail::ntp_service.load();
+      if (!actual_ntp_service)
+      {
+          fc::scoped_lock<fc::mutex> lock(detail::ntp_service_initialization_mutex);
+          actual_ntp_service = detail::ntp_service.load();
+          if (!actual_ntp_service)
+          {
+              actual_ntp_service = new fc::ntp;
+              detail::ntp_service.store(actual_ntp_service);
+          }
+      }
+}
   fc::string time_point_sec::to_non_delimited_iso_string()const
   {
     const auto ptime = boost::posix_time::from_time_t( time_t( sec_since_epoch() ) );
