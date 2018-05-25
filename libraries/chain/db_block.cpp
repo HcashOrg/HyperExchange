@@ -270,11 +270,11 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
    size_t old_applied_ops_size = _applied_ops.size();
 
    try {
-      auto session = _undo_db.start_undo_session(true);
+      //auto session = _undo_db.start_undo_session(true);
       for( auto& op : proposal.proposed_transaction.operations )
          eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
       remove(proposal);
-      session.merge();
+      //session.merge();
    } catch ( const fc::exception& e ) {
 	  _applied_ops.resize(old_applied_ops_size);
       elog( "e", ("e",e.to_detail_string() ) );

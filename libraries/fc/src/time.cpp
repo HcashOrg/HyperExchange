@@ -21,12 +21,16 @@ namespace fc {
 
   time_point time_point::now()
   {
+	  /*
+	  
      fc::ntp* actual_ntp_service = detail::ntp_service.load();
      if (actual_ntp_service)
      {
          return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count())) + fc::microseconds(actual_ntp_service->get_delta_microseconds());
      }
      return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count()));
+	 */
+	 return local_now();
   }
   time_point time_point::local_now()
   {

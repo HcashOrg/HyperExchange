@@ -5119,6 +5119,8 @@ bool wallet_api::copy_wallet_file(string destination_filename)
 optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 {
    auto block = my->_remote_db->get_block(num);
+   if (!block.valid())
+	   return optional<signed_block_with_info>();
    signed_block_with_info block_with_info(*block);
    auto trxs = my->_remote_db->fetch_block_transactions(num);
    vector <transaction_id_type> tx_ids;

@@ -107,7 +107,7 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("192.168.1.121"))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("192.168.1.121:5005"))
 	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
 	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
@@ -362,7 +362,6 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    fc::time_point now_fine = fc::time_point::now();
    fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
    db.set_min_gas_price(min_gas_price);
-
    // If the next block production opportunity is in the present or future, we're synced.
    if( !_production_enabled )
    {
@@ -371,7 +370,6 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
       else
          return block_production_condition::not_synced;
    }
-
    // is anyone scheduled to produce now or one second in the future?
    uint32_t slot = db.get_slot_at_time( now );
    if( slot == 0 )
@@ -389,7 +387,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    // less than or equal to the previous block
    //
    assert( now > db.head_block_time() );
-
+   
    graphene::chain::miner_id_type scheduled_miner = db.get_scheduled_miner( slot );
    // we must control the miner scheduled to produce the next block.
    if( _miners.find( scheduled_miner ) == _miners.end() )
