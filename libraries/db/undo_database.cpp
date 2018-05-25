@@ -24,6 +24,8 @@
 #include <graphene/db/object_database.hpp>
 #include <graphene/db/undo_database.hpp>
 #include <fc/reflect/variant.hpp>
+#include <iostream>
+
 
 namespace graphene { namespace db {
 
