@@ -66,7 +66,12 @@ time_point_sec database::head_block_time()const
 
 uint32_t database::head_block_num()const
 {
-   return get( dynamic_global_property_id_type() ).head_block_number;
+   auto ret = get( dynamic_global_property_id_type() ).head_block_number;
+   if (ret == (uint32_t)-1)
+   {
+	   return 0;
+   }
+   return ret;
 }
 
 block_id_type database::head_block_id()const
@@ -96,7 +101,13 @@ node_property_object& database::node_properties()
 
 uint32_t database::last_non_undoable_block_num() const
 {
-   return head_block_num() - _undo_db.size();
+	std::cout << "_undo_db " << _undo_db.size() << std::endl;
+	std::cout << "head" << head_block_num() << std::endl;
+	if (head_block_num() < _undo_db.size())
+	{
+		return 0;
+	}
+	return head_block_num() - _undo_db.size();
 }
 
 

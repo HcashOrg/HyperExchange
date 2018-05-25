@@ -3954,6 +3954,9 @@ public:
 	   FC_ASSERT(guard_obj.valid(), "Guard is not exist");
 	   return _remote_db->get_guard_lock_balance(guard_obj->id);
    }
+   std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid) {
+	  return _remote_db->get_acquire_transaction(type,trxid);
+   }
    std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const
    {
 	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
@@ -5138,6 +5141,8 @@ bool wallet_api::copy_wallet_file(string destination_filename)
 optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 {
    auto block = my->_remote_db->get_block(num);
+   if (!block.valid())
+	   return optional<signed_block_with_info>();
    signed_block_with_info block_with_info(*block);
    auto trxs = my->_remote_db->fetch_block_transactions(num);
    vector <transaction_id_type> tx_ids;
@@ -5176,6 +5181,9 @@ std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const 
 }
 std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
 	return my->get_miner_lock_balance(miner);
+}
+std::vector<acquired_crosschain_trx_object> wallet_api::get_acquire_transaction(const int & type, const string & trxid) {
+	return my->get_acquire_transaction(type, trxid);
 }
 vector<asset> wallet_api::get_addr_balances(const string& addr)
 {

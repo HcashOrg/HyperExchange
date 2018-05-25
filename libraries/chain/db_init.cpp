@@ -658,7 +658,13 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
       total_supplies[ asset_id ] += handout.amount;
    }
-
+   /*
+   //create vote
+   create<proposal_object>([&](proposal_object& obj) {
+	   obj.proposed_transaction = transaction();
+	   obj.expiration_time = head_block_time();
+   });
+   */
    // Create initial vesting balances
    for( const genesis_state_type::initial_vesting_balance_type& vest : genesis_state.initial_vesting_balances )
    {

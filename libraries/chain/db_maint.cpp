@@ -200,11 +200,6 @@ void database::update_active_miners()
 	const global_property_object& gpo = get_global_properties();
 
 	auto wits = sort_pledge_objects<miner_index>(gpo.parameters.minimum_pledge_weight_line);
-
-
-	printf("update_active_witness");
-	
-
 	modify(gpo, [&](global_property_object& gp) {
 		gp.active_witnesses.clear();
 		gp.active_witnesses.reserve(wits.size());
