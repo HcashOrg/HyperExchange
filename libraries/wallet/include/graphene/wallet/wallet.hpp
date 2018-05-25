@@ -1858,7 +1858,7 @@ class wallet_api
 
 	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
 	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
-	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const transaction_id_type & trxid);
+	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -1985,6 +1985,9 @@ class wallet_api
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
+
+      //miner
+      void start_miner(bool);
 };
 
 } }
@@ -2091,6 +2094,7 @@ FC_API( graphene::wallet::wallet_api,
         (transfer2)
         (get_transaction_id)
         (create_asset)
+	    (get_acquire_transaction)
         (update_asset)
         (update_bitasset)
         (update_asset_feed_producers)
@@ -2260,4 +2264,5 @@ FC_API( graphene::wallet::wallet_api,
 		(miner_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
+        (start_miner)
       )

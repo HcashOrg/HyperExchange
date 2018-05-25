@@ -44,6 +44,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
+#include <graphene/witness/witness.hpp>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)
@@ -87,8 +88,14 @@ namespace graphene { namespace app {
 		return *_transaction_api;
 	}
 
+    fc::api<miner_api> login_api::miner() const
+    {
+        FC_ASSERT(_miner_api);
+        return *_miner_api;
+    }
     void login_api::enable_api( const std::string& api_name )
     {
+       cout <<"enabel_api"<< api_name << endl;
        if( api_name == "database_api" )
        {
           _database_api = std::make_shared< database_api >( std::ref( *_app.chain_database() ) );
@@ -131,9 +138,19 @@ namespace graphene { namespace app {
 	   {
 		   _transaction_api = std::make_shared<transaction_api>(std::ref(_app));
 	   }
+       else if (api_name == "miner_api")
+       {
+           _miner_api = std::make_shared<miner_api>(std::ref(_app));
+       }
        return;
     }
-
+    void miner_api::start_miner(bool start)
+    {
+        auto plu = _app.get_plugin("miner");
+        FC_ASSERT(plu.get()!=NULL);
+        miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
+        pl->set_block_production(start);
+    }
     // block_api
     block_api::block_api(graphene::chain::database& db) : _db(db) { }
     block_api::~block_api() { }

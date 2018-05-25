@@ -3954,6 +3954,9 @@ public:
 	   FC_ASSERT(guard_obj.valid(), "Guard is not exist");
 	   return _remote_db->get_guard_lock_balance(guard_obj->id);
    }
+   std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid) {
+	  return _remote_db->get_acquire_transaction(type,trxid);
+   }
    std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const
    {
 	   FC_ASSERT(miner.size() != 0, "Param without miner account ");
@@ -4830,7 +4833,28 @@ public:
          "\n";
       }
    }
-
+   void use_miner_api()
+   {
+       if (_remote_miner)
+           return;
+       try
+       {
+           _remote_miner = _remote_api->miner();
+       }
+       catch (const fc::exception& e)
+       {
+           std::cerr << "\nCouldn't get network node API.  You probably are not configured\n"
+               "to access the network API on the witness_node you are\n"
+               "connecting to.  Please follow the instructions in README.md to set up an apiaccess file.\n"
+               "\n";
+           throw(e);
+       }
+   }
+   void start_miner(bool start)
+   {
+       use_miner_api();
+       (*_remote_miner)->start_miner(start);
+   }
    void network_add_nodes( const vector<string>& nodes )
    {
       use_network_node_api();
@@ -4931,6 +4955,7 @@ public:
    fc::api<network_broadcast_api>   _remote_net_broadcast;
    fc::api<history_api>    _remote_hist;
    fc::api<transaction_api> _remote_trx;
+   optional<fc::api<miner_api>> _remote_miner;
    optional< fc::api<network_node_api> > _remote_net_node;
    optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
    optional< fc::api<crosschain_api> >   _crosschain_manager;
@@ -5156,6 +5181,9 @@ std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const 
 }
 std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
 	return my->get_miner_lock_balance(miner);
+}
+std::vector<acquired_crosschain_trx_object> wallet_api::get_acquire_transaction(const int & type, const string & trxid) {
+	return my->get_acquire_transaction(type, trxid);
 }
 vector<asset> wallet_api::get_addr_balances(const string& addr)
 {
@@ -7395,7 +7423,10 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    for( const processed_transaction& tx : transactions )
 	   transaction_ids.push_back( tx.id() );
 }
-
+void wallet_api::start_miner(bool start)
+{
+    my->start_miner(start);
+}
 
 
 } } // graphene::wallet

@@ -80,7 +80,7 @@ private:
    fc::variant check_generate_multi_addr(chain::miner_id_type miner,fc::ecc::private_key prk);
    void check_multi_transfer(chain::miner_id_type miner, fc::ecc::private_key prk);
    boost::program_options::variables_map _options;
-   bool _production_enabled = false;
+   volatile bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
    uint32_t _required_miner_participation = 33 * GRAPHENE_1_PERCENT;
    uint32_t _production_skip_flags = graphene::chain::database::skip_nothing;
