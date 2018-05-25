@@ -190,6 +190,8 @@ class database_api
        */
       optional<signed_transaction> get_recent_transaction_by_id( const transaction_id_type& id )const;
 	  void set_acquire_block_num(const string& symbol, const uint32_t& block_num)const;
+
+	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
       /////////////
       // Globals //
       /////////////
@@ -677,6 +679,7 @@ FC_API(graphene::app::database_api,
 	(get_block)
 	(fetch_block_transactions)
 	(set_acquire_block_num)
+	(get_acquire_transaction)
 	(get_transaction)
 	(get_recent_transaction_by_id)
 

@@ -70,6 +70,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       optional<signed_block> get_block(uint32_t block_num)const;
       processed_transaction get_transaction( uint32_t block_num, uint32_t trx_in_block )const;
 	  void set_acquire_block_num(const string& symbol, const uint32_t& block_num)const;
+	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
       // Globals
       chain_property_object get_chain_properties()const;
       global_property_object get_global_properties()const;
@@ -575,6 +576,27 @@ vector<full_transaction> database_api::fetch_block_transactions(uint32_t block_n
 }
 void database_api::set_acquire_block_num(const string& symbol, const uint32_t& block_num)const {
 	my->set_acquire_block_num(symbol, block_num);
+}
+std::vector<acquired_crosschain_trx_object> database_api::get_acquire_transaction(const int & type, const string & trxid) {
+	return my->get_acquire_transaction(type, trxid);
+}
+std::vector<acquired_crosschain_trx_object> database_api_impl::get_acquire_transaction(const int & type, const string & trxid) {
+	vector<acquired_crosschain_trx_object> results;
+	if ("" != trxid)
+	{
+		auto& ac_db = _db.get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
+		auto ac_iter = ac_db.find(trxid);
+		FC_ASSERT(ac_iter != ac_db.end(), "no transaction found");
+		results.push_back(*ac_iter);
+		
+	}
+	else {
+		auto range = _db.get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_state>().equal_range((acquired_trx_state)type);
+		for (auto crosschain_obj : boost::make_iterator_range(range.first, range.second)) {
+			results.push_back(crosschain_obj);
+		}
+	}
+	return results;
 }
 void database_api_impl::set_acquire_block_num(const string& symbol, const uint32_t& block_num)const {
 	auto& trx_iters = _db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
