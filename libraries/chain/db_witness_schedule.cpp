@@ -62,8 +62,11 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
 
    const global_property_object& gpo = get_global_properties();
 
-   if( dpo.dynamic_flags & dynamic_global_property_object::maintenance_flag )
-      slot_num += gpo.parameters.maintenance_skip_slots;
+   if (dpo.dynamic_flags & dynamic_global_property_object::maintenance_flag)
+   {
+	   slot_num += gpo.parameters.maintenance_skip_slots;
+   }
+     
 
    // "slot 0" is head_slot_time
    // "slot 1" is head_slot_time,
@@ -75,8 +78,13 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
 uint32_t database::get_slot_at_time(fc::time_point_sec when)const
 {
    fc::time_point_sec first_slot_time = get_slot_time( 1 );
-   if( when < first_slot_time )
-      return 0;
+   //std::cout << "get_slot_at_time " << when.to_iso_string() << " first: " << first_slot_time.to_iso_string() << std::endl;
+   if (when < first_slot_time)
+   {
+	   std::cout << "get_slot_at_time " << when.to_iso_string() << " first: " << first_slot_time.to_iso_string() << std::endl;
+	   return 0;
+   }
+      
    return (when - first_slot_time).to_seconds() / block_interval() + 1;
 }
 
