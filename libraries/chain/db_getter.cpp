@@ -101,8 +101,6 @@ node_property_object& database::node_properties()
 
 uint32_t database::last_non_undoable_block_num() const
 {
-	std::cout << "_undo_db " << _undo_db.size() << std::endl;
-	std::cout << "head" << head_block_num() << std::endl;
 	if (head_block_num() < _undo_db.size())
 	{
 		return 0;
