@@ -1985,6 +1985,9 @@ class wallet_api
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
+
+      //miner
+      void start_miner(bool);
 };
 
 } }
@@ -2260,4 +2263,5 @@ FC_API( graphene::wallet::wallet_api,
 		(miner_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
+        (start_miner)
       )

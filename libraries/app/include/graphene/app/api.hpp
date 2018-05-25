@@ -351,7 +351,17 @@ namespace graphene { namespace app {
 	   std::vector<string> _crosschain_symbols;
    };
 
+   class miner_api
+   {
+   private:
+       boost::program_options::variables_map option;
+       application& _app;
+   public:
+       miner_api(application& app):_app(app){};
+       ~miner_api() {};
+       void start_miner(bool start);
 
+   };
    /**
     * @brief The login_api class implements the bottom layer of the RPC API
     *
@@ -391,6 +401,7 @@ namespace graphene { namespace app {
          fc::api<graphene::debug_miner::debug_api> debug()const;
 	     fc::api<crosschain_api> crosschain_config() const;
 		 fc::api<transaction_api> transaction() const;
+         fc::api<miner_api> miner() const;
          /// @brief Called to enable an API, not reflected.
          void enable_api( const string& api_name );
 		 
@@ -407,6 +418,7 @@ namespace graphene { namespace app {
          optional< fc::api<asset_api> > _asset_api;
          optional< fc::api<graphene::debug_miner::debug_api> > _debug_api;
 		 optional <fc::api<crosschain_api >>   _crosschain_api;
+         optional <fc::api<miner_api>>     _miner_api;
    };
 
 }}  // graphene::app
@@ -438,6 +450,9 @@ FC_API(graphene::app::crosschain_api,
 FC_API(graphene::app::block_api,
 	(get_blocks)
 	)
+FC_API(graphene::app::miner_api,
+    (start_miner)
+    )
 FC_API(graphene::app::transaction_api,
 	(get_transaction)
 	(list_transactions)
@@ -485,4 +500,5 @@ FC_API(graphene::app::login_api,
        (debug)
 	   (crosschain_config)
 	   (transaction)
+       (miner)
      )

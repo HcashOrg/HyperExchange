@@ -366,9 +366,9 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    // If the next block production opportunity is in the present or future, we're synced.
    if( !_production_enabled )
    {
-      if( db.get_slot_time(1) >= now )
-         _production_enabled = true;
-      else
+         //  if (db.get_slot_time(1) >= now)
+         //      _production_enabled = true;
+         // else
          return block_production_condition::not_synced;
    }
 
