@@ -920,8 +920,6 @@ namespace detail {
               synopsis.push_back(_chain_db->get_block_id_for_num(low_block_num));
 			else
 			{
-				std::cout << low_block_num << std::endl;
-				std::cout << non_fork_high_block_num << std::endl;
 				synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
 			}
               
