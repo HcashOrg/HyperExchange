@@ -138,15 +138,13 @@ void database::update_last_irreversible_block()
    // 1 1 1 1 1 1 1 2 2 2 -> 1
    // 3 3 3 3 3 3 3 3 3 3 -> 3
 
-   size_t offset = ((GRAPHENE_100_PERCENT - GRAPHENE_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / GRAPHENE_100_PERCENT);
-
-   std::nth_element( wit_objs.begin(), wit_objs.begin() + offset, wit_objs.end(),
+   size_t offset = ((GRAPHENE_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / GRAPHENE_100_PERCENT);
+   std::sort( wit_objs.begin(), wit_objs.end(),
       []( const miner_object* a, const miner_object* b )
       {
          return a->last_confirmed_block_num < b->last_confirmed_block_num;
       } );
-
-   uint32_t new_last_irreversible_block_num = wit_objs[offset]->last_confirmed_block_num;
+   uint32_t new_last_irreversible_block_num = wit_objs[offset]->last_confirmed_block_num ;
 
    if( new_last_irreversible_block_num > dpo.last_irreversible_block_num )
    {
