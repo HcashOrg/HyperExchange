@@ -75,7 +75,7 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
 
-            FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
+            //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
             total_fee = o.fee.amount;
 			if (!global_uvm_chain_api)
@@ -159,7 +159,7 @@ namespace graphene {
             }
 			// check contract id unique
 
-            FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
+            //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
@@ -220,7 +220,7 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-            FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
+            //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 			FC_ASSERT(d.has_contract(o.contract_id));
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
@@ -313,7 +313,7 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
 
-            FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
+            //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
 			const auto &contract = d.get_contract(o.contract_id);
@@ -686,7 +686,7 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
 
-            FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
+            //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
             FC_ASSERT(d.has_contract(o.contract_id));
             const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
