@@ -131,10 +131,19 @@ bool database::_push_block(const signed_block& new_block)
    {
       /// TODO: if the block is greater than the head block and before the next maitenance interval
       // verify that the block signer is in the current set of active witnesses.
-	   if (_undo_db.get_active_session() > 0)
+	   int ncount = 0;
+	   while  (_undo_db.get_active_session() > 0)
 	   {
+		   ncount++;
+		   if (ncount > 10)
+			   break;
 		   fc::promise<void>::ptr p(new fc::promise<void>("_push_block::wait"));
-		   p->wait();
+		   try {
+			   p->wait(fc::microseconds(10000));
+		   }
+		   catch (fc::exception& e) {
+		   }
+		   p.reset();
 	   }
       shared_ptr<fork_item> new_head = _fork_db.push_block(new_block);
       //If the head block from the longest chain does not build off of the current head, we need to switch forks.
