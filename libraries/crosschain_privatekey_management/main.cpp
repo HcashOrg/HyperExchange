@@ -157,8 +157,16 @@ btc_privatekey pkey;
 pkey.import_private_key("KwbYc3Vzs6d52Rz9UsEPMvAF8DLddthU2g8KpqQ2eHyUVTC1tPeq");
 std::string raw_transaction = "020000000101efc30cb46b3561d1ade9df3800ca560325beb92b15993b1078f53c73153be70000000000ffffffff026043993b000000001976a914bbad6509cda94ef4cc7735d41be492c2e9bab45488ac00286bee0000000017a9140f4d3a1d1b70386fe0846ef8432c8ebcc3c9ee058700000000";
 std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
-auto str = pkey.sign_trx(raw_transaction,0);
-std::cout << str << std::endl;
+//auto str = pkey.sign_trx(raw_transaction,0);
+//std::cout << str << std::endl;
+
+auto addr = pkey.get_address();
+std::cout << addr << std::endl;
+if (pkey.validate_address("LWVYmLxXnedapYZmz4ze8zeAyMR4jj5aZn"))
+{
+	std::cout << "is true" << std::endl;
+}
+
 	getchar();
 	return 0;
 }

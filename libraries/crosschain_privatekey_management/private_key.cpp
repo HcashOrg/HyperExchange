@@ -89,7 +89,18 @@ namespace graphene { namespace privatekey_management {
 		return result;
 
 	}
-	
+	bool crosschain_privatekey_base::validate_address(const std::string& addr)
+	{
+		try {
+			graphene::chain::pts_address pts(addr);
+			return pts.is_valid() && pts.version() == get_pubkey_prefix();
+		}
+		catch (fc::exception& e) {
+			return false;
+		}
+		
+	}
+
 
 	void btc_privatekey::init()
 	{

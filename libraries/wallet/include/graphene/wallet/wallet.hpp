@@ -2265,4 +2265,5 @@ FC_API( graphene::wallet::wallet_api,
 	    (remove_guarantee_id)
 		(network_get_info)
         (start_miner)
+		(get_account_crosschain_transaction)
       )
