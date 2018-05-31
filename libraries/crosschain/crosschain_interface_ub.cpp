@@ -284,6 +284,10 @@ namespace graphene {
 		}
 		bool crosschain_interface_ub::validate_address(const std::string& addr)
 		{
+			graphene::privatekey_management::ub_privatekey ubt;
+			return ubt.validate_address(addr);
+
+			/*
 			std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
@@ -309,6 +313,7 @@ namespace graphene {
 			}
 			else
 				FC_THROW(addr);
+				*/
 		}
 		bool crosschain_interface_ub::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
