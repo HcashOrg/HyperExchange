@@ -29,6 +29,7 @@
 #include <graphene/chain/protocol/asset.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <iostream>
+#include <fc/uint128.hpp>
 
 namespace graphene { namespace chain {
 
@@ -212,8 +213,8 @@ void database::update_miner_schedule()
 	const global_property_object& gpo = get_global_properties();
 	const auto& dgp = get_dynamic_global_properties();
 	
-	auto caluate_slot = [&](vector<uint128_t> vec,int count, uint128_t value) {
-		uint128_t init = 0;
+	auto caluate_slot = [&](vector<fc::uint128_t> vec,int count, fc::uint128_t value) {
+		fc::uint128_t init = 0;
 		for (int i = 0; i < count; ++i)
 		{
 			init = init + vec[i];  // or: init=binary_op(init,*first) for the binary_op version
@@ -271,9 +272,9 @@ void database::update_miner_schedule()
 			{
 				_wso.current_shuffled_miners.clear();
 				_wso.current_shuffled_miners.reserve(GRAPHENE_PRODUCT_PER_ROUND);
-				vector< uint128_t > temp_witnesses_weight;
+				vector< fc::uint128_t > temp_witnesses_weight;
 				vector<miner_id_type> temp_active_witnesses;
-				uint128_t total_weight = 0;
+				fc::uint128_t total_weight = 0;
 				for (const miner_id_type& w : gpo.active_witnesses)
 				{
 					const auto& witness_obj = w(*this);
@@ -288,8 +289,8 @@ void database::update_miner_schedule()
 					rand_seed = fc::sha256::hash(SecretHashType());
 				for (uint32_t i = 0, x = 0; i < GRAPHENE_PRODUCT_PER_ROUND; ++i)
 				{
-					uint128_t r = rand_seed._hash[x];
-					uint128_t j = (r % total_weight);
+					fc::uint128_t r = rand_seed._hash[x];
+					fc::uint128_t j = (r % total_weight);
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
 					_wso.current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
