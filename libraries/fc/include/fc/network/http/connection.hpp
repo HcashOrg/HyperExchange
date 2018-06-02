@@ -2,7 +2,7 @@
 #include <fc/vector.hpp>
 #include <fc/string.hpp>
 #include <memory>
-
+#include <boost/asio.hpp>
 namespace fc { 
   namespace ip { class endpoint; }
   class tcp_socket;
@@ -72,8 +72,24 @@ namespace fc {
        private:
          std::unique_ptr<impl> my;
      };
-     
-     typedef std::shared_ptr<connection> connection_ptr;
+	 typedef std::shared_ptr<connection> connection_ptr;
+	 class connection_sync
+	 {
+	 public:
+		 connection_sync();
+		 ~connection_sync();
+		 // used for clients
+		 void         connect_to(const fc::ip::endpoint& ep);
+		 http::reply  request(const fc::string& method, const fc::string& url, const fc::string& body = std::string(), const headers& = headers());
+
+		 // used for servers
+		 //boost::asio::ip::tcp::socket get_socket()const;
+
+		 //http::request    read_request()const;
+		 http::reply parse_reply();
+	 private:
+		 boost::asio::ip::tcp::socket _socket;
+	 };
 
 } } // fc::http
 
