@@ -111,7 +111,7 @@ namespace graphene { namespace chain {
           * Will close the database before wiping. Database will be closed when this function returns.
           */
          void wipe(const fc::path& data_dir, bool include_blocks);
-         void close(bool rewind = true);
+         void close(bool rewind = false);
 
          //////////////////// db_block.cpp ////////////////////
 
