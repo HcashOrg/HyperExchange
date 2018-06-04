@@ -611,13 +611,18 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    if( true || !(skip&skip_validate) )   /* issue #505 explains why this skip_flag is disabled */
       trx.validate();
 
-   auto& trx_idx = get_mutable_index_type<transaction_index>();
+   auto& trx_idx = get_index_type<trx_index>();
    const chain_id_type& chain_id = get_chain_id();
    auto trx_id = trx.id();
    if(skip & skip_transaction_dupe_check) 
       printf("the first is true\n");
    if (trx_idx.indices().get<by_trx_id>().find(trx_id) != trx_idx.indices().get<by_trx_id>().end())
-      printf("it has exsit now ...%s, block:%d \n",trx_id.str().c_str(),trx.ref_block_num);
+   {
+	   auto iter = trx_idx.indices().get<by_trx_id>().find(trx_id);
+	   printf("it has exsit now ...%s, block:%d \n", trx_id.str().c_str(), trx.ref_block_num);
+	   std::cout <<"trx is: " <<fc::variant(iter->trx_id).as_string() << "||"<< fc::variant(iter->trx.ref_block_num).as_string() << std::endl;
+   }
+      
    FC_ASSERT( (skip & skip_transaction_dupe_check) ||
               trx_idx.indices().get<by_trx_id>().find(trx_id) == trx_idx.indices().get<by_trx_id>().end() );
    transaction_evaluation_state eval_state(this);

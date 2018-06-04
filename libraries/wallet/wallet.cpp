@@ -745,7 +745,7 @@ public:
 		   auto trx = _remote_trx->get_transaction(id);
 		   if (trx.valid())
 			   return *trx;
-		   return transaction();
+		   return full_transaction();
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
 
