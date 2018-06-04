@@ -1671,7 +1671,7 @@ public:
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
 		   contract_invoke_op.fee.asset_id = asset_id_type(0);
-		   contract_invoke_op.guarantee_id = get_guarantee_id();
+		   //contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
