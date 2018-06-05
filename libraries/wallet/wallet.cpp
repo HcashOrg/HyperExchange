@@ -5153,6 +5153,7 @@ optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
    auto glob_info = get_global_properties();
    block_with_info.reward = glob_info.parameters.miner_pay_per_block;
    block_with_info.transaction_ids.swap(tx_ids);
+   block_with_info.size = fc::variant(block_with_info).size();
    return block_with_info;
 }
 
