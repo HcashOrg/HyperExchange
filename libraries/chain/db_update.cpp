@@ -83,6 +83,11 @@ void database::update_global_dynamic_data( const signed_block& b )
            (dgp.recent_slots_filled << 1)
            + 1) << missed_blocks;
       dgp.current_aslot += missed_blocks+1;
+	  if (b.block_num() % GRAPHENE_PRODUCT_PER_ROUND == 0)
+	  {
+		  dgp.round_produced_miners.clear();
+	  }
+	  dgp.round_produced_miners.insert(b.miner);
    });
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )

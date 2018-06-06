@@ -82,6 +82,7 @@ namespace graphene { namespace chain {
 		 optional<SecretHashType>      current_random_seed;
 		 std::map<miner_id_type,std::vector<lockbalance_object>> current_round_lockbalance_cache;
 		 std::map<asset_id_type, price_feed>  current_price_feed;
+		 fc::flat_set<miner_id_type>          round_produced_miners;
 
          /**
           *  Every time a block is missed this increases by
@@ -147,6 +148,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
                     (last_irreversible_block_num)
 					(current_round_lockbalance_cache)
 					(current_price_feed)
+	                (round_produced_miners)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::object),
