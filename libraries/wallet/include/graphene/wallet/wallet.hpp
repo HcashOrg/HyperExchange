@@ -383,6 +383,7 @@ struct signed_block_with_info : public signed_block
    uint32_t      number;
    block_id_type block_id;
    public_key_type signing_key;
+   share_type     reward;
    vector< transaction_id_type > transaction_ids;
 };
 
@@ -2042,7 +2043,7 @@ FC_REFLECT( graphene::wallet::worker_vote_delta,
 )
 
 FC_REFLECT_DERIVED( graphene::wallet::signed_block_with_info, (graphene::chain::signed_block),
-   (number)(block_id)(signing_key)(transaction_ids) )
+   (number)(block_id)(signing_key)(reward)(transaction_ids) )
 
 
 
