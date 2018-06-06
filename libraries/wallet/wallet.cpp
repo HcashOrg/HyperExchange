@@ -367,7 +367,7 @@ private:
                       engine->clear_exceptions();
                       engine->add_global_string_variable("event_type", last_handled->second.event_name.c_str());
                       engine->add_global_string_variable("param", last_handled->second.event_arg.c_str());
-                      engine->add_global_string_variable("contract_id", last_handled->second.contract_address.address_to_contract_string());
+                      engine->add_global_string_variable("contract_id", last_handled->second.contract_address.operator fc::string());
                       engine->add_global_bool_variable("undo", true);
                       engine->add_global_int_variable("block_num", last_handled->second.block_num);
                       engine->load_and_run_stream(code_stream.get());
@@ -393,7 +393,7 @@ private:
                           engine->clear_exceptions();
                           engine->add_global_string_variable("event_type", ev.event_name.c_str());
                           engine->add_global_string_variable("param", ev.event_arg.c_str());
-                          engine->add_global_string_variable("contract_id", ev.contract_address.address_to_contract_string());
+                          engine->add_global_string_variable("contract_id", ev.contract_address.operator fc::string());
                           engine->add_global_bool_variable("undo", false);
 
                           engine->load_and_run_stream(code_stream.get());
@@ -1317,7 +1317,7 @@ public:
 
 		   bool broadcast = true;
            full_transaction res = sign_transaction(tx, broadcast);
-           res.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           res.contract_id= contract_register_op.contract_id.operator fc::string();
            return res;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(contract_filepath))
    }
@@ -1344,7 +1344,7 @@ public:
            contract_register_op.owner_pubkey = owner_pubkey;
 
 
-           contract_register_op.inherit_from = address(base, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_register_op.inherit_from = contract_address_type(base);
            contract_register_op.register_time = fc::time_point::now() + fc::seconds(1);
            contract_register_op.contract_id = contract_register_op.calculate_contract_id();
            contract_register_op.fee.amount = 0;
@@ -1362,7 +1362,7 @@ public:
 
            bool broadcast = true;
            full_transaction trx= sign_transaction(tx, broadcast);
-           trx.contract_id= contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           trx.contract_id= contract_register_op.contract_id.operator fc::string();
            return trx;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(base))
    }
@@ -1465,7 +1465,7 @@ public:
 
 		   bool broadcast = true;
 		   auto signed_tx = sign_transaction(tx, broadcast);
-		   return n_contract_register_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		   return n_contract_register_op.contract_id.operator fc::string();
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(gas_price)(gas_limit)(native_contract_key))
    }
 
@@ -1551,7 +1551,7 @@ public:
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
            contract_invoke_op.caller_pubkey = caller_pubkey;
-           contract_invoke_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_invoke_op.contract_id = contract_address_type(contract_address);
            contract_invoke_op.contract_api = contract_api;
            contract_invoke_op.contract_arg = contract_arg;
            contract_invoke_op.fee.amount = 0;
@@ -1614,7 +1614,7 @@ public:
 		   contract_invoke_op.invoke_cost = std::stoll(gas_limit);
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
-		   contract_invoke_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		   contract_invoke_op.contract_id = contract_address_type(contract_address);
 		   contract_invoke_op.contract_api = contract_api;
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
@@ -1666,7 +1666,7 @@ public:
 		   contract_invoke_op.offline = true;
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
-		   contract_invoke_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		   contract_invoke_op.contract_id = contract_address_type(contract_address);
 		   contract_invoke_op.contract_api = contract_api;
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
@@ -1738,7 +1738,7 @@ public:
 		   contract_upgrade_op.invoke_cost = std::stoll(gas_limit);
 		   contract_upgrade_op.caller_addr = acc_caller.addr;
 		   contract_upgrade_op.caller_pubkey = caller_pubkey;
-		   contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+		   contract_upgrade_op.contract_id = contract_address_type(contract_address);
            contract_upgrade_operation::contract_name_check(contract_name);
 		   contract_upgrade_op.contract_name = contract_name;
 		   contract_upgrade_op.contract_desc = contract_desc;
@@ -1833,7 +1833,7 @@ public:
            contract_upgrade_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_upgrade_op.caller_addr = acc_caller.addr;
            contract_upgrade_op.caller_pubkey = caller_pubkey;
-           contract_upgrade_op.contract_id = address(contract_address, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+           contract_upgrade_op.contract_id = contract_address_type(contract_address);
            contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
            contract_upgrade_op.contract_desc = contract_desc;
@@ -1896,7 +1896,7 @@ public:
        transfer_to_contract_op.invoke_cost = std::stoll(gas_limit);
        transfer_to_contract_op.caller_addr = acc_caller.addr;
        transfer_to_contract_op.caller_pubkey = caller_pubkey;
-       transfer_to_contract_op.contract_id = address(to, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+       transfer_to_contract_op.contract_id = contract_address_type(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
@@ -1934,7 +1934,7 @@ public:
        transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
        transfer_to_contract_op.caller_addr = acc_caller.addr;
        transfer_to_contract_op.caller_pubkey = caller_pubkey;
-       transfer_to_contract_op.contract_id = address(to, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+       transfer_to_contract_op.contract_id = contract_address_type(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
        transfer_to_contract_op.amount = transfer_asset;
@@ -6157,7 +6157,7 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 	else {
 
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.address_to_contract_string();
+		contract_address = cont.contract_address.operator fc::string();
 	}
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
@@ -6172,7 +6172,7 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
     else {
 
         auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-        contract_address = cont.contract_address.address_to_contract_string();
+        contract_address = cont.contract_address.operator fc::string();
     }
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
 
@@ -6188,7 +6188,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	else {
 
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.address_to_contract_string();
+		contract_address = cont.contract_address.operator fc::string();
 	}
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }
@@ -6242,7 +6242,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	{
 
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.address_to_contract_string();
+		contract_address = cont.contract_address.operator fc::string();
 	}
 	return my->_remote_db->get_contract_object(contract_address);
 }
@@ -6259,7 +6259,7 @@ std::pair<asset, share_type> wallet_api::transfer_to_contract_testing(string fro
 
 vector<asset> wallet_api::get_contract_balance(const string & contract_address) const
 {
-    return my->_remote_db->get_contract_balance(address(contract_address,GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+    return my->_remote_db->get_contract_balance(contract_address_type(contract_address));
 }
 vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& addr)
 {
@@ -6276,7 +6276,7 @@ vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& ad
     vector<string> res;
     for(auto& out: addr_res)
     {
-        res.push_back(out.address_to_contract_string());
+        res.push_back(out.operator fc::string());
     }
     return res;
 }
@@ -6324,7 +6324,7 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
 
 vector<contract_event_notify_object> wallet_api::get_contract_events(const std::string&addr)
 {
-    return my->_remote_db->get_contract_events(address(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+    return my->_remote_db->get_contract_events(contract_address_type(addr));
 }
 vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const uint32_t block_num)
 {
@@ -6366,8 +6366,8 @@ void wallet_api::remove_script(const string& script_hash)
 bool wallet_api::bind_script_to_event(const string& script_hash, const string& contract, const string& event_name)
 {
     auto con_info=my->_remote_db->get_contract_object(contract);
-    FC_ASSERT(con_info.contract_address == address(contract,GRAPHENE_CONTRACT_ADDRESS_PREFIX), "");
-    bool res = my->_wallet.bind_script_to_event(script_hash, address(contract, GRAPHENE_CONTRACT_ADDRESS_PREFIX), event_name);
+    FC_ASSERT(con_info.contract_address == contract_address_type(contract), "");
+    bool res = my->_wallet.bind_script_to_event(script_hash, contract_address_type(contract), event_name);
 
     save_wallet_file();
     return res;
@@ -6375,8 +6375,8 @@ bool wallet_api::bind_script_to_event(const string& script_hash, const string& c
 bool wallet_api::remove_event_handle(const string& script_hash, const string& contract, const string& event_name)
 {
     auto con_info = my->_remote_db->get_contract_object(contract);
-    FC_ASSERT(con_info.contract_address == address(contract, ADDRESS_CONTRACT_PREFIX), "");
-    bool res = my->_wallet.remove_event_handle(script_hash, address(contract, ADDRESS_CONTRACT_PREFIX), event_name);
+    FC_ASSERT(con_info.contract_address == contract_address_type(contract), "");
+    bool res = my->_wallet.remove_event_handle(script_hash, contract_address_type(contract), event_name);
     save_wallet_file();
     return res;
 }

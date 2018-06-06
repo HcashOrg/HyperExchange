@@ -260,7 +260,7 @@ struct wallet_data
            return false;
        }
    }
-   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
+   bool bind_script_to_event(const string& script_hash,const chain::contract_address_type& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -286,7 +286,7 @@ struct wallet_data
        idx.insert(obj);
        return true;
    }
-   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
+   bool remove_event_handle(const string& script_hash, const chain::contract_address_type& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
