@@ -55,7 +55,7 @@ namespace graphene {
 				FC_ASSERT(iter.valid(), "Dont have lock account");
 				optional<account_object> account_iter = d.get(iter->guard_member_account);
 				FC_ASSERT(account_iter.valid() && account_iter->addr == o.foreclose_address && o.foreclose_balance_account_id == iter->guard_member_account, "Address is wrong");
-				bool insufficient_balance = d.get_balance(o.foreclose_address, asset_type.id).amount >= o.foreclose_asset_amount;
+				bool insufficient_balance = d.get_guard_lock_balance(iter->id, asset_type.id).amount >= o.foreclose_asset_amount;
 				FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough");
 			}FC_CAPTURE_AND_RETHROW((o))			
 		}
