@@ -17,7 +17,7 @@ namespace graphene {
 	namespace chain {
 		struct contract_event_notify_info
 		{
-			address contract_address;
+			contract_address_type contract_address;
 			string event_name;
 			string event_arg;
             string caller_addr;
@@ -26,18 +26,30 @@ namespace graphene {
 		};
 
 		struct comparator_for_contract_invoke_result_balance {
-			bool operator() (const std::pair<address, asset_id_type>& x, const std::pair<address, asset_id_type>& y) const
-			{
-				string x_addr_str = x.first.address_to_string();
-				string y_addr_str = y.first.address_to_string();
-				if (x_addr_str < y_addr_str) {
-					return true;
-				}
-				if (x_addr_str > y_addr_str) {
-					return false;
-				}
-				return (int64_t)x.second.instance < (int64_t)(y.second.instance);
-			}
+            bool operator() (const std::pair<contract_address_type, asset_id_type>& x, const std::pair<contract_address_type, asset_id_type>& y) const
+            {
+                string x_addr_str = x.first.operator fc::string();
+                string y_addr_str = y.first.operator fc::string();
+                if (x_addr_str < y_addr_str) {
+                    return true;
+                }
+                if (x_addr_str > y_addr_str) {
+                    return false;
+                }
+                return (int64_t)x.second.instance < (int64_t)(y.second.instance);
+            }			
+            bool operator() (const std::pair<address, asset_id_type>& x, const std::pair<address, asset_id_type>& y) const
+            {
+                string x_addr_str = x.first.operator fc::string();
+                string y_addr_str = y.first.operator fc::string();
+                if (x_addr_str < y_addr_str) {
+                    return true;
+                }
+                if (x_addr_str > y_addr_str) {
+                    return false;
+                }
+                return (int64_t)x.second.instance < (int64_t)(y.second.instance);
+            }
 		};
 
 		struct comparator_for_string {
@@ -54,14 +66,15 @@ namespace graphene {
 			std::string api_result;
 			std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
 				
-			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_withdraw;
-			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_balances;
+			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_withdraw;
+			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_balances;
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_to_address;
-			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
+			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
             std::map<asset_id_type,share_type> transfer_fees;
 			std::vector<contract_event_notify_info> events;
             bool exec_succeed = true;
             share_type acctual_fee;
+            address invoker;
 			void reset();
             void set_failed(const share_type & fee);
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
@@ -82,9 +95,9 @@ namespace graphene {
 			address owner_addr;
 			fc::ecc::public_key owner_pubkey;
 			fc::time_point_sec     register_time;
-			address contract_id;
+            contract_address_type contract_id;
 			uvm::blockchain::Code  contract_code;
-            address     inherit_from;
+            contract_address_type inherit_from;
 			extensions_type   extensions;
 			optional<guarantee_object_id_type> guarantee_id;
 			optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
@@ -95,7 +108,7 @@ namespace graphene {
 			{
 				a.push_back(authority(1, owner_addr, 1));
 			}
-			address calculate_contract_id() const;
+			contract_address_type calculate_contract_id() const;
 		};
 
 		struct contract_upgrade_operation : public base_operation
@@ -111,7 +124,7 @@ namespace graphene {
 			gas_price_type gas_price; // gas price of this contract transaction
 			address caller_addr;
 			fc::ecc::public_key caller_pubkey;
-			address contract_id;
+            contract_address_type contract_id;
 			string contract_name;
 			string contract_desc;
 
@@ -141,7 +154,7 @@ namespace graphene {
 			gas_price_type gas_price; // gas price of this contract transaction
 			address caller_addr;
 			fc::ecc::public_key caller_pubkey;
-			address contract_id;
+            contract_address_type contract_id;
 			string contract_api;
 			string contract_arg;
 			bool offline = false;
@@ -176,7 +189,7 @@ namespace graphene {
             gas_price_type gas_price; // gas price of this contract transaction
             address caller_addr;
             fc::ecc::public_key caller_pubkey;
-            address contract_id;
+            contract_address_type contract_id;
             asset amount;
             std::string param;
             extensions_type   extensions;

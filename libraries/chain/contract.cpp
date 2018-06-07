@@ -68,7 +68,7 @@ namespace graphene {
 			for (auto it = contract_withdraw.cbegin(); it != contract_withdraw.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_contract_string());
+				item.push_back(it->first.first.operator fc::string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				contract_withdraw_array.push_back(item);
@@ -79,7 +79,7 @@ namespace graphene {
 			for (auto it = contract_balances.cbegin(); it != contract_balances.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_contract_string());
+				item.push_back(it->first.first.operator fc::string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				contract_balances_array.push_back(item);
@@ -101,7 +101,7 @@ namespace graphene {
 			for (auto it = deposit_contract.cbegin(); it != deposit_contract.cend(); it++)
 			{
 				JsonArray item;
-				item.push_back(it->first.first.address_to_contract_string());
+				item.push_back(it->first.first.operator fc::string());
 				item.push_back(uint64_t(it->first.second));
 				item.push_back(it->second.value);
 				deposit_contract_array.push_back(item);
@@ -131,8 +131,8 @@ namespace graphene {
 			FC_ASSERT(contract_id == calculate_contract_id());
             FC_ASSERT(owner_addr != address());
             FC_ASSERT(address(owner_pubkey) == owner_addr);
-            FC_ASSERT(contract_id != address());
-            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
+            FC_ASSERT(contract_id != contract_address_type());
+            FC_ASSERT((contract_code != Code()) || (inherit_from != contract_address_type()));
 		}
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
@@ -144,19 +144,19 @@ namespace graphene {
 			return core_fee_required;
 		}
 
-		address contract_register_operation::calculate_contract_id() const
+        contract_address_type contract_register_operation::calculate_contract_id() const
 		{ 
-			address id;
+            contract_address_type id;
 			fc::sha512::encoder enc;
-            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
+            FC_ASSERT((contract_code != Code()) || (inherit_from != contract_address_type()));
             if (contract_code != Code())
             {
                 std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
                 fc::raw::pack(enc, info_to_digest);
             }
-            else if(inherit_from!=address())
+            else if(inherit_from!= contract_address_type())
             {
-                std::pair<address, fc::time_point> info_to_digest(inherit_from, register_time);
+                std::pair<contract_address_type, fc::time_point> info_to_digest(inherit_from, register_time);
                 fc::raw::pack(enc, info_to_digest);
             }
 
@@ -170,7 +170,7 @@ namespace graphene {
 			{
                 FC_ASSERT(caller_addr != address());
                 FC_ASSERT(address(caller_pubkey) == caller_addr);
-                FC_ASSERT(contract_id != address());
+                FC_ASSERT(contract_id != contract_address_type());
 
 				FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 				// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
@@ -210,7 +210,7 @@ namespace graphene {
 		    FC_ASSERT(contract_desc.length() <= 200);
             FC_ASSERT(caller_addr != address());
             FC_ASSERT(address(caller_pubkey) == caller_addr);
-            FC_ASSERT(contract_id != address());
+            FC_ASSERT(contract_id != contract_address_type());
 		}
 
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
@@ -227,7 +227,7 @@ namespace graphene {
             FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
             FC_ASSERT(caller_addr!=address());
             FC_ASSERT(address(caller_pubkey) == caller_addr);
-            FC_ASSERT(contract_id != address());
+            FC_ASSERT(contract_id != contract_address_type());
             FC_ASSERT(amount.amount>0);
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const

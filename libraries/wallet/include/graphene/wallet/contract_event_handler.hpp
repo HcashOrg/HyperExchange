@@ -30,7 +30,7 @@ namespace graphene {
             static const uint8_t space_id = chain::protocol_ids;
             static const uint8_t type_id = chain::script_binding_object_type;
             std::string script_hash;
-            chain::address contract_id;
+            chain::contract_address_type contract_id;
             std::string event_name;
             std::map<db::object_id_type, chain::contract_event_notify_object> handled;
         };
@@ -41,7 +41,7 @@ namespace graphene {
             boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<boost::multi_index::tag<chain::by_id>, boost::multi_index::member<db::object, db::object_id_type, &db::object::id>>,
             boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_script_hash>, boost::multi_index::member<script_binding_object, std::string, &script_binding_object::script_hash>>,
-            boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_contract_addr>, boost::multi_index::member<script_binding_object, chain::address, &script_binding_object::contract_id>>
+            boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_contract_addr>, boost::multi_index::member<script_binding_object, chain::contract_address_type, &script_binding_object::contract_id>>
             >> script_binding_object_multi_index_type;
     }
 }

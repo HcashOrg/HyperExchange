@@ -118,21 +118,22 @@ namespace graphene {
 
 	    ContractEntryPrintable::ContractEntryPrintable(const contract_object& obj)
 	    {
-            id = obj.contract_address.address_to_contract_string();
+            id = obj.contract_address.operator fc::string();
             owner_address = obj.owner_address;
             name = obj.name;
             description = obj.contract_desc;
             type_of_contract = obj.type_of_contract;
             code_printable = obj.code;
             registered_block = obj.registered_block;
-            if (obj.inherit_from != address())
+            if (obj.inherit_from != contract_address_type())
             {
-                inherit_from = obj.inherit_from.address_to_contract_string();
+                inherit_from = obj.inherit_from.operator fc::string();
             }
             for (auto& addr : obj.derived)
             {
-                derived.push_back(addr.address_to_contract_string());
+                derived.push_back(addr.operator fc::string());
             }
+            createtime = obj.create_time;
 	    }
 	}
 }

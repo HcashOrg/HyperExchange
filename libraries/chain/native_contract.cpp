@@ -6,18 +6,18 @@
 
 namespace graphene {
 	namespace chain {
-		void abstract_native_contract::set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value)
+		void abstract_native_contract::set_contract_storage(const contract_address_type& contract_address, const string& storage_name, const StorageDataType& value)
 		{
-			if (_contract_invoke_result.storage_changes.find(contract_address.address_to_contract_string()) == _contract_invoke_result.storage_changes.end())
+			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
 			{
-				_contract_invoke_result.storage_changes[contract_address.address_to_contract_string()] = contract_storage_changes_type();
+				_contract_invoke_result.storage_changes[string(contract_address)] = contract_storage_changes_type();
 			}
-			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.address_to_contract_string()];
+			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				StorageDataChangeType change;
 				change.after = value;
-				const auto &before = _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
+				const auto &before = _evaluate->get_storage(string(contract_address), storage_name);
 				jsondiff::JsonDiff differ;
 				auto before_json_str = before.as<string>();
 				auto after_json_str = change.after.as<string>();
@@ -39,21 +39,21 @@ namespace graphene {
 				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
 			}
 		}
-		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const string& storage_name)
+		StorageDataType abstract_native_contract::get_contract_storage(const contract_address_type& contract_address, const string& storage_name)
 		{
-			if (_contract_invoke_result.storage_changes.find(contract_address.address_to_contract_string()) == _contract_invoke_result.storage_changes.end())
+			if (_contract_invoke_result.storage_changes.find(contract_address.operator fc::string()) == _contract_invoke_result.storage_changes.end())
 			{
-				return _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
+				return _evaluate->get_storage(contract_address.operator fc::string(), storage_name);
 			}
-			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.address_to_contract_string()];
+			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.operator fc::string()];
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
-				return _evaluate->get_storage(contract_address.address_to_contract_string(), storage_name);
+				return _evaluate->get_storage(contract_address.operator fc::string(), storage_name);
 			}
 			return storage_changes[storage_name].after;
 		}
 
-		void abstract_native_contract::emit_event(const address& contract_address, const string& event_name, const string& event_arg)
+		void abstract_native_contract::emit_event(const contract_address_type& contract_address, const string& event_name, const string& event_arg)
 		{
 			FC_ASSERT(!event_name.empty());
 			contract_event_notify_info info;
@@ -77,7 +77,7 @@ namespace graphene {
 		{
 			return demo_native_contract::native_contract_key();
 		}
-		address demo_native_contract::contract_address() const {
+        contract_address_type demo_native_contract::contract_address() const {
 			return contract_id;
 		}
 		std::set<std::string> demo_native_contract::apis() const {
@@ -94,6 +94,8 @@ namespace graphene {
 			contract_invoke_result result;
 			printf("demo native contract called\n");
 			printf("api %s called with arg %s\n", api_name.c_str(), api_arg.c_str());
+
+            result.invoker = *(_evaluate->get_caller_address());
 			if (api_name == "contract_balance")
 			{
 				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
@@ -116,7 +118,7 @@ namespace graphene {
 		{
 			return token_native_contract::native_contract_key();
 		}
-		address token_native_contract::contract_address() const {
+        contract_address_type token_native_contract::contract_address() const {
 			return contract_id;
 		}
 		std::set<std::string> token_native_contract::apis() const {
@@ -504,8 +506,12 @@ namespace graphene {
 				{"supply", std::bind(&token_native_contract::supply_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"precision", std::bind(&token_native_contract::precision_api, this, std::placeholders::_1, std::placeholders::_2)}
 			};
-			if (apis.find(api_name) != apis.end())
-				return apis[api_name](api_name, api_arg);
+            if (apis.find(api_name) != apis.end())
+            {
+                contract_invoke_result res= apis[api_name](api_name, api_arg);
+                res.invoker = *(_evaluate->get_caller_address());
+                return res;
+            }
 			THROW_CONTRACT_ERROR("token api not found");
 		}
 
@@ -517,7 +523,7 @@ namespace graphene {
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
-		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
+		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const contract_address_type& contract_address)
 		{
 			/*if (key == demo_native_contract::native_contract_key())
 			{
@@ -550,9 +556,9 @@ namespace graphene {
             core_fee_required += count_gas_fee(gas_price, init_cost);
 			return core_fee_required;
 		}
-		address native_contract_register_operation::calculate_contract_id() const
+        contract_address_type native_contract_register_operation::calculate_contract_id() const
 		{
-			address id;
+            contract_address_type id;
 			fc::sha512::encoder enc;
 			std::pair<address, fc::time_point> info_to_digest(owner_addr, register_time);
 			fc::raw::pack(enc, info_to_digest);
