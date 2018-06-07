@@ -428,6 +428,10 @@ namespace graphene {
 							if (asset_itr == asset_iter.end()) {
 								continue;
 							}
+							const auto &tunnel_idx = get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
+							const auto tunnel_itr = tunnel_idx.find(boost::make_tuple(acquired_trx.handle_trx.from_account, acquired_trx.handle_trx.asset_symbol));
+							if (tunnel_itr == tunnel_idx.end())
+								continue;
 							op.asset_id = asset_itr->id;
 							op.asset_symbol = acquired_trx.handle_trx.asset_symbol;
 							op.cross_chain_trx = acquired_trx.handle_trx;
@@ -435,6 +439,7 @@ namespace graphene {
 							optional<miner_object> miner_iter = get(miner);
 							optional<account_object> account_iter = get(miner_iter->miner_account);
 							op.miner_address = account_iter->addr;
+							op.deposit_address = tunnel_itr->owner;
 							signed_transaction tx;
 							uint32_t expiration_time_offset = 0;
 							auto dyn_props = get_dynamic_global_properties();
