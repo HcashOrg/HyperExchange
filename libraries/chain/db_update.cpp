@@ -149,7 +149,7 @@ void database::update_last_irreversible_block()
       {
          return a->last_confirmed_block_num < b->last_confirmed_block_num;
       } );
-   uint32_t new_last_irreversible_block_num = wit_objs[offset]->last_confirmed_block_num ;
+   uint32_t new_last_irreversible_block_num = wit_objs[offset]->last_confirmed_block_num - 720;
 
    if( new_last_irreversible_block_num > dpo.last_irreversible_block_num )
    {
