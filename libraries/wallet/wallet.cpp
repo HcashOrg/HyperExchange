@@ -740,13 +740,36 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((chain_type))
    }
 
-   full_transaction get_transaction(transaction_id_type id) const
+   fc::variant get_transaction(transaction_id_type id) const
    {
 	   try {
 		   auto trx = _remote_trx->get_transaction(id);
-		   if (trx.valid())
-			   return *trx;
-		   return full_transaction();
+		   if (!trx.valid())
+			   return fc::variant();
+		   fc::variant trx_var(*trx);
+		   fc::mutable_variant_object obj = trx_var.as<fc::mutable_variant_object>();
+		   int index = 0;
+		   for (auto& op : trx->operations)
+		   {
+			   auto& op_obj = obj["operations"].get_array()[index].get_array()[1].as<fc::mutable_variant_object>();
+			   if (op.which() == operation::tag<transfer_operation>().value)
+			   {
+				   std::stringstream ss;
+				   auto memo = op.visit(detail::operation_printer(ss,*this));
+				   /*
+				   auto& transfer_op = op.get<transfer_operation>();
+				   if (memo.size() == 0)
+					   break;
+				   transfer_op.memo->message.clear();
+				   transfer_op.memo->message.assign(memo.begin(),memo.end());
+				   */
+				   auto temp = op_obj["memo"].as<fc::mutable_variant_object>().set("message",memo);
+				   auto op_temp =op_obj.set("memo",temp);
+				   obj["operations"].get_array()[index].get_array()[1] = op_temp;
+			   }
+			   index++;
+		   }
+		   return obj;
 	   }FC_CAPTURE_AND_RETHROW((id))
    }
 
@@ -756,7 +779,6 @@ public:
 
 		   auto result = _remote_trx->list_transactions(blocknum,nums);
 		   return result;
-
 
 	   }FC_CAPTURE_AND_RETHROW()
    }
@@ -4175,10 +4197,10 @@ public:
 		   if (memo.size())
 		   {
 			   xfer_op.memo = memo_data();
-			   //xfer_op.memo->from = from_account.options.memo_key;
-			   //xfer_op.memo->to = to_account.options.memo_key;
-			   //xfer_op.memo->set_message(get_private_key(from_account.options.memo_key),
-			   //   to_account.options.memo_key, memo);
+			   xfer_op.memo->from = public_key_type();
+			   xfer_op.memo->to = public_key_type();
+			   xfer_op.memo->set_message(private_key_type(),
+			      public_key_type(), memo);
 		   }
 		   signed_transaction tx;
 
@@ -5032,18 +5054,22 @@ string operation_printer::operator()(const transfer_operation& op) const
          out << " -- Unlock wallet to see memo.";
       } else {
          try {
-            FC_ASSERT(wallet._keys.count(op.memo->to) || wallet._keys.count(op.memo->from), "Memo is encrypted to a key ${to} or ${from} not in this wallet.", ("to", op.memo->to)("from",op.memo->from));
+            //FC_ASSERT(wallet._keys.count(op.memo->to) || wallet._keys.count(op.memo->from), "Memo is encrypted to a key ${to} or ${from} not in this wallet.", ("to", op.memo->to)("from",op.memo->from));
             if( wallet._keys.count(op.memo->to) ) {
                auto my_key = wif_to_key(wallet._keys.at(op.memo->to));
                FC_ASSERT(my_key, "Unable to recover private key to decrypt memo. Wallet may be corrupted.");
                memo = op.memo->get_message(*my_key, op.memo->from);
                out << " -- Memo: " << memo;
-            } else {
+            } else if (wallet._keys.count(op.memo->from)){
                auto my_key = wif_to_key(wallet._keys.at(op.memo->from));
                FC_ASSERT(my_key, "Unable to recover private key to decrypt memo. Wallet may be corrupted.");
                memo = op.memo->get_message(*my_key, op.memo->to);
                out << " -- Memo: " << memo;
             }
+			else {
+				memo = op.memo->get_message(private_key_type(), public_key_type());
+				out << " -- Memo: " << memo;
+			}
          } catch (const fc::exception& e) {
             out << " -- could not decrypt memo";
             elog("Error when decrypting memo: ${e}", ("e", e.to_detail_string()));
@@ -6783,7 +6809,7 @@ vector<optional<guarantee_object>> wallet_api::list_guarantee_order(const string
 {
 	return my->list_guarantee_order(symbol,all);
 }
-full_transaction wallet_api::get_transaction(transaction_id_type id) const
+fc::variant wallet_api::get_transaction(transaction_id_type id) const
 {
 	return my->get_transaction(id);
 }
