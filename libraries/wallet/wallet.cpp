@@ -763,6 +763,8 @@ public:
 				   transfer_op.memo->message.clear();
 				   transfer_op.memo->message.assign(memo.begin(),memo.end());
 				   */
+				   if (memo.size() == 0)
+					   continue;
 				   auto temp = op_obj["memo"].as<fc::mutable_variant_object>().set("message",memo);
 				   auto op_temp =op_obj.set("memo",temp);
 				   obj["operations"].get_array()[index].get_array()[1] = op_temp;

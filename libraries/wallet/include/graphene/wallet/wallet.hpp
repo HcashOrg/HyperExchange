@@ -1973,7 +1973,7 @@ class wallet_api
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
 	  vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all = true);
-	  full_transaction get_transaction(transaction_id_type id)const;
+	  fc::variant get_transaction(transaction_id_type id)const;
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
