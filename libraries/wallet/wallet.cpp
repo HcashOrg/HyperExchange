@@ -6273,7 +6273,9 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = cont.contract_address.operator fc::string();
 	}
-	return my->_remote_db->get_contract_object(contract_address);
+	ContractEntryPrintable result = my->_remote_db->get_contract_object(contract_address);
+	result.code_printable.printable_code = "";
+	return result;
 }
 
 full_transaction wallet_api::transfer_to_contract(string from, string to, string amount, string asset_symbol, const string& param, const string& gas_price, const string& gas_limit, bool broadcast)
