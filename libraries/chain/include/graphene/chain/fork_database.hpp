@@ -39,9 +39,8 @@ namespace graphene { namespace chain {
    {
       fork_item( signed_block d )
       :num(d.block_num()),id(d.id()),data( std::move(d) ){}
-
+      fork_item() {}
       block_id_type previous_id()const { return data.previous; }
-
       weak_ptr< fork_item > prev;
       uint32_t              num;    // initialized in ctor
       /**
@@ -53,8 +52,45 @@ namespace graphene { namespace chain {
       signed_block          data;
    };
    typedef shared_ptr<fork_item> item_ptr;
-
-
+   struct serializable_fork_item
+   {
+       block_id_type prev;
+       uint32_t              num;    // initialized in ctor
+       bool                  invalid = false;
+       block_id_type         id;
+       signed_block          data;
+       serializable_fork_item() {}
+       serializable_fork_item(const fork_item& item)
+       {
+           prev = item.previous_id();
+           num = item.num;
+           invalid = item.invalid;
+           id = item.id;
+           data = item.data;
+       }
+       serializable_fork_item(const serializable_fork_item& item)
+       {
+           prev = item.prev;
+           num = item.num;
+           invalid = item.invalid;
+           id = item.id;
+           data = item.data;
+       }
+       shared_ptr<fork_item> get_shared_item_ptr_without_prev_set()
+       {
+           shared_ptr<fork_item> res=std::make_shared<fork_item>();
+           res->data = data;
+           res->id = id;
+           res->invalid = invalid;
+           res->num = num;
+           return res;
+       }
+   };
+   struct fork_data
+   {
+       std::deque<serializable_fork_item> items;
+       block_id_type _head;
+   };
    /**
     *  As long as blocks are pushed in order the fork
     *  database will maintain a linked tree of all blocks
@@ -109,7 +145,8 @@ namespace graphene { namespace chain {
          > fork_multi_index_type;
 
          void set_max_size( uint32_t s );
-
+         void save_to_file(const fc::string& path);
+         void from_file(const fc::string& path);
       private:
          /** @return a pointer to the newly pushed item */
          void _push_block(const item_ptr& b );
@@ -120,5 +157,8 @@ namespace graphene { namespace chain {
          fork_multi_index_type    _unlinked_index;
          fork_multi_index_type    _index;
          shared_ptr<fork_item>    _head;
+         map<block_id_type, shared_ptr<fork_item>> items_read;
    };
 } } // graphene::chain
+FC_REFLECT(graphene::chain::serializable_fork_item, (prev)(num)(invalid)(id)(data))
+FC_REFLECT(graphene::chain::fork_data,(items)(_head))

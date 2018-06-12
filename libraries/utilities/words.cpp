@@ -37159,7 +37159,7 @@ const const_char_ptr word_list[] = {
 "senaite",
 "senam",
 "senary",
-"senate",
+"guard",
 "senator",
 "sence",
 "sencion",
