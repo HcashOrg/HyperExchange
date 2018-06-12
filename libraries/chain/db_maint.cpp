@@ -299,14 +299,16 @@ void database::update_active_committee_members()
          stake_tally += _guard_count_histogram_buffer[++guard_count];
    guard_count = _guard_count_histogram_buffer.size();
    const chain_property_object& cpo = get_chain_properties();
-   auto guards_t = sort_votable_objects<guard_member_index>((size_t)cpo.immutable_parameters.max_guard_count);
-   auto guards = guards_t;
+   auto& guards_t = get_index_type<guard_member_index>().indices().get<by_account>();   
+   vector<guard_member_object> guards;
    guards.clear();
    for (const guard_member_object& del : guards_t)
    {
 	   if (del.formal == false)
 		   continue;
 	   guards.emplace_back(del);
+	   if (guards.size() == GRAPHENE_DEFAULT_MAX_GUARDS)
+		   break;
    }
    for( const guard_member_object& del : guards )
    {
