@@ -23,6 +23,7 @@ namespace graphene {
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
+			FC_ASSERT(tunnel_itr->owner == o.deposit_address);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());

@@ -93,7 +93,7 @@ namespace graphene { namespace privatekey_management {
 	{
 		try {
 			graphene::chain::pts_address pts(addr);
-			return pts.is_valid() && pts.version() == get_pubkey_prefix();
+			return pts.is_valid();
 		}
 		catch (fc::exception& e) {
 			return false;

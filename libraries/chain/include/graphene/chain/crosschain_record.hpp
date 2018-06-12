@@ -12,6 +12,7 @@ namespace graphene {
 			//TODO:refund balance in the situation that channel account tie to formal account
 			miner_id_type miner_broadcast;
 			address miner_address;
+			address deposit_address;
 			asset_id_type asset_id;
 			string asset_symbol;
 			asset fee;
@@ -135,7 +136,7 @@ namespace graphene {
 	}
 }
 FC_REFLECT(graphene::chain::crosschain_record_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::crosschain_record_operation, (fee)(cross_chain_trx)(miner_broadcast)(asset_id)(asset_symbol)(miner_address))
+FC_REFLECT(graphene::chain::crosschain_record_operation, (fee)(cross_chain_trx)(miner_broadcast)(asset_id)(asset_symbol)(miner_address)(deposit_address))
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation::fee_parameters_type,(fee))
 FC_REFLECT(graphene::chain::crosschain_withdraw_operation,(fee)(withdraw_account)(amount)(asset_symbol)(asset_id)(crosschain_account)(memo))
 FC_REFLECT(graphene::chain::crosschain_withdraw_without_sign_operation::fee_parameters_type, (fee))
