@@ -396,7 +396,7 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     switch (t)
     {
     case account_object_type:      
-        //return create_obj_unique_ptr<account_object>(var);
+        return create_obj_unique_ptr<account_object>(var);
         break;
     case asset_object_type: 
         return create_obj_unique_ptr<asset_object>(var);
@@ -417,7 +417,7 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
         return create_obj_unique_ptr<call_order_object>(var);
         break;
     case custom_object_type:   
-        throw;//return create_obj_unique_ptr<custom_object>(var);
+        //return create_obj_unique_ptr<custom_object>(var);
         break;
     case proposal_object_type:     
         return create_obj_unique_ptr<proposal_object>(var);
@@ -443,6 +443,9 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case crosschain_trx_object_type:  
         return create_obj_unique_ptr<crosschain_trx_object>(var);
         break;
+    case coldhot_transfer_object_type:
+        return create_obj_unique_ptr<coldhot_transfer_object>(var);
+        break;
     case guard_lock_balance_object_type: 
         return create_obj_unique_ptr<guard_lock_balance_object>(var);
         break;
@@ -455,11 +458,11 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case crosschain_transaction_history_count_object_type:
         return create_obj_unique_ptr<crosschain_transaction_history_count_object>(var);
         break;
-    case coldhot_transfer_object_type:   
-        return create_obj_unique_ptr<coldhot_transfer_object>(var);
-        break;
     case contract_object_type:  
         return create_obj_unique_ptr<contract_object>(var);
+        break;
+    case contract_balance_object_type:
+        return create_obj_unique_ptr<contract_balance_object>(var);
         break;
     case contract_storage_object_type:  
         return create_obj_unique_ptr<contract_storage_object>(var);
@@ -471,15 +474,17 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
         return create_obj_unique_ptr<contract_event_notify_object>(var);
         break;
     case contract_invoke_result_object_type:    
-        //return create_obj_unique_ptr<contract_invoke_result_object>(var);
+        return create_obj_unique_ptr<contract_invoke_result_object>(var);
         break;
     case pay_back_object_type: 
         return create_obj_unique_ptr<pay_back_object>(var);
         break;
+    case contract_storage_change_object_type:
+        return create_obj_unique_ptr<contract_storage_change_object>(var);
     default:
-        throw;
+        return NULL;
     }
-
+    return NULL;
 }
 inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant& var)
 {
@@ -495,6 +500,9 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
            return create_obj_unique_ptr< asset_bitasset_data_object>(var);
        case impl_account_balance_object_type: 
            return create_obj_unique_ptr< account_balance_object>(var);
+       case impl_account_binding_object_type:
+           return create_obj_unique_ptr<account_binding_object>(var);
+           break;
        case impl_account_statistics_object_type: 
            return create_obj_unique_ptr< account_statistics_object>(var);
        case impl_transaction_object_type: 
@@ -521,11 +529,19 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
            return create_obj_unique_ptr< buyback_object >(var);
        case impl_fba_accumulator_object_type:
            return create_obj_unique_ptr< fba_accumulator_object >(var);
-       case impl_multisig_account_binding_object_type: 
-           return create_obj_unique_ptr< multisig_account_pair_object >(var);
+       case impl_multisig_account_binding_object_type:
+           return create_obj_unique_ptr< multisig_account_pair_object >(var);       
+       case impl_multisig_address_object_type:
+           return create_obj_unique_ptr< multisig_address_object >(var);
+           break;
        case impl_guarantee_obj_type: 
            return create_obj_unique_ptr< guarantee_object >(var);
+       case impl_address_transaction_history_object_type:
+           return create_obj_unique_ptr<address_transaction_history_object>(var);
+       default:
+           break;
     }
+    return NULL;
 }
 std::unique_ptr<object> db::serializable_obj::to_object() const
 {

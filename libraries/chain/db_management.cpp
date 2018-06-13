@@ -134,9 +134,9 @@ void database::open(
          }
       }
       fc::path data_dir = get_data_dir() / "undo_db";
-      //_undo_db.from_file(data_dir.string());
+      _undo_db.from_file(data_dir.string());
       fc::path fork_data_dir = get_data_dir() / "fork_db";
-      //_fork_db.from_file(fork_data_dir.string());
+      _fork_db.from_file(fork_data_dir.string());
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 }
