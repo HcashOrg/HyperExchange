@@ -350,7 +350,15 @@ namespace graphene { namespace app {
 	   string _config;
 	   std::vector<string> _crosschain_symbols;
    };
-
+   class localnode_api
+   {
+   private:
+       application& _app;
+   public:
+       localnode_api(application& app) :_app(app) {};
+       ~localnode_api() {};
+       void witness_node_stop();
+   };
    class miner_api
    {
    private:
@@ -402,6 +410,7 @@ namespace graphene { namespace app {
 	     fc::api<crosschain_api> crosschain_config() const;
 		 fc::api<transaction_api> transaction() const;
          fc::api<miner_api> miner() const;
+         fc::api<localnode_api> localnode() const;
          /// @brief Called to enable an API, not reflected.
          void enable_api( const string& api_name );
 		 
@@ -419,6 +428,7 @@ namespace graphene { namespace app {
          optional< fc::api<graphene::debug_miner::debug_api> > _debug_api;
 		 optional <fc::api<crosschain_api >>   _crosschain_api;
          optional <fc::api<miner_api>>     _miner_api;
+         optional <fc::api<localnode_api>>     _localnode_api;
    };
 
 }}  // graphene::app
@@ -452,6 +462,9 @@ FC_API(graphene::app::block_api,
 	)
 FC_API(graphene::app::miner_api,
     (start_miner)
+    )
+FC_API(graphene::app::localnode_api,
+    (witness_node_stop)
     )
 FC_API(graphene::app::transaction_api,
 	(get_transaction)
@@ -501,4 +514,5 @@ FC_API(graphene::app::login_api,
 	   (crosschain_config)
 	   (transaction)
        (miner)
+       (localnode)
      )

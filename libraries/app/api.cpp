@@ -45,6 +45,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
 #include <graphene/witness/witness.hpp>
+#include <signal.h>
 namespace graphene { namespace app {
 
     login_api::login_api(application& a)
@@ -92,6 +93,11 @@ namespace graphene { namespace app {
     {
         FC_ASSERT(_miner_api);
         return *_miner_api;
+    }
+    fc::api<localnode_api> login_api::localnode()const
+    {
+        FC_ASSERT(_localnode_api);
+        return *_localnode_api;
     }
     void login_api::enable_api( const std::string& api_name )
     {
@@ -142,7 +148,15 @@ namespace graphene { namespace app {
        {
            _miner_api = std::make_shared<miner_api>(std::ref(_app));
        }
+       else if (api_name == "localnode_api")
+       {
+           _localnode_api = std::make_shared<localnode_api>(std::ref(_app));
+       }
        return;
+    }
+    void localnode_api::witness_node_stop()
+    {
+        raise(SIGINT);
     }
     void miner_api::start_miner(bool start)
     {

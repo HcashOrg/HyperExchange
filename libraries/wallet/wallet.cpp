@@ -4868,12 +4868,34 @@ public:
        }
        catch (const fc::exception& e)
        {
-           std::cerr << "\nCouldn't get network node API.  You probably are not configured\n"
+           std::cerr << "\nCouldn't get miner API.  You probably are not configured\n"
                "to access the network API on the witness_node you are\n"
                "connecting to.  Please follow the instructions in README.md to set up an apiaccess file.\n"
                "\n";
            throw(e);
        }
+   }
+   void use_localnode_api()
+   {
+       if (_remote_local_node)
+           return;
+       try
+       {
+           _remote_local_node = _remote_api->localnode();
+       }
+       catch (const fc::exception& e)
+       {
+           std::cerr << "\nCouldn't get localnode API.  You probably are not configured\n"
+               "to access the network API on the witness_node you are\n"
+               "connecting to.  Please follow the instructions in README.md to set up an apiaccess file.\n"
+               "\n";
+           throw(e);
+       }
+   }
+   void witness_node_stop()
+   {
+       use_localnode_api();
+       (*_remote_local_node)->witness_node_stop();
    }
    void start_miner(bool start)
    {
@@ -4981,6 +5003,7 @@ public:
    fc::api<history_api>    _remote_hist;
    fc::api<transaction_api> _remote_trx;
    optional<fc::api<miner_api>> _remote_miner;
+   optional<fc::api<localnode_api>> _remote_local_node;
    optional< fc::api<network_node_api> > _remote_net_node;
    optional< fc::api<graphene::debug_miner::debug_api> > _remote_debug;
    optional< fc::api<crosschain_api> >   _crosschain_manager;
@@ -7461,7 +7484,10 @@ void wallet_api::start_miner(bool start)
     my->start_miner(start);
 }
 
-
+void wallet_api::witness_node_stop()
+{
+    my->witness_node_stop();
+}
 } } // graphene::wallet
 
 void fc::to_variant(const account_multi_index_type& accts, fc::variant& vo)

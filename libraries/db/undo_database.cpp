@@ -26,9 +26,38 @@
 #include <fc/reflect/variant.hpp>
 #include <iostream>
 
+#include <graphene/chain/protocol/types.hpp>
+#include <graphene/chain/protocol/transaction.hpp>
+#include<graphene/chain/account_object.hpp>
+#include <graphene/chain/account_object.hpp>
+#include <graphene/chain/asset_object.hpp>
+#include <graphene/chain/balance_object.hpp>
+#include <graphene/chain/chain_property_object.hpp>
+#include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/confidential_object.hpp>
+#include <graphene/chain/market_object.hpp>
+#include <graphene/chain/operation_history_object.hpp>
+#include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/worker_object.hpp>
+#include <graphene/chain/witness_object.hpp>
+#include <graphene/chain/lockbalance_object.hpp>
+#include <graphene/chain/guard_lock_balance_object.hpp>
+#include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/coldhot_transfer_object.hpp>
+#include <graphene/chain/transaction_object.hpp>
+#include <graphene/chain/contract_object.hpp>
+#include <graphene/chain/pay_back_object.hpp>
+#include <graphene/chain/withdraw_permission_object.hpp>
+#include <graphene/chain/global_property_object.hpp>
+#include <graphene/chain/block_summary_object.hpp>
+#include <graphene/chain/witness_schedule_object.hpp>
+#include <graphene/chain/budget_record_object.hpp>
+#include <graphene/chain/special_authority_object.hpp>
+#include <graphene/chain/buyback_object.hpp>
+#include <graphene/chain/fba_object.hpp>
 
 namespace graphene { namespace db {
-
+    using namespace graphene::chain;
 void undo_database::enable()  { _disabled = false; }
 void undo_database::disable() { _disabled = true; }
 
@@ -289,4 +318,250 @@ const undo_state& undo_database::head()const
    return _stack.back();
 }
 
-} } // graphene::db
+ void undo_database::save_to_file(const fc::string & path)
+{
+    std::deque<serializable_undo_state>  out_stack;
+    for (auto& item : _stack)
+    {
+        out_stack.push_back(item.get_serializable_undo_state());
+    }
+    fc::json::save_to_file(out_stack, path);
+}
+
+ void undo_database::from_file(const fc::string & path)
+{
+    std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
+    _stack.resize(out_stack.size());
+    int num = 0;
+    for (auto i : out_stack)
+    {
+
+            for (auto it = i.old_values.begin(); it != i.old_values.end(); it++)
+            {
+                _stack[num].old_values[it->first] = it->second.to_object();
+            }
+            _stack[num].old_index_next_ids = i.old_index_next_ids;
+            _stack[num].new_ids = i.new_ids;
+            for (auto it = i.removed.begin(); it != i.removed.end(); it++)
+            {
+                _stack[num].old_values[it->first] = it->second.to_object();
+            }
+            num++;
+    }
+    _max_size = _stack.size() + 100;
+}
+
+inline serializable_undo_state undo_state::get_serializable_undo_state()
+{
+    serializable_undo_state res;
+    for (auto i = old_values.begin(); i != old_values.end(); i++)
+    {
+        res.old_values[i->first] = serializable_obj(*(i->second));
+    }
+    res.old_index_next_ids = old_index_next_ids;
+    res.new_ids = new_ids;
+    for (auto i = removed.begin(); i != removed.end(); i++)
+    {
+        res.removed[i->first] = serializable_obj(*(i->second));
+    }
+    return res;
+}
+
+undo_state::undo_state(const serializable_undo_state & sta)
+{
+    for (auto i = sta.old_values.begin(); i != sta.old_values.end(); i++)
+    {
+        old_values[i->first] = i->second.to_object();
+    }
+    old_index_next_ids = sta.old_index_next_ids;
+    new_ids = sta.new_ids;
+    for (auto i = sta.removed.begin(); i != sta.removed.end(); i++)
+    {
+        removed[i->first] = i->second.to_object();
+    }
+}
+template <typename T> 
+std::unique_ptr<object> create_obj_unique_ptr(const variant& var)
+{
+    std::unique_ptr<object> res = std::make_unique<T>(var.as<T>());
+    return res;
+}
+inline db::serializable_obj::serializable_obj(const object & obj) :obj(obj.to_variant())
+{
+    s = obj.id.space();
+    t = obj.id.type();
+}
+inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
+{
+    switch (t)
+    {
+    case account_object_type:      
+        return create_obj_unique_ptr<account_object>(var);
+        break;
+    case asset_object_type: 
+        return create_obj_unique_ptr<asset_object>(var);
+        break;
+    case force_settlement_object_type:  
+        return create_obj_unique_ptr<force_settlement_object>(var);
+        break;
+    case guard_member_object_type:   
+        return create_obj_unique_ptr<guard_member_object>(var);
+        break;
+    case miner_object_type:  
+        return create_obj_unique_ptr<miner_object>(var);
+        break;
+    case limit_order_object_type:    
+        return create_obj_unique_ptr<limit_order_object>(var);
+        break;
+    case call_order_object_type:   
+        return create_obj_unique_ptr<call_order_object>(var);
+        break;
+    case custom_object_type:   
+        //return create_obj_unique_ptr<custom_object>(var);
+        break;
+    case proposal_object_type:     
+        return create_obj_unique_ptr<proposal_object>(var);
+        break;
+    case operation_history_object_type:   
+        return create_obj_unique_ptr<operation_history_object>(var);
+        break;
+    case withdraw_permission_object_type:  
+        return create_obj_unique_ptr<withdraw_permission_object>(var);
+        break;
+    case vesting_balance_object_type:    
+        return create_obj_unique_ptr<vesting_balance_object>(var);
+        break;
+    case worker_object_type:     
+        return create_obj_unique_ptr<worker_object>(var);
+        break;
+    case balance_object_type:    
+        return create_obj_unique_ptr<balance_object>(var);
+        break;
+    case lockbalance_object_type:    
+        return create_obj_unique_ptr<lockbalance_object>(var);
+        break;
+    case crosschain_trx_object_type:  
+        return create_obj_unique_ptr<crosschain_trx_object>(var);
+        break;
+    case coldhot_transfer_object_type:
+        return create_obj_unique_ptr<coldhot_transfer_object>(var);
+        break;
+    case guard_lock_balance_object_type: 
+        return create_obj_unique_ptr<guard_lock_balance_object>(var);
+        break;
+    case multisig_transfer_object_type: 
+        return create_obj_unique_ptr<multisig_asset_transfer_object>(var);
+        break;
+    case acquired_crosschain_object_type:  
+        return create_obj_unique_ptr<acquired_crosschain_trx_object>(var);
+        break;
+    case crosschain_transaction_history_count_object_type:
+        return create_obj_unique_ptr<crosschain_transaction_history_count_object>(var);
+        break;
+    case contract_object_type:  
+        return create_obj_unique_ptr<contract_object>(var);
+        break;
+    case contract_balance_object_type:
+        return create_obj_unique_ptr<contract_balance_object>(var);
+        break;
+    case contract_storage_object_type:  
+        return create_obj_unique_ptr<contract_storage_object>(var);
+        break;
+    case contract_storage_diff_type:  
+        return create_obj_unique_ptr<transaction_contract_storage_diff_object>(var);
+        break;
+    case contract_event_notify_object_type:   
+        return create_obj_unique_ptr<contract_event_notify_object>(var);
+        break;
+    case contract_invoke_result_object_type:    
+        return create_obj_unique_ptr<contract_invoke_result_object>(var);
+        break;
+    case pay_back_object_type: 
+        return create_obj_unique_ptr<pay_back_object>(var);
+        break;
+    case contract_storage_change_object_type:
+        return create_obj_unique_ptr<contract_storage_change_object>(var);
+    default:
+        return NULL;
+    }
+    return NULL;
+}
+inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant& var)
+{
+    switch (t)
+    {
+       case impl_global_property_object_type:
+           return create_obj_unique_ptr< global_property_object>(var);
+       case impl_dynamic_global_property_object_type: 
+           return create_obj_unique_ptr< dynamic_global_property_object>(var);
+       case impl_asset_dynamic_data_type: 
+           return create_obj_unique_ptr< asset_dynamic_data_object>(var);
+       case impl_asset_bitasset_data_type: 
+           return create_obj_unique_ptr< asset_bitasset_data_object>(var);
+       case impl_account_balance_object_type: 
+           return create_obj_unique_ptr< account_balance_object>(var);
+       case impl_account_binding_object_type:
+           return create_obj_unique_ptr<account_binding_object>(var);
+           break;
+       case impl_account_statistics_object_type: 
+           return create_obj_unique_ptr< account_statistics_object>(var);
+       case impl_transaction_object_type: 
+           return create_obj_unique_ptr< transaction_object>(var);
+       case impl_trx_object_type: 
+           return create_obj_unique_ptr< trx_object>(var);
+       case impl_history_transaction_object_type: 
+           return create_obj_unique_ptr< history_transaction_object>(var);
+       case impl_block_summary_object_type: 
+           return create_obj_unique_ptr< block_summary_object>(var);
+       case impl_account_transaction_history_object_type: 
+           return create_obj_unique_ptr <account_transaction_history_object> (var);
+       case impl_chain_property_object_type: 
+           return create_obj_unique_ptr< chain_property_object>(var);
+       case impl_witness_schedule_object_type: 
+           return create_obj_unique_ptr< witness_schedule_object>(var);
+       case impl_budget_record_object_type: 
+           return create_obj_unique_ptr< budget_record_object >(var);
+       case impl_blinded_balance_object_type: 
+           return create_obj_unique_ptr< blinded_balance_object >(var);
+       case impl_special_authority_object_type: 
+           return create_obj_unique_ptr< special_authority_object >(var);
+       case impl_buyback_object_type: 
+           return create_obj_unique_ptr< buyback_object >(var);
+       case impl_fba_accumulator_object_type:
+           return create_obj_unique_ptr< fba_accumulator_object >(var);
+       case impl_multisig_account_binding_object_type:
+           return create_obj_unique_ptr< multisig_account_pair_object >(var);       
+       case impl_multisig_address_object_type:
+           return create_obj_unique_ptr< multisig_address_object >(var);
+           break;
+       case impl_guarantee_obj_type: 
+           return create_obj_unique_ptr< guarantee_object >(var);
+       case impl_address_transaction_history_object_type:
+           return create_obj_unique_ptr<address_transaction_history_object>(var);
+       default:
+           break;
+    }
+    return NULL;
+}
+std::unique_ptr<object> db::serializable_obj::to_object() const
+{
+    switch (s)
+    {
+    case chain::protocol_ids:
+        return to_protocol_object(t,obj);
+    case  chain::implementation_ids:
+        return  to_implementation_object(t,obj);
+    default:
+        throw;
+    }
+}
+serializable_undo_state::serializable_undo_state(const serializable_undo_state & sta) 
+{
+    this->new_ids = sta.new_ids;
+    this->old_index_next_ids = sta.old_index_next_ids;
+    this->old_values = sta.old_values;
+    this->removed = sta.removed;
+}
+}
+
+} // graphene::db
