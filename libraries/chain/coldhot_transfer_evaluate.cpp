@@ -132,6 +132,7 @@ namespace graphene {
 				auto range = d.get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(o.coldhot_trx_id);
 				bool isSigned = false;
 				for (auto coldhot_sign_tx : boost::make_iterator_range(range.first, range.second)) {
+					FC_ASSERT(coldhot_sign_tx.curret_trx_state <= coldhot_sign_trx && coldhot_sign_tx.curret_trx_state  >= coldhot_without_sign_trx_create);
 					if (coldhot_sign_tx.curret_trx_state != coldhot_sign_trx) {
 						continue;
 					}

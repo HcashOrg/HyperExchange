@@ -269,6 +269,7 @@ namespace graphene {
 			set<std::string> signs;
 			auto sign_range = db().get_index_type<crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(o.ccw_trx_id);
 			for (auto sign_obj : boost::make_iterator_range(sign_range.first, sign_range.second)) {
+				FC_ASSERT(sign_obj.trx_state <= withdraw_sign_trx && sign_obj.trx_state >= withdraw_without_sign_trx_create);
 				if (sign_obj.trx_state != withdraw_sign_trx) {
 					continue;
 				}
