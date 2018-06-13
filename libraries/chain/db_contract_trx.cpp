@@ -212,6 +212,22 @@ namespace graphene {
                         obj.block_num = block_num+1;
                         obj.op_num = op_num;
                         obj.invoker = invoker;
+                        for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
+                        {
+                            obj.contract_withdraw.insert( make_pair(it->first,it->second));
+                        }
+                        for (auto it = res.contract_balances.begin(); it != res.contract_balances.end(); it++)
+                        {
+                            obj.contract_balances.insert(make_pair(it->first, it->second));
+                        }
+                        for (auto it = res.deposit_contract.begin(); it != res.deposit_contract.end(); it++)
+                        {
+                            obj.deposit_contract.insert(make_pair(it->first, it->second));
+                        }
+                        for (auto it = res.deposit_to_address.begin(); it != res.deposit_to_address.end(); it++)
+                        {
+                            obj.deposit_to_address.insert(make_pair(it->first, it->second));
+                        }
                     });     
                 }
                 else
