@@ -1989,6 +1989,9 @@ class wallet_api
 
       //miner
       void start_miner(bool);
+
+      //localnode
+      void witness_node_stop();
 };
 
 } }
@@ -2267,4 +2270,5 @@ FC_API( graphene::wallet::wallet_api,
 		(network_get_info)
         (start_miner)
 		(get_account_crosschain_transaction)
+        (witness_node_stop)
       )
