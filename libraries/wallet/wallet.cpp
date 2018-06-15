@@ -751,7 +751,7 @@ public:
 		   int index = 0;
 		   for (auto& op : trx->operations)
 		   {
-			   auto& op_obj = obj["operations"].get_array()[index].get_array()[1].as<fc::mutable_variant_object>();
+			   auto op_obj = obj["operations"].get_array()[index].get_array()[1].as<fc::mutable_variant_object>();
 			   if (op.which() == operation::tag<transfer_operation>().value)
 			   {
 				   std::stringstream ss;
