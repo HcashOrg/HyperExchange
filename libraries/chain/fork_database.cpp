@@ -133,7 +133,7 @@ void fork_database::save_to_file(const fc::string& path)
     fork_data da;
     if (_head)
         da._head = _head->id;
-    auto& itr = idx.begin();
+    auto itr = idx.begin();
     while (itr != idx.end())
     {
         da.items.push_back(*(*itr));
@@ -155,9 +155,9 @@ void fork_database::from_file(const fc::string& path)
                 _head = ptr;
             }
         }
-        for (auto& itw = items_read.begin(); itw != items_read.end(); itw++)
+        for (auto itw = items_read.begin(); itw != items_read.end(); itw++)
         {
-            for (auto &itr = items_read.begin(); itr != items_read.end(); itr++)
+            for (auto itr = items_read.begin(); itr != items_read.end(); itr++)
             {
                 if (itw->first == itr->second->id)
                 {
@@ -165,9 +165,9 @@ void fork_database::from_file(const fc::string& path)
                 }
             }
         }
-        for (auto &it = items_read.begin(); it != items_read.end(); it++)
+        for (auto it = items_read.begin(); it != items_read.end(); it++)
         {
-            auto& res=_index.insert(it->second);
+            auto res=_index.insert(it->second);
             if (!res.second)
             {
                 auto& idx = _index.get<block_id>();
