@@ -118,6 +118,7 @@ namespace graphene {
 			share_type calculate_fee_for_operation(const operation& op) const;
 			void db_adjust_balance(const account_id_type& fee_payer, asset fee_from_account);
 			void db_adjust_guarantee(const guarantee_object_id_type id, asset fee_from_account);
+			void db_record_guarantee(const guarantee_object_id_type id, transaction_id_type trx_id);
 			guarantee_object db_get_guarantee(const guarantee_object_id_type id);
 			void db_adjust_balance(const address& fee_payer, asset fee_from_account);
 			void db_adjust_frozen(const address& fee_payer, asset fee_from_account);
@@ -197,6 +198,7 @@ namespace graphene {
 					db_adjust_balance(op.fee_payer(), -fee_need_pay);
 					db_adjust_frozen(guarantee_obj.owner_addr,-fee_from_account);
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
+					db_record_guarantee(*op.get_guarantee_id(), get_trx_eval_state()->_trx->id());
 					db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
 				}
 				pay_fee();

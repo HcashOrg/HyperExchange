@@ -380,10 +380,16 @@ undo_state::undo_state(const serializable_undo_state & sta)
         removed[i->first] = i->second.to_object();
     }
 }
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 template <typename T> 
 std::unique_ptr<object> create_obj_unique_ptr(const variant& var)
 {
-    std::unique_ptr<object> res = std::make_unique<T>(var.as<T>());
+    std::unique_ptr<object> res = make_unique<T>(var.as<T>());
     return res;
 }
 inline db::serializable_obj::serializable_obj(const object & obj) :obj(obj.to_variant())
