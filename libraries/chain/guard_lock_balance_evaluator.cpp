@@ -91,6 +91,7 @@ namespace graphene {
 				const auto& multi_assets = d.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
 				auto multisig_account_obj = multi_assets.find(boost::make_tuple(o.hot,o.cold,o.chain_type));
 				FC_ASSERT(multisig_account_obj != multi_assets.end());
+				FC_ASSERT(multisig_account_obj->effective_block_num==0,"no need to update again.");
 
                 //get the multi-asset,and make it get worked
 			}FC_CAPTURE_AND_RETHROW((o))
