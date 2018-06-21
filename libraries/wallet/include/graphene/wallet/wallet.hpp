@@ -260,7 +260,7 @@ struct wallet_data
            return false;
        }
    }
-   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
+   bool bind_script_to_event(const string& script_hash,const chain::contract_address_type& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -286,7 +286,7 @@ struct wallet_data
        idx.insert(obj);
        return true;
    }
-   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
+   bool remove_event_handle(const string& script_hash, const chain::contract_address_type& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -383,6 +383,7 @@ struct signed_block_with_info : public signed_block
    uint32_t      number;
    block_id_type block_id;
    public_key_type signing_key;
+   share_type     reward;
    vector< transaction_id_type > transaction_ids;
 };
 
@@ -1972,7 +1973,7 @@ class wallet_api
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
 	  vector<optional<guarantee_object>> list_guarantee_order(const string& chain_type,bool all=true);
 	  vector<optional<guarantee_object>> get_my_guarantee_order(const string& account, bool all = true);
-	  full_transaction get_transaction(transaction_id_type id)const;
+	  fc::variant get_transaction(transaction_id_type id)const;
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
@@ -1988,6 +1989,9 @@ class wallet_api
 
       //miner
       void start_miner(bool);
+
+      //localnode
+      void witness_node_stop();
 };
 
 } }
@@ -2042,7 +2046,7 @@ FC_REFLECT( graphene::wallet::worker_vote_delta,
 )
 
 FC_REFLECT_DERIVED( graphene::wallet::signed_block_with_info, (graphene::chain::signed_block),
-   (number)(block_id)(signing_key)(transaction_ids) )
+   (number)(block_id)(signing_key)(reward)(transaction_ids) )
 
 
 
@@ -2266,4 +2270,5 @@ FC_API( graphene::wallet::wallet_api,
 		(network_get_info)
         (start_miner)
 		(get_account_crosschain_transaction)
+        (witness_node_stop)
       )

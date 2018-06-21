@@ -52,8 +52,8 @@ namespace graphene { namespace chain {
       /// The number of active committee members this account votes the blockchain should appoint
       /// Must not exceed the actual number of committee members voted for in @ref votes
       uint16_t num_committee = 0;
-	  // vaildate range is 0 - 10
-	  uint8_t  miner_pledge_pay_back = 0;
+	  // vaildate range is 0 - 20
+	  uint8_t  miner_pledge_pay_back = 10;
       /// This is the list of vote IDs this account votes for. The weight of these votes is determined by this
       /// account's balance of core asset.
       flat_set<vote_id_type> votes;

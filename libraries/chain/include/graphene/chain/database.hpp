@@ -324,36 +324,36 @@ namespace graphene { namespace chain {
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////
-		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
-		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
+		 StorageDataType get_contract_storage(const contract_address_type& contract_id, const string& name);
+		 void set_contract_storage(const contract_address_type& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
-		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
-		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
+		 void add_contract_storage_change(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& name, const StorageDataType &diff);
+		 void add_contract_event_notify(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
 		                                op_num);
-         void  store_contract_storage_change_obj(const address& contract,uint32_t block_num);
+         void  store_contract_storage_change_obj(const contract_address_type& contract,uint32_t block_num);
          vector<contract_blocknum_pair> get_contract_changed(uint32_t block_num, uint32_t duration);
-         vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
+         vector<contract_event_notify_object> get_contract_event_notify(const contract_address_type& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
 		 void update_contract(const contract_object& contract);
-         contract_object get_contract(const address& contract_address);
+         contract_object get_contract(const contract_address_type& contract_address);
          contract_object get_contract(const contract_id_type& id);
          contract_object get_contract(const string& name_or_id);
 		 contract_object get_contract_of_name(const string& contract_name);
          vector<contract_object> get_contract_by_owner(const address& owner);
 
-         vector<address> get_contract_address_by_owner(const address& owner);
-		 bool has_contract(const address& contract_address);
+         vector<contract_address_type> get_contract_address_by_owner(const address& owner);
+		 bool has_contract(const contract_address_type& contract_address);
 		 bool has_contract_of_name(const string& contract_name);
          void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 
-         vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
+         vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const contract_address_type &addr) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
-         asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
-         void adjust_contract_balance(const address& addr, const asset& delta);
+         asset get_contract_balance(const contract_address_type& addr,const asset_id_type& asset_id);
+         void adjust_contract_balance(const contract_address_type& addr, const asset& delta);
 
          //get account address by account name
          address get_account_address(const string& name);
@@ -406,6 +406,9 @@ namespace graphene { namespace chain {
 		 * @param account ID of account whose balance should be adjusted
 		 * @param delta Asset ID and amount to adjust balance by
 		 */
+
+		 void record_guarantee(const guarantee_object_id_type id, const transaction_id_type& target_asset);
+
 		 void adjust_guarantee(const guarantee_object_id_type id, const asset& target_asset);
          /**
           * @brief Helper to make lazy deposit to CDD VBO.

@@ -74,30 +74,61 @@ namespace graphene { namespace chain {
        }
        fc::ripemd160 addr;
    };
+   class contract_address_type
+   {
+   public:
+       contract_address_type();
+       explicit contract_address_type(const std::string& base58str);
+        operator std::string()const;
+       friend size_t hash_value(const contract_address_type& v) {
+           const void* tmp = static_cast<const void*>(v.addr._hash + 2);
+
+           const size_t* tmp2 = reinterpret_cast<const size_t*>(tmp);
+           return *tmp2;
+       }
+       fc::ripemd160 addr;
+   };
    inline bool operator == ( const address& a, const address& b ) { return a.addr == b.addr; }
    inline bool operator != ( const address& a, const address& b ) { return a.addr != b.addr; }
    inline bool operator <  ( const address& a, const address& b ) { return a.addr <  b.addr; }
+   inline bool operator == (const contract_address_type& a, const contract_address_type& b) { return a.addr == b.addr; }
+   inline bool operator != (const contract_address_type& a, const contract_address_type& b) { return a.addr != b.addr; }
+   inline bool operator <  (const contract_address_type& a
+       , const contract_address_type& b) { return a.addr <  b.addr; }
 
 } } // namespace graphene::chain
 
 namespace fc
 {
-   void to_variant( const graphene::chain::address& var,  fc::variant& vo );
-   void from_variant( const fc::variant& var,  graphene::chain::address& vo );
+    void to_variant(const graphene::chain::address& var, fc::variant& vo);
+    void from_variant(const fc::variant& var, graphene::chain::address& vo);
+    void to_variant(const graphene::chain::contract_address_type& var, fc::variant& vo);
+    void from_variant(const fc::variant& var, graphene::chain::contract_address_type& vo);
 }
 
 namespace std
 {
-   template<>
-   struct hash<graphene::chain::address>
-   {
-       public:
-         size_t operator()(const graphene::chain::address &a) const
-         {
-            return (uint64_t(a.addr._hash[0])<<32) | uint64_t( a.addr._hash[0] );
-         }
-   };
+    template<>
+    struct hash<graphene::chain::address>
+    {
+    public:
+        size_t operator()(const graphene::chain::address &a) const
+        {
+            return (uint64_t(a.addr._hash[0]) << 32) | uint64_t(a.addr._hash[0]);
+        }
+    };
+    template<>
+    struct hash<graphene::chain::contract_address_type>
+    {
+    public:
+        size_t operator()(const graphene::chain::contract_address_type &a) const
+        {
+            return (uint64_t(a.addr._hash[0]) << 32) | uint64_t(a.addr._hash[0]);
+        }
+    };
 }
 
 #include <fc/reflect/reflect.hpp>
-FC_REFLECT( graphene::chain::address, (addr) )
+FC_REFLECT(graphene::chain::address, (addr))
+FC_REFLECT(graphene::chain::contract_address_type, (addr))
+

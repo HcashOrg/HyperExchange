@@ -161,7 +161,7 @@ namespace graphene { namespace chain {
 	   static const uint8_t space_id = protocol_ids;
 	   static const uint8_t type_id = contract_storage_diff_type;
 	   transaction_id_type trx_id;
-	   address contract_address;
+       contract_address_type contract_address;
 	   std::string storage_name;
 	   std::vector<char> diff;
    };
@@ -170,7 +170,7 @@ namespace graphene { namespace chain {
 	   transaction_contract_storage_diff_object,
 	   indexed_by<
 	   ordered_non_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
-	   ordered_non_unique<tag<by_contract_id>, member<transaction_contract_storage_diff_object, address, &transaction_contract_storage_diff_object::contract_address>>,
+	   ordered_non_unique<tag<by_contract_id>, member<transaction_contract_storage_diff_object, contract_address_type, &transaction_contract_storage_diff_object::contract_address>>,
 	   ordered_non_unique<tag<by_storage_name>, member<transaction_contract_storage_diff_object, std::vector<char>, &transaction_contract_storage_diff_object::diff>>
 	   >
    > transaction_contract_storage_multi_index_type;

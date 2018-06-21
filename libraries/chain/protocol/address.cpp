@@ -108,7 +108,17 @@ namespace graphene {
    {
 	   return address_to_string(GRAPHENE_ADDRESS_PREFIX);
    }
-
+   contract_address_type::contract_address_type() {}
+   contract_address_type::contract_address_type(const std::string& base58str)
+   {
+       addr = address(base58str, GRAPHENE_CONTRACT_ADDRESS_PREFIX).addr;
+   }
+   contract_address_type::operator std::string()const
+   {
+       address tmp_addr;
+       tmp_addr.addr = addr;
+       return tmp_addr.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+   }
 } } // namespace graphene::chain
 
 namespace fc
@@ -120,5 +130,13 @@ namespace fc
     void from_variant( const variant& var,  graphene::chain::address& vo )
     {
         vo = graphene::chain::address( var.as_string() );
+    }
+    void to_variant(const graphene::chain::contract_address_type& var, variant& vo)
+    {
+        vo = std::string(var);
+    }
+    void from_variant(const variant& var, graphene::chain::contract_address_type& vo)
+    {
+        vo = graphene::chain::contract_address_type(var.as_string());
     }
 }

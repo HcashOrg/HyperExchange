@@ -157,10 +157,12 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
    {
 	   db().adjust_guarantee(id, fee_from_account);
    }
-
+   void generic_evaluator::db_record_guarantee(const guarantee_object_id_type id, transaction_id_type trx_id)
+   {
+	   db().record_guarantee(id, trx_id);
+   }
    guarantee_object generic_evaluator::db_get_guarantee(const guarantee_object_id_type id)
    {
 	   return db().get(id);
    }
-
 } }

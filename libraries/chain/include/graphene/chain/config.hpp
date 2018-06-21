@@ -151,15 +151,17 @@
 #define GRAPHENE_CURRENT_DB_VERSION                          "LNK2.9"
 
 #define GRAPHENE_IRREVERSIBLE_THRESHOLD                      (70 * GRAPHENE_1_PERCENT)
-
+#define GRAPHENE_REVERSIBLE_BLOCK_COUNT                      3600/5*2
 #define GRAPHENE_PRODUCT_PER_ROUND							 10
 
 #define BLOCKLINK_MIN_GAS_PRICE                              0
 #define BLOCKLINK_MAX_GAS_LIMIT                              100000000
 
-#define GRAPHENE_MINER_PAY_RATIO							 40
-#define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 60
-#define GRAPHENE_ALL_MINER_PAY_RATIO						 100
+#define GRAPHENE_MINER_PAY_RATIO							 0
+#define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 70
+#define GRAPHENE_MINER_PAY_BACK_RATIO						 10
+#define GRAPHENE_GUARD_PAY_RATIO							 30
+#define GRAPHENE_ALL_MINER_PAY_RATIO						 70
 
 /**
  *  Reserved Account IDs with special meaning

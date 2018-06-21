@@ -25,7 +25,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <fc/smart_ref_impl.hpp>
-
+#include <iostream>
 namespace graphene { namespace chain {
 fork_database::fork_database()
 {
@@ -126,6 +126,65 @@ void fork_database::_push_next( const item_ptr& new_item )
     }
 }
 
+void fork_database::save_to_file(const fc::string& path)
+{
+ 
+    auto& idx=_index.get<block_id>();
+    fork_data da;
+    if (_head)
+        da._head = _head->id;
+    auto itr = idx.begin();
+    while (itr != idx.end())
+    {
+        da.items.push_back(*(*itr));
+        itr++;
+    }
+    if(da.items.size()>0&& _head)
+        fc::json::save_to_file(da, path);
+}
+void fork_database::from_file(const fc::string& path)
+{
+    try {
+        fork_data   data = fc::json::from_file(path).as<fork_data>();
+        for (auto& it : data.items)
+        {
+            auto ptr=it.get_shared_item_ptr_without_prev_set();
+            items_read.insert(make_pair(it.prev,ptr ));
+            if (it.id == data._head)
+            {
+                _head = ptr;
+            }
+        }
+        for (auto itw = items_read.begin(); itw != items_read.end(); itw++)
+        {
+            for (auto itr = items_read.begin(); itr != items_read.end(); itr++)
+            {
+                if (itw->first == itr->second->id)
+                {
+                   itw->second->prev = itr->second;
+                }
+            }
+        }
+        for (auto it = items_read.begin(); it != items_read.end(); it++)
+        {
+            auto res=_index.insert(it->second);
+            if (!res.second)
+            {
+                auto& idx = _index.get<block_id>();
+                auto back=idx.find(it->second->previous_id());
+                FC_ASSERT(back != idx.end());
+                auto front = idx.find(it->second->id);
+                if(front!=idx.end())
+                    (*front)->prev = *back;
+            }
+        }
+        
+    }
+    catch (...)
+    {
+
+    }
+}
 void fork_database::set_max_size( uint32_t s )
 {
    _max_size = s;

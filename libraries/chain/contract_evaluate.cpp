@@ -74,14 +74,14 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
-
+            invoke_contract_result.invoker = o.owner_addr;
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
             total_fee = o.fee.amount;
 			if (!global_uvm_chain_api)
 				global_uvm_chain_api = new UvmChainApi();
-            FC_ASSERT(o.contract_code != uvm::blockchain::Code() || o.inherit_from != address());
-            if (!(o.contract_code != uvm::blockchain::Code()) && o.inherit_from != address())
+            FC_ASSERT(o.contract_code != uvm::blockchain::Code() || o.inherit_from != contract_address_type());
+            if (!(o.contract_code != uvm::blockchain::Code()) && o.inherit_from != contract_address_type())
             {
                 FC_ASSERT(d.has_contract(o.inherit_from));
                 const auto& base_contract=d.get_contract(o.inherit_from);
@@ -107,7 +107,7 @@ namespace graphene {
 				invoke_contract_result.reset();
 				try
 				{
-					engine->execute_contract_init_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "", nullptr);
+					engine->execute_contract_init_by_address(o.contract_id.operator fc::string(), "", nullptr);
 				}
 				catch (uvm::core::UvmException &e)
 				{
@@ -127,7 +127,8 @@ namespace graphene {
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
                 new_contract.inherit_from = o.inherit_from;
-                if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
+                new_contract.registered_block = d.head_block_num() + 1;
+                if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != contract_address_type())
                     new_contract.type_of_contract = contract_based_on_template;
                 unspent_fee = count_gas_fee(o.gas_price, o.init_cost) -count_gas_fee(o.gas_price, gas_used_counts);
 
@@ -160,6 +161,8 @@ namespace graphene {
 			// check contract id unique
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
+
+            invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
@@ -191,7 +194,8 @@ namespace graphene {
 				new_contract.native_contract_key = o.native_contract_key;
 				new_contract.owner_address = o.owner_addr;
 				new_contract.create_time = o.register_time;
-                new_contract.inherit_from = address();
+                new_contract.inherit_from = contract_address_type();
+                new_contract.registered_block = d.head_block_num() + 1;
                 unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
                 invoke_result.acctual_fee = total_fee - unspent_fee;
                 invoke_result.exec_succeed = true;
@@ -221,6 +225,8 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
+
+            invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
@@ -268,7 +274,7 @@ namespace graphene {
 					std::string contract_result_str;
 					try
 					{
-						engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), o.contract_api, o.contract_arg, &contract_result_str);
+						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), o.contract_api, o.contract_arg, &contract_result_str);
 						this->invoke_contract_result.api_result = contract_result_str;
 					}
 					catch (uvm::core::UvmException &e)
@@ -314,6 +320,8 @@ namespace graphene {
             }
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
+
+            invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
 			const auto &contract = d.get_contract(o.contract_id);
@@ -365,7 +373,7 @@ namespace graphene {
 					std::string contract_result_str;
 					try
 					{
-						engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_upgrade", o.contract_name, &contract_result_str);
+						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_upgrade", o.contract_name, &contract_result_str);
 					}
 					catch (uvm::core::UvmException &e)
 					{
@@ -411,9 +419,9 @@ namespace graphene {
 			// commit contract result to db
             if (invoke_contract_result.exec_succeed)
             {
-                new_contract.registered_block = d.head_block_num();
+                
                 d.store_contract(new_contract);
-                if (new_contract.inherit_from != address())
+                if (new_contract.inherit_from != contract_address_type())
                 {
                     auto base_contract = d.get_contract(new_contract.inherit_from);
                     base_contract.derived.push_back(new_contract.contract_address);
@@ -436,7 +444,6 @@ namespace graphene {
             {
 			database& d = db();
 			// commit contract result to db
-            new_contract.registered_block = d.head_block_num();
 			d.store_contract(new_contract);
             apply_storage_change(d, new_contract.registered_block, trx_id);
 			//do_apply_fees_balance(o.owner_addr);
@@ -505,8 +512,8 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-            FC_ASSERT((origin_op.contract_code != uvm::blockchain::Code()) || (origin_op.inherit_from != address()));
-			if (origin_op.contract_id.address_to_contract_string() == contract_id)
+            FC_ASSERT((origin_op.contract_code != uvm::blockchain::Code()) || (origin_op.inherit_from != contract_address_type()));
+			if (origin_op.contract_id.operator fc::string() == contract_id)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
                 if (origin_op.contract_code != uvm::blockchain::Code())
@@ -535,7 +542,7 @@ namespace graphene {
 			}
 			else
 			{
-				address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+				contract_address_type contract_addr(contract_id);
 				if (!db().has_contract(contract_addr))
 					return nullptr;
 				auto contract_info = std::make_shared<UvmContractInfo>();
@@ -562,11 +569,11 @@ namespace graphene {
 		{
 			if (!address::is_valid(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 				return nullptr;
-			address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+			contract_address_type contract_addr(contract_id);
 			if (origin_op.contract_id == contract_addr)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();
-				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), origin_op.native_contract_key, address(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX));
+				auto native_contract = native_contract_finder::create_native_contract_by_key(const_cast<native_contract_register_evaluate*>(this), origin_op.native_contract_key, contract_address_type(contract_id));
 				if (!native_contract)
 					return nullptr;
 				for (const auto & api : native_contract->apis()) {
@@ -600,7 +607,7 @@ namespace graphene {
 
 		std::shared_ptr<uvm::blockchain::Code> contract_register_evaluate::get_contract_code_by_id(const string &contract_id) const
 		{
-			if (origin_op.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX) == contract_id)
+			if (origin_op.contract_id.operator fc::string() == contract_id)
 			{
 				auto code = std::make_shared<uvm::blockchain::Code>();
 				if(origin_op.contract_code!=uvm::blockchain::Code())
@@ -609,7 +616,7 @@ namespace graphene {
                 }
                 else
                 {
-                    FC_ASSERT(origin_op.inherit_from != address());
+                    FC_ASSERT(origin_op.inherit_from != contract_address_type());
                     if (!db().has_contract(origin_op.inherit_from))
                         return nullptr;
                     const auto &contract = db().get_contract(origin_op.inherit_from);
@@ -626,7 +633,7 @@ namespace graphene {
 		}
 
 
-		address contract_register_evaluate::origin_op_contract_id() const
+		contract_address_type contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
 		}
@@ -671,7 +678,7 @@ namespace graphene {
         {
             return origin_op.get_guarantee_id();
         }
-		address native_contract_register_evaluate::origin_op_contract_id() const
+        contract_address_type native_contract_register_evaluate::origin_op_contract_id() const
 		{
 			return origin_op.contract_id;
 		}
@@ -687,6 +694,8 @@ namespace graphene {
             }
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
+
+            invoke_contract_result.invoker = o.caller_addr;
             FC_ASSERT(d.has_contract(o.contract_id));
             const auto &contract = d.get_contract(o.contract_id);
             deposit_to_contract(o.contract_id, o.amount);
@@ -760,7 +769,7 @@ namespace graphene {
                             param.num = o.amount.amount;
                             param.symbol = o.amount.asset_id(d).symbol;
                             param.param = o.param;
-							engine->execute_contract_api_by_address(o.contract_id.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
+							engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
 						}
 						catch (uvm::core::UvmException &e)
 						{
@@ -846,7 +855,7 @@ namespace graphene {
          StorageDataType contract_common_evaluate::get_storage(const string & contract_id, const string & storage_name) const
         {
             database& d = get_db();
-            auto storage_data = d.get_contract_storage(address(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX), storage_name);
+            auto storage_data = d.get_contract_storage(contract_address_type(contract_id), storage_name);
             return storage_data;
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_by_name(const string & contract_name) const
@@ -881,17 +890,17 @@ namespace graphene {
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_from_db_by_id(const string & contract_id) const
         {
-            address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+            contract_address_type contract_addr(contract_id);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
             //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract(contract_addr);
             // TODO: when contract is native contract
-            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != contract_address_type());
             auto code = contract.code;
             if (!(contract.code != uvm::blockchain::Code()))
             {
-                FC_ASSERT(contract.inherit_from != address());
+                FC_ASSERT(contract.inherit_from != contract_address_type());
                 if (!get_db().has_contract(contract.inherit_from))
                     return nullptr;
                 const auto &base_contract = get_db().get_contract(contract.inherit_from);
@@ -920,7 +929,7 @@ namespace graphene {
 {
 			invoke_contract_result.set_failed(fee);
         }
-        void contract_common_evaluate::deposit_to_contract(const address & contract, const asset & amount)
+        void contract_common_evaluate::deposit_to_contract(const contract_address_type & contract, const asset & amount)
         {
             share_type to_deposit = amount.amount;
             auto index = std::make_pair(contract, amount.asset_id);
@@ -994,13 +1003,13 @@ namespace graphene {
                 get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num,obj.op_num);
             }
         }
-         void contract_common_evaluate::transfer_to_address(const address & contract, const asset & amount, const address & to)
+         void contract_common_evaluate::transfer_to_address(const contract_address_type & contract, const asset & amount, const address & to)
         {
             //withdraw
             share_type to_withdraw = amount.amount;
             if (!get_db().has_contract(contract))
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
-            std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
+            std::pair<contract_address_type, asset_id_type> index = std::make_pair(contract, amount.asset_id);
             auto balance = invoke_contract_result.contract_balances.find(index);
             if (balance == invoke_contract_result.contract_balances.end())
             {
@@ -1047,14 +1056,15 @@ namespace graphene {
             }
 
             //deposit
-            index.first = to;
+            std::pair<address, asset_id_type> deposit_index;
+            deposit_index.first = to;
             share_type transfer_amount = amount.amount*1;
             share_type transfer_fee_amount = amount.amount - transfer_amount;
 
-            if (invoke_contract_result.deposit_to_address.find(index) != invoke_contract_result.deposit_to_address.end())
-				invoke_contract_result.deposit_to_address[index] += transfer_amount;
+            if (invoke_contract_result.deposit_to_address.find(deposit_index) != invoke_contract_result.deposit_to_address.end())
+				invoke_contract_result.deposit_to_address[deposit_index] += transfer_amount;
             else
-				invoke_contract_result.deposit_to_address[index] = transfer_amount;
+				invoke_contract_result.deposit_to_address[deposit_index] = transfer_amount;
             bool transfer_fee_exsited = false;
             if (transfer_fee_amount > 0)
             {
@@ -1073,12 +1083,12 @@ namespace graphene {
                 }
             }
         }
-         share_type contract_common_evaluate::get_contract_balance(const address & contract, const asset_id_type & asset_id)
+         share_type contract_common_evaluate::get_contract_balance(const contract_address_type & contract, const asset_id_type & asset_id)
         {
             //balance= db_balance+deposit-withdraw
             share_type running_balance;
             //db_balance
-            std::pair<address, asset_id_type> index = std::make_pair(contract, asset_id);
+            std::pair<contract_address_type, asset_id_type> index = std::make_pair(contract, asset_id);
             auto balance = invoke_contract_result.contract_balances.find(index);
             if (balance == invoke_contract_result.contract_balances.end())
             {
@@ -1105,7 +1115,7 @@ namespace graphene {
             }
             return running_balance;
         }
-		 void contract_common_evaluate::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
+		 void contract_common_evaluate::emit_event(const contract_address_type& contract_addr, const string& event_name, const string& event_arg)
 		 {
 			 contract_event_notify_info info;
              info.op_num = gen_eval->get_trx_eval_state()->op_num;
@@ -1118,7 +1128,7 @@ namespace graphene {
 		 }
          std::shared_ptr<UvmContractInfo> contract_common_evaluate::get_contract_by_id(const string &contract_id) const
          {
-             address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+             contract_address_type contract_addr(contract_id);
              if (!get_db().has_contract(contract_addr))
                  return nullptr;
              auto contract_info = std::make_shared<UvmContractInfo>();
@@ -1133,7 +1143,7 @@ namespace graphene {
                  }
                  return contract_info;
              }
-             FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+             FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != contract_address_type());
              if (contract.code != uvm::blockchain::Code())
              {
                  const auto &code = contract.code;
@@ -1182,12 +1192,12 @@ namespace graphene {
          void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const
          {
 
-             set<address> contracts;
+             set<contract_address_type> contracts;
              for (const auto &pair1 : invoke_contract_result.storage_changes)
              {
                  const auto &contract_id = pair1.first;
 
-                 address contract_addr(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+                 contract_address_type contract_addr(contract_id);
                  contracts.insert(contract_addr);
                  const auto &contract_storage_changes = pair1.second;
                  for (const auto &pair2 : contract_storage_changes)
@@ -1229,6 +1239,7 @@ namespace graphene {
 					 get_db().adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
 					 get_db().adjust_balance(*caller_address, unspent_to_return);
 				 }
+				 get_db().record_guarantee(*get_guarantee_id(), gen_eval->get_trx_eval_state()->_trx->id());
              }
              get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 		}

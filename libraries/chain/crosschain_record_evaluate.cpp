@@ -23,6 +23,7 @@ namespace graphene {
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
+			FC_ASSERT(tunnel_itr->owner == o.deposit_address);
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
@@ -268,6 +269,7 @@ namespace graphene {
 			set<std::string> signs;
 			auto sign_range = db().get_index_type<crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(o.ccw_trx_id);
 			for (auto sign_obj : boost::make_iterator_range(sign_range.first, sign_range.second)) {
+				FC_ASSERT(sign_obj.trx_state <= withdraw_sign_trx && sign_obj.trx_state >= withdraw_without_sign_trx_create);
 				if (sign_obj.trx_state != withdraw_sign_trx) {
 					continue;
 				}

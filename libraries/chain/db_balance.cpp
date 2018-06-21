@@ -88,6 +88,18 @@ void database::adjust_guarantee(const guarantee_object_id_type id, const asset& 
 	}FC_CAPTURE_AND_RETHROW((id)(target_asset))
 }
 
+void database::record_guarantee(const guarantee_object_id_type id, const transaction_id_type& trx_id)
+{
+	try {
+		auto& obj = get(id);
+		modify(obj, [&trx_id](guarantee_object& b) {
+			FC_ASSERT(b.finished == false, "guarantee order has been finished");
+			b.records.insert(trx_id);
+		});
+	}FC_CAPTURE_AND_RETHROW((id)(trx_id))
+}
+
+
 void database::adjust_balance(address addr, asset delta, bool freeze )
 {
 	try {

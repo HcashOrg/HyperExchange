@@ -633,8 +633,8 @@ class database_api
       ContractEntryPrintable get_contract_info(const string& contract_address)const;
 
       ContractEntryPrintable get_contract_info_by_name(const string& contract_address)const;
-      vector<asset> get_contract_balance(const address& contract_address) const;
-      vector<address> get_contract_addresses_by_owner_address(const address&)const ;
+      vector<asset> get_contract_balance(const contract_address_type& contract_address) const;
+      vector<contract_address_type> get_contract_addresses_by_owner_address(const address&)const ;
       vector<string>  get_contract_addresses_by_owner(const std::string& addr)const;
       vector<contract_object> get_contract_objs_by_owner(const address&)const;
       vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&) const;
@@ -643,12 +643,12 @@ class database_api
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all=true) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
-      vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
+      vector<contract_event_notify_object> get_contract_event_notify(const contract_address_type& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
       vector<contract_invoke_result_object> get_contract_invoke_object(const string& trx_id)const ;
 
-      vector<contract_event_notify_object> get_contract_events(const address&)const ;
+      vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const ;
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0)const ;
    private:

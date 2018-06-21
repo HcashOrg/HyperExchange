@@ -168,15 +168,15 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       //contract 
       contract_object get_contract_object(const string& contract_address)const ;
 	  contract_object get_contract_object_by_name(const string& contract_name) const;
-      vector<asset> get_contract_balance(const address & contract_address) const;
+      vector<asset> get_contract_balance(const contract_address_type & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
       vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const;
-      vector<address> get_contract_addresses_by_owner(const address&)const;
+      vector<contract_address_type> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
-      vector<contract_event_notify_object> get_contract_events(const address&)const;
+      vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const;
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
@@ -381,7 +381,7 @@ contract_object database_api_impl::get_contract_object_by_name(const string& con
 		return res;
 	}FC_CAPTURE_AND_RETHROW((contract_name))
 }
-vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
+vector<asset> database_api_impl::get_contract_balance(const contract_address_type & contract_address) const
 {
     vector<asset> res;
     auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
@@ -418,11 +418,11 @@ void database_api::cancel_all_subscriptions()
 {
    my->cancel_all_subscriptions();
 }
-vector<asset> database_api::get_contract_balance(const address & contract_address) const
+vector<asset> database_api::get_contract_balance(const contract_address_type & contract_address) const
 {
     return my->get_contract_balance(contract_address);
 }
-vector<address> database_api::get_contract_addresses_by_owner_address(const address&addr)const
+vector<contract_address_type> database_api::get_contract_addresses_by_owner_address(const address&addr)const
 {
     return my->get_contract_addresses_by_owner(addr);
 }
@@ -443,7 +443,7 @@ vector<string>  database_api::get_contract_addresses_by_owner(const std::string&
     vector<string> res;
     for (auto& out : addr_res)
     {
-        res.push_back(out.address_to_contract_string());
+        res.push_back(out);
     }
     return res;
 }
@@ -1991,7 +1991,7 @@ optional<contract_event_notify_object> database_api_impl::get_contract_event_not
 
 }
 
-vector<address> database_api_impl::get_contract_addresses_by_owner(const address& addr)const
+vector<contract_address_type> database_api_impl::get_contract_addresses_by_owner(const address& addr)const
 {
     return _db.get_contract_address_by_owner(addr);
 }
@@ -1999,7 +1999,7 @@ vector<contract_object> database_api_impl::get_contracts_by_owner(const address&
 {
     return _db.get_contract_by_owner(addr);
 }
-vector<contract_event_notify_object> database_api_impl::get_contract_events(const address &addr) const
+vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr) const
 {
     return _db.get_contract_events_by_contract_ordered(addr);
 }
@@ -2023,7 +2023,7 @@ vector<contract_blocknum_pair> database_api::get_contract_registered(const uint3
     {
         contract_blocknum_pair rec;
         rec.block_num = co.registered_block;
-        rec.contract_address = co.contract_address.address_to_contract_string();
+        rec.contract_address = co.contract_address.operator fc::string();
         res.push_back(rec);
     }
     return res;
@@ -2593,7 +2593,7 @@ vector<contract_invoke_result_object> database_api::get_contract_invoke_object(c
     return my->get_contract_invoke_object(transaction_id_type(trx_id));
 }
 
-vector<contract_event_notify_object> database_api::get_contract_events(const address&addr)const
+vector<contract_event_notify_object> database_api::get_contract_events(const contract_address_type&addr)const
 {
     return my->get_contract_events(addr);
 }
@@ -2601,7 +2601,7 @@ optional<contract_event_notify_object> database_api::get_contract_event_notify_b
 {
     return my->get_contract_event_notify_by_id(id);
 }
-vector<contract_event_notify_object> database_api::get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const
+vector<contract_event_notify_object> database_api::get_contract_event_notify(const contract_address_type& contract_id, const transaction_id_type& trx_id, const string& event_name) const
 {
     return my->_db.get_contract_event_notify(contract_id,trx_id, event_name);
 }

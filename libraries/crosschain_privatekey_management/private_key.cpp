@@ -94,8 +94,8 @@ namespace graphene { namespace privatekey_management {
 	bool crosschain_privatekey_base::validate_address(const std::string& addr)
 	{
 		try {
-			graphene::chain::pts_address_extra pts(addr);
-			return pts.is_valid() && pts.version() == get_pubkey_prefix();
+			graphene::chain::pts_address pts(addr);
+			return pts.is_valid();
 		}
 		catch (fc::exception& e) {
 			return false;

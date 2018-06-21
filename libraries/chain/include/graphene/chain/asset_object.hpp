@@ -253,6 +253,7 @@ namespace graphene { namespace chain {
 	   asset asset_orign;
 	   asset asset_target;
 	   asset asset_finished;
+	   fc::flat_set<transaction_id_type> records;
 	   bool finished;
    };
    struct by_feed_expiration;
@@ -341,5 +342,6 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
 		(asset_orign)
 		(asset_target)
 		(asset_finished)
+		(records)
 		(finished)
 	)

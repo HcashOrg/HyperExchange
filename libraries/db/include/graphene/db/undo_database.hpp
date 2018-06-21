@@ -25,19 +25,40 @@
 #include <graphene/db/object.hpp>
 #include <deque>
 #include <fc/exception/exception.hpp>
-
+#include <fstream>
+#include <map>
 namespace graphene { namespace db {
 
    using std::unordered_map;
    using fc::flat_set;
    class object_database;
-
+   struct serializable_obj
+   {
+       int s;
+       int t;
+       variant obj;
+       serializable_obj() {}
+       serializable_obj(const object& obj);
+       unique_ptr<object>  to_object() const;
+   };
+   struct serializable_undo_state
+   {
+       serializable_undo_state() {}
+       serializable_undo_state(const serializable_undo_state& sta);
+       unordered_map<object_id_type, serializable_obj > old_values;
+       unordered_map<object_id_type, object_id_type>      old_index_next_ids;
+       std::unordered_set<object_id_type>                 new_ids;
+       unordered_map<object_id_type, serializable_obj> removed;
+   };
    struct undo_state
    {
+       undo_state() {}
       unordered_map<object_id_type, unique_ptr<object> > old_values;
       unordered_map<object_id_type, object_id_type>      old_index_next_ids;
       std::unordered_set<object_id_type>                 new_ids;
       unordered_map<object_id_type, unique_ptr<object> > removed;
+      serializable_undo_state get_serializable_undo_state();
+      undo_state(const serializable_undo_state& sta);
    };
 
 
@@ -132,6 +153,8 @@ namespace graphene { namespace db {
 
          const undo_state& head()const;
 
+         void save_to_file(const fc::string& path);
+         void from_file(const fc::string& path);
       private:
          void undo();
          void merge();
@@ -145,3 +168,5 @@ namespace graphene { namespace db {
    };
 
 } } // graphene::db
+FC_REFLECT(graphene::db::serializable_obj, (s)(t)(obj))
+FC_REFLECT(graphene::db::serializable_undo_state,(old_values)(old_index_next_ids)(new_ids)(removed))
