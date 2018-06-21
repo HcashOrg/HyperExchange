@@ -793,7 +793,6 @@ public:
 		   fd->initialize_config(fc::json::from_string(config).get_object());
 		   auto wif_key = fd->create_normal_account("");
 		   FC_ASSERT(wif_key != "");
-
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(pk.valid());

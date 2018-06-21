@@ -99,6 +99,7 @@ void miner_plugin::plugin_set_program_options(
    chain_type.push_back("BTC");
    chain_type.push_back("LTC");
    chain_type.push_back("UB");
+   chain_type.push_back("HC");
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
