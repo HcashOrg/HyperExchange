@@ -32,7 +32,7 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/market_object.hpp>
-
+#include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/utilities/tempdir.hpp>
 
 #include <fc/crypto/digest.hpp>
@@ -159,11 +159,11 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	const auto& dgp = db.get_dynamic_global_properties();
 	int test_count = 10;
 	current_shuffled_miners.reserve(test_count);
-	vector< uint64_t > temp_witnesses_weight;
+	vector< boost::multiprecision::uint256_t > temp_witnesses_weight;
 	vector<miner_id_type> temp_active_witnesses;
-	uint64_t total_weight = 0;
-	auto caluate_slot = [&](vector<uint64_t> vec, int count, uint64_t value) {
-		uint64_t init = 0;
+	boost::multiprecision::uint256_t total_weight = 0;
+	auto caluate_slot = [&](vector<boost::multiprecision::uint256_t> vec, int count, boost::multiprecision::uint256_t value) {
+		boost::multiprecision::uint256_t init = 0;
 		for (int i = 0; i < count; ++i)
 		{
 			init = init + vec[i];  // or: init=binary_op(init,*first) for the binary_op version
@@ -176,8 +176,8 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 	for (const miner_id_type& w : gpo.active_witnesses)
 	{
 		const auto& witness_obj = w(db);
-		total_weight += witness_obj.pledge_weight.value * witness_obj.participation_rate / 100;
-		temp_witnesses_weight.push_back(witness_obj.pledge_weight.value * witness_obj.participation_rate / 100);
+		total_weight += boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(witness_obj.pledge_weight.hi)<<64+ witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100;
+		temp_witnesses_weight.push_back(boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(witness_obj.pledge_weight.hi) << 64 + witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100);
 		temp_active_witnesses.push_back(w);
 	}
 	fc::sha256 rand_seed;
@@ -192,17 +192,20 @@ BOOST_AUTO_TEST_CASE(update_witness_schedule)
 
 	for (uint32_t i = 0, x = 0; i < test_count; ++i)
 	{
-		uint64_t r = rand_seed._hash[x];
-		uint64_t j = (r % total_weight);
+
+		boost::multiprecision::uint256_t r(rand_seed._hash[0]) ;
+		for (int x = 1; x < 4; x++) {
+			r << 64;
+			r += rand_seed._hash[x];
+		}
+		boost::multiprecision::uint256_t j = (r % total_weight);
 		int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
 		current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 		total_weight -= temp_witnesses_weight[slot];
 		std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1-i]);
 		std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1-i]);
 
-		x = (x + 1) & 3;
-		if (x == 0)
-			rand_seed = fc::sha256::hash(rand_seed);
+		rand_seed = fc::sha256::hash(rand_seed);
 	}
 	vector<string> result_vec = { "init0","init5", "init2", "init3", "init1", "init7", "init9", "init4" , "init8" , "init6" };
 	int j = 0;

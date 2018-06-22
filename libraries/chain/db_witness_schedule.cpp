@@ -144,9 +144,9 @@ void database::pay_miner(const miner_id_type& miner_id)
 		auto miner_obj = get(miner_id);
 		//bonus to senators
 		auto committee_count = gpo.active_committee_members.size();
-		auto all_committee_paid = gpo.parameters.miner_pay_per_block *(GRAPHENE_GUARD_PAY_RATIO) / 100;
-		auto committee_pay = 0;
-		int64_t end_value = int64_t(all_committee_paid.value) / committee_count;
+		int64_t all_committee_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
+		int64_t committee_pay = 0;
+		int64_t end_value = int64_t(all_committee_paid) / committee_count;
 		for (int i = 0; i < committee_count - 1; i++) {
 			auto committe_obj = get(get(gpo.active_committee_members.at(i)).guard_member_account);
 			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)));
@@ -158,13 +158,13 @@ void database::pay_miner(const miner_id_type& miner_id)
 		if (cache_datas.count(miner_id) > 0)
 		{
 			auto& one_data = cache_datas[miner_id];
-			share_type all_pledge = miner_obj.pledge_weight;
-			auto all_paid = gpo.parameters.miner_pay_per_block *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
-			all_paid += _total_collected_fee;
+			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi) << 64 + miner_obj.pledge_weight.lo);
+			uint64_t all_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
+			all_paid += _total_collected_fee.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
-			auto pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
-			share_type all_pledge_paid = 0;
+			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
+			uint64_t all_pledge_paid = 0;
 			for (auto one_pledge : one_data)
 			{
 				
@@ -172,9 +172,9 @@ void database::pay_miner(const miner_id_type& miner_id)
 
 				if (one_pledge.lock_asset_id == asset_id_type(0))
 				{
-					boost::multiprecision::int128_t cal_end = one_pledge.lock_asset_amount.value;
-					boost::multiprecision::int128_t amount_cal_end = pledge_pay_amount.value * cal_end / all_pledge.value;
-					int64_t end_value = int64_t(amount_cal_end);
+					boost::multiprecision::uint256_t cal_end = one_pledge.lock_asset_amount.value;
+					boost::multiprecision::uint256_t amount_cal_end = boost::multiprecision::uint256_t(pledge_pay_amount) * cal_end / all_pledge;
+					uint64_t end_value = uint64_t(amount_cal_end);
 					all_pledge_paid += end_value;
 
 					//todo lock balance contract reward
@@ -187,12 +187,12 @@ void database::pay_miner(const miner_id_type& miner_id)
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
-					boost::multiprecision::int128_t cal_middle = boost::multiprecision::int128_t(one_pledge.lock_asset_amount.value) * boost::multiprecision::int128_t(price_obj.settlement_price.quote.amount.value);
-					boost::multiprecision::int128_t cal_end = cal_middle / boost::multiprecision::int128_t(price_obj.settlement_price.base.amount.value);
+					boost::multiprecision::uint256_t cal_middle = boost::multiprecision::uint256_t(one_pledge.lock_asset_amount.value) * boost::multiprecision::uint256_t(price_obj.settlement_price.quote.amount.value);
+					boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(price_obj.settlement_price.base.amount.value);
 					//end value
 
-					boost::multiprecision::int128_t amount_cal_end = pledge_pay_amount.value * cal_end / all_pledge.value;
-					int64_t end_value = int64_t(amount_cal_end);
+					boost::multiprecision::uint256_t amount_cal_end = boost::multiprecision::uint256_t( pledge_pay_amount) * cal_end / all_pledge;
+					uint64_t end_value = uint64_t(amount_cal_end);
 					all_pledge_paid += end_value;
 					if (one_pledge.lock_balance_contract_addr != address())
 					{
@@ -210,8 +210,8 @@ void database::pay_miner(const miner_id_type& miner_id)
 		else
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
-			auto all_paid = gpo.parameters.miner_pay_per_block;
-			all_paid += _total_collected_fee;
+			auto all_paid = gpo.parameters.miner_pay_per_block.value;
+			all_paid += _total_collected_fee.value;
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
 		}
 		
@@ -226,8 +226,8 @@ void database::update_miner_schedule()
 	const global_property_object& gpo = get_global_properties();
 	const auto& dgp = get_dynamic_global_properties();
 	
-	auto caluate_slot = [&](vector<fc::uint128_t> vec,int count, fc::uint128_t value) {
-		fc::uint128_t init = 0;
+	auto caluate_slot = [&](vector<boost::multiprecision::uint256_t> vec,int count, boost::multiprecision::uint256_t value) {
+		boost::multiprecision::uint256_t init = 0;
 		for (int i = 0; i < count; ++i)
 		{
 			init = init + vec[i];  // or: init=binary_op(init,*first) for the binary_op version
@@ -258,7 +258,7 @@ void database::update_miner_schedule()
 						{
 							if (one_lock_balance.second.amount.value > 0)
 							{
-								miner_obj.pledge_weight += one_lock_balance.second.amount;
+								miner_obj.pledge_weight += fc::uint128_t( one_lock_balance.second.amount.value);
 							}
 							
 							continue;
@@ -267,10 +267,10 @@ void database::update_miner_schedule()
 							continue;
 						//calculate asset weight
 						{
-							boost::multiprecision::int128_t cal_middle = boost::multiprecision::int128_t(one_lock_balance.second.amount.value) * boost::multiprecision::int128_t(asset_obj.current_feed.settlement_price.quote.amount.value);
-							boost::multiprecision::int128_t cal_end = cal_middle / boost::multiprecision::int128_t(asset_obj.current_feed.settlement_price.base.amount.value);
-							int64_t end_value = int64_t(cal_end);
-							miner_obj.pledge_weight += end_value;
+							boost::multiprecision::uint256_t cal_middle = boost::multiprecision::uint256_t(one_lock_balance.second.amount.value) * boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.quote.amount.value);
+							boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.base.amount.value);
+							fc::uint128_t tran_end =fc::uint128_t( boost::multiprecision::uint128_t(cal_end).str());
+							miner_obj.pledge_weight += tran_end;
 						}
 					}
 				});
@@ -285,14 +285,14 @@ void database::update_miner_schedule()
 			{
 				_wso.current_shuffled_miners.clear();
 				_wso.current_shuffled_miners.reserve(GRAPHENE_PRODUCT_PER_ROUND);
-				vector< fc::uint128_t > temp_witnesses_weight;
+				vector< boost::multiprecision::uint256_t > temp_witnesses_weight;
 				vector<miner_id_type> temp_active_witnesses;
-				fc::uint128_t total_weight = 0;
+				boost::multiprecision::uint256_t total_weight = 0;
 				for (const miner_id_type& w : gpo.active_witnesses)
 				{
 					const auto& witness_obj = w(*this);
-					total_weight += witness_obj.pledge_weight.value * witness_obj.participation_rate / 100;
-					temp_witnesses_weight.push_back(witness_obj.pledge_weight.value * witness_obj.participation_rate / 100);
+					total_weight += boost::multiprecision::uint256_t(boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi) << 64 + witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100;
+					temp_witnesses_weight.push_back(boost::multiprecision::uint256_t(boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi) << 64 + witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100);
 					temp_active_witnesses.push_back(w);
 				}
 				fc::sha256 rand_seed;
@@ -302,17 +302,19 @@ void database::update_miner_schedule()
 					rand_seed = fc::sha256::hash(SecretHashType());
 				for (uint32_t i = 0, x = 0; i < GRAPHENE_PRODUCT_PER_ROUND; ++i)
 				{
-					fc::uint128_t r = rand_seed._hash[x];
-					fc::uint128_t j = (r % total_weight);
+					boost::multiprecision::uint256_t r(rand_seed._hash[0]);
+					for (int x = 1; x < 4; x++) {
+						r << 64;
+						r += rand_seed._hash[x];
+					}
+					boost::multiprecision::uint256_t j = (r % total_weight);
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
 					_wso.current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
 					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i ]);
 					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1 - i]);
 
-					x = (x + 1) & 3;
-					if (x == 0)
-						rand_seed = fc::sha256::hash(rand_seed);
+					rand_seed = fc::sha256::hash(rand_seed);
 				}
 
 
