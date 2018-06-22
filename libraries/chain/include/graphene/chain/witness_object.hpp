@@ -26,6 +26,7 @@
 #include <graphene/db/object.hpp>
 #include <graphene/db/generic_index.hpp>
 #include <map>
+#include <boost/multiprecision/cpp_int.hpp>
 namespace graphene { namespace chain {
    using namespace graphene::db;
 
@@ -50,7 +51,7 @@ namespace graphene { namespace chain {
          uint32_t         last_confirmed_block_num = 0;
 		 //std::map<string, vector<asset>> lockbalance;
 		 std::map<string,asset> lockbalance_total;
-		 share_type       pledge_weight = 100;
+		 fc::uint128_t       pledge_weight =  100;
 		 uint8_t		  participation_rate = 100;
 		 
 

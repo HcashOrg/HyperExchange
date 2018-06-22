@@ -40,6 +40,7 @@
 #include <graphene/chain/protocol/protocol.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <fc/log/logger.hpp>
+#include <fc/uint128.hpp>
 
 #include <map>
 
@@ -522,7 +523,7 @@ namespace graphene { namespace chain {
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
 		 template<class Index>
-		 vector<std::reference_wrapper<const typename Index::object_type>> sort_pledge_objects(uint64_t min_pledge) const;
+		 vector<std::reference_wrapper<const typename Index::object_type>> sort_pledge_objects(fc::uint128_t min_pledge) const;
 
          //////////////////// db_block.cpp ////////////////////
 

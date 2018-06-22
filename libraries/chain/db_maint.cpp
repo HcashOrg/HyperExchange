@@ -44,17 +44,18 @@
 #include <graphene/chain/vote_count.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/worker_object.hpp>
+#include <fc/uint128.hpp>
 
 namespace graphene { namespace chain {
 
 
 
 template<class Index>
-vector<std::reference_wrapper<const typename Index::object_type>> database::sort_pledge_objects(uint64_t min_pledge) const
+vector<std::reference_wrapper<const typename Index::object_type>> database::sort_pledge_objects(fc::uint128_t min_pledge) const
 {
 	using ObjectType = typename Index::object_type;
 	const auto& all_objects = get_index_type<Index>().indices();
-	min_pledge = std::max(min_pledge, uint64_t(GRAPHENE_MIN_PLEDGE_WEIGHT_LINE));
+	min_pledge = std::max(min_pledge,fc::uint128_t(GRAPHENE_MIN_PLEDGE_WEIGHT_LINE));
 	
 	vector<std::reference_wrapper<const ObjectType>> refs;
 	refs.reserve(all_objects.size());
@@ -64,8 +65,8 @@ vector<std::reference_wrapper<const typename Index::object_type>> database::sort
 		[](const ObjectType& o) { return std::cref(o); });
 	std::sort(refs.begin(), refs.end(),
 		[this](const ObjectType& a, const ObjectType& b)->bool {
-		share_type oa_pledge = a.pledge_weight;
-		share_type ob_pledge = _vote_tally_buffer[b.vote_id];
+		fc::uint128_t oa_pledge = a.pledge_weight;
+		fc::uint128_t ob_pledge = _vote_tally_buffer[b.vote_id];
 		if (a.pledge_weight != b.pledge_weight)
 			return a.pledge_weight > b.pledge_weight;
 		return a.pledge_weight < b.pledge_weight;

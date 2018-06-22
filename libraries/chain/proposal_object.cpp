@@ -25,6 +25,7 @@
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/witness_object.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 namespace graphene { namespace chain {
 
 bool proposal_object::is_authorized_to_execute(database& db) const
@@ -38,21 +39,21 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 		   return approved_key_approvals.size() >= size_t(std::ceil(double(required_account_approvals.size())*1.0/3.0));
 	   auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
 	   auto& account_idx = db.get_index_type<account_index>().indices().get<by_address>();
-	   uint64_t total_weights = 0;
-	   uint64_t approved_key_weights = 0;
+	   boost::multiprecision::uint256_t total_weights = 0;
+	   boost::multiprecision::uint256_t approved_key_weights = 0;
 	   for (auto acc : required_account_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   total_weights += iter->pledge_weight.value;
+		   total_weights += boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(iter->pledge_weight.hi)<<64+iter->pledge_weight.lo);
 	   }
 	   
 	   for (auto acc : approved_key_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   approved_key_weights += iter->pledge_weight.value;
+		   approved_key_weights += boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(iter->pledge_weight.hi) << 64 + iter->pledge_weight.lo);
 	   }
 
-	   return approved_key_weights >= uint64_t(std::ceil(double(total_weights) * 2.0 / 3.0));
+	   return approved_key_weights >= (total_weights/3*2);
    } 
    catch ( const fc::exception& e )
    {
