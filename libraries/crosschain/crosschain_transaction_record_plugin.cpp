@@ -23,6 +23,10 @@ namespace graphene {
 				for (const auto& asset_symbol : _asset_symbols) {
 					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 					auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
+					if (hdl == nullptr)
+					{
+						continue;
+					}
 					//TODO:Change Magic Num to Macro
 					std::string multi_sign_account;
 					uint32_t return_block_num;

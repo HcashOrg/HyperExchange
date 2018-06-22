@@ -64,13 +64,13 @@ namespace graphene {
 		struct contract_invoke_result
 		{
 			std::string api_result;
-			std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
+			std::map<std::string, contract_storage_changes_type, std::less<std::string>> storage_changes;
 				
 			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_withdraw;
 			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> contract_balances;
 			std::map<std::pair<address, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_to_address;
 			std::map<std::pair<contract_address_type, asset_id_type>, share_type, comparator_for_contract_invoke_result_balance> deposit_contract;
-            std::map<asset_id_type,share_type> transfer_fees;
+            std::map<asset_id_type,share_type, std::less<asset_id_type>> transfer_fees;
 			std::vector<contract_event_notify_info> events;
             bool exec_succeed = true;
             share_type acctual_fee;
