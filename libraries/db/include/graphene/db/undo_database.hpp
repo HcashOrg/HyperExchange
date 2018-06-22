@@ -155,6 +155,7 @@ namespace graphene { namespace db {
 
          void save_to_file(const fc::string& path);
          void from_file(const fc::string& path);
+         void reset();
       private:
          void undo();
          void merge();

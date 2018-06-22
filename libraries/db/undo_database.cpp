@@ -328,6 +328,10 @@ const undo_state& undo_database::head()const
     fc::json::save_to_file(out_stack, path);
 }
 
+ void undo_database::reset()
+ {
+     _stack.clear();
+ }
  void undo_database::from_file(const fc::string & path)
 {
     std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
