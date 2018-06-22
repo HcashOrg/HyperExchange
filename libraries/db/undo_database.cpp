@@ -55,7 +55,7 @@
 #include <graphene/chain/special_authority_object.hpp>
 #include <graphene/chain/buyback_object.hpp>
 #include <graphene/chain/fba_object.hpp>
-
+#include <iostream>
 namespace graphene { namespace db {
     using namespace graphene::chain;
 void undo_database::enable()  { _disabled = false; }
@@ -325,7 +325,8 @@ const undo_state& undo_database::head()const
     {
         out_stack.push_back(item.get_serializable_undo_state());
     }
-    fc::json::save_to_file(out_stack, path);
+    if(out_stack.size()>0)
+        fc::json::save_to_file(out_stack, path);
 }
 
  void undo_database::reset()
@@ -334,25 +335,30 @@ const undo_state& undo_database::head()const
  }
  void undo_database::from_file(const fc::string & path)
 {
-    std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
-    _stack.resize(out_stack.size());
-    int num = 0;
-    for (auto i : out_stack)
-    {
+     try {
+         std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
+         _stack.resize(out_stack.size());
+         int num = 0;
+         for (auto i : out_stack)
+         {
 
-            for (auto it = i.old_values.begin(); it != i.old_values.end(); it++)
-            {
-                _stack[num].old_values[it->first] = it->second.to_object();
-            }
-            _stack[num].old_index_next_ids = i.old_index_next_ids;
-            _stack[num].new_ids = i.new_ids;
-            for (auto it = i.removed.begin(); it != i.removed.end(); it++)
-            {
-                _stack[num].old_values[it->first] = it->second.to_object();
-            }
-            num++;
-    }
-    _max_size = _stack.size() + 100;
+             for (auto it = i.old_values.begin(); it != i.old_values.end(); it++)
+             {
+                 _stack[num].old_values[it->first] = it->second.to_object();
+             }
+             _stack[num].old_index_next_ids = i.old_index_next_ids;
+             _stack[num].new_ids = i.new_ids;
+             for (auto it = i.removed.begin(); it != i.removed.end(); it++)
+             {
+                 _stack[num].old_values[it->first] = it->second.to_object();
+             }
+             num++;
+         }
+         _max_size = _stack.size() + 100;
+     }catch(...)
+     {
+
+     }
 }
 
 inline serializable_undo_state undo_state::get_serializable_undo_state()
