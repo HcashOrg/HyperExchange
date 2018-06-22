@@ -23,6 +23,7 @@
  */
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/pts_address.hpp>
+#include <graphene/utilities/hash.hpp>
 
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/elliptic.hpp>
@@ -85,6 +86,61 @@ namespace graphene { namespace chain {
         return fc::to_base58( addr.data, sizeof(addr) );
    }
 
+   pts_address_extra::pts_address_extra()
+   {
+	   memset(addr.data, 0, sizeof(addr.data));
+   }
+   pts_address_extra::pts_address_extra(const std::string& base58str)
+   {
+	   std::vector<char> v = fc::from_base58(fc::string(base58str));
+	   if (v.size())
+		   memcpy(addr.data, v.data(), std::min<size_t>(v.size(), sizeof(addr)));
+
+	   if (!is_valid())
+	   {
+		   FC_THROW_EXCEPTION(invalid_pts_address, "invalid pts_address_extra ${a}", ("a", base58str));
+	   }
+   }
+
+   pts_address_extra::pts_address_extra(const fc::ecc::public_key& pub, bool compressed, uint16_t version)
+   {
+	   uint256 digest;
+	   if (compressed)
+	   {
+		   auto dat = pub.serialize();
+
+		   digest = HashR14(dat.data, dat.data+sizeof(dat));
+	   }
+	   else
+	   {
+		   auto dat = pub.serialize_ecc_point();
+		   digest = HashR14(dat.data, dat.data + sizeof(dat));
+	   }
+	   auto rep = fc::ripemd160::hash((char*)&digest, sizeof(digest));
+	   addr.data[0] = char(version >> 8);
+	   addr.data[1] = (char)version;
+	   memcpy(addr.data + 2, (char*)&rep, sizeof(rep));
+	   auto check = HashR14(addr.data, addr.data + sizeof(rep) + 2);
+	   check = HashR14((char*)&check, (char*)&check + sizeof(check));
+	   memcpy(addr.data + 2 + sizeof(rep), (char*)&check, 4);
+   }
+
+   /**
+   *  Checks the address to verify it has a
+   *  valid checksum
+   */
+   bool pts_address_extra::is_valid()const
+   {
+	   auto check = HashR14(addr.data, addr.data + sizeof(fc::ripemd160) + 2);
+	   check = HashR14((char*)&check, (char*)&check + sizeof(check));
+	   return memcmp(addr.data + 2 + sizeof(fc::ripemd160), (char*)&check, 4) == 0;
+   }
+
+   pts_address_extra::operator std::string()const
+   {
+	   return fc::to_base58(addr.data, sizeof(addr));
+   }
+
 } } // namespace graphene
 
 namespace fc
@@ -96,5 +152,13 @@ namespace fc
    void from_variant( const variant& var,  graphene::chain::pts_address& vo )
    {
         vo = graphene::chain::pts_address( var.as_string() );
+   }
+   void to_variant(const graphene::chain::pts_address_extra& var, variant& vo)
+   {
+	   vo = std::string(var);
+   }
+   void from_variant(const variant& var, graphene::chain::pts_address_extra& vo)
+   {
+	   vo = graphene::chain::pts_address_extra(var.as_string());
    }
 }

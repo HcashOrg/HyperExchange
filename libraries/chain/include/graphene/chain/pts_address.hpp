@@ -25,6 +25,7 @@
 
 #include <fc/array.hpp>
 #include <string>
+#include <iostream>
 
 namespace fc { namespace ecc { class public_key; } }
 
@@ -50,7 +51,26 @@ namespace graphene { namespace chain {
    inline bool operator == ( const pts_address& a, const pts_address& b ) { return a.addr == b.addr; }
    inline bool operator != ( const pts_address& a, const pts_address& b ) { return a.addr != b.addr; }
    inline bool operator <  ( const pts_address& a, const pts_address& b ) { return a.addr <  b.addr; }
+   struct pts_address_extra {
+	   pts_address_extra(); ///< constructs empty / null address
+	   pts_address_extra(const std::string& base58str);   ///< converts to binary, validates checksum
+	   pts_address_extra(const fc::ecc::public_key& pub, bool compressed = true, uint16_t version = 56); ///< converts to binary
+	   uint16_t version()const { 
+		   uint16_t version;
+		   version = addr.at(0);
+		   version = (version << 8) + addr.at(1);
+		   std::cout << "pts address extra "<<version << std::endl;
+		   return version;
+	   }
+	   bool is_valid()const;
 
+	   operator std::string()const; ///< converts to base58 + checksum
+
+	   fc::array<char, 26> addr; ///< binary representation of address
+   };
+   inline bool operator == (const pts_address_extra& a, const pts_address_extra& b) { return a.addr == b.addr; }
+   inline bool operator != (const pts_address_extra& a, const pts_address_extra& b) { return a.addr != b.addr; }
+   inline bool operator <  (const pts_address_extra& a, const pts_address_extra& b) { return a.addr < b.addr; }
 } } // namespace graphene::chain
 
 namespace std
@@ -66,13 +86,26 @@ namespace std
             return s;
          }
    };
+   template<>
+   struct hash<graphene::chain::pts_address_extra>
+   {
+   public:
+	   size_t operator()(const graphene::chain::pts_address_extra &a) const
+	   {
+		   size_t s;
+		   memcpy((char*)&s, &a.addr.data[sizeof(a) - sizeof(s)], sizeof(s));
+		   return s;
+	   }
+   };
 }
 
 #include <fc/reflect/reflect.hpp>
 FC_REFLECT( graphene::chain::pts_address, (addr) )
-
+FC_REFLECT(graphene::chain::pts_address_extra, (addr))
 namespace fc 
 { 
    void to_variant( const graphene::chain::pts_address& var,  fc::variant& vo );
    void from_variant( const fc::variant& var,  graphene::chain::pts_address& vo );
+   void to_variant(const graphene::chain::pts_address_extra& var, fc::variant& vo);
+   void from_variant(const fc::variant& var, graphene::chain::pts_address_extra& vo);
 }

@@ -1231,6 +1231,7 @@ namespace graphene {
 				 if (unspent_fee != 0)
 				 {
 					 auto guarantee_obj = get_db().get(*get_guarantee_id());
+					 GRAPHENE_ASSERT(guarantee_obj.finished == false, guarantee_order_finished, "guarantee order has been finished", ("guarantee_id", guarantee_obj.id));
 					 price p(guarantee_obj.asset_orign, guarantee_obj.asset_target);
 					 auto unspent = asset(unspent_fee, asset_id_type());
 					 auto unspent_to_return = unspent * p;

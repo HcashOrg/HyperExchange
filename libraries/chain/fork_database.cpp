@@ -142,6 +142,7 @@ void fork_database::save_to_file(const fc::string& path)
     if(da.items.size()>0&& _head)
         fc::json::save_to_file(da, path);
 }
+
 void fork_database::from_file(const fc::string& path)
 {
     try {

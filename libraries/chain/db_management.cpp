@@ -63,7 +63,11 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    const auto last_block_num = last_block->block_num();
 
    ilog( "Replaying blocks..." );
-   _undo_db.disable();
+   //_undo_db.reset();
+   _undo_db.set_max_size(1440);
+   _undo_db.disable(); 
+   _fork_db.set_max_size(1440);
+   _fork_db.reset();
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
       if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
@@ -87,6 +91,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
          wlog( "Dropped ${n} blocks from after the gap", ("n", dropped_count) );
          break;
       }
+      _fork_db.push_block(*block);
       apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |
                           skip_transaction_dupe_check |
