@@ -142,11 +142,24 @@ void database::pay_miner(const miner_id_type& miner_id)
 
 		auto cache_datas = dgp.current_round_lockbalance_cache;
 		auto miner_obj = get(miner_id);
+		//bonus to senators
+		auto committee_count = gpo.active_committee_members.size();
+		auto all_committee_paid = gpo.parameters.miner_pay_per_block *(GRAPHENE_GUARD_PAY_RATIO) / 100;
+		auto committee_pay = 0;
+		int64_t end_value = int64_t(all_committee_paid.value) / committee_count;
+		for (int i = 0; i < committee_count - 1; i++) {
+			auto committe_obj = get(get(gpo.active_committee_members.at(i)).guard_member_account);
+			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)));
+			committee_pay += end_value;
+		}
+		auto committe_obj = get(get(gpo.active_committee_members.at(committee_count-1)).guard_member_account);
+		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)));
+
 		if (cache_datas.count(miner_id) > 0)
 		{
 			auto& one_data = cache_datas[miner_id];
 			share_type all_pledge = miner_obj.pledge_weight;
-			auto all_paid = gpo.parameters.miner_pay_per_block;
+			auto all_paid = gpo.parameters.miner_pay_per_block *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
 			all_paid += _total_collected_fee;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
