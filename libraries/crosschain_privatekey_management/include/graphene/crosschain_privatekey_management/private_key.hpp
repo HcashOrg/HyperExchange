@@ -131,6 +131,7 @@ namespace graphene {
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
 			virtual std::string  sign_trx(const std::string& raw_trx, int index);
+			virtual bool validate_address(const std::string& addr);
 		private:
 			void init();
 			

@@ -651,44 +651,6 @@ namespace graphene { namespace privatekey_management {
 		w.write_4_bytes_little_endian(version_prefix);
 		input_todata(source, w);
 		output_todata(source, w);
-		/*auto InputCount = source.read_size_little_endian();
-		w.write_size_little_endian(uint64_t(InputCount));
-		std::cout << InputCount << std::endl;
-		std::vector<TxIn> tx_ins;
-		tx_ins.reserve(InputCount);
-		for (int i = 0; i < InputCount; ++i) {
-			TxIn temp;
-			temp.PreviousOutPoint.Hash = source.read_hash();
-			
-			temp.PreviousOutPoint.Index = source.read_4_bytes_little_endian();
-			temp.PreviousOutPoint.Tree = source.read_size_little_endian();
-			w.write_hash(temp.PreviousOutPoint.Hash);
-			w.write_4_bytes_little_endian(temp.PreviousOutPoint.Index);
-			w.write_size_little_endian(temp.PreviousOutPoint.Tree);
-			temp.Sequence = source.read_4_bytes_little_endian();
-			w.write_4_bytes_little_endian(temp.Sequence);
-			tx_ins.push_back(temp);
-		}*/
-		/*
-		auto OutputCount = source.read_size_little_endian();
-		w.write_size_little_endian((uint64_t)OutputCount);
-		std::vector<TxOut> tx_outs;
-		tx_outs.reserve(OutputCount);
-		std::cout << (int)OutputCount << std::endl;
-		for (int i = 0; i < OutputCount; ++i) {
-			TxOut temp;
-			temp.Value = source.read_8_bytes_little_endian();
-			temp.Version = source.read_2_bytes_little_endian();
-			auto output_count = source.read_size_little_endian();
-			temp.PkScript = source.read_bytes(output_count);
-			w.write_8_bytes_little_endian(temp.Value);
-			w.write_2_bytes_little_endian(temp.Version);
-			w.write_size_little_endian(output_count);
-			w.write_bytes(temp.PkScript);
-			std::cout << temp.PkScript.size() << "-" << output_count;
-			tx_outs.push_back(temp);
-		}
-		*/
 		uint32_t locktime = source.read_4_bytes_little_endian();
 		uint32_t expir = source.read_4_bytes_little_endian();
 		w.write_4_bytes_little_endian(locktime);
@@ -701,26 +663,6 @@ namespace graphene { namespace privatekey_management {
 		libbitcoin::ostream_writer w2(ostream2);
 		w2.write_4_bytes_little_endian(version_witness);
 		witness_todata(source, w2, libbitcoin_script, vin_index, true);
-		/*
-		auto witness_count = source.read_size_little_endian();
-		w2.write_size_little_endian(witness_count);
-		for (int i = 0; i < (int)witness_count; ++i) {
-			tx_ins[i].ValueIn = source.read_8_bytes_little_endian();
-			tx_ins[i].BlockHeight = source.read_4_bytes_little_endian();
-			tx_ins[i].BlockIndex = source.read_4_bytes_little_endian();
-			auto signtureCount = source.read_size_little_endian();
-			std::cout << signtureCount << std::endl;
-			tx_ins[i].SignatureScript = source.read_bytes(signtureCount);
-			std::cout << tx_ins[i].SignatureScript.size() << "-" << signtureCount<<std::endl;
-			if (i == vin_index) {
-				w2.write_size_little_endian(libbitcoin_script.to_data(false).size());
-				w2.write_bytes(libbitcoin_script.to_data(false));
-			}
-			else {
-				w2.write_size_little_endian(uint8_t(0));
-			}
-			
-		}*/
 		FC_ASSERT((!source) == 0, "hc source not handle");
 		//std::cout << !source << std::endl;
 		ostream2.flush();
@@ -946,69 +888,13 @@ namespace graphene { namespace privatekey_management {
 		w.write_4_bytes_little_endian(versiona);
 		input_todata(source, w);
 		output_todata(source, w);
-		/*
-		auto InputCount = source.read_size_little_endian();
-		w.write_size_little_endian(uint64_t(InputCount));
-		std::vector<TxIn> tx_ins;
-		tx_ins.reserve(InputCount);
-		for (int i = 0; i < InputCount; ++i) {
-			TxIn temp;
-			temp.PreviousOutPoint.Hash = source.read_hash();
-			temp.PreviousOutPoint.Index = source.read_4_bytes_little_endian();
-			temp.PreviousOutPoint.Tree = source.read_size_little_endian();
-			w.write_hash(temp.PreviousOutPoint.Hash);
-			w.write_4_bytes_little_endian(temp.PreviousOutPoint.Index);
-			w.write_size_little_endian(temp.PreviousOutPoint.Tree);
-			temp.Sequence = source.read_4_bytes_little_endian();
-			w.write_4_bytes_little_endian(temp.Sequence);
-			tx_ins.push_back(temp);
-		}
-		auto OutputCount = source.read_size_little_endian();
-		w.write_size_little_endian((uint64_t)OutputCount);
-		std::vector<TxOut> tx_outs;
-		tx_outs.reserve(OutputCount);
-		std::cout << (int)OutputCount << std::endl;
-		for (int i = 0; i < OutputCount; ++i) {
-			TxOut temp;
-			temp.Value = source.read_8_bytes_little_endian();
-			temp.Version = source.read_2_bytes_little_endian();
-			auto output_count = source.read_size_little_endian();
-			temp.PkScript = source.read_bytes(output_count);
-			w.write_8_bytes_little_endian(temp.Value);
-			w.write_2_bytes_little_endian(temp.Version);
-			w.write_size_little_endian(output_count);
-			w.write_bytes(temp.PkScript);
-			std::cout << temp.PkScript.size() << "-" << output_count;
-			tx_outs.push_back(temp);
-		}*/
+		
 		uint32_t locktime = source.read_4_bytes_little_endian();
 		uint32_t expir = source.read_4_bytes_little_endian();
 		w.write_4_bytes_little_endian(locktime);
 		w.write_4_bytes_little_endian(expir);
 		witness_todata(source, w, libbitcoin_script, vin_index);
-		/*
-		auto witness_count = source.read_size_little_endian();
-		w.write_size_little_endian(witness_count);
-		for (int i = 0; i < (int)witness_count; ++i) {
-			tx_ins[i].ValueIn = source.read_8_bytes_little_endian();
-			tx_ins[i].BlockHeight = source.read_4_bytes_little_endian();
-			tx_ins[i].BlockIndex = source.read_4_bytes_little_endian();
-			w.write_8_bytes_little_endian(tx_ins[i].ValueIn);
-			w.write_4_bytes_little_endian(tx_ins[i].BlockHeight);
-			w.write_4_bytes_little_endian(tx_ins[i].BlockIndex);
-			auto signtureCount = source.read_size_little_endian();
-			std::cout << signtureCount << std::endl;
-			tx_ins[i].SignatureScript = source.read_bytes(signtureCount);
-			std::cout << tx_ins[i].SignatureScript.size() << "-" << signtureCount << std::endl;
-			if (i == vin_index) {
-				w.write_size_little_endian(libbitcoin_script.to_data(false).size());
-				w.write_bytes(libbitcoin_script.to_data(false));
-			}
-			else {
-				w.write_size_little_endian(0);
-			}
 
-		}*/
 		FC_ASSERT((!source) == 0, "hc source not handle");
 		//std::cout << !source << std::endl;
 		ostream.flush();
@@ -1043,7 +929,7 @@ namespace graphene { namespace privatekey_management {
 		//ops.push_back(libbitcoin::machine::opcode::codeseparator);
 		ops.push_back(libbitcoin::machine::opcode::dup);
 		ops.push_back(libbitcoin::machine::opcode::hash160);
-		ops.push_back(libbitcoin::machine::opcode::push_size_20);
+		//ops.push_back(libbitcoin::machine::opcode::push_size_20);
 		libbitcoin::data_chunk pk;
 		for (int i =0;i < rep.data_size();i++){
 			pk.push_back(*(rep.data()+i));
@@ -1054,6 +940,7 @@ namespace graphene { namespace privatekey_management {
 		ops.push_back(libbitcoin::machine::opcode::checksig);
 		return libbitcoin::chain::script(std::move(ops));
 	}
+
 	std::string hc_privatekey::sign_trx(const std::string& raw_trx, int index)
 	{
 		//libbitcoin::wallet::ec_private libbitcoin_priv(get_wif_key());
@@ -1116,6 +1003,16 @@ namespace graphene { namespace privatekey_management {
 		trx.inputs()[index].set_script(libbitcoin_script);
 		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());*/
 		return signed_trx;
+	}
+	bool hc_privatekey::validate_address(const std::string& addr) {
+		try {
+			graphene::chain::pts_address_extra pts(addr);
+			//return pts.is_valid() && pts.version() == get_pubkey_prefix();
+			return pts.is_valid();
+		}
+		catch (fc::exception& e) {
+			return false;
+		}
 	}
 	crosschain_management::crosschain_management()
 	{
