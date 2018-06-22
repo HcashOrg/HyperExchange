@@ -193,6 +193,7 @@ namespace graphene {
 				{
 					//we need to pay by gurantee
 					auto guarantee_obj = db_get_guarantee(*op.get_guarantee_id());
+					GRAPHENE_ASSERT(guarantee_obj.finished == false,guarantee_order_finished ,"guarantee order has been finished",("guarantee_id", guarantee_obj.id));
 					price p(guarantee_obj.asset_orign,guarantee_obj.asset_target);
 					auto fee_need_pay = fee_from_account * p;
 					db_adjust_balance(op.fee_payer(), -fee_need_pay);
