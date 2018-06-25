@@ -141,7 +141,7 @@ namespace graphene {
 			// bytes size fee
             core_fee_required += count_contract_register_fee(contract_code);//calculate_data_fee(fc::raw::pack_size(contract_code), schedule.price_per_kbyte);
             core_fee_required += count_gas_fee(gas_price, init_cost);
-			return core_fee_required;
+			return core_fee_required+schedule.fee;
 		}
 
         contract_address_type contract_register_operation::calculate_contract_id() const
@@ -181,7 +181,7 @@ namespace graphene {
 		{
 			// base fee
 			share_type core_fee_required =  count_gas_fee(gas_price, invoke_cost);
-			return core_fee_required;
+			return core_fee_required+schedule.fee;
 		}
 
         bool contract_upgrade_operation::contract_name_check(const string & contract_name)
@@ -217,7 +217,7 @@ namespace graphene {
 		{
 			// base fee
 			share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
-			return core_fee_required;
+			return core_fee_required + schedule.fee;
 		}
 
         void            transfer_contract_operation::validate()const
@@ -233,7 +233,7 @@ namespace graphene {
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const
         {
             share_type core_fee_required = count_gas_fee(gas_price, invoke_cost);
-            return core_fee_required;
+            return core_fee_required+schedule.fee;
         }
 
 		int ContractHelper::common_fread_int(FILE* fp, int* dst_int)
