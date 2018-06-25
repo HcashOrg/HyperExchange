@@ -410,6 +410,7 @@ namespace graphene { namespace chain {
 	   extensions_type        extensions;
 
 	   address fee_payer()const { return publisher_addr; }
+	   share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   void            validate()const;
 	   void get_required_authorities(vector<authority>& a)const {
 		   a.push_back(authority(1, publisher_addr, 1));

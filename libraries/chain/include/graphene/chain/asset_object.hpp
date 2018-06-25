@@ -329,6 +329,7 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
                     (options)
                     (dynamic_asset_data_id)
 					(feeds)
+	                (publishers)
 					(current_feed)
 					(current_feed_publication_time)
                     (bitasset_data_id)
