@@ -107,10 +107,10 @@ namespace graphene { namespace privatekey_management {
 	void btc_privatekey::init()
 	{
 		set_id(0);
-		//set_pubkey_prefix(0x6F);
-		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x0);
-		set_privkey_prefix(0x80);
+		set_pubkey_prefix(0x6F);
+		set_privkey_prefix(0xEF);
+		//set_pubkey_prefix(0x0);
+		//set_privkey_prefix(0x80);
 	}
 
 
@@ -203,10 +203,10 @@ namespace graphene { namespace privatekey_management {
 	void ltc_privatekey::init()
 	{
 		set_id(0);
-		//set_pubkey_prefix(0x6F);
-		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x30);
-		set_privkey_prefix(0xB0);
+		set_pubkey_prefix(0x6F);
+		set_privkey_prefix(0xEF);
+		//set_pubkey_prefix(0x30);
+		//set_privkey_prefix(0xB0);
 	}
 
 	std::string  ltc_privatekey::get_wif_key()
@@ -642,7 +642,7 @@ namespace graphene { namespace privatekey_management {
 		//const auto stripped = strip_code_seperators(libbitcoin_script);
 		libbitcoin::chain::transaction  trx;
 		libbitcoin::data_chunk aa = libbitcoin::config::base16(raw_trx);
-		libbitcoin::data_source va = aa;
+		libbitcoin::data_source va(aa);
 		libbitcoin::istream_reader source(va);
 		//拆分现有交易
 		uint32_t versiona = source.read_4_bytes_little_endian();
@@ -881,7 +881,7 @@ namespace graphene { namespace privatekey_management {
 		//const auto stripped = strip_code_seperators(libbitcoin_script);
 		libbitcoin::chain::transaction  trx;
 		libbitcoin::data_chunk aa = libbitcoin::config::base16(raw_trx);
-		libbitcoin::data_source va = aa;
+		libbitcoin::data_source va(aa);
 		libbitcoin::istream_reader source(va);
 
 		uint32_t versiona = source.read_4_bytes_little_endian();
@@ -974,7 +974,7 @@ namespace graphene { namespace privatekey_management {
 		libbitcoin::ostream_writer w(ostream);
 		libbitcoin::chain::transaction  trx;
 		libbitcoin::data_chunk aa = libbitcoin::config::base16(raw_trx);
-		libbitcoin::data_source va = aa;
+		libbitcoin::data_source va(aa);
 		libbitcoin::istream_reader source(va);
 		libbitcoin::wallet::ec_public libbitcoin_pub = libbitcoin_priv.to_public();
 		std::string pub_hex = libbitcoin_pub.encoded();
