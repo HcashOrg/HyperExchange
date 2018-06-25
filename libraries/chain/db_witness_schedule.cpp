@@ -172,7 +172,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
 			all_pledge <<= 64;
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
-			uint64_t all_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
+			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
 			all_paid += _total_collected_fee.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
