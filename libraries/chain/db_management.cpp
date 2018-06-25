@@ -65,9 +65,10 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    ilog( "Replaying blocks..." );
    //_undo_db.reset();
    _undo_db.set_max_size(1440);
-   _undo_db.disable(); 
+   _undo_db.enable();
    _fork_db.set_max_size(1440);
    _fork_db.reset();
+   _undo_db.reset();
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
       if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
@@ -92,14 +93,15 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
          break;
       }
       _fork_db.push_block(*block);
+	  auto session=_undo_db.start_undo_session();
       apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |
                           skip_transaction_dupe_check |
                           skip_tapos_check |
                           skip_witness_schedule_check |
                           skip_authority_check);
+	  session.commit();
    }
-   _undo_db.enable();
    auto end = fc::time_point::now();
    ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
 } FC_CAPTURE_AND_RETHROW( (data_dir) ) }
