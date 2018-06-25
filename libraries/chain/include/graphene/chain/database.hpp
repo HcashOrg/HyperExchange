@@ -251,7 +251,7 @@ namespace graphene { namespace chain {
          void update_miner_schedule();
 
 		 void pay_miner(const miner_id_type& miner_id);
-
+		 share_type get_miner_pay_per_block(uint32_t block_num);
 
 		 void reset_current_collected_fee();
 

@@ -132,6 +132,17 @@ void database::modify_current_collected_fee(asset changed_fee)
 	_total_collected_fees[changed_fee.asset_id] += changed_fee.amount;
 }
 
+share_type database::get_miner_pay_per_block(uint32_t block_num) {
+	std::vector<share_type> reward_list = { 2558000,1811000,1357000,1357000,1357000 };
+	uint32_t block_interval = 25228800;//4 * 365* 24* 720
+	uint32_t cur_int = block_num / block_interval;
+	if (cur_int > 4) {
+		return 0;
+	}
+	else {
+		return reward_list[cur_int];
+	}
+}
 
 void database::pay_miner(const miner_id_type& miner_id)
 {
@@ -144,7 +155,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 		auto miner_obj = get(miner_id);
 		//bonus to senators
 		auto committee_count = gpo.active_committee_members.size();
-		int64_t all_committee_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
+		int64_t all_committee_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
 		int64_t committee_pay = 0;
 		int64_t end_value = int64_t(all_committee_paid) / committee_count;
 		for (int i = 0; i < committee_count - 1; i++) {
@@ -161,7 +172,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
 			all_pledge <<= 64;
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
-			uint64_t all_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
+			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
 			all_paid += _total_collected_fee.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
