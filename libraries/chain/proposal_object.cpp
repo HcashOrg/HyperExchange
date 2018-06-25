@@ -44,13 +44,17 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 	   for (auto acc : required_account_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   total_weights += boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(iter->pledge_weight.hi)<<64+iter->pledge_weight.lo);
+		   auto temp_hi = boost::multiprecision::uint128_t(iter->pledge_weight.hi);
+		   temp_hi <<= 64;
+		   total_weights += temp_hi+boost::multiprecision::uint128_t(iter->pledge_weight.lo);
 	   }
 	   
 	   for (auto acc : approved_key_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
-		   approved_key_weights += boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(iter->pledge_weight.hi) << 64 + iter->pledge_weight.lo);
+		   auto temp_hi = boost::multiprecision::uint128_t(iter->pledge_weight.hi);
+		   temp_hi <<= 64;
+		   approved_key_weights += temp_hi + boost::multiprecision::uint128_t(iter->pledge_weight.lo);
 	   }
 
 	   return approved_key_weights >= (total_weights/3*2);

@@ -158,7 +158,9 @@ void database::pay_miner(const miner_id_type& miner_id)
 		if (cache_datas.count(miner_id) > 0)
 		{
 			auto& one_data = cache_datas[miner_id];
-			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi) << 64 + miner_obj.pledge_weight.lo);
+			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
+			all_pledge <<= 64;
+			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
 			uint64_t all_paid = gpo.parameters.miner_pay_per_block.value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
 			all_paid += _total_collected_fee.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
@@ -291,8 +293,10 @@ void database::update_miner_schedule()
 				for (const miner_id_type& w : gpo.active_witnesses)
 				{
 					const auto& witness_obj = w(*this);
-					total_weight += boost::multiprecision::uint256_t(boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi) << 64 + witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100;
-					temp_witnesses_weight.push_back(boost::multiprecision::uint256_t(boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi) << 64 + witness_obj.pledge_weight.lo) * witness_obj.participation_rate / 100);
+					auto temp_hi = boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi);
+					temp_hi <<= 64;
+					total_weight += (temp_hi + boost::multiprecision::uint256_t(witness_obj.pledge_weight.lo)) * boost::multiprecision::uint256_t(witness_obj.participation_rate) / 100;
+					temp_witnesses_weight.push_back((temp_hi + boost::multiprecision::uint256_t(witness_obj.pledge_weight.lo)) * boost::multiprecision::uint256_t(witness_obj.participation_rate) / 100);
 					temp_active_witnesses.push_back(w);
 				}
 				fc::sha256 rand_seed;
@@ -304,7 +308,7 @@ void database::update_miner_schedule()
 				{
 					boost::multiprecision::uint256_t r(rand_seed._hash[0]);
 					for (int x = 1; x < 4; x++) {
-						r << 64;
+						r <<= 64;
 						r += rand_seed._hash[x];
 					}
 					boost::multiprecision::uint256_t j = (r % total_weight);
