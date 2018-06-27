@@ -5491,9 +5491,13 @@ asset_object wallet_api::get_asset(string asset_name_or_id) const
 fc::variant wallet_api::get_asset_imp(string asset_name_or_id) const
 {
 	auto asset_obj = get_asset(asset_name_or_id);
-	auto dynamic_data = asset_obj.dynamic_data();
+	auto dynamic_data = my->_remote_db->get_asset_dynamic_data(asset_name_or_id);
+	if (!dynamic_data.valid())
+	{
+		return fc::variant(asset_obj);
+	}
 	fc::mutable_variant_object obj = fc::variant(asset_obj).as<fc::mutable_variant_object>();
-	return obj.set("dynamic_data", fc::variant(dynamic_data));
+	return obj.set("dynamic_data", fc::variant(*dynamic_data));
 }
 
 

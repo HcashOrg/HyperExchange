@@ -368,6 +368,7 @@ class database_api
        * This function has semantics identical to @ref get_objects
        */
       vector<optional<asset_object>> lookup_asset_symbols(const vector<string>& symbols_or_ids)const;
+	  optional<asset_dynamic_data_object>  get_asset_dynamic_data(const string& symbols_or_ids) const;
 
       /////////////////////
       // Markets / feeds //
@@ -722,7 +723,7 @@ FC_API(graphene::app::database_api,
 	(lookup_asset_symbols)
     (get_asset)
     (get_asset_by_id)
-
+	(get_asset_dynamic_data)
 	// Markets / feeds
 	(get_order_book)
 	(get_limit_orders)

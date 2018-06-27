@@ -1375,6 +1375,17 @@ vector<optional<asset_object>> database_api::lookup_asset_symbols(const vector<s
    return my->lookup_asset_symbols( symbols_or_ids );
 }
 
+optional<asset_dynamic_data_object> database_api::get_asset_dynamic_data(const string& symbols_or_ids) const
+{
+	vector<string> symbol;
+	symbol.push_back(symbols_or_ids);
+	auto vec = lookup_asset_symbols(symbol);
+	if (vec.size() == 0)
+		return optional<asset_dynamic_data_object>();
+	auto obj = vec.front();
+	return obj->dynamic_data(my->_db);
+}
+
 vector<optional<asset_object>> database_api_impl::lookup_asset_symbols(const vector<string>& symbols_or_ids)const
 {
    const auto& assets_by_symbol = _db.get_index_type<asset_index>().indices().get<by_symbol>();
