@@ -34,6 +34,7 @@ namespace graphene { namespace chain {
 
          void_result do_evaluate( const miner_create_operation& o );
          object_id_type do_apply( const miner_create_operation& o );
+		 void pay_fee() override;
    };
 
    class witness_update_evaluator : public evaluator<witness_update_evaluator>

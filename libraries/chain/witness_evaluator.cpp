@@ -62,6 +62,15 @@ object_id_type miner_create_evaluator::do_apply( const miner_create_operation& o
    return new_miner_object.id;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
+void miner_create_evaluator::pay_fee()
+{
+	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
+		d.current_supply -= this->core_fees_paid.amount;
+	});
+}
+
+
 void_result witness_update_evaluator::do_evaluate( const witness_update_operation& op )
 { try {
    FC_ASSERT(db().get(op.witness).miner_account == op.witness_account);

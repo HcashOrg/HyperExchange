@@ -21,6 +21,10 @@ namespace graphene {
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
 				});
+				d.modify(d.get(asset_id_type(asset_id)).dynamic_asset_data_id(d), [=](asset_dynamic_data_object& d) {
+					d.current_supply += obj.amount_from_string(amount).amount;
+				});
+
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 
@@ -104,9 +108,15 @@ namespace graphene {
 					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
 					});
+					d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type,source_op](asset_dynamic_data_object& d) {
+						d.current_supply += asset_type.amount_from_string(source_op.amount).amount;
+					});
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+				});
+				d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type,without_sign_op](asset_dynamic_data_object& d) {
+					d.current_supply -= without_sign_op.crosschain_fee.amount;
 				});
 			}FC_CAPTURE_AND_RETHROW((o))
 		}

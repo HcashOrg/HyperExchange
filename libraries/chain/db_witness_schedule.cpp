@@ -227,8 +227,10 @@ void database::pay_miner(const miner_id_type& miner_id)
 			all_paid += _total_collected_fee.value;
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
 		}
-		
-
+		auto supply_added = get_miner_pay_per_block(dgp.head_block_number);
+		modify(get(asset_id_type()).dynamic_asset_data_id(*this), [supply_added](asset_dynamic_data_object& d) {
+			d.current_supply += supply_added;
+		});
 	} FC_CAPTURE_AND_RETHROW()
 }
 

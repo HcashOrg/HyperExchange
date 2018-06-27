@@ -36,9 +36,13 @@ namespace graphene {
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
-			db().adjust_balance(tunnel_itr->owner, asset(asset_itr->amount_from_string(o.cross_chain_trx.amount).amount, o.asset_id));
+			auto amount = asset_itr->amount_from_string(o.cross_chain_trx.amount);
+			db().adjust_balance(tunnel_itr->owner, amount);
 			db().adjust_deposit_to_link_trx(o.cross_chain_trx);
 //			}
+			db().modify(asset_itr->dynamic_asset_data_id(db()), [amount](asset_dynamic_data_object& d) {
+				d.current_supply += amount.amount;
+			});
 			return void_result();
 		}
 		void crosschain_record_evaluate::pay_fee() {
@@ -72,12 +76,17 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
 			
-                        database& d = db();
+            database& d = db();
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
-			d.adjust_balance(o.withdraw_account, asset(-(asset_itr->amount_from_string(o.amount).amount), o.asset_id));
+			auto amount = asset_itr->amount_from_string(o.amount);
+			d.adjust_balance(o.withdraw_account, -amount);
 			d.adjust_crosschain_transaction(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx),uint64_t(operation::tag<crosschain_withdraw_operation>::value), withdraw_without_sign_trx_uncreate);
-                        return void_result();
+			
+			d.modify(asset_itr->dynamic_asset_data_id(d), [amount](asset_dynamic_data_object& d) {
+				d.current_supply -= amount.amount;
+			});
+			return void_result();
 		}
 
 		void crosschain_withdraw_evaluate::pay_fee() {
@@ -216,6 +225,10 @@ namespace graphene {
 			{
 				db().adjust_crosschain_transaction(one_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_without_sign_operation>::value), withdraw_without_sign_trx_create, o.ccw_trx_ids);
 			}
+			db().modify(db().get(asset_id_type(o.asset_id)).dynamic_asset_data_id(db()), [&o](asset_dynamic_data_object& d) {
+				d.current_supply += o.crosschain_fee.amount;
+			});
+
 			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
