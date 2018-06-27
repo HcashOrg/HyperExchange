@@ -25,6 +25,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <fc/smart_ref_impl.hpp>
+#include <fc/filesystem.hpp>
 #include <iostream>
 namespace graphene { namespace chain {
 fork_database::fork_database()
@@ -128,7 +129,6 @@ void fork_database::_push_next( const item_ptr& new_item )
 
 void fork_database::save_to_file(const fc::string& path)
 {
- 
     auto& idx=_index.get<block_id>();
     fork_data da;
     if (_head)
@@ -145,6 +145,8 @@ void fork_database::save_to_file(const fc::string& path)
 
 void fork_database::from_file(const fc::string& path)
 {
+	if (!fc::exists(path))
+		return;
     try {
         fork_data   data = fc::json::from_file(path).as<fork_data>();
         for (auto& it : data.items)
@@ -184,6 +186,7 @@ void fork_database::from_file(const fc::string& path)
     catch (...)
     {
 
+		FC_CAPTURE_AND_THROW(deserialize_fork_database_failed, (path));
     }
 }
 void fork_database::set_max_size( uint32_t s )

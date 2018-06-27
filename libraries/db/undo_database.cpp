@@ -124,7 +124,8 @@ void undo_database::on_remove( const object& obj )
 }
 
 void undo_database::undo()
-{ try {
+{ 
+	try {
    FC_ASSERT( !_disabled );
    FC_ASSERT( _active_sessions > 0 );
    disable();
@@ -312,6 +313,13 @@ void undo_database::pop_commit()
    }
    enable();
 }
+void undo_database::set_max_size(size_t new_max_size) 
+{ 
+	_max_size = new_max_size; 
+}
+size_t undo_database::max_size() const { 
+	return _max_size; 
+}
 const undo_state& undo_database::head()const
 {
    FC_ASSERT( !_stack.empty() );
@@ -325,8 +333,12 @@ const undo_state& undo_database::head()const
     {
         out_stack.push_back(item.get_serializable_undo_state());
     }
-    if(out_stack.size()>0)
-        fc::json::save_to_file(out_stack, path);
+	if (out_stack.size() > 0)
+	{
+		printf("undo size save:%d\n", out_stack.size());
+		fc::json::save_to_file(out_stack, path);
+	}
+        
 }
 
  void undo_database::reset()
@@ -335,6 +347,8 @@ const undo_state& undo_database::head()const
  }
  void undo_database::from_file(const fc::string & path)
 {
+	 if (!fc::exists(path))
+		 return;
      try {
          std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
          _stack.resize(out_stack.size());
@@ -354,11 +368,11 @@ const undo_state& undo_database::head()const
              }
              num++;
          }
-         _max_size = _stack.size() + 100;
-     }catch(...)
-     {
-
-     }
+	 }
+	 catch (...)
+	 {
+		 FC_CAPTURE_AND_THROW(deserialize_undo_database_failed,(path));
+	 }
 }
 
 inline serializable_undo_state undo_state::get_serializable_undo_state()
