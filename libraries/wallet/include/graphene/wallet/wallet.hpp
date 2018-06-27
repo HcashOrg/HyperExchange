@@ -554,7 +554,7 @@ class wallet_api
        * @returns the information about the asset stored in the block chain
        */
       asset_object                      get_asset(string asset_name_or_id) const;
-
+	  fc::variant                      get_asset_imp(string asset_name_or_id) const;
       /** Returns the BitAsset-specific data for a given asset.
        * Market-issued assets's behavior are determined both by their "BitAsset Data" and
        * their basic asset data, as returned by \c get_asset().
@@ -2106,6 +2106,7 @@ FC_API( graphene::wallet::wallet_api,
 		(publish_normal_asset_feed)
         (issue_asset)
         (get_asset)
+	    (get_asset_imp)
         (get_bitasset_data)
         (fund_asset_fee_pool)
         (reserve_asset)
