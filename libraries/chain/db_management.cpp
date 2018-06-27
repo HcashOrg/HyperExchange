@@ -50,8 +50,17 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
 { try {
    ilog( "reindexing blockchain" );
    wipe(data_dir, false);
-   open(data_dir, [&initial_allocation]{return initial_allocation;});
+   try {
+	   open(data_dir, [&initial_allocation] {return initial_allocation; });
+   }
+   catch (deserialize_fork_database_failed& e)
+   {
 
+   }
+   catch (deserialize_undo_database_failed& e)
+   {
+
+   }
    auto start = fc::time_point::now();
    auto last_block = _block_id_to_block.last();
    if( !last_block ) {
