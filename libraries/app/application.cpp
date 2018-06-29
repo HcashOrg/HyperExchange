@@ -391,14 +391,9 @@ namespace detail {
                std::string genesis_str;
                fc::read_file_contents( _options->at("genesis-json").as<boost::filesystem::path>(), genesis_str );
                genesis_state_type genesis = fc::json::from_string( genesis_str ).as<genesis_state_type>();
+			   genesis.initial_timestamp = fc::time_point_sec(fc::time_point::now()) + genesis.initial_parameters.block_interval;
+			   genesis.initial_timestamp -= genesis.initial_timestamp.sec_since_epoch() % genesis.initial_parameters.block_interval;
                bool modified_genesis = false;
-               if( _options->count("genesis-timestamp") )
-               {
-                  genesis.initial_timestamp = fc::time_point_sec( fc::time_point::now() ) + genesis.initial_parameters.block_interval + _options->at("genesis-timestamp").as<uint32_t>();
-                  genesis.initial_timestamp -= genesis.initial_timestamp.sec_since_epoch() % genesis.initial_parameters.block_interval;
-                  modified_genesis = true;
-                  std::cerr << "Used genesis timestamp:  " << genesis.initial_timestamp.to_iso_string() << " (PLEASE RECORD THIS)\n";
-               }
                if( _options->count("dbg-init-key") )
                {
                   std::string init_key = _options->at( "dbg-init-key" ).as<string>();
@@ -410,8 +405,8 @@ namespace detail {
                if( modified_genesis )
                {
                   std::cerr << "WARNING:  GENESIS WAS MODIFIED, YOUR CHAIN ID MAY BE DIFFERENT\n";
-                  genesis_str += "BOGUS";
-                  genesis.initial_chain_id = fc::sha256::hash( genesis_str );
+                  //genesis_str += "BOGUS";
+                  genesis.initial_chain_id = fc::sha256::hash( fc::json::to_string(genesis) );
                }
                else
                   genesis.initial_chain_id = fc::sha256::hash( genesis_str );
@@ -424,6 +419,8 @@ namespace detail {
                FC_ASSERT( egenesis_json != "" );
                FC_ASSERT( graphene::egenesis::get_egenesis_json_hash() == fc::sha256::hash( egenesis_json ) );
                auto genesis = fc::json::from_string( egenesis_json ).as<genesis_state_type>();
+			   genesis.initial_timestamp = fc::time_point_sec(fc::time_point::now()) + genesis.initial_parameters.block_interval ;
+			   genesis.initial_timestamp -= genesis.initial_timestamp.sec_since_epoch() % genesis.initial_parameters.block_interval;
                genesis.initial_chain_id = fc::sha256::hash( egenesis_json );
                return genesis;
             }

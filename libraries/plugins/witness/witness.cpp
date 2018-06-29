@@ -53,13 +53,6 @@ void new_chain_banner( const graphene::chain::database& db )
       "*                              *\n"
       "********************************\n"
       "\n";
-   if( db.get_slot_at_time( fc::time_point::now() ) > 200 )
-   {
-      std::cerr << "Your genesis seems to have an old timestamp\n"
-         "Please consider using the --genesis-timestamp option to give your genesis a recent timestamp\n"
-         "\n"
-         ;
-   }
    return;
 }
 
@@ -108,7 +101,7 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("192.168.1.121"))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("117.78.44.37"))
 	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
 	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
