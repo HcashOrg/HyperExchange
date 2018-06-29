@@ -2627,6 +2627,11 @@ variant_object database_api::decoderawtransaction(const string& raw_trx, const s
 
     }FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))
 }
+share_type database_api::get_miner_pay_per_block(uint32_t block_num) const
+{
+	return my->_db.get_miner_pay_per_block(block_num);
+}
+
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }

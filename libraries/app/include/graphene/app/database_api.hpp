@@ -619,7 +619,7 @@ class database_api
 	  vector<guard_lock_balance_object> get_guard_lock_balance(const guard_member_id_type& id)const;
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
       variant_object decoderawtransaction(const string& raw_trx, const string& symbol) const;
-
+	  share_type get_miner_pay_per_block(uint32_t block_num) const;
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
@@ -800,7 +800,7 @@ FC_API(graphene::app::database_api,
 	(get_pay_back_balances)
     (get_address_pay_back_balance)
 
-
+	(get_miner_pay_per_block)
 
 
 
