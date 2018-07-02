@@ -573,5 +573,15 @@ free(storage_buf); \
 			return code;
 		}
 
-	}
+		void contract_transfer_fee_proposal_operation::validate() const
+		{
+			FC_ASSERT((fee_rate>=0)&&(fee_rate < CONTRACT_MAX_TRASACTION_FEE_RATE));
+		}
+
+		share_type contract_transfer_fee_proposal_operation::calculate_fee(const fee_parameters_type & k) const
+		{
+			return share_type(0);
+		}
+
+}
 }
