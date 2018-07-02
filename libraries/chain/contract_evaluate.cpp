@@ -1248,6 +1248,7 @@ namespace graphene {
 		 {
 			 try
 			 {
+				 FC_ASSERT(trx_state->_is_proposed_trx);
 				 const database& d = db();
 				 const auto& guard_db = d.get_index_type<guard_member_index>().indices().get<by_id>();
 				 auto guard_iter = guard_db.find(o.guard_id);
@@ -1265,8 +1266,8 @@ namespace graphene {
 			 try
 			 {
 				 const auto& dynamic_properties = db().get_dynamic_global_properties();
-				 db().modify(dynamic_properties, [](dynamic_global_property_object& p) {
-					 ++p.accounts_registered_this_interval;
+				 db().modify(dynamic_properties, [o](dynamic_global_property_object& p) {
+					 p.contract_transfer_fee_rate = o.fee_rate;
 				 });
 			 }FC_CAPTURE_AND_RETHROW((o));
 		 }
