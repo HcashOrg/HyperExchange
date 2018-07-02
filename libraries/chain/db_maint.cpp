@@ -352,7 +352,6 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    const asset_object& core = asset_id_type(0)(*this);
    const asset_dynamic_data_object& core_dd = core.dynamic_asset_data_id(*this);
-
    rec.from_initial_reserve = core.reserved(*this);
    rec.from_accumulated_fees = core_dd.accumulated_fees;
    rec.from_unused_miner_budget = dpo.miner_budget;
@@ -377,7 +376,6 @@ void database::initialize_budget_record( fc::time_point_sec now, budget_record& 
    // Similarly, we consider leftover witness_budget to be burned
    // at the BEGINNING of the maintenance interval.
    reserve += dpo.miner_budget;
-
    fc::uint128_t budget_u128 = reserve.value;
    budget_u128 *= uint64_t(dt);
    budget_u128 *= GRAPHENE_CORE_ASSET_CYCLE_RATE;
