@@ -654,8 +654,8 @@ class wallet_api
          uint32_t review_period_seconds = 0,
          bool broadcast = true
         );
-	  std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
-	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol,bool broadcast = true);
+	  std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
+	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string,asset> nums,bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */

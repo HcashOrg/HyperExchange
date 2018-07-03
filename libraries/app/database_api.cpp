@@ -2644,20 +2644,8 @@ vector<optional<multisig_address_object>> database_api::get_multi_account_guard(
 std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
 	return my->get_pay_back_balances(pay_back_owner);
 }
-std::vector<asset> database_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
-    std::vector<asset> results;
-    auto owner_balance = get_pay_back_balances(owner_addr);
-    if ("" == asset_symbol) {
-        for (const auto & pay_back_balance_obj : owner_balance) {
-            results.push_back(pay_back_balance_obj.second);
-        }
-    }
-    else {
-        auto pay_back_asset_iter = owner_balance.find(asset_symbol);
-        FC_ASSERT(pay_back_asset_iter != owner_balance.end(), "This asset doesnt exist");
-        results.push_back(pay_back_asset_iter->second);
-    }
-    return results;
+std::map<string,asset> database_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
+	return my->_db.get_pay_back_balacne(owner_addr,asset_symbol);
 }
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
