@@ -13,7 +13,7 @@
 #include <fc/crypto/base58.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
-
+#include <graphene/chain/committee_member_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -1244,5 +1244,32 @@ namespace graphene {
              }
              get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
 		}
+		 void_result contract_transfer_fee_evaluate::do_evaluate(const operation_type & o)
+		 {
+			 try
+			 {
+				 FC_ASSERT(trx_state->_is_proposed_trx);
+				 const database& d = db();
+				 const auto& guard_db = d.get_index_type<guard_member_index>().indices().get<by_id>();
+				 auto guard_iter = guard_db.find(o.guard_id);
+				 FC_ASSERT(guard_iter != guard_db.end(), "cant find this guard");
+				 const auto& account_db = d.get_index_type<account_index>().indices().get<by_id>();
+				 auto account_iter = account_db.find(guard_iter->guard_member_account);
+				 FC_ASSERT(account_iter != account_db.end(), "cant find this account");
+				 FC_ASSERT(account_iter->addr == o.guard, "guard address error");
+				 o.validate();
+				 return void_result();
+			 }FC_CAPTURE_AND_RETHROW((o));
+		 }
+		 void_result contract_transfer_fee_evaluate::do_apply(const operation_type & o)
+		 {
+			 try
+			 {
+				 const auto& dynamic_properties = db().get_dynamic_global_properties();
+				 db().modify(dynamic_properties, [o](dynamic_global_property_object& p) {
+					 p.contract_transfer_fee_rate = o.fee_rate;
+				 });
+			 }FC_CAPTURE_AND_RETHROW((o));
+		 }
 }
 }

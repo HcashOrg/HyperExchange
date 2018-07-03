@@ -1929,6 +1929,7 @@ class wallet_api
       vector<contract_event_notify_object> get_contract_events(const std::string&);
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num = 0);
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0);
+	  full_transaction create_contract_transfer_fee_proposal(const string& proposer,share_type fee_rate, int64_t expiration_time, bool broadcast = false);
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -2253,6 +2254,7 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_contract_testing)
         (get_contract_registered)
         (get_contract_storage_changed)
+	    (create_contract_transfer_fee_proposal)
 		(get_transaction)
 		(list_transactions)
 		(dump_crosschain_private_key)
