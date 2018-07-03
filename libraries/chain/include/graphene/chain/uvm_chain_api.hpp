@@ -88,9 +88,11 @@ namespace graphene {
 			*/
 			//void free_contract_storage(lua_State *L, UvmStorageValue* storage);
 
-			virtual UvmStorageValue get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name);
+			virtual UvmStorageValue get_storage_value_from_uvm(lua_State *L, const char *contract_name,
+				const std::string& name, const std::string& fast_map_key, bool is_fast_map);
 
-			virtual UvmStorageValue get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name);
+			virtual UvmStorageValue get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address,
+				const std::string& name, const std::string& fast_map_key, bool is_fast_map);
 
 			/**
 			* after lua merge storage changes in lua_State, use the function to store the merged changes of storage to uvm

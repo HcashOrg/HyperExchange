@@ -83,6 +83,7 @@ namespace graphene { namespace chain {
 		 std::map<miner_id_type,std::vector<lockbalance_object>> current_round_lockbalance_cache;
 		 std::map<asset_id_type, price_feed>  current_price_feed;
 		 fc::flat_set<miner_id_type>          round_produced_miners;
+		 share_type       contract_transfer_fee_rate = 0;
 
          /**
           *  Every time a block is missed this increases by

@@ -1976,6 +1976,37 @@ public:
        std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
        return res;
    }
+   full_transaction create_contract_transfer_fee_proposal(const string& proposer, share_type fee_rate, int64_t expiration_time, bool broadcast = false)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   contract_transfer_fee_proposal_operation op;
+		   op.fee_rate = fee_rate;
+
+		   auto guard_obj = get_guard_member(proposer);
+		   auto guard_id = guard_obj.guard_member_account;
+		   auto guard_account_obj = get_account(guard_id);
+		   op.guard = guard_account_obj.addr;
+		   op.guard_id = guard_obj.id;
+
+
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   prop_op.proposed_ops.emplace_back(op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   signed_transaction trx;
+		   trx.operations.emplace_back(prop_op);
+		   set_operation_fees(trx, current_params.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((proposer)(fee_rate)(expiration_time)(broadcast))
+
+   }
    full_transaction register_account(string name,
                                        public_key_type owner,
                                        public_key_type active,
@@ -6385,6 +6416,12 @@ vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const ui
 {
     return  my->_remote_db->get_contract_storage_changed(block_num);
 }
+
+graphene::chain::full_transaction wallet_api::create_contract_transfer_fee_proposal(const string& proposer, share_type fee_rate, int64_t expiration_time, bool broadcast)
+{
+	return my->create_contract_transfer_fee_proposal(proposer, fee_rate, expiration_time,broadcast);
+}
+
 vector<contract_blocknum_pair> wallet_api::get_contract_registered(const uint32_t block_num)
 {
     return my->_remote_db->get_contract_registered(block_num);

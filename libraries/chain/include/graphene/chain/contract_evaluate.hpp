@@ -154,5 +154,20 @@ namespace graphene {
             optional<guarantee_object_id_type> get_guarantee_id()const;
         };
 
+		class contract_transfer_fee_evaluate : public evaluator<contract_transfer_fee_evaluate>
+		{
+		private:
+			contract_transfer_fee_proposal_operation origin_op;
+
+
+		public:
+			typedef contract_transfer_fee_proposal_operation operation_type;
+
+			contract_transfer_fee_evaluate(){}
+			void_result do_evaluate(const operation_type& o);
+			void_result do_apply(const operation_type& o);
+			optional<guarantee_object_id_type> get_guarantee_id()const;
+		};
+
 	}
 }

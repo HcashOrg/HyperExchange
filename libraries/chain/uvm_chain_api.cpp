@@ -266,7 +266,8 @@ namespace graphene {
 			return nullptr;
 		}
 
-		UvmStorageValue UvmChainApi::get_storage_value_from_uvm(lua_State *L, const char *contract_name, std::string name)
+		UvmStorageValue UvmChainApi::get_storage_value_from_uvm(lua_State *L, const char *contract_name,
+			const std::string& name, const std::string& fast_map_key, bool is_fast_map)
 		{
 			UvmStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
@@ -280,14 +281,15 @@ namespace graphene {
 			}
 			try
 			{
-				return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name);
+				return get_storage_value_from_uvm_by_address(L, contract_id.c_str(), name, fast_map_key, is_fast_map);
 			}
 			catch (fc::exception &e) {
 				return null_storage;
 			}
 		}
 
-		UvmStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address, std::string name)
+		UvmStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address,
+			const std::string& name, const std::string& fast_map_key, bool is_fast_map)
 		{
 			UvmStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
@@ -301,7 +303,11 @@ namespace graphene {
 			}
 			try 
 			{
-				auto storage_data = evaluator->get_storage(contract_id, name);
+				std::string key = name;
+				if (is_fast_map) {
+					key = name + "." + fast_map_key;
+				}
+				auto storage_data = evaluator->get_storage(contract_id, key);
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
 			}
 			catch (fc::exception &e) {
