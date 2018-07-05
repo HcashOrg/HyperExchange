@@ -30,7 +30,14 @@ namespace graphene {
             gas_count_type gas_used_counts;
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
+			share_type transfer_fee_rate = -1;
         public:
+			inline share_type get_contract_transfer_fee_rate() 
+			{
+				if(transfer_fee_rate==-1)
+					transfer_fee_rate=get_db().get_dynamic_global_properties().contract_transfer_fee_rate; 
+				return transfer_fee_rate;
+			};
             inline const generic_evaluator* get_gen_eval() { return gen_eval; }
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();

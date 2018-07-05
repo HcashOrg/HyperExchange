@@ -295,8 +295,8 @@ namespace graphene { namespace chain {
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
 		 //////////////////// db_pay_back.cpp/////////////////
-		 void adjust_pay_back_balance(address payback_owner,asset payback_asset);
-		 std::vector<asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
+		 void adjust_pay_back_balance(address payback_owner,asset payback_asset,const string& miner="");
+		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
 		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
 		 asset get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id)const;

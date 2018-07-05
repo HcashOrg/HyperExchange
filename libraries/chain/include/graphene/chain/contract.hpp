@@ -206,13 +206,14 @@ namespace graphene {
 		struct contract_transfer_fee_proposal_operation:public base_operation
 		{
 
-			share_type fee_rate;
+			
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
 			};
 			asset fee;
 			string memo;
 			address guard;
+			share_type fee_rate;
 			guard_member_id_type guard_id;
 			address fee_payer()const {
 				return guard;
@@ -246,4 +247,4 @@ FC_REFLECT(graphene::chain::transfer_contract_operation::fee_parameters_type, (f
 FC_REFLECT(graphene::chain::transfer_contract_operation::transfer_param, (num)(symbol)(param))
 FC_REFLECT(graphene::chain::transfer_contract_operation, (fee)(invoke_cost)(gas_price)(caller_addr)(caller_pubkey)(contract_id)(amount)(param)(guarantee_id))
 FC_REFLECT(graphene::chain::contract_transfer_fee_proposal_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::contract_transfer_fee_proposal_operation, (memo)(guard)(guard_id))
+FC_REFLECT(graphene::chain::contract_transfer_fee_proposal_operation, (fee_rate)(memo)(guard)(guard_id))

@@ -1211,35 +1211,22 @@ public:
 
       return trx = sign_transaction(trx, broadcast);
    }
-   std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const {
-	   std::vector<asset> results;
-	   auto owner_balance = _remote_db->get_pay_back_balances(owner_addr);
-	   if ("" == asset_symbol) {
-		   for (const auto & pay_back_balance_obj : owner_balance){
-			   results.push_back(pay_back_balance_obj.second);
-		   }
-	   }
-	   else {
-		   auto pay_back_asset_iter = owner_balance.find(asset_symbol);
-		   FC_ASSERT(pay_back_asset_iter != owner_balance.end(), "This asset doesnt exist");
-		   results.push_back(pay_back_asset_iter->second);
-	   }
-	   return results;
+   std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const {
+	   return _remote_db->get_address_pay_back_balance(owner_addr, asset_symbol);
    }
-   full_transaction obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol,bool broadcast = true) {
+   full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast = true) {
 	   try {
 		   FC_ASSERT(!self.is_locked());
-		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
-		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
-		   auto& iter = _wallet.my_accounts.get<by_address>();
-		   FC_ASSERT(iter.find(address(pay_back_owner)) != iter.end(), "Could not find address ${address} in my wallet", ("address", pay_back_owner));
-		   auto owner_asset = get_address_pay_back_balance(address(pay_back_owner), asset_symbol);
-
 		   pay_back_operation trx_op;
 		   trx_op.pay_back_owner = address(pay_back_owner);
 		   map<string, asset> payback_balance;
-		   FC_ASSERT(*owner_asset.begin() >= asset_obj->amount_from_string(amount));
-		   payback_balance[asset_symbol] = asset_obj->amount_from_string(amount);
+		   for (auto iter = nums.begin(); iter != nums.end(); ++iter)
+		   {
+			   fc::optional<asset_object> asset_obj = get_asset(iter->second.asset_id);
+			   FC_ASSERT(asset_obj, "Could not find asset matching ${asset_id}", ("asset_id", iter->second.asset_id));
+			   payback_balance[iter->first] = iter->second;
+		   }
+		   trx_op.pay_back_owner = address(pay_back_owner);
 		   trx_op.pay_back_balance = payback_balance;
 		   trx_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
@@ -1248,7 +1235,7 @@ public:
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
-	   } FC_CAPTURE_AND_RETHROW((pay_back_owner)(amount)(asset_symbol)(broadcast))
+	   } FC_CAPTURE_AND_RETHROW((pay_back_owner)(nums)(broadcast))
    }
    void remove_builder_transaction(transaction_handle_type handle)
    {
@@ -5490,11 +5477,11 @@ full_transaction wallet_api::propose_builder_transaction2(
 {
    return my->propose_builder_transaction2(handle, account_name_or_id, expiration, review_period_seconds, broadcast);
 }
-std::vector<asset> wallet_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
+std::map<string,asset> wallet_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
 	return my->get_address_pay_back_balance(owner_addr, asset_symbol);
 }
-full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol, bool broadcast) {
-	return my->obtain_pay_back_balance(pay_back_owner, amount, asset_symbol,broadcast);
+full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast) {
+	return my->obtain_pay_back_balance(pay_back_owner,nums,broadcast);
 }
 void wallet_api::remove_builder_transaction(transaction_handle_type handle)
 {
