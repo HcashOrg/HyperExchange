@@ -1006,9 +1006,9 @@ namespace graphene {
          void contract_common_evaluate::transfer_to_address(const contract_address_type & contract, const asset & amount, const address & to)
         {
             //withdraw
-            share_type to_withdraw = amount.amount;
-            if (!get_db().has_contract(contract))
-                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (contract));
+			share_type to_withdraw = amount.amount;
+			auto con = get_db().get_contract(contract);
+			bool fee_needed=(con.owner_address!=to);
             std::pair<contract_address_type, asset_id_type> index = std::make_pair(contract, amount.asset_id);
             auto balance = invoke_contract_result.contract_balances.find(index);
             if (balance == invoke_contract_result.contract_balances.end())
@@ -1058,8 +1058,16 @@ namespace graphene {
             //deposit
             std::pair<address, asset_id_type> deposit_index;
             deposit_index.first = to;
-            share_type transfer_amount = amount.amount*1;
-            share_type transfer_fee_amount = amount.amount - transfer_amount;
+			share_type transfer_fee_amount = 0;
+
+			if (fee_needed)
+			{
+				auto fee_rate = get_contract_transfer_fee_rate();
+				FC_ASSERT((fee_rate >= 0) && (fee_rate < CONTRACT_MAX_TRASACTION_FEE_RATE));
+
+				transfer_fee_amount = ((double)(amount.amount.value))*(((double)(get_contract_transfer_fee_rate().value)) / ((double)(CONTRACT_MAX_TRASACTION_FEE_RATE)));
+			}
+            share_type transfer_amount = amount.amount- transfer_fee_amount;
 
             if (invoke_contract_result.deposit_to_address.find(deposit_index) != invoke_contract_result.deposit_to_address.end())
 				invoke_contract_result.deposit_to_address[deposit_index] += transfer_amount;
@@ -1243,6 +1251,10 @@ namespace graphene {
 				 get_db().record_guarantee(*get_guarantee_id(), gen_eval->get_trx_eval_state()->_trx->id());
              }
              get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));
+			 for (auto fee_iter : invoke_contract_result.transfer_fees)
+			 {
+				 get_db().modify_current_collected_fee(asset(fee_iter.second, fee_iter.first));
+			 }
 		}
 		 void_result contract_transfer_fee_evaluate::do_evaluate(const operation_type & o)
 		 {
