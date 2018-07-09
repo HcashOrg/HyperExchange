@@ -31,6 +31,7 @@ namespace graphene {
 			boost::program_options::variables_map _options;
 			std::set<chain::miner_id_type> _miners;
 			std::set<chain::guard_member_id_type> _guard;
+			fc::thread                            _thread;
 		};
 	}
 }
