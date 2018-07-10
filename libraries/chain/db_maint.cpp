@@ -500,6 +500,52 @@ void database::process_bonus()
 		const asset_dynamic_data_object& core =
 			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
 		fc::time_point_sec now = head_block_time();
+		//check all balance obj
+		const auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_BONUS_DISTRIBUTE_LIMIT,asset_id_type()));
+		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_MAX_SHARE_SUPPLY, asset_id_type()));
+		share_type sum;
+		std::map<address, share_type> waiting_list;
+		while (iter != iter_end)
+		{
+			sum += iter->amount().amount;
+			waiting_list[iter->owner] = iter->amount().amount;
+		}
+		// check all lock balance obj
+		const auto& guard_lock_bal_idx = get_index_type<lockbalance_index>().indices();
+		for (const auto& obj : guard_lock_bal_idx)
+		{
+			if (obj.lock_asset_id != asset_id_type())
+				continue;
+			const auto& acc = get(obj.lock_balance_account);
+			const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
+			const auto balance_obj = balances.find(boost::make_tuple(acc.addr, asset_id_type()));
+			if (balance_obj->amount().amount >= GRAPHENE_BONUS_DISTRIBUTE_LIMIT)
+			{
+				sum += obj.lock_asset_amount;
+				waiting_list[iter->owner] += obj.lock_asset_amount;
+			}
+			else
+			{
+				if (balance_obj->amount().amount + obj.lock_asset_amount >= GRAPHENE_BONUS_DISTRIBUTE_LIMIT)
+				{
+					sum += (balance_obj->amount().amount + obj.lock_asset_amount);
+					waiting_list[iter->owner] += (balance_obj->amount().amount + obj.lock_asset_amount);
+				}
+			}
+		}
+		//after waiting_list and sum, need to calculate rate 
+		std::map<asset_id_type, double> rate;
+		for (auto& iter : _total_fees_pool)
+		{
+			if (iter.first == asset_id_type())
+				continue;
+			const auto& asset_obj = get(iter.first);
+			double amount = double(iter.second.value) / double(asset_obj.precision);
+			rate[iter.first] = amount / (double(sum.value)/double(get(asset_id_type()).precision));
+		}
+
+
+
 	} FC_CAPTURE_AND_RETHROW()
 }
 

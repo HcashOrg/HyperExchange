@@ -178,6 +178,9 @@ const uint8_t guarantee_object::type_id;
 
 const uint8_t pay_back_object::space_id;
 const uint8_t pay_back_object::type_id;
+
+const uint8_t bonus_object::space_id;
+const uint8_t bonus_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -276,6 +279,7 @@ void database::initialize_indexes()
    add_index< primary_index<force_settlement_index> >();
    add_index<primary_index<lockbalance_index>>();
    add_index<primary_index<payback_index>>();
+   add_index <primary_index<bonus_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
    add_index<primary_index<crosschain_trx_index>>();
    add_index<primary_index<coldhot_transfer_index>>();

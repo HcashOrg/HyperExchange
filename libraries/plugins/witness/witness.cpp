@@ -198,10 +198,9 @@ void miner_plugin::schedule_production_loop()
        time_to_next_second += 1000000;
 
    fc::time_point next_wakeup( now + fc::microseconds( time_to_next_second ) );
-
    //wdump( (now.time_since_epoch().count())(next_wakeup.time_since_epoch().count()) );
    _block_production_task = fc::schedule([this]{block_production_loop();},
-                                         next_wakeup, "Miner Block Production");
+                                         next_wakeup, "Miner Block Production",fc::priority::max());
 }
 
 block_production_condition::block_production_condition_enum miner_plugin::block_production_loop()
@@ -210,7 +209,7 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
    fc::mutable_variant_object capture;
    try
    {
-      result = maybe_produce_block(capture);
+	   result = maybe_produce_block(capture);
    }
    catch( const fc::canceled_exception& )
    {

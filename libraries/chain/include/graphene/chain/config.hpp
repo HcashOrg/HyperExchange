@@ -41,6 +41,7 @@
 #define GRAPHENE_MAX_PAY_RATE 10000 /* 100% */
 #define GRAPHENE_MAX_SIG_CHECK_DEPTH 2
 #define GRAPHENE_MIN_PLEDGE_WEIGHT_LINE 50
+#define GRAPHENE_BONUS_DISTRIBUTE_LIMIT int64_t(1000000000ll)
 /**
  * Don't allow the committee_members to publish a limit that would
  * make the network unable to operate.
