@@ -144,7 +144,31 @@ share_type database::get_miner_pay_per_block(uint32_t block_num) {
 	}
 }
 
-void database::pay_miner(const miner_id_type& miner_id)
+asset database::get_fee_from_block(const signed_block& b)
+{
+	try {
+		for (auto trx : b.transactions)
+		{
+			for (auto op : trx.operations)
+			{
+				
+			}
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
+
+void database::update_fee_pool()
+{
+	try {
+		for (const auto& iter : _total_collected_fees)
+		{
+			_total_fees_pool[iter.first] += iter.second;
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
+
+
+void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 {
 	// find current account lockbalance
 	try {
@@ -173,8 +197,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
 			all_pledge <<= 64;
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
-			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
-			all_paid += _total_collected_fee.value;
+			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100 + trxfee.amount.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
 			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
@@ -225,7 +248,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
 			auto all_paid = gpo.parameters.miner_pay_per_block.value;
-			all_paid += _total_collected_fee.value;
+			all_paid +=trxfee.amount.value;
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)),miner_acc.name);
 		}
 		auto supply_added = get_miner_pay_per_block(dgp.head_block_number);

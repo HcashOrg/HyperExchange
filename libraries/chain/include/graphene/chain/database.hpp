@@ -250,7 +250,9 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
-		 void pay_miner(const miner_id_type& miner_id);
+		 void pay_miner(const miner_id_type& miner_id,asset fee);
+		 asset get_fee_from_block(const signed_block& b);
+		 void update_fee_pool();
 		 share_type get_miner_pay_per_block(uint32_t block_num);
 
 		 void reset_current_collected_fee();
@@ -562,6 +564,7 @@ namespace graphene { namespace chain {
 
          void initialize_budget_record( fc::time_point_sec now, budget_record& rec )const;
          void process_budget();
+		 void process_bonus();
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
          void update_active_miners();
@@ -606,6 +609,7 @@ namespace graphene { namespace chain {
          uint64_t                          _total_voting_stake;
 		 share_type						   _total_collected_fee;
 		 map<asset_id_type, share_type>     _total_collected_fees;
+		 map<asset_id_type, share_type>     _total_fees_pool;
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
          node_property_object              _node_property_object;

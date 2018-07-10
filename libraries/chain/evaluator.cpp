@@ -106,7 +106,7 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
    { try {
 	 
       if( !trx_state->skip_fee ) {
-		  if (fee_paying_account_statistics)
+		  //if (fee_paying_account_statistics)
 		  {
 			  database& d = db();
 			  /// TODO: db().pay_fee( account_id, core_fee );

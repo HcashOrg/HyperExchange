@@ -492,6 +492,18 @@ void database::process_budget()
    FC_CAPTURE_AND_RETHROW()
 }
 
+void database::process_bonus()
+{
+	try {
+		const global_property_object& gpo = get_global_properties();
+		const dynamic_global_property_object& dpo = get_dynamic_global_properties();
+		const asset_dynamic_data_object& core =
+			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
+		fc::time_point_sec now = head_block_time();
+	} FC_CAPTURE_AND_RETHROW()
+}
+
+
 template< typename Visitor >
 void visit_special_authorities( const database& db, Visitor visit )
 {

@@ -5220,7 +5220,7 @@ optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 	   tx_ids.push_back(full_trx.trxid);
    }
    auto glob_info = get_global_properties();
-   block_with_info.reward = my->_remote_db->get_miner_pay_per_block(num);
+   block_with_info.reward = my->_remote_db->get_miner_pay_per_block(num)+block->trxfee;
    block_with_info.transaction_ids.swap(tx_ids);
    return block_with_info;
 }
