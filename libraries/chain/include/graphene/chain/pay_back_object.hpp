@@ -23,7 +23,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = bonus_object_type;
 			address owner;
-			map<asset_id_type, asset> bonus;
+			map<asset_id_type, share_type> bonus;
 		};
 
 		struct by_payback_address;

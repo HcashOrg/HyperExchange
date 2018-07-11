@@ -5480,6 +5480,12 @@ full_transaction wallet_api::propose_builder_transaction2(
 std::map<string,asset> wallet_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
 	return my->get_address_pay_back_balance(owner_addr, asset_symbol);
 }
+
+std::map<string, share_type> wallet_api::get_bonus_blance(const address& owner)
+{
+	return my->_remote_db->get_bonus_balances(owner);
+}
+
 full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast) {
 	return my->obtain_pay_back_balance(pay_back_owner,nums,broadcast);
 }

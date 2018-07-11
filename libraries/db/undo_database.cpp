@@ -509,6 +509,9 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case pay_back_object_type: 
         return create_obj_unique_ptr<pay_back_object>(var);
         break;
+	case bonus_object_type:
+		return create_obj_unique_ptr<pay_back_object>(var);
+		break;
     case contract_storage_change_object_type:
         return create_obj_unique_ptr<contract_storage_change_object>(var);
     default:

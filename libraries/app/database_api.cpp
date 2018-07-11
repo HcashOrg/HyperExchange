@@ -161,6 +161,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
+	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
@@ -2644,6 +2645,9 @@ vector<optional<multisig_address_object>> database_api::get_multi_account_guard(
 std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
 	return my->get_pay_back_balances(pay_back_owner);
 }
+std::map<std::string, share_type> database_api::get_bonus_balances(const address & owner)const {
+	return my->get_bonus_balances(owner);
+}
 std::map<string,asset> database_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
 	return my->_db.get_pay_back_balacne(owner_addr,asset_symbol);
 }
@@ -2692,6 +2696,11 @@ vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(cons
 	
 	return result;
 }
+
+std::map<std::string, share_type> database_api_impl::get_bonus_balances(const address& owner) const {
+	return _db.get_bonus_balance(owner);
+}
+
 std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
 	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>();
 	auto pay_back_iter = payback_db.find(pay_back_owner);

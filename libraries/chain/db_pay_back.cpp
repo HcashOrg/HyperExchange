@@ -55,5 +55,44 @@ namespace graphene {
 				return results;
 			}FC_CAPTURE_AND_RETHROW((payback_owner)(symbol_type))			
 		}
+
+		void database::adjust_bonus_balance(address bonus_owner, asset bonus)
+		{
+			try {
+				if (bonus.asset_id == asset_id_type() || bonus.amount == 0)
+					return;
+				auto& bonus_db = get_index_type<bonus_index>().indices().get<by_addr>();
+				auto itr = bonus_db.find(bonus_owner);
+				const auto& asset_obj = get(bonus.asset_id);
+
+				if (itr != bonus_db.end())
+				{
+					create<bonus_object>([&bonus_owner, &bonus](bonus_object& a) {
+						a.owner = bonus_owner;
+						a.bonus[bonus.asset_id] += bonus.amount;
+					});
+				}
+				else
+				{
+					modify(*itr, [&bonus_owner, &bonus](bonus_object& a) {
+						a.bonus[bonus.asset_id] += bonus.amount;
+					});
+				}
+
+			}FC_CAPTURE_AND_RETHROW((bonus_owner)(bonus))
+		}
+
+		std::map<string, share_type> database::get_bonus_balance(address owner)
+		{
+			std::map<string, share_type> result;
+			auto& bonus_db = get_index_type<bonus_index>().indices().get<by_addr>();
+			auto itr = bonus_db.find(owner);
+			for (const auto& bal : itr->bonus)
+			{
+				const auto& asset_obj = get(bal.first);
+				result[asset_obj.symbol] = bal.second;
+			}
+			return result;
+		}
 	}
 }
