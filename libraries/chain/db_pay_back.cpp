@@ -82,7 +82,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((bonus_owner)(bonus))
 		}
 
-		std::map<string, share_type> database::get_bonus_balance(address owner)
+		std::map<string, share_type> database::get_bonus_balance(address owner) const
 		{
 			std::map<string, share_type> result;
 			auto& bonus_db = get_index_type<bonus_index>().indices().get<by_addr>();

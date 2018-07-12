@@ -495,6 +495,8 @@ void database::process_budget()
 void database::process_bonus()
 {
 	try {
+		if (head_block_num() == 0 || head_block_num() % GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM != 0)
+			return;
 		const global_property_object& gpo = get_global_properties();
 		const dynamic_global_property_object& dpo = get_dynamic_global_properties();
 		const asset_dynamic_data_object& core =
@@ -535,17 +537,22 @@ void database::process_bonus()
 		}
 		//after waiting_list and sum, need to calculate rate 
 		std::map<asset_id_type, double> rate;
+		const auto&  sys_obj = get(asset_id_type());
 		for (auto& iter : _total_fees_pool)
 		{
 			if (iter.first == asset_id_type())
 				continue;
 			const auto& asset_obj = get(iter.first);
-			double amount = double(iter.second.value) / double(asset_obj.precision);
-			rate[iter.first] = amount / (double(sum.value)/double(get(asset_id_type()).precision));
+			rate[iter.first] = double(iter.second.value) / double(sum.value);
 		}
-
-
-
+		for (const auto& iter : waiting_list)
+		{
+			for (const auto& r : rate)
+			{
+				share_type bonus = iter.second * r.second;
+				adjust_bonus_balance(iter.first,asset(bonus,r.first));
+			}
+		}
 	} FC_CAPTURE_AND_RETHROW()
 }
 
@@ -964,6 +971,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
    // process_budget needs to run at the bottom because
    //   it needs to know the next_maintenance_time
    process_budget();
+   process_bonus();
 }
 
 } }

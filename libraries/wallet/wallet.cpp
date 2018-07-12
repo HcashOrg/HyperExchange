@@ -5481,7 +5481,7 @@ std::map<string,asset> wallet_api::get_address_pay_back_balance(const address& o
 	return my->get_address_pay_back_balance(owner_addr, asset_symbol);
 }
 
-std::map<string, share_type> wallet_api::get_bonus_blance(const address& owner)
+std::map<string, share_type> wallet_api::get_bonus_blance(const address& owner) const
 {
 	return my->_remote_db->get_bonus_balances(owner);
 }
