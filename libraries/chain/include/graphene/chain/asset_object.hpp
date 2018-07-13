@@ -61,6 +61,7 @@ namespace graphene { namespace chain {
          static const uint8_t type_id  = impl_asset_dynamic_data_type;
 
          /// The number of shares currently in existence
+		 share_type guard_lock_balance = 0;
          share_type current_supply;
          share_type confidential_supply; ///< total asset held in confidential balances
          share_type accumulated_fees; ///< fees accumulate to be paid out over time

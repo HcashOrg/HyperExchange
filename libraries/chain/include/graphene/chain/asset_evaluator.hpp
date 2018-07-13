@@ -193,6 +193,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const asset_fee_modification_operation& o);
 	   void_result do_apply(const asset_fee_modification_operation& o);
    };
-
+   
+   class guard_lock_balance_set_evaluator :public evaluator<guard_lock_balance_set_evaluator>
+   {
+   public:
+	   typedef set_guard_lockbalance_operation operation_type;
+	   void_result do_evaluate(const set_guard_lockbalance_operation& o);
+	   void_result do_apply(const set_guard_lockbalance_operation& o);
+   };
 
 } } // graphene::chain

@@ -145,7 +145,8 @@ namespace graphene { namespace chain {
 	   guard_refund_crosschain_trx_operation,
 	   publisher_appointed_operation,
 	   asset_fee_modification_operation,
-	   bonus_operation
+	   bonus_operation,
+	   set_guard_lockbalance_operation
          > operation;
 
    /// @} // operations group
