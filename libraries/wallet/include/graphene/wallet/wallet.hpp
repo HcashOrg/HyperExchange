@@ -655,8 +655,9 @@ class wallet_api
          bool broadcast = true
         );
 	  std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
-	  std::map<std::string, share_type> get_bonus_blance(const address& owner_addr) const;
+	  std::map<std::string, share_type> get_bonus_balance(const address& owner_addr) const;
 	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string,asset> nums,bool broadcast = true);
+	  full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */
@@ -2070,6 +2071,7 @@ FC_API( graphene::wallet::wallet_api,
         (propose_builder_transaction2)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
+	    (obtain_bonus_balance)
         (remove_builder_transaction)
         (is_new)
         (is_locked)
@@ -2275,5 +2277,5 @@ FC_API( graphene::wallet::wallet_api,
         (start_miner)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
-		(get_bonus_blance)
+		(get_bonus_balance)
       )

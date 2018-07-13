@@ -44,5 +44,28 @@ namespace graphene {
 			}
 			return void_result();
 		}
+
+		void_result bonus_evaluator::do_evaluate(const bonus_operation& o) {
+			try {
+				const database& d = db();
+				auto bonus_balances = d.get_bonus_balance(o.bonus_owner);
+				for (const auto& itr : o.bonus_balance)
+				{
+					FC_ASSERT(itr.second > 0, "${asset} should be larger than 0", ("asset", itr.first));
+					FC_ASSERT(itr.second <= bonus_balances[itr.first], "${asset} is not enough to obtain", ("asset", itr.first));
+				}
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+
+		void_result bonus_evaluator::do_apply(const bonus_operation& o)
+		{
+			for (const auto& bonus : o.bonus_balance) {
+				auto asset_obj = db().get_asset(bonus.first);
+				db().adjust_bonus_balance(o.bonus_owner, asset(-bonus.second, asset_obj->get_id()));
+				db().adjust_balance(o.bonus_owner,asset(bonus.second,asset_obj->get_id()));
+			}
+			return void_result();
+		}
 	}
 }

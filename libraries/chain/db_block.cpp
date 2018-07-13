@@ -593,12 +593,12 @@ void database::_apply_block( const signed_block& next_block )
    update_maintenance_flag( maint_needed );
    
    pay_miner(next_block.miner,asset(next_block.trxfee));
+   process_bonus();
    update_fee_pool();
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
-
    // notify observers that the block has been applied
    applied_block( next_block ); //emit
    

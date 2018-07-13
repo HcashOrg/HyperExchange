@@ -185,6 +185,7 @@ struct get_impacted_account_visitor
    void operator()(const crosschain_record_operation& op) {}
    void operator()(const crosschain_withdraw_operation& op) {}
    void operator()(const pay_back_operation& op) {}
+   void operator()(const bonus_operation& op) {}
    void operator()(const crosschain_withdraw_without_sign_operation& op) {}
    void operator()(const crosschain_withdraw_with_sign_operation& op) {}
    void operator()(const crosschain_withdraw_combine_sign_operation& op) {}

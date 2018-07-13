@@ -67,6 +67,7 @@ namespace graphene {
 
 				if (itr != bonus_db.end())
 				{
+					FC_ASSERT(bonus.amount > 0);
 					create<bonus_object>([&bonus_owner, &bonus](bonus_object& a) {
 						a.owner = bonus_owner;
 						a.bonus[bonus.asset_id] += bonus.amount;
@@ -74,6 +75,11 @@ namespace graphene {
 				}
 				else
 				{
+					if (itr->bonus.count(bonus.asset_id) > 0)
+					{
+						FC_ASSERT(bonus.amount >0 );
+					}
+					FC_ASSERT( itr->bonus.at(bonus.asset_id) >= -bonus.amount);
 					modify(*itr, [&bonus_owner, &bonus](bonus_object& a) {
 						a.bonus[bonus.asset_id] += bonus.amount;
 					});
@@ -87,10 +93,13 @@ namespace graphene {
 			std::map<string, share_type> result;
 			auto& bonus_db = get_index_type<bonus_index>().indices().get<by_addr>();
 			auto itr = bonus_db.find(owner);
-			for (const auto& bal : itr->bonus)
+			if (itr != bonus_db.end())
 			{
-				const auto& asset_obj = get(bal.first);
-				result[asset_obj.symbol] = bal.second;
+				for (const auto& bal : itr->bonus)
+				{
+					const auto& asset_obj = get(bal.first);
+					result[asset_obj.symbol] = bal.second;
+				}
 			}
 			return result;
 		}

@@ -67,7 +67,10 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
    {
 	   slot_num += gpo.parameters.maintenance_skip_slots;
    }
-     
+   if (head_block_num() % GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM == 0 && head_block_num() > 0)
+   {
+	   slot_num += gpo.parameters.maintenance_skip_slots;
+   }
 
    // "slot 0" is head_slot_time
    // "slot 1" is head_slot_time,
@@ -247,8 +250,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		else
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
-			auto all_paid = gpo.parameters.miner_pay_per_block.value;
-			all_paid +=trxfee.amount.value;
+			auto all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO) / 100 + trxfee.amount.value;
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)),miner_acc.name);
 		}
 		auto supply_added = get_miner_pay_per_block(dgp.head_block_number);
