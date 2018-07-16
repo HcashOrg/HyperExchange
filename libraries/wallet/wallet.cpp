@@ -1219,7 +1219,7 @@ public:
 		   return std::map<std::string, asset>();
 	   }
    }
-   full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset>& nums, bool broadcast = true) {
+   full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast = true) {
 	   try {
 		   FC_ASSERT(!self.is_locked());
 		   pay_back_operation trx_op;
@@ -1227,7 +1227,6 @@ public:
 		   {
 			   fc::optional<asset_object> asset_obj = get_asset(iter->second.asset_id);
 			   FC_ASSERT(asset_obj.valid(), "Could not find asset matching ${asset_id}", ("asset_id", iter->second.asset_id));
-			   trx_op.pay_back_balance[iter->first] = iter->second;
 		   }
 		   trx_op.pay_back_owner = address(pay_back_owner);
 		   trx_op.pay_back_balance = nums;
@@ -1241,7 +1240,7 @@ public:
 	   } FC_CAPTURE_AND_RETHROW((pay_back_owner)(nums)(broadcast))
    }
 
-   full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type>& nums, bool broadcast = true)
+   full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast = true)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
@@ -1250,9 +1249,9 @@ public:
 		   {
 			   fc::optional<asset_object> asset_obj = get_asset(iter.first);
 			   FC_ASSERT(asset_obj.valid(), "Could not find asset matching ${asset_id}", ("asset_id", iter.first));
-			   op.bonus_ower[iter.first] = iter.second;
 		   }
 		   op.bonus_owner = address(bonus_owner);
+		   op.bonus_balance = nums;
 		   op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
@@ -5538,11 +5537,11 @@ std::map<string, share_type> wallet_api::get_bonus_balance(const address& owner)
 	return my->_remote_db->get_bonus_balances(owner);
 }
 
-full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset>& nums, bool broadcast) {
+full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast) {
 	return my->obtain_pay_back_balance(pay_back_owner,nums,broadcast);
 }
 
-full_transaction wallet_api::obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type>& nums, bool broadcast) {
+full_transaction wallet_api::obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast) {
 	return my->obtain_bonus_balance(bonus_owner,nums,broadcast);
 }
 
