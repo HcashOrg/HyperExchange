@@ -656,8 +656,8 @@ class wallet_api
         );
 	  std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
 	  std::map<std::string, share_type> get_bonus_balance(const address& owner_addr) const;
-	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string,asset> nums,bool broadcast = true);
-	  full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast = true);
+	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string,asset>& nums,bool broadcast = true);
+	  full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type>& nums, bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */
