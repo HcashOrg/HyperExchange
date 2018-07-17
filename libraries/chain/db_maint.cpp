@@ -503,9 +503,9 @@ void database::process_bonus()
 			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
 		fc::time_point_sec now = head_block_time();
 		//check all balance obj
-		const auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_BONUS_DISTRIBUTE_LIMIT,asset_id_type()));
+		const auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(dpo.bonus_distribute_limit,asset_id_type()));
 		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_MAX_SHARE_SUPPLY, asset_id_type()));
-		share_type sum;
+		share_type sum=0;
 		std::map<address, share_type> waiting_list;
 		while (iter != iter_end)
 		{
@@ -521,14 +521,14 @@ void database::process_bonus()
 			const auto& acc = get(obj.lock_balance_account);
 			const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
 			const auto balance_obj = balances.find(boost::make_tuple(acc.addr, asset_id_type()));
-			if (balance_obj->amount().amount >= GRAPHENE_BONUS_DISTRIBUTE_LIMIT)
+			if (balance_obj->amount().amount >= dpo.bonus_distribute_limit)
 			{
 				sum += obj.lock_asset_amount;
 				waiting_list[iter->owner] += obj.lock_asset_amount;
 			}
 			else
 			{
-				if (balance_obj->amount().amount + obj.lock_asset_amount >= GRAPHENE_BONUS_DISTRIBUTE_LIMIT)
+				if (balance_obj->amount().amount + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
 				{
 					sum += (balance_obj->amount().amount + obj.lock_asset_amount);
 					waiting_list[iter->owner] += (balance_obj->amount().amount + obj.lock_asset_amount);
