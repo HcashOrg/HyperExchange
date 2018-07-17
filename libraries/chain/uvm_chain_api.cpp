@@ -324,10 +324,64 @@ namespace graphene {
 			return data;
 		}
 
+		static bool compare_key(const std::string& first, const std::string& second)
+		{
+			unsigned int i = 0;
+			while ((i<first.length()) && (i<second.length()))
+			{
+				if (first[i] < second[i])
+					return true;
+				else if (first[i] > second[i])
+					return false;
+				else
+					++i;
+			}
+			return (first.length() < second.length());
+		}
+
+		// parse arg to json_array when it's json object. otherwhile return itself. And recursively process child elements
+		static jsondiff::JsonValue nested_json_object_to_array(const jsondiff::JsonValue& json_value)
+		{
+			if (json_value.is_object())
+			{
+				const auto& obj = json_value.as<jsondiff::JsonObject>();
+				jsondiff::JsonArray json_array;
+				std::list<std::string> keys;
+				for (auto it = obj.begin(); it != obj.end(); it++)
+				{
+					keys.push_back(it->key());
+				}
+				keys.sort(&compare_key);
+				for (const auto& key : keys)
+				{
+					jsondiff::JsonArray item_json;
+					item_json.push_back(key);
+					item_json.push_back(nested_json_object_to_array(obj[key]));
+					json_array.push_back(item_json);
+				}
+				return json_array;
+			}
+			if (json_value.is_array())
+			{
+				const auto& arr = json_value.as<jsondiff::JsonArray>();
+				jsondiff::JsonArray result;
+				for (const auto& item : arr)
+				{
+					result.push_back(nested_json_object_to_array(item));
+				}
+				return result;
+			}
+			return json_value;
+		}
+
 		bool UvmChainApi::commit_storage_changes_to_uvm(lua_State *L, AllContractsChangesMap &changes)
 		{
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			jsondiff::JsonDiff json_differ;
+			int64_t storage_gas = 0;
+
+			auto gas_limit = uvm::lua::lib::get_lua_state_instructions_limit(L);
+			const char* out_of_gas_error = "contract storage changes out of gas";
 
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
@@ -335,6 +389,7 @@ namespace graphene {
 				contract_storage_changes_type contract_storage_change;
 				std::string contract_id = all_con_chg_iter->first;
 				ContractChangesMap contract_change = *(all_con_chg_iter->second);
+				jsondiff::JsonObject nested_changes;
 
 				for (auto con_chg_iter = contract_change.begin(); con_chg_iter != contract_change.end(); ++con_chg_iter)
 				{
@@ -349,11 +404,25 @@ namespace graphene {
 					storage_change.storage_diff.storage_data = json_to_chars(con_chg_iter->second.diff.value());
 					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
+					nested_changes[contract_name] = con_chg_iter->second.diff.value();
+				}
+				// count gas by changes size
+				const auto& changes_parsed_to_array = nested_json_object_to_array(nested_changes);
+				auto changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
+				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
+				if (storage_gas < 0 && gas_limit > 0) {
+					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
+					return false;
 				}
 				put_contract_storage_changes_to_evaluator(evaluator, contract_id, contract_storage_change);
-				
 			}
-
+			if (gas_limit > 0) {
+				if (storage_gas > gas_limit || storage_gas + uvm::lua::lib::get_lua_state_instructions_executed_count(L) > gas_limit) {
+					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
+					return false;
+				}
+			}
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, storage_gas);
 			return true;
 		}
 
