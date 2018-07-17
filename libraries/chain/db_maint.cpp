@@ -503,7 +503,7 @@ void database::process_bonus()
 			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
 		fc::time_point_sec now = head_block_time();
 		//check all balance obj
-		const auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(dpo.bonus_distribute_limit,asset_id_type()));
+		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(dpo.bonus_distribute_limit,asset_id_type()));
 		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_MAX_SHARE_SUPPLY, asset_id_type()));
 		share_type sum=0;
 		std::map<address, share_type> waiting_list;
@@ -511,6 +511,7 @@ void database::process_bonus()
 		{
 			sum += iter->amount().amount;
 			waiting_list[iter->owner] = iter->amount().amount;
+			iter++;
 		}
 		// check all lock balance obj
 		const auto& guard_lock_bal_idx = get_index_type<lockbalance_index>().indices();
