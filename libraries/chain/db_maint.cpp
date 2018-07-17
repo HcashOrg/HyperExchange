@@ -554,7 +554,7 @@ void database::process_bonus()
 		{
 			for (const auto& r : rate)
 			{
-				share_type bonus = iter.second * r.second;
+				share_type bonus = double(iter.second.value) * r.second;
 				_total_fees_pool[r.first] -= bonus;
 				adjust_bonus_balance(iter.first,asset(bonus,r.first));
 			}

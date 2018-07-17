@@ -165,6 +165,8 @@ void database::update_fee_pool()
 	try {
 		for (const auto& iter : _total_collected_fees)
 		{
+			if (iter.first == asset_id_type(0))
+				continue;
 			_total_fees_pool[iter.first] += iter.second;
 		}
 	}FC_CAPTURE_AND_RETHROW()

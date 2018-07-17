@@ -162,7 +162,7 @@ std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
 
 auto addr = pkey.get_address();
 std::cout << addr << std::endl;
-if (pkey.validate_address("LWVYmLxXnedapYZmz4ze8zeAyMR4jj5aZn"))
+if (pkey.validate_address("2NAzjTogb9q6Sjoes2WYYKZ5BSMD5uMD1sK"))
 {
 	std::cout << "is true" << std::endl;
 }
