@@ -28,7 +28,8 @@ namespace graphene {
 				for (const auto& p_back : pay_back)
 				{
 					if (other_payback_balance.count(p_back.first) != 0) {
-						min_payback_balance = other_payback_balance[p_back.first].amount;
+						if (min_payback_balance > other_payback_balance[p_back.first].amount)
+							min_payback_balance = other_payback_balance[p_back.first].amount;
 					}
 					FC_ASSERT(p_back.second.amount > 0);
 					FC_ASSERT(p_back.second.amount >= min_payback_balance, "doesnt get enough pay back");
