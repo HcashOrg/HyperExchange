@@ -1986,6 +1986,7 @@ class wallet_api
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2278,4 +2279,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_account_crosschain_transaction)
         (witness_node_stop)
 		(get_bonus_balance)
+		(miner_appointed_lockbalance_guard)
       )

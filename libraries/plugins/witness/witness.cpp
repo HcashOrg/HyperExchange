@@ -280,6 +280,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
+			if (!instance.contain_crosschain_handles(iter.symbol))
+				continue;
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(
