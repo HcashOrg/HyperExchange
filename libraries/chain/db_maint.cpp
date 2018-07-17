@@ -503,14 +503,14 @@ void database::process_bonus()
 			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
 		fc::time_point_sec now = head_block_time();
 		//check all balance obj
-		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(dpo.bonus_distribute_limit,asset_id_type()));
-		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(asset(GRAPHENE_MAX_SHARE_SUPPLY, asset_id_type()));
+		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(),dpo.bonus_distribute_limit));
+		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(),GRAPHENE_MAX_SHARE_SUPPLY));
 		share_type sum=0;
 		std::map<address, share_type> waiting_list;
 		while (iter != iter_end)
 		{
-			sum += iter->amount().amount;
-			waiting_list[iter->owner] = iter->amount().amount;
+			sum += iter->amount();
+			waiting_list[iter->owner] = iter->amount();
 			iter++;
 		}
 		// check all lock balance obj
@@ -522,17 +522,17 @@ void database::process_bonus()
 			const auto& acc = get(obj.lock_balance_account);
 			const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
 			const auto balance_obj = balances.find(boost::make_tuple(acc.addr, asset_id_type()));
-			if (balance_obj->amount().amount >= dpo.bonus_distribute_limit)
+			if (balance_obj->amount() >= dpo.bonus_distribute_limit)
 			{
 				sum += obj.lock_asset_amount;
 				waiting_list[iter->owner] += obj.lock_asset_amount;
 			}
 			else
 			{
-				if (balance_obj->amount().amount + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
+				if (balance_obj->amount() + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
 				{
-					sum += (balance_obj->amount().amount + obj.lock_asset_amount);
-					waiting_list[iter->owner] += (balance_obj->amount().amount + obj.lock_asset_amount);
+					sum += (balance_obj->amount() + obj.lock_asset_amount);
+					waiting_list[iter->owner] += (balance_obj->amount() + obj.lock_asset_amount);
 				}
 			}
 		}

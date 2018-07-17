@@ -61,7 +61,7 @@ namespace graphene { namespace chain {
          optional<linear_vesting_policy> vesting_policy;
          time_point_sec last_claim_date;
          asset_id_type asset_type()const { return balance.asset_id; }
-		 asset amount()const { return balance + asset(frozen,asset_type()); }
+		 share_type amount()const { return (balance + asset(frozen,asset_type())).amount; }
    };
 
    struct by_owner;
@@ -78,7 +78,10 @@ namespace graphene { namespace chain {
             member<balance_object, address, &balance_object::owner>,
             const_mem_fun<balance_object, asset_id_type, &balance_object::asset_type>
          > >,
-	     ordered_non_unique<tag<by_asset>,const_mem_fun<balance_object, asset, &balance_object::amount>> 
+	     ordered_non_unique<tag<by_asset>, composite_key<balance_object,
+	                                                     const_mem_fun<balance_object, asset_id_type, &balance_object::asset_type>,
+	                                                    const_mem_fun<balance_object, share_type, &balance_object::amount>
+	                                                    >>
       >
    >;
 
