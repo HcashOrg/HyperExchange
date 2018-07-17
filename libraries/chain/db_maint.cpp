@@ -503,12 +503,16 @@ void database::process_bonus()
 			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
 		fc::time_point_sec now = head_block_time();
 		//check all balance obj
-		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(),dpo.bonus_distribute_limit));
-		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(),GRAPHENE_MAX_SHARE_SUPPLY));
+		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(0),dpo.bonus_distribute_limit));
+		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(0),GRAPHENE_MAX_SHARE_SUPPLY));
 		share_type sum=0;
 		std::map<address, share_type> waiting_list;
 		while (iter != iter_end)
 		{
+			if (iter->owner == address())
+			{
+				break;
+			}
 			sum += iter->amount();
 			waiting_list[iter->owner] = iter->amount();
 			iter++;
@@ -517,7 +521,7 @@ void database::process_bonus()
 		const auto& guard_lock_bal_idx = get_index_type<lockbalance_index>().indices();
 		for (const auto& obj : guard_lock_bal_idx)
 		{
-			if (obj.lock_asset_id != asset_id_type())
+			if (obj.lock_asset_id != asset_id_type(0))
 				continue;
 			const auto& acc = get(obj.lock_balance_account);
 			const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
@@ -538,10 +542,10 @@ void database::process_bonus()
 		}
 		//after waiting_list and sum, need to calculate rate 
 		std::map<asset_id_type, double> rate;
-		const auto&  sys_obj = get(asset_id_type());
+		const auto&  sys_obj = get(asset_id_type(0));
 		for (auto& iter : _total_fees_pool)
 		{
-			if (iter.first == asset_id_type())
+			if (iter.first == asset_id_type(0))
 				continue;
 			const auto& asset_obj = get(iter.first);
 			rate[iter.first] = double(iter.second.value) / double(sum.value);
@@ -551,6 +555,7 @@ void database::process_bonus()
 			for (const auto& r : rate)
 			{
 				share_type bonus = iter.second * r.second;
+				_total_fees_pool[r.first] -= bonus;
 				adjust_bonus_balance(iter.first,asset(bonus,r.first));
 			}
 		}

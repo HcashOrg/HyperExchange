@@ -591,10 +591,9 @@ void database::_apply_block( const signed_block& next_block )
    // update_global_dynamic_data() as perhaps these methods only need
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
-   
+   update_fee_pool();
    pay_miner(next_block.miner,asset(next_block.trxfee));
    process_bonus();
-   update_fee_pool();
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
