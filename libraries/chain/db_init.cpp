@@ -187,6 +187,7 @@ void database::initialize_evaluators()
    register_evaluator<lockbalance_evaluator>();
    register_evaluator<foreclose_balance_evaluator>();
    register_evaluator<pay_back_evaluator>();
+   register_evaluator<bonus_evaluator>();
    register_evaluator<crosschain_record_evaluate>(); 
    register_evaluator<crosschain_withdraw_evaluate>();
    register_evaluator<crosschain_withdraw_without_sign_evaluate>();

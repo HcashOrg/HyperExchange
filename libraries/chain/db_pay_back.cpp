@@ -65,7 +65,7 @@ namespace graphene {
 				auto itr = bonus_db.find(bonus_owner);
 				const auto& asset_obj = get(bonus.asset_id);
 
-				if (itr != bonus_db.end())
+				if (itr == bonus_db.end())
 				{
 					FC_ASSERT(bonus.amount > 0);
 					create<bonus_object>([&bonus_owner, &bonus](bonus_object& a) {
