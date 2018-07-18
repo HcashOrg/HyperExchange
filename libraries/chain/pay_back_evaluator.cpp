@@ -52,6 +52,7 @@ namespace graphene {
 				auto bonus_balances = d.get_bonus_balance(o.bonus_owner);
 				for (const auto& itr : o.bonus_balance)
 				{
+					FC_ASSERT(d.get_asset(itr.first).valid(), "${asset} should exist.", ("asset", itr.first));
 					FC_ASSERT(itr.second > 0, "${asset} should be larger than 0", ("asset", itr.first));
 					FC_ASSERT(itr.second <= bonus_balances[itr.first], "${asset} is not enough to obtain", ("asset", itr.first));
 				}
