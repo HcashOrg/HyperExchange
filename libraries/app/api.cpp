@@ -101,7 +101,6 @@ namespace graphene { namespace app {
     }
     void login_api::enable_api( const std::string& api_name )
     {
-       cout <<"enabel_api"<< api_name << endl;
        if( api_name == "database_api" )
        {
           _database_api = std::make_shared< database_api >( std::ref( *_app.chain_database() ) );

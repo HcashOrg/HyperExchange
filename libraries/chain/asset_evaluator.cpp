@@ -707,4 +707,37 @@ void_result asset_fee_modification_evaluator::do_apply(const asset_fee_modificat
 		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void_result guard_lock_balance_set_evaluator::do_evaluate(const set_guard_lockbalance_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		for (const auto& l_bal : o.lockbalance)
+		{
+			const auto iter = asset_indx.find(l_bal.first);
+			FC_ASSERT(iter != asset_indx.end());
+			const auto& dymic_asset_info = iter->dynamic_data(d);
+			FC_ASSERT(dymic_asset_info.guard_lock_balance != l_bal.second.amount);
+		}
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result guard_lock_balance_set_evaluator::do_apply(const set_guard_lockbalance_operation& o)
+{
+	try {
+		auto& d = db();
+		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		for (const auto& l_bal : o.lockbalance)
+		{
+			const auto iter = asset_indx.find(l_bal.first);
+			auto& dymic_asset_info = iter->dynamic_data(d);
+			d.modify(dymic_asset_info, [&](asset_dynamic_data_object& obj) {
+				obj.guard_lock_balance = l_bal.second.amount;
+			});
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 } } // graphene::chain

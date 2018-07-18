@@ -654,8 +654,10 @@ class wallet_api
          uint32_t review_period_seconds = 0,
          bool broadcast = true
         );
-	  std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
-	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol,bool broadcast = true);
+	  std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
+	  std::map<std::string, share_type> get_bonus_balance(const address& owner_addr) const;
+	  full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string,asset> nums,bool broadcast = true);
+	  full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast = true);
       /**
        * @ingroup Transaction Builder API
        */
@@ -1929,6 +1931,7 @@ class wallet_api
       vector<contract_event_notify_object> get_contract_events(const std::string&);
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num = 0);
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0);
+	  full_transaction create_contract_transfer_fee_proposal(const string& proposer,share_type fee_rate, int64_t expiration_time, bool broadcast = false);
       // end contract wallet apis
       // begin script wallet apis
       std::string add_script(const string& script_path);
@@ -1983,6 +1986,7 @@ class wallet_api
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2068,6 +2072,7 @@ FC_API( graphene::wallet::wallet_api,
         (propose_builder_transaction2)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
+	    (obtain_bonus_balance)
         (remove_builder_transaction)
         (is_new)
         (is_locked)
@@ -2253,6 +2258,7 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_contract_testing)
         (get_contract_registered)
         (get_contract_storage_changed)
+	    (create_contract_transfer_fee_proposal)
 		(get_transaction)
 		(list_transactions)
 		(dump_crosschain_private_key)
@@ -2272,4 +2278,6 @@ FC_API( graphene::wallet::wallet_api,
         (start_miner)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
+		(get_bonus_balance)
+		(miner_appointed_lockbalance_guard)
       )

@@ -193,6 +193,8 @@ namespace graphene {
 					for (auto multi_account : boost::make_iterator_range(multi_range.first,multi_range.second)){
 						++withdraw_account_count;
 					}
+					if (!manager.contain_crosschain_handles(coldhot_op.asset_symbol))
+						continue;
 					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
 					coldhot_transfer_without_sign_operation trx_op;
 					std::map<string, string> dest_info;
@@ -268,6 +270,8 @@ namespace graphene {
 						continue;
 					}
 					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					if (!manager.contain_crosschain_handles(coldhot_op.asset_symbol))
+						continue;
 					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
 					coldhot_transfer_combine_sign_operation trx_op;
 

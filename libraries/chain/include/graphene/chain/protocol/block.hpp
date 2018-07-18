@@ -32,7 +32,8 @@ namespace graphene { namespace chain {
       block_id_type                 previous;
       uint32_t                      block_num()const { return num_from_id(previous) + 1; }
       fc::time_point_sec            timestamp;
-      miner_id_type               miner;
+	  share_type                    trxfee;
+      miner_id_type                 miner;
       checksum_type                 transaction_merkle_root;
       extensions_type               extensions;
 	  SecretHashType				next_secret_hash;
@@ -60,6 +61,6 @@ namespace graphene { namespace chain {
 
 } } // graphene::chain
 
-FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(miner)(transaction_merkle_root)(extensions)(next_secret_hash)(previous_secret) )
+FC_REFLECT( graphene::chain::block_header, (previous)(timestamp)(trxfee)(miner)(transaction_merkle_root)(extensions)(next_secret_hash)(previous_secret) )
 FC_REFLECT_DERIVED( graphene::chain::signed_block_header, (graphene::chain::block_header), (miner_signature) )
 FC_REFLECT_DERIVED( graphene::chain::signed_block, (graphene::chain::signed_block_header), (transactions) )

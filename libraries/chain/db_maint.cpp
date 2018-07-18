@@ -492,6 +492,77 @@ void database::process_budget()
    FC_CAPTURE_AND_RETHROW()
 }
 
+void database::process_bonus()
+{
+	try {
+		if (head_block_num() == 0 || head_block_num() % GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM != 0)
+			return;
+		const global_property_object& gpo = get_global_properties();
+		const dynamic_global_property_object& dpo = get_dynamic_global_properties();
+		const asset_dynamic_data_object& core =
+			asset_id_type(0)(*this).dynamic_asset_data_id(*this);
+		fc::time_point_sec now = head_block_time();
+		//check all balance obj
+		auto iter = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(0),dpo.bonus_distribute_limit));
+		const auto iter_end = get_index_type<balance_index>().indices().get<by_asset>().lower_bound(std::make_tuple(asset_id_type(0),GRAPHENE_MAX_SHARE_SUPPLY));
+		share_type sum=0;
+		std::map<address, share_type> waiting_list;
+		while (iter != iter_end)
+		{
+			if (iter->owner == address())
+			{
+				break;
+			}
+			sum += iter->amount();
+			waiting_list[iter->owner] = iter->amount();
+			iter++;
+		}
+		// check all lock balance obj
+		const auto& guard_lock_bal_idx = get_index_type<lockbalance_index>().indices();
+		for (const auto& obj : guard_lock_bal_idx)
+		{
+			if (obj.lock_asset_id != asset_id_type(0))
+				continue;
+			const auto& acc = get(obj.lock_balance_account);
+			const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
+			const auto balance_obj = balances.find(boost::make_tuple(acc.addr, asset_id_type()));
+			if (balance_obj->amount() >= dpo.bonus_distribute_limit)
+			{
+				sum += obj.lock_asset_amount;
+				waiting_list[iter->owner] += obj.lock_asset_amount;
+			}
+			else
+			{
+				if (balance_obj->amount() + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
+				{
+					sum += (balance_obj->amount() + obj.lock_asset_amount);
+					waiting_list[iter->owner] += (balance_obj->amount() + obj.lock_asset_amount);
+				}
+			}
+		}
+		//after waiting_list and sum, need to calculate rate 
+		std::map<asset_id_type, double> rate;
+		const auto&  sys_obj = get(asset_id_type(0));
+		for (auto& iter : _total_fees_pool)
+		{
+			if (iter.first == asset_id_type(0))
+				continue;
+			const auto& asset_obj = get(iter.first);
+			rate[iter.first] = double(iter.second.value) / double(sum.value);
+		}
+		for (const auto& iter : waiting_list)
+		{
+			for (const auto& r : rate)
+			{
+				share_type bonus = double(iter.second.value) * r.second;
+				_total_fees_pool[r.first] -= bonus;
+				adjust_bonus_balance(iter.first,asset(bonus,r.first));
+			}
+		}
+	} FC_CAPTURE_AND_RETHROW()
+}
+
+
 template< typename Visitor >
 void visit_special_authorities( const database& db, Visitor visit )
 {

@@ -139,11 +139,14 @@ namespace graphene { namespace chain {
 	   contract_invoke_operation,
 	   storage_operation,
 	   transfer_contract_operation,
-	        gurantee_create_operation,
+	   contract_transfer_fee_proposal_operation,
+	   gurantee_create_operation,
 	   gurantee_cancel_operation,
 	   guard_refund_crosschain_trx_operation,
 	   publisher_appointed_operation,
-	   asset_fee_modification_operation
+	   asset_fee_modification_operation,
+	   bonus_operation,
+	   set_guard_lockbalance_operation
          > operation;
 
    /// @} // operations group

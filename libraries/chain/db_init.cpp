@@ -178,12 +178,16 @@ const uint8_t guarantee_object::type_id;
 
 const uint8_t pay_back_object::space_id;
 const uint8_t pay_back_object::type_id;
+
+const uint8_t bonus_object::space_id;
+const uint8_t bonus_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
    register_evaluator<lockbalance_evaluator>();
    register_evaluator<foreclose_balance_evaluator>();
    register_evaluator<pay_back_evaluator>();
+   register_evaluator<bonus_evaluator>();
    register_evaluator<crosschain_record_evaluate>(); 
    register_evaluator<crosschain_withdraw_evaluate>();
    register_evaluator<crosschain_withdraw_without_sign_evaluate>();
@@ -259,10 +263,12 @@ void database::initialize_evaluators()
    register_evaluator<contract_invoke_evaluate>();
    register_evaluator<contract_upgrade_evaluate>();
    register_evaluator<contract_transfer_evaluate>();
+   register_evaluator<contract_transfer_fee_evaluate>();
    register_evaluator<gurantee_create_evaluator>();
    register_evaluator<gurantee_cancel_evaluator>();
    register_evaluator<publisher_appointed_evaluator>();
    register_evaluator<asset_fee_modification_evaluator>();
+   register_evaluator<guard_lock_balance_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -275,6 +281,7 @@ void database::initialize_indexes()
    add_index< primary_index<force_settlement_index> >();
    add_index<primary_index<lockbalance_index>>();
    add_index<primary_index<payback_index>>();
+   add_index <primary_index<bonus_index>>();
    add_index<primary_index<guard_lock_balance_index>>();
    add_index<primary_index<crosschain_trx_index>>();
    add_index<primary_index<coldhot_transfer_index>>();

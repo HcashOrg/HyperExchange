@@ -67,7 +67,10 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
    {
 	   slot_num += gpo.parameters.maintenance_skip_slots;
    }
-     
+   if (head_block_num() % GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM == 0 && head_block_num() > 0)
+   {
+	   slot_num += gpo.parameters.maintenance_skip_slots;
+   }
 
    // "slot 0" is head_slot_time
    // "slot 1" is head_slot_time,
@@ -144,7 +147,33 @@ share_type database::get_miner_pay_per_block(uint32_t block_num) {
 	}
 }
 
-void database::pay_miner(const miner_id_type& miner_id)
+asset database::get_fee_from_block(const signed_block& b)
+{
+	try {
+		for (auto trx : b.transactions)
+		{
+			for (auto op : trx.operations)
+			{
+				
+			}
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
+
+void database::update_fee_pool()
+{
+	try {
+		for (const auto& iter : _total_collected_fees)
+		{
+			if (iter.first == asset_id_type(0))
+				continue;
+			_total_fees_pool[iter.first] += iter.second;
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
+
+
+void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 {
 	// find current account lockbalance
 	try {
@@ -153,6 +182,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 
 		auto cache_datas = dgp.current_round_lockbalance_cache;
 		auto miner_obj = get(miner_id);
+		auto miner_acc = get(miner_obj.miner_account);
 		//bonus to senators
 		auto committee_count = gpo.active_committee_members.size();
 		int64_t all_committee_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
@@ -160,11 +190,11 @@ void database::pay_miner(const miner_id_type& miner_id)
 		int64_t end_value = int64_t(all_committee_paid) / committee_count;
 		for (int i = 0; i < committee_count - 1; i++) {
 			auto committe_obj = get(get(gpo.active_committee_members.at(i)).guard_member_account);
-			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)));
+			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), miner_acc.name);
 			committee_pay += end_value;
 		}
 		auto committe_obj = get(get(gpo.active_committee_members.at(committee_count-1)).guard_member_account);
-		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)));
+		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)),miner_acc.name);
 
 		if (cache_datas.count(miner_id) > 0)
 		{
@@ -172,8 +202,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 			boost::multiprecision::uint256_t all_pledge = boost::multiprecision::uint128_t(miner_obj.pledge_weight.hi);
 			all_pledge <<= 64;
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
-			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100;
-			all_paid += _total_collected_fee.value;
+			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100 + trxfee.amount.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
 
 			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
@@ -196,7 +225,7 @@ void database::pay_miner(const miner_id_type& miner_id)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
@@ -212,20 +241,19 @@ void database::pay_miner(const miner_id_type& miner_id)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)));
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
 
 
 				}
 			}
 
-			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)));
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)),miner_acc.name);
 		}
 		else
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
-			auto all_paid = gpo.parameters.miner_pay_per_block.value;
-			all_paid += _total_collected_fee.value;
-			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)));
+			auto all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO) / 100 + trxfee.amount.value;
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)),miner_acc.name);
 		}
 		auto supply_added = get_miner_pay_per_block(dgp.head_block_number);
 		modify(get(asset_id_type()).dynamic_asset_data_id(*this), [supply_added](asset_dynamic_data_object& d) {

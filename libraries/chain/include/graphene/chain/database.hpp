@@ -250,7 +250,9 @@ namespace graphene { namespace chain {
 
          void update_miner_schedule();
 
-		 void pay_miner(const miner_id_type& miner_id);
+		 void pay_miner(const miner_id_type& miner_id,asset fee);
+		 asset get_fee_from_block(const signed_block& b);
+		 void update_fee_pool();
 		 share_type get_miner_pay_per_block(uint32_t block_num);
 
 		 void reset_current_collected_fee();
@@ -295,8 +297,10 @@ namespace graphene { namespace chain {
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
 		 //////////////////// db_pay_back.cpp/////////////////
-		 void adjust_pay_back_balance(address payback_owner,asset payback_asset);
-		 std::vector<asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
+		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, const string& miner = "");
+	     void adjust_bonus_balance(address bonus_owner, asset bonus);
+		 std::map<string, share_type> get_bonus_balance(address owner)const;
+		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
 		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
 		 asset get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id)const;
@@ -562,6 +566,7 @@ namespace graphene { namespace chain {
 
          void initialize_budget_record( fc::time_point_sec now, budget_record& rec )const;
          void process_budget();
+		 void process_bonus();
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
          void update_active_miners();
@@ -606,6 +611,7 @@ namespace graphene { namespace chain {
          uint64_t                          _total_voting_stake;
 		 share_type						   _total_collected_fee;
 		 map<asset_id_type, share_type>     _total_collected_fees;
+		 map<asset_id_type, share_type>     _total_fees_pool;
          flat_map<uint32_t,block_id_type>  _checkpoints;
 
          node_property_object              _node_property_object;

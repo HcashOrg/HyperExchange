@@ -1211,36 +1211,25 @@ public:
 
       return trx = sign_transaction(trx, broadcast);
    }
-   std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const {
-	   std::vector<asset> results;
-	   auto owner_balance = _remote_db->get_pay_back_balances(owner_addr);
-	   if ("" == asset_symbol) {
-		   for (const auto & pay_back_balance_obj : owner_balance){
-			   results.push_back(pay_back_balance_obj.second);
-		   }
+   std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const {
+	   try {
+		   return _remote_db->get_address_pay_back_balance(owner_addr, asset_symbol);
 	   }
-	   else {
-		   auto pay_back_asset_iter = owner_balance.find(asset_symbol);
-		   FC_ASSERT(pay_back_asset_iter != owner_balance.end(), "This asset doesnt exist");
-		   results.push_back(pay_back_asset_iter->second);
+	   catch (...) {
+		   return std::map<std::string, asset>();
 	   }
-	   return results;
    }
-   full_transaction obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol,bool broadcast = true) {
+   full_transaction obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast = true) {
 	   try {
 		   FC_ASSERT(!self.is_locked());
-		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
-		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
-		   auto& iter = _wallet.my_accounts.get<by_address>();
-		   FC_ASSERT(iter.find(address(pay_back_owner)) != iter.end(), "Could not find address ${address} in my wallet", ("address", pay_back_owner));
-		   auto owner_asset = get_address_pay_back_balance(address(pay_back_owner), asset_symbol);
-
 		   pay_back_operation trx_op;
+		   for (auto iter = nums.begin(); iter != nums.end(); ++iter)
+		   {
+			   fc::optional<asset_object> asset_obj = get_asset(iter->second.asset_id);
+			   FC_ASSERT(asset_obj.valid(), "Could not find asset matching ${asset_id}", ("asset_id", iter->second.asset_id));
+		   }
 		   trx_op.pay_back_owner = address(pay_back_owner);
-		   map<string, asset> payback_balance;
-		   FC_ASSERT(*owner_asset.begin() >= asset_obj->amount_from_string(amount));
-		   payback_balance[asset_symbol] = asset_obj->amount_from_string(amount);
-		   trx_op.pay_back_balance = payback_balance;
+		   trx_op.pay_back_balance = nums;
 		   trx_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 
@@ -1248,8 +1237,31 @@ public:
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
-	   } FC_CAPTURE_AND_RETHROW((pay_back_owner)(amount)(asset_symbol)(broadcast))
+	   } FC_CAPTURE_AND_RETHROW((pay_back_owner)(nums)(broadcast))
    }
+
+   full_transaction obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   bonus_operation op;
+		   for (auto& iter : nums)
+		   {
+			   fc::optional<asset_object> asset_obj = get_asset(iter.first);
+			   FC_ASSERT(asset_obj.valid(), "Could not find asset matching ${asset_id}", ("asset_id", iter.first));
+		   }
+		   op.bonus_owner = address(bonus_owner);
+		   op.bonus_balance = nums;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx,_remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx,broadcast);
+
+	   } FC_CAPTURE_AND_RETHROW((bonus_owner)(nums)(broadcast))
+   }
+
    void remove_builder_transaction(transaction_handle_type handle)
    {
       _builder_transactions.erase(handle);
@@ -1988,6 +2000,37 @@ public:
        asset res_data_fee = signed_tx.operations[0].get<transfer_contract_operation>().fee;
        std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
        return res;
+   }
+   full_transaction create_contract_transfer_fee_proposal(const string& proposer, share_type fee_rate, int64_t expiration_time, bool broadcast = false)
+   {
+	   try
+	   {
+		   FC_ASSERT(!is_locked());
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   contract_transfer_fee_proposal_operation op;
+		   op.fee_rate = fee_rate;
+
+		   auto guard_obj = get_guard_member(proposer);
+		   auto guard_id = guard_obj.guard_member_account;
+		   auto guard_account_obj = get_account(guard_id);
+		   op.guard = guard_account_obj.addr;
+		   op.guard_id = guard_obj.id;
+
+
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   prop_op.proposed_ops.emplace_back(op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   signed_transaction trx;
+		   trx.operations.emplace_back(prop_op);
+		   set_operation_fees(trx, current_params.current_fees);
+		   trx.validate();
+
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((proposer)(fee_rate)(expiration_time)(broadcast))
+
    }
    full_transaction register_account(string name,
                                        public_key_type owner,
@@ -2743,6 +2786,32 @@ public:
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(fee)(symbol)(expiration_time)(broadcast))
+   }
+
+   full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   set_guard_lockbalance_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.lockbalance = lockbalance;
+
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   prop_op.type = vote_id_type::witness;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(lockbalance)(expiration_time)(broadcast))
    }
 
    miner_object get_miner(string owner_account)
@@ -5202,7 +5271,7 @@ optional<signed_block_with_info> wallet_api::get_block(uint32_t num)
 	   tx_ids.push_back(full_trx.trxid);
    }
    auto glob_info = get_global_properties();
-   block_with_info.reward = my->_remote_db->get_miner_pay_per_block(num);
+   block_with_info.reward = my->_remote_db->get_miner_pay_per_block(num)+block->trxfee;
    block_with_info.transaction_ids.swap(tx_ids);
    return block_with_info;
 }
@@ -5459,12 +5528,23 @@ full_transaction wallet_api::propose_builder_transaction2(
 {
    return my->propose_builder_transaction2(handle, account_name_or_id, expiration, review_period_seconds, broadcast);
 }
-std::vector<asset> wallet_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
+std::map<string,asset> wallet_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
 	return my->get_address_pay_back_balance(owner_addr, asset_symbol);
 }
-full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, const string& amount, const string & asset_symbol, bool broadcast) {
-	return my->obtain_pay_back_balance(pay_back_owner, amount, asset_symbol,broadcast);
+
+std::map<string, share_type> wallet_api::get_bonus_balance(const address& owner) const
+{
+	return my->_remote_db->get_bonus_balances(owner);
 }
+
+full_transaction wallet_api::obtain_pay_back_balance(const string& pay_back_owner, std::map<std::string, asset> nums, bool broadcast) {
+	return my->obtain_pay_back_balance(pay_back_owner,nums,broadcast);
+}
+
+full_transaction wallet_api::obtain_bonus_balance(const string& bonus_owner, std::map<std::string, share_type> nums, bool broadcast) {
+	return my->obtain_bonus_balance(bonus_owner,nums,broadcast);
+}
+
 void wallet_api::remove_builder_transaction(transaction_handle_type handle)
 {
    return my->remove_builder_transaction(handle);
@@ -6398,6 +6478,12 @@ vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const ui
 {
     return  my->_remote_db->get_contract_storage_changed(block_num);
 }
+
+graphene::chain::full_transaction wallet_api::create_contract_transfer_fee_proposal(const string& proposer, share_type fee_rate, int64_t expiration_time, bool broadcast)
+{
+	return my->create_contract_transfer_fee_proposal(proposer, fee_rate, expiration_time,broadcast);
+}
+
 vector<contract_blocknum_pair> wallet_api::get_contract_registered(const uint32_t block_num)
 {
     return my->_remote_db->get_contract_registered(block_num);
@@ -6878,6 +6964,11 @@ full_transaction wallet_api::guard_appointed_publisher(const string& account, co
 full_transaction wallet_api::miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+}
+
+full_transaction wallet_api::miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+{
+	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
 }
 
 full_transaction wallet_api::sell_asset(string seller_account,

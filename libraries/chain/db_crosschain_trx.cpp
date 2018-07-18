@@ -202,7 +202,6 @@ namespace graphene {
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
-
 				//need to check if can be created
 				auto check_point_1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_create);
 				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_sign_trx);
@@ -252,6 +251,8 @@ namespace graphene {
 						continue;
 					}
 					auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
+					if (hdl == nullptr)
+						continue;
 					if (!hdl->valid_config()) {
 						continue;
 					}
@@ -288,6 +289,8 @@ namespace graphene {
 						continue;
 
 					auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
+					if (hdl == nullptr)
+						continue;
 					crosschain_withdraw_without_sign_operation trx_op;
 					multisig_account_pair_object multi_account_obj;
 

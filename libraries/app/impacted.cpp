@@ -185,6 +185,8 @@ struct get_impacted_account_visitor
    void operator()(const crosschain_record_operation& op) {}
    void operator()(const crosschain_withdraw_operation& op) {}
    void operator()(const pay_back_operation& op) {}
+   void operator()(const bonus_operation& op) {}
+   void operator()(const set_guard_lockbalance_operation& op) {}
    void operator()(const crosschain_withdraw_without_sign_operation& op) {}
    void operator()(const crosschain_withdraw_with_sign_operation& op) {}
    void operator()(const crosschain_withdraw_combine_sign_operation& op) {}
@@ -250,6 +252,7 @@ struct get_impacted_account_visitor
    void operator()(const contract_invoke_operation& op) {}
    void operator()(const storage_operation& op) {}
    void operator()(const transfer_contract_operation& op) {}
+   void operator()(const contract_transfer_fee_proposal_operation& op) {}
 
 };
 

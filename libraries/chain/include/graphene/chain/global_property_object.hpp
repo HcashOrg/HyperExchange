@@ -83,6 +83,7 @@ namespace graphene { namespace chain {
 		 std::map<miner_id_type,std::vector<lockbalance_object>> current_round_lockbalance_cache;
 		 std::map<asset_id_type, price_feed>  current_price_feed;
 		 fc::flat_set<miner_id_type>          round_produced_miners;
+		 share_type       contract_transfer_fee_rate = 0;
 
          /**
           *  Every time a block is missed this increases by
@@ -114,6 +115,7 @@ namespace graphene { namespace chain {
          uint32_t dynamic_flags = 0;
 
          uint32_t last_irreversible_block_num = 0;
+		 share_type  bonus_distribute_limit = GRAPHENE_BONUS_DISTRIBUTE_LIMIT;
 
          enum dynamic_flag_bits
          {
@@ -149,6 +151,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
 					(current_round_lockbalance_cache)
 					(current_price_feed)
 	                (round_produced_miners)
+	                (bonus_distribute_limit)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::object),

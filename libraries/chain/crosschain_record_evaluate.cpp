@@ -214,7 +214,7 @@ namespace graphene {
 			}
 			FC_ASSERT(o.crosschain_fee.amount >= 0);
 			FC_ASSERT(total_amount == (total_op_amount + o.crosschain_fee.amount + cross_fee.amount));
-			
+			crosschain_fee = o.crosschain_fee;
 			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
 			
 			
@@ -232,7 +232,8 @@ namespace graphene {
 			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
-
+			auto& d = db();
+			d.modify_current_collected_fee(crosschain_fee);
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
 			auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -266,7 +267,6 @@ namespace graphene {
 			return void_result();
 		}
 		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
-			db().modify_current_collected_fee(core_fees_paid);
 		}
 		
 		void_result crosschain_withdraw_with_sign_evaluate::do_evaluate(const crosschain_withdraw_with_sign_operation& o) {

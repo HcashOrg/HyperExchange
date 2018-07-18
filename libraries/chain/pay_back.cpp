@@ -11,5 +11,11 @@ namespace graphene {
 // 		share_type      pay_back_operation::calculate_fee(const fee_parameters_type& k)const {
 // 			return share_type(0);
 // 		}
+		void bonus_operation::validate()const {
+			FC_ASSERT(fee.amount >= 0);
+			for (const auto & obj : bonus_balance) {
+				FC_ASSERT(obj.second > 0);
+			}
+		}
 	}
 }

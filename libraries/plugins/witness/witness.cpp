@@ -53,6 +53,13 @@ void new_chain_banner( const graphene::chain::database& db )
       "*                              *\n"
       "********************************\n"
       "\n";
+   if( db.get_slot_at_time( fc::time_point::now() ) > 200 )
+   {
+      std::cerr << "Your genesis seems to have an old timestamp\n"
+         "Please consider using the --genesis-timestamp option to give your genesis a recent timestamp\n"
+         "\n"
+         ;
+   }
    return;
 }
 
@@ -191,10 +198,9 @@ void miner_plugin::schedule_production_loop()
        time_to_next_second += 1000000;
 
    fc::time_point next_wakeup( now + fc::microseconds( time_to_next_second ) );
-
    //wdump( (now.time_since_epoch().count())(next_wakeup.time_since_epoch().count()) );
    _block_production_task = fc::schedule([this]{block_production_loop();},
-                                         next_wakeup, "Miner Block Production");
+                                         next_wakeup, "Miner Block Production",fc::priority::max());
 }
 
 block_production_condition::block_production_condition_enum miner_plugin::block_production_loop()
@@ -203,7 +209,7 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
    fc::mutable_variant_object capture;
    try
    {
-      result = maybe_produce_block(capture);
+	   result = maybe_produce_block(capture);
    }
    catch( const fc::canceled_exception& )
    {
@@ -274,6 +280,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
+			if (!instance.contain_crosschain_handles(iter.symbol))
+				continue;
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(

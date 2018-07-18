@@ -111,7 +111,8 @@ namespace graphene {
 		}
 		void crosschain_record_plugin::plugin_startup(){
 			if (!_miners.empty() || !_guard.empty()){
-				schedule_acquired_record_loop();
+				auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
+				fut.wait();
 			}
 			else{
 				elog("No miner or guard in this client");

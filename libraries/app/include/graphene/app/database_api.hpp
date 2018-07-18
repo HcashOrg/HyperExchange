@@ -626,7 +626,8 @@ class database_api
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
-      std::vector<asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
+	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
+      std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
       //contract 
       contract_object get_contract_object(const string& contract_address)const;
 	  contract_object get_contract_object_by_name(const string& contract_name)const;
@@ -799,7 +800,7 @@ FC_API(graphene::app::database_api,
      (list_guarantee_order)
 	(get_pay_back_balances)
     (get_address_pay_back_balance)
-
+	(get_bonus_balances)
 	(get_miner_pay_per_block)
 
 

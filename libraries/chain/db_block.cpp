@@ -350,6 +350,7 @@ signed_block database::_generate_block(
    _pending_tx_session = _undo_db.start_undo_session();
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
+   reset_current_collected_fee();
    for( const processed_transaction& tx : _pending_tx )
    {
       size_t new_total_size = total_block_size + fc::raw::pack_size( tx );
@@ -397,6 +398,7 @@ signed_block database::_generate_block(
 
    pending_block.previous = head_block_id();
    pending_block.timestamp = when;
+   pending_block.trxfee = _total_collected_fees[asset_id_type(0)];
    pending_block.transaction_merkle_root = pending_block.calculate_merkle_root();
    pending_block.miner = witness_id;
 
@@ -566,7 +568,8 @@ void database::_apply_block( const signed_block& next_block )
       ++_current_trx_in_block;
 	  //store_transactions(signed_transaction(trx));
    }
-   
+   FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
+   //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
    update_signing_miner(signing_witness, next_block);
    update_last_irreversible_block();
@@ -588,13 +591,13 @@ void database::_apply_block( const signed_block& next_block )
    // update_global_dynamic_data() as perhaps these methods only need
    // to be called for header validation?
    update_maintenance_flag( maint_needed );
-   
-   pay_miner(next_block.miner);
+   update_fee_pool();
+   pay_miner(next_block.miner,asset(next_block.trxfee));
+   process_bonus();
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
-
    // notify observers that the block has been applied
    applied_block( next_block ); //emit
    
