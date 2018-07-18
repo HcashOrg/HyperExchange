@@ -79,7 +79,9 @@ namespace graphene {
 					{
 						FC_ASSERT(bonus.amount >0 );
 					}
-					FC_ASSERT( itr->bonus.at(bonus.asset_id) >= -bonus.amount);
+					else {
+						FC_ASSERT(itr->bonus.at(bonus.asset_id) >= -bonus.amount);
+					}
 					modify(*itr, [&bonus_owner, &bonus](bonus_object& a) {
 						a.bonus[bonus.asset_id] += bonus.amount;
 					});
