@@ -75,7 +75,7 @@ namespace graphene {
 				}
 				else
 				{
-					if (itr->bonus.count(bonus.asset_id) > 0)
+					if (itr->bonus.count(bonus.asset_id) == 0)
 					{
 						FC_ASSERT(bonus.amount >0 );
 					}
