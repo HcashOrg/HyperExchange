@@ -1,9 +1,11 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <fc/thread/scoped_lock.hpp>
 namespace graphene {
 	namespace chain {
 		void database::adjust_deposit_to_link_trx(const hd_trx& handled_trx) {
 			try {
+				fc::scoped_lock<std::mutex> _lock(db_lock);
 				auto & deposit_db = get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
 				auto deposit_to_link_trx = deposit_db.find(handled_trx.trx_id);
 				if (deposit_to_link_trx == deposit_db.end()) {
@@ -26,6 +28,7 @@ namespace graphene {
 		}
 		void database::adjust_crosschain_confirm_trx(const hd_trx& handled_trx) {
 			try {
+				fc::scoped_lock<std::mutex> _lock(db_lock);
 				auto & deposit_db = get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
 				auto deposit_to_link_trx = deposit_db.find(handled_trx.trx_id);
 				if (deposit_to_link_trx == deposit_db.end()) {
