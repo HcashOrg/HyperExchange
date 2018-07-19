@@ -670,7 +670,7 @@ namespace graphene {
 				const auto& d = evaluator->get_db();
 				const auto& block = d.fetch_block_by_id(d.head_block_id());
 				auto hash = block->digest();
-				return hash._hash[3] % (1 << 31 - 1);
+				return hash._hash[3] % ((1 << 31) - 1);
 			}
 			catch (fc::exception e)
 			{
@@ -744,7 +744,7 @@ namespace graphene {
 					return -1;
 				const auto& block = d.fetch_block_by_number(num);
 				auto hash = block->digest();
-				return hash._hash[3] % (1 << 31 - 1);
+				return hash._hash[3] % ((1 << 31) - 1);
 			}
 			catch (const fc::exception& e)
 			{
