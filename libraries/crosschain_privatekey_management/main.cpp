@@ -12,6 +12,10 @@
 #include "fc/crypto/base58.hpp"
 #include <bitcoin/bitcoin.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
+#include <graphene/chain/protocol/address.hpp>
+#include <graphene/chain/protocol/types.hpp>
+#include <graphene/utilities/key_conversion.hpp>
+#include <fc/crypto/elliptic.hpp>
 #include <string> 
 #include <vector> 
 #include <iostream> 
@@ -161,12 +165,10 @@ std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
 //std::cout << str << std::endl;
 
 auto addr = pkey.get_address();
-std::cout << addr << std::endl;
-if (pkey.validate_address("2NAzjTogb9q6Sjoes2WYYKZ5BSMD5uMD1sK"))
-{
-	std::cout << "is true" << std::endl;
-}
-
+fc::optional<fc::ecc::private_key> optional_private_key = graphene::utilities::wif_to_key("5KAffU3Pw7RNJAJ3d1qUrJ6QPVb6UFx6CJ4MhgfoHL7YwYspHhs");
+graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
+std::cout << wif_pub_key.operator fc::string() << std::endl;
+std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
 	getchar();
 	return 0;
 }
