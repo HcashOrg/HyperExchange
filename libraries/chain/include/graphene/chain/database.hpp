@@ -618,6 +618,8 @@ namespace graphene { namespace chain {
 
          //gas_price check
          share_type                        _min_gas_price=1;
+	public:
+		std::mutex                         db_lock;
    };
 
    namespace detail

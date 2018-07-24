@@ -50,7 +50,6 @@ digest_type transaction::sig_digest( const chain_id_type& chain_id )const
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );
    fc::raw::pack( enc, *this );
-   auto ret = enc.result();
    return enc.result();
 }
 

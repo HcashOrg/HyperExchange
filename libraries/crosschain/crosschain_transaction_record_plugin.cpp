@@ -2,6 +2,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <fc/thread/scoped_lock.hpp>
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
 namespace bpo = boost::program_options;
@@ -58,7 +59,7 @@ namespace graphene {
 
 					for (const auto & trx : pending_trx) {
 						auto handle_trx = hdl->turn_trx(trx);
-
+						fc::scoped_lock<std::mutex> _lock(db.db_lock);
 						auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
 						auto trx_iter = trx_iters.find(handle_trx.trx_id);
 						if (trx_iter != trx_iters.end()) {

@@ -107,10 +107,10 @@ namespace graphene { namespace privatekey_management {
 	void btc_privatekey::init()
 	{
 		set_id(0);
-		//set_pubkey_prefix(0x6F);
-		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x0);
-		set_privkey_prefix(0x80);
+		set_pubkey_prefix(0x6F);
+		set_privkey_prefix(0xEF);
+		//set_pubkey_prefix(0x0);
+		//set_privkey_prefix(0x80);
 	}
 
 
@@ -203,10 +203,10 @@ namespace graphene { namespace privatekey_management {
 	void ltc_privatekey::init()
 	{
 		set_id(0);
-		//set_pubkey_prefix(0x6F);
-		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x30);
-		set_privkey_prefix(0xB0);
+		set_pubkey_prefix(0x6F);
+		set_privkey_prefix(0xEF);
+		//set_pubkey_prefix(0x30);
+		//set_privkey_prefix(0xB0);
 	}
 
 	std::string  ltc_privatekey::get_wif_key()
@@ -806,7 +806,7 @@ namespace graphene { namespace privatekey_management {
 		// 		libbitcoin::wallet::ec_private libbitcoin_priv("L13gvvM3TtL2EmfBdye8tp4tQhcbCG3xz3VPrBjSZL8MeJavLL8K");
 		//libbitcoin::data_chunk  data(msg.begin(), msg.end());
 		libbitcoin::recoverable_signature recoverable;
-		std::string prefix = "Decred Signed Message:\n";
+		std::string prefix = "Hc Signed Message:\n";
 		libbitcoin::data_chunk  msg_data(msg.begin(), msg.end());
 		libbitcoin::data_slice msg_slice_data(msg_data);
 		libbitcoin::data_chunk data;
