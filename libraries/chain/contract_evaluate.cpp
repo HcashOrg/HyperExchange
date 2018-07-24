@@ -1058,6 +1058,7 @@ namespace graphene {
             //deposit
             std::pair<address, asset_id_type> deposit_index;
             deposit_index.first = to;
+			deposit_index.second = amount.asset_id;
 			share_type transfer_fee_amount = 0;
 
 			if (fee_needed)
