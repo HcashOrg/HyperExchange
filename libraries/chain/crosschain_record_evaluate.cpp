@@ -102,6 +102,7 @@ namespace graphene {
 			auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 			auto tx_without_sign_iter = tx_db_objs.find(combine_trx_iter->relate_transaction_id);
 			FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "user cross chain tx exist error");
+			crosschain_fee = tx_without_sign_iter->crosschain_fee;
 			for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 				auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 				FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
@@ -140,10 +141,12 @@ namespace graphene {
 			db().adjust_crosschain_confirm_trx(o.cross_chain_trx);
 			db().adjust_crosschain_transaction(combine_trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_result_operation>::value), withdraw_transaction_confirm);
 			return void_result();
+
 		}
 
 		void crosschain_withdraw_result_evaluate::pay_fee() {
-
+			auto& d = db();
+			d.modify_current_collected_fee(crosschain_fee);
 		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
 			auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -214,7 +217,6 @@ namespace graphene {
 			}
 			FC_ASSERT(o.crosschain_fee.amount >= 0);
 			FC_ASSERT(total_amount == (total_op_amount + o.crosschain_fee.amount + cross_fee.amount));
-			crosschain_fee = o.crosschain_fee;
 			//FC_ASSERT(o.ccw_trx_ids.size() == create_trxs.size());
 			
 			
@@ -225,6 +227,11 @@ namespace graphene {
 			{
 				db().adjust_crosschain_transaction(one_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_without_sign_operation>::value), withdraw_without_sign_trx_create, o.ccw_trx_ids);
 			}
+			auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto iter = trx_db.find(trx_state->_trx->id());
+			db().modify(*iter, [&o](crosschain_trx_object& a) {
+				a.crosschain_fee = o.crosschain_fee;
+			});
 			db().modify(db().get(asset_id_type(o.asset_id)).dynamic_asset_data_id(db()), [&o](asset_dynamic_data_object& d) {
 				d.current_supply += o.crosschain_fee.amount;
 			});
@@ -232,8 +239,6 @@ namespace graphene {
 			return void_result();
 		}
 		void crosschain_withdraw_without_sign_evaluate::pay_fee() {
-			auto& d = db();
-			d.modify_current_collected_fee(crosschain_fee);
 		}
 		void_result crosschain_withdraw_combine_sign_evaluate::do_evaluate(const crosschain_withdraw_combine_sign_operation& o) {
 			auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();

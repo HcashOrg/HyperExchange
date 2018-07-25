@@ -89,6 +89,7 @@ namespace graphene {
 			uint64_t op_type;
 			transaction_stata trx_state;
 			string crosschain_trx_id;
+			asset crosschain_fee ;
 			crosschain_trx_object() {}
 		};
 		struct by_relate_trx_id;
@@ -174,6 +175,7 @@ FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object)
 	(transaction_id)
 	(real_transaction)
 	(crosschain_trx_id)
+	(crosschain_fee)
 	(without_link_account)
 	(all_related_origin_transaction_ids)
 	(op_type)

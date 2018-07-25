@@ -31,8 +31,6 @@ namespace graphene {
 			void_result do_apply(const crosschain_withdraw_without_sign_operation& o);
 
 			virtual void pay_fee() override;
-		private:
-			asset crosschain_fee;
 		};
 		class crosschain_withdraw_with_sign_evaluate :public evaluator<crosschain_withdraw_with_sign_evaluate> {
 		public:
@@ -59,8 +57,9 @@ namespace graphene {
 
 			void_result do_evaluate(const crosschain_withdraw_result_operation& o);
 			void_result do_apply(const crosschain_withdraw_result_operation& o);
-
 			virtual void pay_fee() override;
+		private:
+			asset crosschain_fee;
 		};
 	}
 }
