@@ -276,7 +276,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 		//get cold address
 		for (auto iter : symbols)
 		{
-			if (iter.symbol == "LNK")
+			if (iter.symbol == GRAPHENE_SYMBOL)
 				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;

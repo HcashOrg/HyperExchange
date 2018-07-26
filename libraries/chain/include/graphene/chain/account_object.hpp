@@ -304,6 +304,7 @@ namespace graphene { namespace chain {
 	   std::string       bind_account_cold;
 	   std::string       redeemScript_cold;
 	   uint64_t			 effective_block_num = 0;
+	   uint64_t          end_block = -1;
 
 	   //std::string get_tunnel_account()const { return bind_account; }
    };
@@ -559,7 +560,7 @@ FC_REFLECT_DERIVED(graphene::chain::account_binding_object,
 
 FC_REFLECT_DERIVED(graphene::chain::multisig_account_pair_object,
 					(graphene::db::object),
-					(chain_type)(bind_account_hot)(redeemScript_hot)(bind_account_cold)(redeemScript_cold)(effective_block_num))
+					(chain_type)(bind_account_hot)(redeemScript_hot)(bind_account_cold)(redeemScript_cold)(effective_block_num)(end_block))
 					
 FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
 					(graphene::db::object),

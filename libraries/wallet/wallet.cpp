@@ -2125,7 +2125,7 @@ public:
 		   auto asset_obj = get_asset(symbol);
 		   gurantee_create_operation op;
 		   op.owner_addr = acc.addr;
-		   auto sys_asset = get_asset("LNK");
+		   auto sys_asset = get_asset(GRAPHENE_SYMBOL);
 		   op.asset_origin = asset(sys_asset.amount_from_string(asset_orign).amount, sys_asset.get_id());
 		   auto target_asset = get_asset(symbol);
 		   op.asset_target = asset(target_asset.amount_from_string(asset_target).amount, target_asset.get_id());
@@ -4271,6 +4271,7 @@ public:
 			   xfer_op.memo->to = public_key_type();
 			   xfer_op.memo->set_message(private_key_type(),
 			      public_key_type(), memo);
+			   std::cout << "dsfsdfds" <<xfer_op.memo->message.size() << std::endl;
 		   }
 		   signed_transaction tx;
 
