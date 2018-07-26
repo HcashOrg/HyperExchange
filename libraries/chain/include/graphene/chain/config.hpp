@@ -157,7 +157,7 @@
 
 #define GRAPHENE_IRREVERSIBLE_THRESHOLD                      (70 * GRAPHENE_1_PERCENT)
 #define GRAPHENE_REVERSIBLE_BLOCK_COUNT                      3600/5*2
-#define GRAPHENE_PRODUCT_PER_ROUND							 10
+#define GRAPHENE_PRODUCT_PER_ROUND							 25
 
 #define BLOCKLINK_MIN_GAS_PRICE                              0
 #define BLOCKLINK_MAX_GAS_LIMIT                              100000000
