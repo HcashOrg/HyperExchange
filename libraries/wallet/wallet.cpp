@@ -664,6 +664,7 @@ public:
    }
    account_object change_account_name(const string& oldname, const string& newname) 
    {
+	   FC_ASSERT(is_valid_account_name(newname),"not a correct account name.");
 	   int local_account_count = _wallet.my_accounts.get<by_name>().count(oldname);
 	   FC_ASSERT((local_account_count != 0), "This account dosen`t belong to local wallet");
 	   auto local_account = *_wallet.my_accounts.get<by_name>().find(oldname);
