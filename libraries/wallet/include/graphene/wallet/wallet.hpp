@@ -2080,7 +2080,6 @@ FC_API( graphene::wallet::wallet_api,
         (dump_private_keys)
 	    (dump_private_key)
         (list_my_accounts)
-        (list_accounts)
         (list_account_balances)
 	    (get_addr_balances)
 	    (get_account_balances)
