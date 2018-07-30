@@ -276,6 +276,41 @@ void database::deposit_cashback(const account_object& acct, share_type amount, b
 
    return;
 }
+optional<multisig_account_pair_object>  database::get_current_multisig_account(const string& symbol) const
+{
+	optional<multisig_account_pair_object> result;
+	int max = 0;
+	const auto& index = get_index_type<multisig_account_pair_index>().indices().get<by_chain_type>();
+	const auto range = index.equal_range(symbol);
+	for (auto obj : boost::make_iterator_range(range.first, range.second)) {
+		if (max < obj.effective_block_num)
+		{
+			result = obj;
+			max = obj.effective_block_num;
+		}
+	}
+	return result;
+}
+
+optional<multisig_account_pair_object> database::get_multisgi_account(const string& multisig_account,const string& symbol) const
+{
+	optional<multisig_account_pair_object> result;
+	const auto& index_h = get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
+	const auto iter = index_h.find(std::make_tuple(multisig_account,symbol));
+	if (iter != index_h.end())
+	{
+		result = *iter;
+		return result;
+	}
+
+	const auto& index_c = get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
+	auto iter_c = index_c.find(std::make_tuple(multisig_account, symbol));
+	if (iter_c != index_c.end())
+	{
+		result = *iter_c;
+	}
+	return result;
+}
 
 void database::deposit_miner_pay(const miner_object& wit, share_type amount)
 {

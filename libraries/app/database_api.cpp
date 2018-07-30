@@ -2576,6 +2576,25 @@ vector<optional<multisig_address_object>> database_api::get_multisig_address_obj
 vector<optional<multisig_account_pair_object>> database_api::get_multisig_account_pair(const string& symbol) const {
 	return my->get_multisig_account_pair(symbol);
 }
+
+optional<multisig_account_pair_object> database_api::get_current_multisig_account(const string& symbol) const
+{
+	optional<multisig_account_pair_object> result;
+	auto vec = get_multisig_account_pair(symbol);
+	int max = 0;
+	for (auto op_m : vec)
+	{
+		if (!op_m.valid())
+			continue;
+		if (max < op_m->effective_block_num)
+		{
+			max = op_m->effective_block_num;
+			result = op_m;
+		}
+	}
+	return result;
+}
+
 optional<multisig_account_pair_object> database_api::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const
 {
 	return my->lookup_multisig_account_pair(id);

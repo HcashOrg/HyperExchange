@@ -653,6 +653,7 @@ class database_api
       vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const ;
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0)const ;
+	  optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -824,4 +825,5 @@ FC_API(graphene::app::database_api,
     (get_contracts_by_owner)
     (get_contracts_hash_entry_by_owner)
     (get_contract_addresses_by_owner)
+	(get_current_multisig_account)
 );

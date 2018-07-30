@@ -28,6 +28,15 @@ namespace graphene {
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
 			FC_ASSERT(asset_itr->symbol == o.cross_chain_trx.asset_symbol);
+
+			auto multisig_obj = db().get_multisgi_account(o.cross_chain_trx.to_account,o.cross_chain_trx.asset_symbol);
+			FC_ASSERT(multisig_obj.valid(), "multisig address has not worked yet.");
+			auto current_obj = db().get_current_multisig_account(o.cross_chain_trx.asset_symbol);
+			if (multisig_obj->effective_block_num != current_obj->effective_block_num)
+			{
+				FC_ASSERT(db().head_block_num()- multisig_obj->end_block <= 20000,"this multi addr has expired");
+			}
+
 			return void_result();
 		}
 		void_result crosschain_record_evaluate::do_apply(const crosschain_record_operation& o) {

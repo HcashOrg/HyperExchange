@@ -359,7 +359,8 @@ namespace graphene { namespace chain {
          //contract_balance//
          asset get_contract_balance(const contract_address_type& addr,const asset_id_type& asset_id);
          void adjust_contract_balance(const contract_address_type& addr, const asset& delta);
-
+		 optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
+		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
          //get account address by account name
          address get_account_address(const string& name);
 

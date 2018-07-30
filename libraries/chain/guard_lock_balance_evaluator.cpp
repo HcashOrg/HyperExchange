@@ -105,13 +105,24 @@ namespace graphene {
 				//we need implemention
 				database& d = db();
 				//modify the data for the
+				auto previous = d.get_current_multisig_account(o.chain_type);
 				auto& multi_assets = d.get_index_type<multisig_account_pair_index>().indices().get<by_multisig_account_pair>();
 				auto multisig_account_obj = multi_assets.find(boost::make_tuple(o.hot, o.cold, o.chain_type));
-
 				auto head_num = d.head_block_num();
+				if (previous.valid())
+				{
+					auto& p_obj = d.get_object(previous->id);
+					d.modify(*(multisig_account_pair_object*)&p_obj, [o, head_num](multisig_account_pair_object& obj) {
+						obj.end_block = head_num + 10;
+					}
+					);
+				}
+				
 				d.modify(*multisig_account_obj, [o,head_num](multisig_account_pair_object& obj) {
 					obj.effective_block_num = head_num + 10;
 				});
+
+				
 				//multi_assets.modify();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}

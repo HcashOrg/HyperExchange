@@ -303,8 +303,8 @@ namespace graphene { namespace chain {
 	   std::string       redeemScript_hot;
 	   std::string       bind_account_cold;
 	   std::string       redeemScript_cold;
-	   uint64_t			 effective_block_num = 0;
-	   uint64_t          end_block = -1;
+	   uint32_t			 effective_block_num = 0;
+	   uint32_t          end_block = -1;
 
 	   //std::string get_tunnel_account()const { return bind_account; }
    };
