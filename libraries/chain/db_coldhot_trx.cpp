@@ -138,6 +138,10 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((relate_trx_id)(current_trx_id))
 		}
 		void database::create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk) {
+			//need to check if there are crosschain trx
+			auto start = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_without_sign_trx_create);
+			auto end = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_transaction_confirm);
+		
 			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_uncreate);
 			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_create);
 			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_sign_trx);
@@ -150,8 +154,6 @@ namespace graphene {
 					const auto& coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
 					asset_set.insert(coldhot_op.asset_symbol);
 				}
-				
-
 			}
 
 			for (auto check_point : boost::make_iterator_range(check_point_2.first, check_point_2.second))
@@ -163,7 +165,29 @@ namespace graphene {
 					asset_set.insert(coldhot_op.asset_symbol);
 				}
 
-			}		
+			}
+			while (start != end)
+			{
+				auto op = start->real_transaction.operations[0];
+				if (op.which() == operation::tag<crosschain_withdraw_without_sign_operation>::value)
+				{
+					auto cross_op = op.get<crosschain_withdraw_without_sign_operation>();
+					asset_set.insert(cross_op.asset_symbol);
+				}
+				else if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>::value)
+				{
+					auto cross_op = op.get<crosschain_withdraw_with_sign_operation>();
+					asset_set.insert(cross_op.asset_symbol);
+				}
+				else if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>::value)
+				{
+					auto cross_op = op.get<crosschain_withdraw_combine_sign_operation>();
+					asset_set.insert(cross_op.asset_symbol);
+				}
+				start++;
+			}
+
+
 			for (auto coldhot_transfer_trx : boost::make_iterator_range(coldhot_uncreate_range.first, coldhot_uncreate_range.second)) {
 				try {
 					auto coldhot_transfer_op = coldhot_transfer_trx.current_trx.operations[0];

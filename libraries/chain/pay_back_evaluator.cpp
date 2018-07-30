@@ -32,7 +32,7 @@ namespace graphene {
 							min_payback_balance = other_payback_balance[p_back.first].amount;
 					}
 					FC_ASSERT(p_back.second.amount > 0);
-					FC_ASSERT(p_back.second.amount >= min_payback_balance, "doesnt get enough pay back");
+					FC_ASSERT(p_back.second.amount >= min_payback_balance, "${request} should exceed the ${min_payback_balance}",("request",p_back.second.amount)("min_payback_balance", min_payback_balance));
 				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
