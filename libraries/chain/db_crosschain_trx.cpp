@@ -205,6 +205,10 @@ namespace graphene {
 		}
 		void database::create_result_transaction(miner_id_type miner, fc::ecc::private_key pk) {
 			try {
+				//need to check if multisig transaction created
+				auto start = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().lower_bound(coldhot_trx_state::coldhot_without_sign_trx_create);
+				auto end = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().lower_bound(coldhot_trx_state::coldhot_transaction_confirm);
+				
 				//need to check if can be created
 				auto check_point_1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_create);
 				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_sign_trx);
@@ -229,7 +233,26 @@ namespace graphene {
 					}
 
 				}
-
+				while (start != end)
+				{
+					auto op = start->current_trx.operations[0];
+					if (op.which() == operation::tag<coldhot_transfer_without_sign_operation>::value)
+					{
+						auto cross_op = op.get<coldhot_transfer_without_sign_operation>();
+						asset_set.insert(cross_op.asset_symbol);
+					}
+					else if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>::value)
+					{
+						auto cross_op = op.get<coldhot_transfer_with_sign_operation>();
+						asset_set.insert(cross_op.asset_symbol);
+					}
+					else if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>::value)
+					{
+						auto cross_op = op.get<coldhot_transfer_combine_sign_operation>();
+						asset_set.insert(cross_op.asset_symbol);
+					}
+					start++;
+				}
 				auto withdraw_range = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_uncreate);
 				std::map<asset_id_type, std::map<std::string, std::string>> dest_info;
 				std::map<std::string, std::string> memo_info;
