@@ -186,7 +186,6 @@ namespace graphene { namespace app {
 	{
 		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
 		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
-		std::cout << string(trx_ids.find(id)->id) << std::endl;
 		auto res_ids = trx_ids.find(id);
 		full_transaction res= res_ids->trx;
 		res.block_num = res_ids->block_num;

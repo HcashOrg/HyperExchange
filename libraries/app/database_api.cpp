@@ -69,6 +69,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       map<uint32_t, optional<block_header>> get_block_header_batch(const vector<uint32_t> block_nums)const;
       optional<signed_block> get_block(uint32_t block_num)const;
       processed_transaction get_transaction( uint32_t block_num, uint32_t trx_in_block )const;
+	  optional<graphene::chain::full_transaction> get_transaction_by_id(transaction_id_type id) const;
 	  void set_acquire_block_num(const string& symbol, const uint32_t& block_num)const;
 	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
       // Globals
@@ -617,6 +618,11 @@ processed_transaction database_api::get_transaction( uint32_t block_num, uint32_
    return my->get_transaction( block_num, trx_in_block );
 }
 
+optional<graphene::chain::full_transaction> database_api::get_transaction_by_id(transaction_id_type trx_id) const
+{
+	return my->get_transaction_by_id(trx_id);
+}
+
 optional<signed_transaction> database_api::get_recent_transaction_by_id( const transaction_id_type& id )const
 {
    try {
@@ -632,6 +638,44 @@ processed_transaction database_api_impl::get_transaction(uint32_t block_num, uin
    FC_ASSERT( opt_block );
    FC_ASSERT( opt_block->transactions.size() > trx_num );
    return opt_block->transactions[trx_num];
+}
+
+optional<graphene::chain::full_transaction> database_api_impl::get_transaction_by_id(transaction_id_type id) const
+{
+	const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_trx_id>();
+	FC_ASSERT(trx_ids.find(id) != trx_ids.end());
+	auto res_ids = trx_ids.find(id);
+	full_transaction res = res_ids->trx;
+	res.block_num = res_ids->block_num;
+	auto invoke_res = _db.get_contract_invoke_result(id);
+	if (invoke_res.size() == 0)
+		return res;
+	for (auto& ir : invoke_res)
+	{
+		FC_ASSERT(ir.op_num < res.operations.size());
+		auto& op = res.operations[ir.op_num];
+		switch (op.which())
+		{
+		case operation::tag<contract_invoke_operation>::value:
+			op.get<contract_invoke_operation>().fee.amount = ir.acctual_fee;
+			break;
+		case operation::tag<contract_register_operation>::value:
+			op.get<contract_register_operation>().fee.amount = ir.acctual_fee;
+			break;
+		case operation::tag<native_contract_register_operation>::value:
+			op.get<native_contract_register_operation>().fee.amount = ir.acctual_fee;
+			break;
+		case operation::tag<contract_upgrade_operation>::value:
+			op.get<contract_upgrade_operation>().fee.amount = ir.acctual_fee;
+			break;
+		case operation::tag<transfer_contract_operation>::value:
+			op.get<transfer_contract_operation>().fee.amount = ir.acctual_fee;
+			break;
+		default:
+			FC_THROW("Invoke result exsited but no operation related to contract");
+		}
+	}
+	return res;
 }
 
 //////////////////////////////////////////////////////////////////////
