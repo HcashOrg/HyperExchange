@@ -207,6 +207,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 
 			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
 			uint64_t all_pledge_paid = 0;
+			boost::multiprecision::uint256_t cal_cur_pledge = 0;
 			for (auto one_pledge : one_data)
 			{
 				
@@ -215,6 +216,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 				if (one_pledge.lock_asset_id == asset_id_type(0))
 				{
 					boost::multiprecision::uint256_t cal_end = one_pledge.lock_asset_amount.value;
+					cal_cur_pledge += cal_end;
 					boost::multiprecision::uint256_t amount_cal_end = boost::multiprecision::uint256_t(pledge_pay_amount) * cal_end / all_pledge;
 					uint64_t end_value = uint64_t(amount_cal_end);
 					all_pledge_paid += end_value;
@@ -232,7 +234,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					boost::multiprecision::uint256_t cal_middle = boost::multiprecision::uint256_t(one_pledge.lock_asset_amount.value) * boost::multiprecision::uint256_t(price_obj.settlement_price.quote.amount.value);
 					boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(price_obj.settlement_price.base.amount.value);
 					//end value
-
+					cal_cur_pledge += cal_end;
 					boost::multiprecision::uint256_t amount_cal_end = boost::multiprecision::uint256_t( pledge_pay_amount) * cal_end / all_pledge;
 					uint64_t end_value = uint64_t(amount_cal_end);
 					all_pledge_paid += end_value;
@@ -242,11 +244,9 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
 					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
-
-
 				}
 			}
-
+			FC_ASSERT((cal_cur_pledge + miner_obj.total_produced * 100) == all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and total_produced is ${total_produced}", ("cal_cur_pledge",cal_cur_pledge.str())("total_produced",miner_obj.total_produced));
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)),miner_acc.name);
 		}
 		else
@@ -286,12 +286,12 @@ void database::update_miner_schedule()
 		 // return update_active_delegate_list_v1( block_num, pending_state );
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
-			
+
 			// modify account pledge_weight
 			for (auto& w : gpo.active_witnesses)
 			{
-				
-				modify(get(w), [&](miner_object& miner_obj) 
+
+				modify(get(w), [&](miner_object& miner_obj)
 				{
 					miner_obj.pledge_weight = 100 * (miner_obj.total_produced + 1);
 					for (auto& one_lock_balance : miner_obj.lockbalance_total)
@@ -301,28 +301,23 @@ void database::update_miner_schedule()
 						{
 							if (one_lock_balance.second.amount.value > 0)
 							{
-								miner_obj.pledge_weight += fc::uint128_t( one_lock_balance.second.amount.value);
+								miner_obj.pledge_weight += fc::uint128_t(one_lock_balance.second.amount.value);
 							}
-							
+
 							continue;
 						}
-						if(one_lock_balance.second.asset_id != asset_id_type(0)&&asset_obj.current_feed.settlement_price.is_null())
+						if (one_lock_balance.second.asset_id != asset_id_type(0) && asset_obj.current_feed.settlement_price.is_null())
 							continue;
 						//calculate asset weight
 						{
 							boost::multiprecision::uint256_t cal_middle = boost::multiprecision::uint256_t(one_lock_balance.second.amount.value) * boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.quote.amount.value);
 							boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.base.amount.value);
-							fc::uint128_t tran_end =fc::uint128_t( boost::multiprecision::uint128_t(cal_end).str());
+							fc::uint128_t tran_end = fc::uint128_t(boost::multiprecision::uint128_t(cal_end).str());
 							miner_obj.pledge_weight += tran_end;
 						}
 					}
 				});
 			}
-
-
-			
-
-
 			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
@@ -356,56 +351,48 @@ void database::update_miner_schedule()
 					int slot = caluate_slot(temp_witnesses_weight, temp_witnesses_weight.size() - i, j);
 					_wso.current_shuffled_miners.push_back(temp_active_witnesses[slot]);
 					total_weight -= temp_witnesses_weight[slot];
-					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i ]);
+					std::swap(temp_active_witnesses[slot], temp_active_witnesses[temp_active_witnesses.size() - 1 - i]);
 					std::swap(temp_witnesses_weight[slot], temp_witnesses_weight[temp_active_witnesses.size() - 1 - i]);
 
 					rand_seed = fc::sha256::hash(rand_seed);
 				}
+			});
+			auto all_lockbalance = get_index_type<lockbalance_index>().indices();
+			const witness_schedule_object& wso_back = witness_schedule_id_type()(*this);
+			std::map<miner_id_type, std::vector<lockbalance_object>> temp_lockbalance_cache;
+			std::map<asset_id_type, price_feed> temp_lockbalance_price_feed;
 
+			for (const lockbalance_object& one_lockbalance : all_lockbalance)
+			{
+				auto miner_id = std::find(wso_back.current_shuffled_miners.begin(), wso_back.current_shuffled_miners.end(), one_lockbalance.lockto_miner_account);
+				if (miner_id != wso_back.current_shuffled_miners.end())
+				{
+					std::vector<lockbalance_object> temp_locks;
+					if (temp_lockbalance_cache.count(*miner_id))
+					{
+						temp_locks = temp_lockbalance_cache[*miner_id];
+					}
+					temp_locks.push_back(one_lockbalance);
+					temp_lockbalance_cache[*miner_id] = temp_locks;
+					if (temp_lockbalance_price_feed.count(one_lockbalance.lock_asset_id) == 0)
+					{
+						temp_lockbalance_price_feed[one_lockbalance.lock_asset_id] = get(one_lockbalance.lock_asset_id).current_feed;
+					}
+				}
+			}
+			//current_price_feed
+			modify(dgp, [&](dynamic_global_property_object& _dgp)
+			{
+				_dgp.current_price_feed = temp_lockbalance_price_feed;
 
+			});
+			modify(dgp, [&](dynamic_global_property_object& _dgp)
+			{
+				_dgp.current_round_lockbalance_cache = temp_lockbalance_cache;
 
 			});
 
 		}
-		auto all_lockbalance = get_index_type<lockbalance_index>().indices();
-		const witness_schedule_object& wso_back = witness_schedule_id_type()(*this);
-		std::map<miner_id_type, std::vector<lockbalance_object>> temp_lockbalance_cache;
-		std::map<asset_id_type, price_feed> temp_lockbalance_price_feed;
-		
-		for (const lockbalance_object& one_lockbalance : all_lockbalance)
-		{
-			auto miner_id = std::find(wso_back.current_shuffled_miners.begin(), wso_back.current_shuffled_miners.end(), one_lockbalance.lockto_miner_account);
-			if (miner_id != wso_back.current_shuffled_miners.end())
-			{
-				std::vector<lockbalance_object> temp_locks;
-				if (temp_lockbalance_cache.count(*miner_id))
-				{
-					temp_locks = temp_lockbalance_cache[*miner_id];
-				}
-				temp_locks.push_back(one_lockbalance);
-				temp_lockbalance_cache[*miner_id] = temp_locks;
-				if (temp_lockbalance_price_feed.count(one_lockbalance.lock_asset_id) ==0)
-				{
-					temp_lockbalance_price_feed[one_lockbalance.lock_asset_id] = get(one_lockbalance.lock_asset_id).current_feed;
-				}
-				
-
-			}
-		}
-
-		//current_price_feed
-		modify(dgp, [&](dynamic_global_property_object& _dgp)
-		{
-			_dgp.current_price_feed = temp_lockbalance_price_feed;
-
-		});
-		modify(dgp, [&](dynamic_global_property_object& _dgp)
-		{
-			_dgp.current_round_lockbalance_cache = temp_lockbalance_cache;
-
-		});
-
-
 		
 		
 	}	FC_CAPTURE_AND_RETHROW((block_num))
