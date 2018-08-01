@@ -481,7 +481,15 @@ namespace graphene {
 							tx.sign(pk, get_chain_id());
 							try {
 								push_transaction(tx);
-							}FC_CAPTURE_AND_LOG((0));
+							}
+							catch (fc::exception&)
+							{
+								fc::scoped_lock<std::mutex> _lock(db_lock);
+								acquired_crosschain_trx_object& acq_obj = *(acquired_crosschain_trx_object*)&get_object(acquired_trx.id);
+								modify(acq_obj,[&](acquired_crosschain_trx_object& obj) {
+									obj.acquired_transaction_state = acquired_trx_deposit_failure;
+								});
+							}
 							continue;
 						}
 						else if (multi_account_withdraw_hot) {

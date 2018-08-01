@@ -176,6 +176,9 @@ namespace graphene {
 			auto create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
 			auto trx_itr_relate = trx_db.find(trx_state->_trx->id());
 			FC_ASSERT(trx_itr_relate == trx_db.end(), "Crosschain transaction has been created");
+			auto asset_fee = db().get_asset(o.asset_symbol)->dynamic_data(db()).fee_pool;
+			auto obj = db().get_asset(o.asset_symbol);
+			std::map<string, share_type> fees_cal;
 			std::map<std::string, asset> all_balances;
 			const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
 			for (auto& one_trx_id : o.ccw_trx_ids)
@@ -202,11 +205,9 @@ namespace graphene {
 					{
 						all_balances[withdraw_op.crosschain_account] =  asset_itr->amount_from_string(withdraw_op.amount);
 					}
+					fees_cal[withdraw_op.crosschain_account] += asset_fee;
 					//FC_ASSERT(asset_itr->amount_from_string(one_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
 				}
-			
-				
-				
 			}
 			FC_ASSERT(all_balances.size() == create_trxs.trxs.size());
 			const auto opt_asset = db().get(o.asset_id);
@@ -219,6 +220,7 @@ namespace graphene {
 			for (auto& one_balance : all_balances)
 			{
 				FC_ASSERT(create_trxs.trxs.count(one_balance.first) == 1);
+				FC_ASSERT(one_balance.second.amount == obj->amount_from_string(create_trxs.trxs.at(one_balance.first).amount).amount + fees_cal.at(one_balance.first));
 				total_amount += one_balance.second.amount;
 			}
 
