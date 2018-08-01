@@ -262,7 +262,7 @@ namespace graphene {
 				db().modify(dyn_asset, [&o](asset_dynamic_data_object& d) {
 					d.current_supply -= d.fee_pool;
 				});
-				db().modify_current_collected_fee(-dyn_asset.fee_pool);
+				db().modify_current_collected_fee(-asset(dyn_asset.fee_pool, db().get_asset(o.coldhot_trx_original_chain.asset_symbol)->id));
 
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))

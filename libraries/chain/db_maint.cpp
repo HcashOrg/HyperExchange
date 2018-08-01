@@ -547,6 +547,8 @@ void database::process_bonus()
 		{
 			if (iter.first == asset_id_type(0))
 				continue;
+			if (iter.second <= 0)
+				continue;
 			const auto& asset_obj = get(iter.first);
 			rate[iter.first] = double(iter.second.value) / double(sum.value);
 		}
