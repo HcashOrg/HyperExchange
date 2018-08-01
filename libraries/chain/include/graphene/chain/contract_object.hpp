@@ -176,6 +176,7 @@ namespace graphene {
            std::map<std::pair<contract_address_type, asset_id_type>, share_type> contract_balances;
            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
            std::map<std::pair<contract_address_type, asset_id_type>, share_type> deposit_contract;
+		   std::map<asset_id_type, share_type> transfer_fees;
            
             inline bool operator<(const contract_invoke_result_object& obj) const
             {
@@ -225,7 +226,7 @@ FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::obje
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract))
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
     //(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
 

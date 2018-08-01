@@ -228,6 +228,10 @@ namespace graphene {
                         {
                             obj.deposit_to_address.insert(make_pair(it->first, it->second));
                         }
+						for (auto it = res.transfer_fees.begin(); it != res.transfer_fees.end(); it++)
+						{
+							obj.transfer_fees.insert(make_pair(it->first, it->second));
+						}
                     });     
                 }
                 else
