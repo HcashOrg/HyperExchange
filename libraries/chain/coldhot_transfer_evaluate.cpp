@@ -253,13 +253,24 @@ namespace graphene {
 				auto combine_trx_iter = originaldb.find(boost::make_tuple(o.coldhot_trx_original_chain.trx_id, combine_op_number));
 				db().adjust_coldhot_transaction(combine_trx_iter->relate_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_result_operation>::value));
 				db().adjust_crosschain_confirm_trx(o.coldhot_trx_original_chain);
+
+				//after this ,the current circulaiton of this asset will decline , so we need to change 
+				//that how to pay  fees is considerable,maybe just borrowing from fees pool is good idea....
+				//even though there are no fees in pool, we can still borrow, set a minus
+				//if there are enough withraw requests, fees in fees pool will become active.
+				auto& dyn_asset = db().get_asset(o.coldhot_trx_original_chain.asset_symbol)->dynamic_asset_data_id(db());
+				db().modify(dyn_asset, [&o](asset_dynamic_data_object& d) {
+					d.current_supply -= d.fee_pool;
+				});
+				db().modify_current_collected_fee(-dyn_asset.fee_pool);
+
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			
 		}
 
 		void coldhot_transfer_result_evaluate::pay_fee() {
-
+			
 		}
 		void_result coldhot_cancel_transafer_transaction_evaluate::do_evaluate(const coldhot_cancel_transafer_transaction_operation& o) {
 			try {

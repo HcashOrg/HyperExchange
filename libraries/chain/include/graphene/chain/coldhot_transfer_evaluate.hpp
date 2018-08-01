@@ -44,7 +44,6 @@ namespace graphene {
 			typedef coldhot_transfer_result_operation operation_type;
 			void_result do_evaluate(const coldhot_transfer_result_operation& o);
 			void_result do_apply(const coldhot_transfer_result_operation& o);
-
 			virtual void pay_fee() override;
 		};
 		class coldhot_cancel_transafer_transaction_evaluate :public evaluator<coldhot_cancel_transafer_transaction_evaluate> {
