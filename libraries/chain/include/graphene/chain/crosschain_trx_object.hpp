@@ -22,7 +22,8 @@ namespace graphene {
 		enum acquired_trx_state {
 			acquired_trx_uncreate = 0,
 			acquired_trx_create = 1,
-			acquired_trx_comfirmed = 2
+			acquired_trx_comfirmed = 2,
+			acquired_trx_deposit_failure = -1
 		};
 		class crosschain_transaction_history_count_object;
 		class crosschain_transaction_history_count_object :public graphene::db::abstract_object<crosschain_transaction_history_count_object> {
@@ -185,7 +186,8 @@ FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object)
 FC_REFLECT_ENUM(graphene::chain::acquired_trx_state,
 	(acquired_trx_uncreate)
 	(acquired_trx_create)
-	(acquired_trx_comfirmed))
+	(acquired_trx_comfirmed)
+    (acquired_trx_deposit_failure))
 FC_REFLECT_DERIVED(graphene::chain::acquired_crosschain_trx_object, (graphene::db::object), 
 (handle_trx)
 (handle_trx_id)
