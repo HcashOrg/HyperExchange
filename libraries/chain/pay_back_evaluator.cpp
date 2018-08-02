@@ -22,7 +22,7 @@ namespace graphene {
 					auto temp_iter = temp_payback_balance.find(pay_back_obj.first);
 					FC_ASSERT(pay_back_obj.second.amount > 0);
 					FC_ASSERT(temp_iter != temp_payback_balance.end());
-					FC_ASSERT(pay_back_obj.second <= temp_iter->second);
+					FC_ASSERT(pay_back_obj.second <= temp_iter->second,"withraw is ${withdraw}, reality is ${reality}",("withdraw",pay_back_obj.second)("reality",temp_iter->second));
 				}
 
 				for (const auto& p_back : pay_back)
