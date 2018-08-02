@@ -20,9 +20,9 @@ namespace graphene {
 		{
 		protected:
 			contract_common_evaluate* _evaluate;
-            contract_address_type contract_id;
 			contract_invoke_result _contract_invoke_result;
 		public:
+            contract_address_type contract_id;
 			abstract_native_contract(contract_common_evaluate* evaluate, const contract_address_type& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
