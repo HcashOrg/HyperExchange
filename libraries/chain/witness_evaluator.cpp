@@ -111,18 +111,28 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		vector<string> symbol_addrs_cold;
 		vector<string> symbol_addrs_hot;
 		const auto& addr = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+		const auto& guard_ids = db().get_guard_members();
 		auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
+
+		auto func = [&guard_ids](account_id_type id)->bool {
+			for (const auto guard : guard_ids)
+			{
+				if (guard.guard_member_account == id)
+					return true;
+			}
+			return false;
+		};
+
 		std::for_each(
-			addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot](const multisig_address_object& obj) {
+			addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot,&func](const multisig_address_object& obj) {
 			if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
 			{
+				FC_ASSERT(func(obj.guard_account) == true, "${guard_account} is not a formal guard." ,("guard_account", obj.guard_account));
 				symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 				symbol_addrs_hot.push_back(obj.new_pubkey_hot);
 			}
 		}
 		);
-
-		const auto& guard_ids = db().get_global_properties().active_committee_members;
 		FC_ASSERT(symbol_addrs_cold.size()==guard_ids.size() && symbol_addrs_hot.size()==guard_ids.size());
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 		if (!instance.contain_crosschain_handles(o.chain_type))

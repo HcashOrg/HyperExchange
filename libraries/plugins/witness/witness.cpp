@@ -262,16 +262,23 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 	chain::database& db = database();
 	try {
 		const auto& addr = db.get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
-		const auto& guard_ids = db.get_global_properties().active_committee_members;
+		const auto& guard_ids = db.get_guard_members();
 		const auto& symbols = db.get_index_type<asset_index>().indices().get<by_symbol>();
 		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		
-
 		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
 		auto iter = miners.find(miner);
 		auto accid = iter->miner_account;
 		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
 		auto miner_addr = accounts.find(accid)->addr;
+		auto func = [&guard_ids](account_id_type id)->bool {
+			for (const auto guard : guard_ids)
+			{
+				if (guard.guard_member_account == id)
+					return true;
+			}
+			return false;
+		};
+
 
 		//get cold address
 		for (auto iter : symbols)
@@ -285,11 +292,14 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(
-				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot](const multisig_address_object& obj) {
+				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot,&func](const multisig_address_object& obj) {
 				if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
 				{
-					symbol_addrs_cold.push_back(obj.new_pubkey_cold);
-					symbol_addrs_hot.push_back(obj.new_pubkey_hot);
+					if (func(obj.guard_account))
+					{
+						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
+						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
+					}
 				}
 			}
 			);

@@ -29,6 +29,7 @@
 #include <graphene/chain/vesting_balance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/balance_object.hpp>
+#include <graphene/chain/committee_member_object.hpp>
 namespace graphene { namespace chain {
 
 asset database::get_balance(account_id_type owner, asset_id_type asset_id) const
@@ -288,6 +289,17 @@ optional<multisig_account_pair_object>  database::get_current_multisig_account(c
 			result = obj;
 			max = obj.effective_block_num;
 		}
+	}
+	return result;
+}
+vector<guard_member_object> database::get_guard_members(bool formal) const
+{
+	vector<guard_member_object> result;
+	const auto& guards_index = get_index_type<guard_member_index>().indices();
+	for (const auto& guard : guards_index)
+	{
+		if (guard.formal == formal)
+			result.push_back(guard);
 	}
 	return result;
 }
