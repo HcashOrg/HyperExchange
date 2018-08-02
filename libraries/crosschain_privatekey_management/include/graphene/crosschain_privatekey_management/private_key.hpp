@@ -43,7 +43,6 @@ namespace graphene {
 			int		get_id() { return _id; }
 			bool	set_id(int p_id) { _id = p_id; return true; }
 			virtual bool validate_address(const std::string& addr) ;
-		private:
 			fc::ecc::private_key  _key;
 
 			int                   _id;

@@ -63,7 +63,6 @@ namespace graphene {
 			uint64_t  fetch_current_max_id()const;
 
 
-		private:
 			mutable std::fstream _keys;
 			mutable std::fstream _key_index;
 
