@@ -152,6 +152,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
 					(current_price_feed)
 	                (round_produced_miners)
 	                (bonus_distribute_limit)
+					(contract_transfer_fee_rate)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::object),
