@@ -246,7 +246,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
 				}
 			}
-			FC_ASSERT((cal_cur_pledge + miner_obj.total_produced * 100) == all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and total_produced is ${total_produced} all_pledge is ${all_pledge}", ("cal_cur_pledge",cal_cur_pledge.str())("total_produced",miner_obj.total_produced)("all_pledge", all_pledge.str()));
+			FC_ASSERT(cal_cur_pledge <= all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and  all_pledge is ${all_pledge}", ("cal_cur_pledge",cal_cur_pledge.str())("all_pledge", all_pledge.str()));
 			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)),miner_acc.name);
 		}
 		else
