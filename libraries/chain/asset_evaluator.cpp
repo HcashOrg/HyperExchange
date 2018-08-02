@@ -588,6 +588,7 @@ void_result asset_real_create_evaluator::do_apply(const asset_real_create_operat
 			db().create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
 			a.current_supply = 0;
 			a.fee_pool = o.core_fee_paid; //op.calculate_fee(db().current_fee_schedule()).value / 2;
+			a.withdraw_limition = 10 * o.core_fee_paid;
 		});
 		auto next_asset_id = db().get_index_type<asset_index>().get_next_id();
 

@@ -30,10 +30,11 @@ namespace graphene {
 			FC_ASSERT(asset_itr->symbol == o.cross_chain_trx.asset_symbol);
 
 			auto multisig_obj = db().get_multisgi_account(o.cross_chain_trx.to_account,o.cross_chain_trx.asset_symbol);
-			FC_ASSERT(multisig_obj.valid(), "multisig address has not worked yet.");
+			FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
+			FC_ASSERT(multisig_obj->effective_block_num >0, "multisig address has not worked yet.");
 			auto current_obj = db().get_current_multisig_account(o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(current_obj.valid(), "there is no worked multisig address.");
-
+			
 			if (multisig_obj->effective_block_num != current_obj->effective_block_num)
 			{
 				FC_ASSERT(db().head_block_num()- multisig_obj->end_block <= 20000,"this multi addr has expired");
@@ -82,7 +83,8 @@ namespace graphene {
 			FC_ASSERT(valid_address, "crosschain address isn`t valid");
 			FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 			//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
-			FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >0);
+			const auto& dyn_ac = asset_itr->dynamic_data(db());
+			FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >= dyn_ac.withdraw_limition);
 			return void_result();
 		}
 		void_result crosschain_withdraw_evaluate::do_apply(const crosschain_withdraw_operation& o) {
