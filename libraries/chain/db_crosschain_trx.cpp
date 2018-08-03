@@ -539,7 +539,7 @@ namespace graphene {
 				});
 				for (auto & trxs : uncombine_trxs_counts) {
 					//TODO : Use macro instead this magic number
-					if (trxs.second.size() < ceil(float(get_global_properties().active_committee_members.size())*2.0/3.0)) {
+					if (trxs.second.size() < ceil(float(get_guard_members().size())*2.0/3.0)) {
 						continue;
 					}
 					set<string> combine_signature;

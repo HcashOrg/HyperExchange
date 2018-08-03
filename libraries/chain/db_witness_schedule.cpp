@@ -184,16 +184,16 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		auto miner_obj = get(miner_id);
 		auto miner_acc = get(miner_obj.miner_account);
 		//bonus to senators
-		auto committee_count = gpo.active_committee_members.size();
+		auto committee_count = get_guard_members().size();
 		int64_t all_committee_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_GUARD_PAY_RATIO) / 100;
 		int64_t committee_pay = 0;
 		int64_t end_value = int64_t(all_committee_paid) / committee_count;
 		for (int i = 0; i < committee_count - 1; i++) {
-			auto committe_obj = get(get(gpo.active_committee_members.at(i)).guard_member_account);
+			auto committe_obj = get(get_guard_members().at(i).guard_member_account);
 			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), miner_acc.name);
 			committee_pay += end_value;
 		}
-		auto committe_obj = get(get(gpo.active_committee_members.at(committee_count-1)).guard_member_account);
+		auto committe_obj = get(get_guard_members().at(committee_count-1).guard_member_account);
 		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)),miner_acc.name);
 
 		if (cache_datas.count(miner_id) > 0)
