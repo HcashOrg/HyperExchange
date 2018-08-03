@@ -59,7 +59,7 @@ namespace graphene {
 		void database::adjust_bonus_balance(address bonus_owner, asset bonus)
 		{
 			try {
-				if (bonus.asset_id == asset_id_type() || bonus.amount <= 0)
+				if (bonus.asset_id == asset_id_type() || bonus.amount == 0)
 					return;
 				auto& bonus_db = get_index_type<bonus_index>().indices().get<by_addr>();
 				auto itr = bonus_db.find(bonus_owner);

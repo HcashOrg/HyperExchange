@@ -558,6 +558,8 @@ void database::process_bonus()
 			{
 				share_type bonus = double(iter.second.value) * r.second;
 				_total_fees_pool[r.first] -= bonus;
+				if (bonus <= 0)
+					continue;
 				adjust_bonus_balance(iter.first,asset(bonus,r.first));
 			}
 		}
