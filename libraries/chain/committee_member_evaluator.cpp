@@ -92,7 +92,7 @@ namespace graphene {
 					if (acc.formal == true)
 						nCount++;
 				}
-				FC_ASSERT(nCount <= GRAPHENE_DEFAULT_MAX_GUARDS);
+				FC_ASSERT(nCount < GRAPHENE_DEFAULT_MAX_GUARDS);
 				if (op.formal.valid()&& *op.formal == true)
 				{
 					const auto& guard_lock_balances = db().get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
