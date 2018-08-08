@@ -53,6 +53,54 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 		 if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value){
 			 FC_ASSERT(o.type == vote_id_type::cancel_commit,"vote Type error");
 		 }
+		 else if (op.op.which() == operation::tag<transfer_contract_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee,"Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<guard_member_create_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee,"Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<asset_fee_modification_operation>::value)
+		 {
+			 FC_ASSERT(o.type  == vote_id_type::witness, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<set_guard_lockbalance_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<coldhot_cancel_transafer_transaction_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+         else if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<coldhot_cancel_uncombined_trx_operaion>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<coldhot_transfer_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<guard_update_multi_account_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
+		 else if (op.op.which() == operation::tag<committee_member_update_global_parameters_operation>::value)
+		 {
+			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		 }
       }
 
       //FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
