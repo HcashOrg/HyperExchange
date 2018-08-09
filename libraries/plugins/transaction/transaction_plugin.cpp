@@ -100,7 +100,14 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 	{
 		addresses.insert(address(sig));
 	}
-
+	auto res=db.get_contract_invoke_result(trx.id());
+	for (const auto& it : res)
+	{
+		for (const auto& deposit_it : it.deposit_to_address)
+		{
+			addresses.insert(deposit_it.first.first);
+		}
+	}
 	for (auto op : trx.operations)
 	{
 		if (op.which() == operation::tag<transfer_operation>::value)
