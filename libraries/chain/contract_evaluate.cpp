@@ -109,7 +109,7 @@ namespace graphene {
 				{
 					engine->execute_contract_init_by_address(o.contract_id.operator fc::string(), "", nullptr);
 				}
-				catch (uvm::core::UvmException &e)
+				catch (std::exception &e)
 				{
 					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 				}
@@ -277,7 +277,7 @@ namespace graphene {
 						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), o.contract_api, o.contract_arg, &contract_result_str);
 						this->invoke_contract_result.api_result = contract_result_str;
 					}
-					catch (uvm::core::UvmException &e)
+					catch (std::exception &e)
 					{
 						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 					}
@@ -375,7 +375,7 @@ namespace graphene {
 					{
 						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_upgrade", o.contract_name, &contract_result_str);
 					}
-					catch (uvm::core::UvmException &e)
+					catch (std::exception &e)
 					{
 						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 					}
@@ -771,7 +771,7 @@ namespace graphene {
                             param.param = o.param;
 							engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
 						}
-						catch (uvm::core::UvmException &e)
+						catch (std::exception &e)
 						{
 							FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 						}
