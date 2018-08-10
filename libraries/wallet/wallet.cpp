@@ -6480,6 +6480,12 @@ vector<contract_event_notify_object> wallet_api::get_contract_events(const std::
 {
     return my->_remote_db->get_contract_events(contract_address_type(addr));
 }
+
+graphene::chain::vector<graphene::chain::contract_event_notify_object> wallet_api::get_contract_events_in_range(const std::string&addr, uint64_t start, uint64_t range) const
+{
+	return my->_remote_db->get_contract_events_in_range(contract_address_type(addr),start,range);
+}
+
 vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const uint32_t block_num)
 {
     return  my->_remote_db->get_contract_storage_changed(block_num);

@@ -152,7 +152,8 @@ namespace graphene {
 			contract_event_notify_object,
 			indexed_by<
 			ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-			ordered_non_unique<tag<by_contract_id>, member<contract_event_notify_object, contract_address_type, &contract_event_notify_object::contract_address>>
+			ordered_non_unique<tag<by_contract_id>, member<contract_event_notify_object, contract_address_type, &contract_event_notify_object::contract_address>>,
+			ordered_non_unique<tag<by_block_num>, member<contract_event_notify_object, uint64_t, &contract_event_notify_object::block_num>>
 			>
 		>;
 		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;

@@ -1929,6 +1929,8 @@ class wallet_api
       vector<ContractEntryPrintable> get_contracts_by_owner(const std::string&);
       vector<contract_hash_entry> get_contracts_hash_entry_by_owner(const std::string&);
       vector<contract_event_notify_object> get_contract_events(const std::string&);
+
+	  vector<contract_event_notify_object> get_contract_events_in_range(const  std::string&, uint64_t start, uint64_t range)const;
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num = 0);
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0);
 	  full_transaction create_contract_transfer_fee_proposal(const string& proposer,share_type fee_rate, int64_t expiration_time, bool broadcast = false);
@@ -2241,6 +2243,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_contracts_by_owner)
         (get_contracts_hash_entry_by_owner)
         (get_contract_events)
+		(get_contract_events_in_range)
         (add_script)
         (list_scripts)
         (remove_script)

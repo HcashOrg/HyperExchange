@@ -179,6 +179,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_address_type> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
       vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const;
+	  vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr, uint64_t start, uint64_t range) const;
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
@@ -2059,6 +2060,11 @@ vector<contract_event_notify_object> database_api_impl::get_contract_events(cons
 {
     return _db.get_contract_events_by_contract_ordered(addr);
 }
+vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr,uint64_t start,uint64_t range) const
+{
+	return _db.get_contract_events_by_block_and_addr_ordered(addr,start,range);
+}
+
 vector<contract_object> database_api_impl::get_contract_registered(const uint32_t start_with, const uint32_t num)const
 {
     return _db.get_registered_contract_according_block(start_with, num);
@@ -2671,6 +2677,10 @@ vector<contract_invoke_result_object> database_api::get_contract_invoke_object(c
 vector<contract_event_notify_object> database_api::get_contract_events(const contract_address_type&addr)const
 {
     return my->get_contract_events(addr);
+}
+vector<contract_event_notify_object> database_api::get_contract_events_in_range(const contract_address_type &addr, uint64_t start, uint64_t range) const
+{
+	return my->get_contract_events(addr,start,range);
 }
 optional<contract_event_notify_object> database_api::get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id)
 {
