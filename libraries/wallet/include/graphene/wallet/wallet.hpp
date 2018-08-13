@@ -1985,6 +1985,7 @@ class wallet_api
 	  void remove_guarantee_id();
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction guard_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
       fc::signal<void(bool)> lock_changed;

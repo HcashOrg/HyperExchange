@@ -267,6 +267,7 @@ void database::initialize_evaluators()
    register_evaluator<gurantee_create_evaluator>();
    register_evaluator<gurantee_cancel_evaluator>();
    register_evaluator<publisher_appointed_evaluator>();
+   register_evaluator<publisher_canceled_evaluator>();
    register_evaluator<asset_fee_modification_evaluator>();
    register_evaluator<guard_lock_balance_evaluator>();
 }

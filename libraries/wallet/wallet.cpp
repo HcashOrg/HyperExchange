@@ -2761,6 +2761,32 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
    }
+   full_transaction guard_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   publisher_canceled_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   auto publisher_addr = get_account_addr(fc::variant(publisher).as_string());
+		   op.publisher = publisher_addr;
+		   op.asset_symbol = symbol;
+
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
+   }
 
    full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
@@ -6962,7 +6988,10 @@ full_transaction wallet_api::guard_appointed_publisher(const string& account, co
 {
 	return my->guard_appointed_publisher(account,publisher,symbol, expiration_time,broadcast);
 }
-
+full_transaction wallet_api::guard_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
+{
+	return my->guard_cancel_publisher(account, publisher, symbol, expiration_time, broadcast);
+}
 full_transaction wallet_api::miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
