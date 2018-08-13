@@ -279,6 +279,23 @@ namespace graphene {
             sort(res.begin(),res.end(), cmp);
             return res;
 		}
+		vector<contract_event_notify_object> database::get_contract_events_by_block_and_addr_ordered(const contract_address_type &addr, uint64_t start, uint64_t range) const
+		{
+			vector<contract_event_notify_object> res;
+			auto& con_db = get_index_type<contract_event_notify_index>().indices().get<by_block_num>();
+
+			auto evit = con_db.lower_bound(start);
+			auto ubit = con_db.upper_bound(start+ range);
+			while (evit != ubit)
+			{
+				if(evit->contract_address==addr)
+					res.push_back(*evit);
+				evit++;
+			}
+			event_compare cmp(this);
+			sort(res.begin(), res.end(), cmp);
+			return res;
+		}
 
         vector<contract_object> database::get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const
         {

@@ -84,6 +84,7 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 #endif
+#include "graphene/chain/contract_entry.hpp"
 
 #define BRAIN_KEY_WORD_COUNT 16
 
@@ -1729,26 +1730,29 @@ public:
 			   // FIXME: 更好地获取到offline调用合约API的返回值
 			   auto detail = e.to_detail_string();
 			   auto estr = e.to_string();
-			   auto elog = e.get_log();
-			   std::string double_result;
-			   for (const auto elog_item : elog) {
-				   const auto& data = elog_item.get_data();
-				   for (auto it = data.begin(); it != data.end(); it++)
-				   {
-					   auto data_value = it->value();
-					   if (data_value.is_string())
+			   if (strstr(detail.c_str(), "blockchain::contract_engine::contract_api_result_error"))
+			   {
+				   auto elog = e.get_log();
+				   std::string double_result;
+				   for (const auto elog_item : elog) {
+					   const auto& data = elog_item.get_data();
+					   for (auto it = data.begin(); it != data.end(); it++)
 					   {
-						   double_result = data_value.as_string();
+						   auto data_value = it->value();
+						   if (data_value.is_string())
+						   {
+							   double_result = data_value.as_string();
+						   }
 					   }
 				   }
+				   if (double_result.length() >= 2)
+				   {
+					   std::string offline_result = double_result.substr(0, double_result.length() / 2);
+					   if (offline_result.find_last_of(":") + 2 == offline_result.length())
+						   offline_result = offline_result.substr(0, offline_result.find_last_of(":"));
+					   return offline_result;
+				   }
 			   }
-			   if (double_result.length() >= 2)
-				{
-					std::string offline_result = double_result.substr(0, double_result.length() / 2);
-					if (offline_result.find_last_of(":") + 2 == offline_result.length())
-						offline_result = offline_result.substr(0, offline_result.find_last_of(":"));
-					return offline_result;
-				}
 			   return detail;
 		   }
 		   return "some error happened, not api result get";
@@ -6502,6 +6506,12 @@ vector<contract_event_notify_object> wallet_api::get_contract_events(const std::
 {
     return my->_remote_db->get_contract_events(contract_address_type(addr));
 }
+
+graphene::chain::vector<graphene::chain::contract_event_notify_object> wallet_api::get_contract_events_in_range(const std::string&addr, uint64_t start, uint64_t range) const
+{
+	return my->_remote_db->get_contract_events_in_range(contract_address_type(addr),start,range);
+}
+
 vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const uint32_t block_num)
 {
     return  my->_remote_db->get_contract_storage_changed(block_num);
