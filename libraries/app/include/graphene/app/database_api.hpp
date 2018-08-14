@@ -651,7 +651,7 @@ class database_api
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
       vector<contract_invoke_result_object> get_contract_invoke_object(const string& trx_id)const ;
-
+	  vector<transaction_id_type> get_contract_history(const string& contract_id,uint64_t start,uint64_t end);
       vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const ;
 	  vector<contract_event_notify_object> get_contract_events_in_range(const contract_address_type&, uint64_t start, uint64_t range)const;
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
@@ -830,5 +830,6 @@ FC_API(graphene::app::database_api,
     (get_contracts_by_owner)
     (get_contracts_hash_entry_by_owner)
     (get_contract_addresses_by_owner)
+	(get_contract_history)
 	(get_current_multisig_account)
 );

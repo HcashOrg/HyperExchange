@@ -31,6 +31,8 @@ namespace graphene {
 			gas_count_type gas_limit;
 			contract_invoke_result invoke_contract_result;
 			share_type transfer_fee_rate = -1;
+
+			std::set<contract_address_type> related_contract;
         public:
 			inline share_type get_contract_transfer_fee_rate() 
 			{

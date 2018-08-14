@@ -6485,7 +6485,10 @@ graphene::chain::vector<graphene::chain::contract_event_notify_object> wallet_ap
 {
 	return my->_remote_db->get_contract_events_in_range(contract_address_type(addr),start,range);
 }
-
+vector<transaction_id_type> wallet_api::get_contract_history(const string& contract_id, uint64_t start , uint64_t end )
+{
+	return my->_remote_db->get_contract_history(contract_id,start,end);
+}
 vector<contract_blocknum_pair> wallet_api::get_contract_storage_changed(const uint32_t block_num)
 {
     return  my->_remote_db->get_contract_storage_changed(block_num);
