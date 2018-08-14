@@ -683,6 +683,29 @@ void_result publisher_appointed_evaluator::do_apply(const publisher_appointed_op
 		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+void_result publisher_canceled_evaluator::do_evaluate(const publisher_canceled_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		FC_ASSERT(iter != asset_indx.end());
+		FC_ASSERT(iter->publishers.count(o.publisher) > 0);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result publisher_canceled_evaluator::do_apply(const publisher_canceled_operation& o)
+{
+	try {
+		auto& d = db();
+		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		auto iter = asset_indx.find(o.asset_symbol);
+		d.modify(*iter, [&](asset_object& obj) {
+			auto iter = obj.publishers.find(o.publisher);
+			obj.publishers.erase(iter);
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 void_result asset_fee_modification_evaluator::do_evaluate(const asset_fee_modification_operation& o)
 {

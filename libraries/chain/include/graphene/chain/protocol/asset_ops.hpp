@@ -547,6 +547,20 @@ namespace graphene { namespace chain {
 	   address fee_payer() const { return address(); }
    };
 
+   struct publisher_canceled_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   address publisher;
+	   string asset_symbol;
+	   void    validate() const {}
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   address fee_payer() const { return address(); }
+   };
+
+
    struct asset_fee_modification_operation : public base_operation
    {
 	   struct fee_parameters_type {
@@ -618,6 +632,7 @@ FC_REFLECT(graphene::chain::asset_real_create_operation::fee_parameters_type, (f
 FC_REFLECT(graphene::chain::gurantee_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::gurantee_cancel_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::publisher_appointed_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::publisher_canceled_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::asset_fee_modification_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_create_operation,
@@ -665,5 +680,6 @@ FC_REFLECT(graphene::chain::asset_real_create_operation, (fee)(issuer)(symbol)(i
 FC_REFLECT(graphene::chain::gurantee_create_operation, (fee)(owner_addr)(asset_origin)(asset_target)(symbol)(time));
 FC_REFLECT(graphene::chain::gurantee_cancel_operation, (fee)(owner_addr)(cancel_guarantee_id));
 FC_REFLECT(graphene::chain::publisher_appointed_operation, (fee)(publisher)(asset_symbol));
+FC_REFLECT(graphene::chain::publisher_canceled_operation, (fee)(publisher)(asset_symbol));
 FC_REFLECT(graphene::chain::asset_fee_modification_operation, (fee)(crosschain_fee)(asset_symbol));
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation, (fee)(lockbalance));

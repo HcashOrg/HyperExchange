@@ -185,6 +185,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const publisher_appointed_operation& o);
 	   void_result do_apply(const publisher_appointed_operation& o);
    };
+   class publisher_canceled_evaluator : public evaluator <publisher_canceled_evaluator>
+   {
+   public:
+	   typedef publisher_canceled_operation operation_type;
+	   void_result do_evaluate(const publisher_canceled_operation& o);
+	   void_result do_apply(const publisher_canceled_operation& o);
+   };
 
    class asset_fee_modification_evaluator: public evaluator <asset_fee_modification_evaluator>
    {
