@@ -1008,21 +1008,21 @@ class wallet_api
 		  string memo,
 		  bool broadcast = false);
 
-	  full_transaction lock_balance_to_miner(string miner_account,
+	  full_transaction lock_balance_to_citizen(string citizen_account,
 		  string lock_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction guard_lock_balance(string guard_account,
+	  full_transaction senator_lock_balance(string senator_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction foreclose_balance_from_miner(string miner_account,
+	  full_transaction foreclose_balance_from_citizen(string citizen_account,
 		  string foreclose_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
-	  full_transaction guard_foreclose_balance(string guard_account,
+	  full_transaction senator_foreclose_balance(string senator_account,
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
@@ -1032,7 +1032,7 @@ class wallet_api
 		  string crosschain_account,
 		  string memo,
 		  bool broadcast = false);
-	  full_transaction transfer_guard_multi_account( string multi_account,
+	  full_transaction transfer_senator_multi_account( string multi_account,
 		  string amount,
 		  string asset_symbol,
 		  string multi_to_account,
@@ -1505,17 +1505,17 @@ class wallet_api
                                            account_whitelist_operation::account_listing new_listing_status,
                                            bool broadcast = false);
 
-      /** Creates a guard_member object owned by the given account.
+      /** Creates a senator_member object owned by the given account.
        *
-       * An account can have at most one guard_member object.
+       * An account can have at most one senator_member object.
        *
-       * @param owner_account the name or id of the account which is creating the guard_member
-       * @param url a URL to include in the guard_member record in the blockchain.  Clients may
-       *            display this when showing a list of guard_members.  May be blank.
+       * @param owner_account the name or id of the account which is creating the senator_member
+       * @param url a URL to include in the senator_member record in the blockchain.  Clients may
+       *            display this when showing a list of senator_members.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
-       * @returns the signed transaction registering a guard_member
+       * @returns the signed transaction registering a senator_member
        */
-      full_transaction create_guard_member(string proposing_account, string account, string url,
+      full_transaction create_senator_member(string proposing_account, string account, string url,
 		                                     int64_t expiration_time,
                                              bool broadcast = false);
 
@@ -1523,23 +1523,23 @@ class wallet_api
 	  *
 	  * An account can have at most one committee_member object.
 	  *
-	  * @param proposing the name or id of the account which is updating the guard_member
+	  * @param proposing the name or id of the account which is updating the senator_member
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction registering a committee_member
 	  */
-	  full_transaction update_guard_formal(string proposing_account, bool formal,
+	  full_transaction update_senator_formal(string proposing_account, bool formal,
 		  int64_t expiration_time,
 		  bool broadcast = false);
 
-      /** Resigns a guard_member object owned by the given account.
+      /** Resigns a senator_member object owned by the given account.
       *
-      * An account can have at most one guard_member object.
+      * An account can have at most one senator_member object.
       *
-      * @param owner_account the name or id of the account which is resigning the guard_member
+      * @param owner_account the name or id of the account which is resigning the senator_member
       * @param broadcast true to broadcast the transaction on the network
-      * @returns the signed transaction registering a guard_member
+      * @returns the signed transaction registering a senator_member
       */
-      full_transaction resign_guard_member(string proposing_account, string account,
+      full_transaction resign_senator_member(string proposing_account, string account,
           int64_t expiration_time, bool broadcast /* = false */);
 
       /** Lists all witnesses registered in the blockchain.
@@ -1555,7 +1555,7 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      map<string,miner_id_type>       list_miners(const string& lowerbound, uint32_t limit);
+      map<string,miner_id_type>       list_citizens(const string& lowerbound, uint32_t limit);
 
       /** Lists all committee_members registered in the blockchain.
        * This returns a list of all account names that own committee_members, and the associated committee_member id,
@@ -1563,14 +1563,14 @@ class wallet_api
        *
        * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all committee_members,
        * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-       * the last committee_member name returned as the \c lowerbound for the next \c list_guard_members() call.
+       * the last committee_member name returned as the \c lowerbound for the next \c list_senator_members() call.
        *
        * @param lowerbound the name of the first committee_member to return.  If the named committee_member does not exist, 
        *                   the list will start at the committee_member that comes after \c lowerbound
        * @param limit the maximum number of committee_members to return (max: 1000)
        * @returns a list of committee_members mapping committee_member names to committee_member ids
        */
-      map<string, guard_member_id_type>       list_guard_members(const string& lowerbound, uint32_t limit);
+      map<string, guard_member_id_type>       list_senator_members(const string& lowerbound, uint32_t limit);
 
 	  /** Lists all committee_members registered in the blockchain.
 	  * This returns a list of all account names that own committee_members, and the associated committee_member id,
@@ -1578,39 +1578,39 @@ class wallet_api
 	  *
 	  * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all committee_members,
 	  * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-	  * the last committee_member name returned as the \c lowerbound for the next \c list_guard_members() call.
+	  * the last committee_member name returned as the \c lowerbound for the next \c list_senator_members() call.
 	  *
 	  * @param lowerbound the name of the first committee_member to return.  If the named committee_member does not exist,
 	  *                   the list will start at the committee_member that comes after \c lowerbound
 	  * @param limit the maximum number of committee_members to return (max: 1000)
 	  * @returns a list of committee_members mapping committee_member names to committee_member ids
 	  */
-	  map<string, guard_member_id_type>       list_all_guards(const string& lowerbound, uint32_t limit);
+	  map<string, guard_member_id_type>       list_all_senators(const string& lowerbound, uint32_t limit);
 
 
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
-      miner_object get_miner(string owner_account);
+      miner_object get_citizen(string owner_account);
 
       /** Returns information about the given committee_member.
        * @param owner_account the name or id of the committee_member account owner, or the id of the committee_member
        * @returns the information about the committee_member stored in the block chain
        */
-      guard_member_object get_guard_member(string owner_account);
+      guard_member_object get_senator_member(string owner_account);
 
-      /** Creates a miner object owned by the given account.
+      /** Creates a citizen object owned by the given account.
        *
        * An account can have at most one witness object.
        *
        * @param owner_account the name or id of the account which is creating the witness
-       * @param url a URL to include in the miner record in the blockchain.  Clients may
-       *            display this when showing a list of miner.  May be blank.
+       * @param url a URL to include in the citizen record in the blockchain.  Clients may
+       *            display this when showing a list of citizen.  May be blank.
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a witness
        */
-      full_transaction create_miner(string owner_account,
+      full_transaction create_citizen(string owner_account,
                                         string url,
                                         bool broadcast = false);
 
@@ -1771,7 +1771,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return the signed transaction changing your vote proxy settings
        */
-      full_transaction set_desired_miner_and_guard_member_count(string account_to_modify,
+      full_transaction set_desired_citizen_and_senator_member_count(string account_to_modify,
                                                                 uint16_t desired_number_of_witnesses,
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
@@ -1779,8 +1779,8 @@ class wallet_api
 	  std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id);
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
-	  void guard_sign_crosschain_transaction(const string& trx_id,const string& guard);
-	  void guard_sign_coldhot_transaction(const string& tx_id, const string& guard);
+	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
+	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1832,7 +1832,7 @@ class wallet_api
 		  const variant_object& destory_values,
 		  bool broadcast = false);
 
-	  full_transaction propose_guard_pledge_change(
+	  full_transaction propose_senator_pledge_change(
 		  const string& proposing_account,
 		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
@@ -1859,8 +1859,8 @@ class wallet_api
          bool broadcast = false);
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
-	  std::vector<guard_lock_balance_object> get_guard_lock_balance(const string& miner)const;
-	  std::vector<lockbalance_object> get_miner_lock_balance(const string& miner)const;
+	  std::vector<guard_lock_balance_object> get_senator_lock_balance(const string& citizen)const;
+	  std::vector<lockbalance_object> get_citizen_lock_balance(const string& citizen)const;
 	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
       /** Approve or disapprove a proposal.
        *
@@ -1954,11 +1954,11 @@ class wallet_api
                                          bool to_temp = false );
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
-	  full_transaction refund_uncombined_transaction(const string guard,const string txid, const int64_t& expiration_time, bool broadcast = false);
-	  full_transaction cancel_coldhot_uncombined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction refund_uncombined_transaction(const string senator,const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction cancel_coldhot_uncombined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
-	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
+	  vector<optional<multisig_address_object>> get_multi_account_senator(const string & multi_address, const string& symbol)const;
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
@@ -1969,11 +1969,11 @@ class wallet_api
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
-	  full_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& guard, bool broadcast = false);
-	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& guard) const;
+	  full_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& senator, bool broadcast = false);
+	  vector<optional<multisig_address_object>> get_multi_address_obj(const string& symbol,const account_id_type& senator) const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> get_multisig_account_pair_by_id(const multisig_account_pair_id_type& id) const;
-	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const;
+	  optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& senator) const;
 	  optional<multisig_account_pair_object> get_current_multi_address(const string& symbol) const;
 	  full_transaction create_guarantee_order(const string& account, const string& asset_orign, const string& asset_target ,const string& symbol,bool broadcast=false);
 	  full_transaction cancel_guarantee_order(const guarantee_object_id_type id,bool broadcast = false);
@@ -1987,16 +1987,16 @@ class wallet_api
 	  void set_guarantee_id(const guarantee_object_id_type id);
 	  void remove_guarantee_id();
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
-	  full_transaction guard_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction guard_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
 
-      //miner
-      void start_miner(bool);
+      //citizen
+      void start_citizen(bool);
 
       //localnode
       void witness_node_stop();
@@ -2121,14 +2121,14 @@ FC_API( graphene::wallet::wallet_api,
         (global_settle_asset)
         (settle_asset)
         (whitelist_account)
-        (create_guard_member)
-        (resign_guard_member)
-        (get_miner)
-        (get_guard_member)
-        (list_miners)
-        (list_guard_members)
-	    (list_all_guards)
-        (create_miner)
+        (create_senator_member)
+        (resign_senator_member)
+        (get_citizen)
+        (get_senator_member)
+        (list_citizens)
+        (list_senator_members)
+	    (list_all_senators)
+        (create_citizen)
         (update_witness)
         (create_worker)
         (update_worker_votes)
@@ -2137,7 +2137,7 @@ FC_API( graphene::wallet::wallet_api,
         (vote_for_committee_member)
         (vote_for_witness)
         (set_voting_proxy)
-        (set_desired_miner_and_guard_member_count)
+        (set_desired_citizen_and_senator_member_count)
         (get_account)
 		(change_account_name)
 	    (remove_local_account)
@@ -2162,7 +2162,7 @@ FC_API( graphene::wallet::wallet_api,
         (serialize_transaction)
         (sign_transaction)
         (get_prototype_operation)
-		(propose_guard_pledge_change)
+		(propose_senator_pledge_change)
 		(propose_pay_back_asset_rate_change)
         (propose_parameter_change)
 		(propose_coin_destory)
@@ -2195,18 +2195,18 @@ FC_API( graphene::wallet::wallet_api,
 		(get_account_addr)
 		(get_proposal)
 		(get_proposal_for_voter)
-		(lock_balance_to_miner)
-		(guard_lock_balance)
-		(foreclose_balance_from_miner)
-		(guard_foreclose_balance)
-	    (update_guard_formal)
+		(lock_balance_to_citizen)
+		(senator_lock_balance)
+		(foreclose_balance_from_citizen)
+		(senator_foreclose_balance)
+	    (update_senator_formal)
 		(get_account_lock_balance)
-		(get_guard_lock_balance)
-		(get_miner_lock_balance)
+		(get_senator_lock_balance)
+		(get_citizen_lock_balance)
 		(refund_request)
 		(cancel_cold_hot_uncreate_transaction)
 		(transfer_from_cold_to_hot)
-		(get_multi_account_guard)
+		(get_multi_account_senator)
 		(withdraw_from_link)
 		(get_multisig_asset_tx)
 		(sign_multi_asset_trx)
@@ -2214,7 +2214,7 @@ FC_API( graphene::wallet::wallet_api,
 		(withdraw_cross_chain_transaction)
 		(refund_uncombined_transaction)
 		(cancel_coldhot_uncombined_transaction)
-		(transfer_guard_multi_account)
+		(transfer_senator_multi_account)
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_coldhot_transaction)
 		(get_crosschain_transaction)
@@ -2226,8 +2226,8 @@ FC_API( graphene::wallet::wallet_api,
 		(update_asset_private_keys)
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
-		(guard_sign_crosschain_transaction)
-		(guard_sign_coldhot_transaction)
+		(senator_sign_crosschain_transaction)
+		(senator_sign_coldhot_transaction)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(get_current_multi_address)
@@ -2276,13 +2276,13 @@ FC_API( graphene::wallet::wallet_api,
 		(get_my_guarantee_order)
         (get_contract_invoke_object)
 		(get_guarantee_order)
-		(guard_appointed_publisher)
-		(miner_appointed_crosschain_fee)
+		(senator_appointed_publisher)
+		(citizen_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
-        (start_miner)
+        (start_citizen)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
 		(get_bonus_balance)
-		(miner_appointed_lockbalance_guard)
+		(citizen_appointed_lockbalance_senator)
       )

@@ -5330,10 +5330,10 @@ vector<asset> wallet_api::list_account_balances(const string& id)
    return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
 }
 
-std::vector<guard_lock_balance_object> wallet_api::get_guard_lock_balance(const string& miner)const {
+std::vector<guard_lock_balance_object> wallet_api::get_senator_lock_balance(const string& miner)const {
 	return my->get_guard_lock_balance(miner);
 }
-std::vector<lockbalance_object> wallet_api::get_miner_lock_balance(const string& miner)const {
+std::vector<lockbalance_object> wallet_api::get_citizen_lock_balance(const string& miner)const {
 	return my->get_miner_lock_balance(miner);
 }
 std::vector<acquired_crosschain_trx_object> wallet_api::get_acquire_transaction(const int & type, const string & trxid) {
@@ -5888,10 +5888,10 @@ std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_cross
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
-void wallet_api::guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
+void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	return my->guard_sign_coldhot_transaction(tx_id, guard);
 }
-void wallet_api::guard_sign_crosschain_transaction(const string& trx_id,const string& guard){
+void wallet_api::senator_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);
 }
 optional<multisig_address_object> wallet_api::get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
@@ -5901,7 +5901,7 @@ optional<multisig_address_object> wallet_api::get_current_multi_address_obj(cons
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);
 }
-full_transaction wallet_api::lock_balance_to_miner(string miner_account,
+full_transaction wallet_api::lock_balance_to_citizen(string miner_account,
 	string lock_account,
 	string amount,
 	string asset_symbol,
@@ -5916,7 +5916,7 @@ full_transaction wallet_api::withdraw_cross_chain_transaction(string account_nam
 	bool broadcast/* = false*/) {
 	return my->withdraw_cross_chain_transaction(account_name, amount, asset_symbol, crosschain_account, memo, broadcast);
 }
-full_transaction wallet_api::transfer_guard_multi_account(string multi_account,
+full_transaction wallet_api::transfer_senator_multi_account(string multi_account,
 	string amount,
 	string asset_symbol,
 	string multi_to_account,
@@ -5924,20 +5924,20 @@ full_transaction wallet_api::transfer_guard_multi_account(string multi_account,
 	bool broadcast/* = false*/){
 	return my->transfer_guard_multi_account(multi_account, amount, asset_symbol, multi_to_account,memo, broadcast);
 }
-full_transaction wallet_api::guard_lock_balance(string guard_account,
+full_transaction wallet_api::senator_lock_balance(string guard_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->guard_lock_balance(guard_account, amount, asset_symbol, broadcast);
 }
-full_transaction wallet_api::foreclose_balance_from_miner(string miner_account,
+full_transaction wallet_api::foreclose_balance_from_citizen(string miner_account,
 	string foreclose_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
 	return my->foreclose_balance_from_miner(miner_account, foreclose_account, amount, asset_symbol, broadcast);
 }
-full_transaction wallet_api::guard_foreclose_balance(string guard_account,
+full_transaction wallet_api::senator_foreclose_balance(string guard_account,
 	string amount,
 	string asset_symbol,
 	bool broadcast/* = false*/) {
@@ -6043,7 +6043,7 @@ full_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-full_transaction wallet_api::create_guard_member(string proposing_account, string account,string url,
+full_transaction wallet_api::create_senator_member(string proposing_account, string account,string url,
 	                                               int64_t expiration_time,
                                                    bool broadcast /* = false */)
 {
@@ -6051,45 +6051,45 @@ full_transaction wallet_api::create_guard_member(string proposing_account, strin
 }
 
 
-full_transaction wallet_api::update_guard_formal(string proposing_account, bool formal,
+full_transaction wallet_api::update_senator_formal(string proposing_account, bool formal,
 	int64_t expiration_time,
 	bool broadcast /* = false */)
 {
 	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
 }
-full_transaction wallet_api::resign_guard_member(string proposing_account, string account,
+full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
 {
     return my->resign_guard_member(proposing_account, account, expiration_time, broadcast);
 }
 
-map<string,miner_id_type> wallet_api::list_miners(const string& lowerbound, uint32_t limit)
+map<string,miner_id_type> wallet_api::list_citizens(const string& lowerbound, uint32_t limit)
 {
    return my->_remote_db->lookup_miner_accounts(lowerbound, limit);
 }
 
-map<string,guard_member_id_type> wallet_api::list_guard_members(const string& lowerbound, uint32_t limit)
+map<string,guard_member_id_type> wallet_api::list_senator_members(const string& lowerbound, uint32_t limit)
 {
    return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,false);
 }
 
-map<string, guard_member_id_type> wallet_api::list_all_guards(const string& lowerbound, uint32_t limit)
+map<string, guard_member_id_type> wallet_api::list_all_senators(const string& lowerbound, uint32_t limit)
 {
 	return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,true);
 }
 
 
-miner_object wallet_api::get_miner(string owner_account)
+miner_object wallet_api::get_citizen(string owner_account)
 {
    return my->get_miner(owner_account);
 }
 
-guard_member_object wallet_api::get_guard_member(string owner_account)
+guard_member_object wallet_api::get_senator_member(string owner_account)
 {
    return my->get_guard_member(owner_account);
 }
 
-full_transaction wallet_api::create_miner(string owner_account,
+full_transaction wallet_api::create_citizen(string owner_account,
                                               string url,
                                               bool broadcast /* = false */)
 {
@@ -6164,7 +6164,7 @@ full_transaction wallet_api::set_voting_proxy(string account_to_modify,
    return my->set_voting_proxy(account_to_modify, voting_account, broadcast);
 }
 
-full_transaction wallet_api::set_desired_miner_and_guard_member_count(string account_to_modify,
+full_transaction wallet_api::set_desired_citizen_and_senator_member_count(string account_to_modify,
                                                                       uint16_t desired_number_of_witnesses,
                                                                       uint16_t desired_number_of_committee_members,
                                                                       bool broadcast /* = false */)
@@ -6260,7 +6260,7 @@ full_transaction wallet_api::propose_coin_destory(
 	return my->propose_coin_destory(proposing_account, expiration_time, destory_values, broadcast);
 }
 
-full_transaction wallet_api::propose_guard_pledge_change(
+full_transaction wallet_api::propose_senator_pledge_change(
 	const string& proposing_account,
 	fc::time_point_sec expiration_time,
 	const variant_object& changed_values,
@@ -6761,7 +6761,7 @@ full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, c
 {
 	return my->transfer_from_cold_to_hot(proposer,from_account,to_account,amount,asset_symbol, memo,exception_time,broadcast);
 }
-vector<optional<multisig_address_object>> wallet_api::get_multi_account_guard(const string & multi_address,const string& symbol)const {
+vector<optional<multisig_address_object>> wallet_api::get_multi_account_senator(const string & multi_address,const string& symbol)const {
 	return my->get_multi_account_guard(multi_address, symbol);
 }
 
@@ -6997,20 +6997,20 @@ void wallet_api::remove_guarantee_id()
 {
 	return my->remove_guarantee_id();
 }
-full_transaction wallet_api::guard_appointed_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->guard_appointed_publisher(account,publisher,symbol, expiration_time,broadcast);
 }
-full_transaction wallet_api::guard_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->guard_cancel_publisher(account, publisher, symbol, expiration_time, broadcast);
 }
-full_transaction wallet_api::miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
 }
@@ -7626,7 +7626,7 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    for( const processed_transaction& tx : transactions )
 	   transaction_ids.push_back( tx.id() );
 }
-void wallet_api::start_miner(bool start)
+void wallet_api::start_citizen(bool start)
 {
     my->start_miner(start);
 }
