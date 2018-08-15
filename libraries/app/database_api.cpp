@@ -2674,6 +2674,11 @@ vector<contract_invoke_result_object> database_api::get_contract_invoke_object(c
     return my->get_contract_invoke_object(transaction_id_type(trx_id));
 }
 
+graphene::chain::vector<graphene::chain::transaction_id_type> database_api::get_contract_history(const string& contract_id, uint64_t start, uint64_t end)
+{
+	return my->_db.get_contract_related_transactions(contract_address_type(contract_id), start, end);
+}
+
 vector<contract_event_notify_object> database_api::get_contract_events(const contract_address_type&addr)const
 {
     return my->get_contract_events(addr);

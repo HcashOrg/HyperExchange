@@ -841,6 +841,7 @@ namespace graphene {
 
 		void contract_common_evaluate::set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes)
 		{
+			related_contract.insert(contract_address_type(contract_id));
 			invoke_contract_result.storage_changes[contract_id] = changes;
 		}
          std::shared_ptr<address> contract_common_evaluate::get_caller_address() const
@@ -931,6 +932,7 @@ namespace graphene {
         }
         void contract_common_evaluate::deposit_to_contract(const contract_address_type & contract, const asset & amount)
         {
+			related_contract.insert(contract);
             share_type to_deposit = amount.amount;
             auto index = std::make_pair(contract, amount.asset_id);
             if (!get_db().has_contract(contract))
@@ -975,21 +977,31 @@ namespace graphene {
         //}
         void contract_common_evaluate::do_apply_balance()
         {
+			auto trx_id = get_current_trx_id();
             for (auto to_contract = invoke_contract_result.deposit_contract.begin(); to_contract != invoke_contract_result.deposit_contract.end(); to_contract++)
             {
-                if (to_contract->second != 0)
-                    get_db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
+				if (to_contract->second != 0)
+				{
+					get_db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
+				}
             }
             for (auto to_withraw = invoke_contract_result.contract_withdraw.begin(); to_withraw != invoke_contract_result.contract_withdraw.end(); to_withraw++)
             {
                 if (to_withraw->second != 0)
-                    get_db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+				{
+					get_db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+				}
+
             }
             for (auto to_deposit = invoke_contract_result.deposit_to_address.begin(); to_deposit != invoke_contract_result.deposit_to_address.end(); to_deposit++)
             {
                 if (to_deposit->second != 0)
                     get_db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
             }
+			for (auto addr : related_contract)
+			{
+				get_db().store_contract_related_transaction(trx_id, addr);
+			}
         }
         transaction_id_type contract_common_evaluate::get_current_trx_id() const
         {
@@ -1005,6 +1017,8 @@ namespace graphene {
         }
          void contract_common_evaluate::transfer_to_address(const contract_address_type & contract, const asset & amount, const address & to)
         {
+
+			 related_contract.insert(contract);
             //withdraw
 			share_type to_withdraw = amount.amount;
 			auto con = get_db().get_contract(contract);

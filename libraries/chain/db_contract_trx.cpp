@@ -194,6 +194,37 @@ namespace graphene {
                 return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
+		void graphene::chain::database::store_contract_related_transaction(const transaction_id_type& tid, const contract_address_type& contract_id)
+		{
+			auto block_num = head_block_num()+1;
+			create<contract_history_object>([tid, contract_id, block_num](contract_history_object& obj) {
+				obj.block_num = block_num;
+				obj.contract_id = contract_id;
+				obj.trx_id = tid;
+			});
+		}
+
+		std::vector<graphene::chain::transaction_id_type> database::get_contract_related_transactions(const contract_address_type& contract_id, uint64_t start, uint64_t end)
+		{
+			std::vector<graphene::chain::transaction_id_type> res;
+			if (end < start)
+				return res;
+			auto head_num = head_block_num();
+			if (head_num<end)
+			{
+				end = head_num;
+			}
+			auto& res_db = get_index_type<contract_history_object_index>().indices().get<by_contract_id_and_block_num>();
+			auto start_it = res_db.lower_bound(std::make_tuple(contract_id,start));
+			auto end_it = res_db.upper_bound(std::make_tuple(contract_id, end));
+			while (start_it != end_it)
+			{
+				res.push_back(start_it->trx_id);
+				start_it++;
+			}
+			return res;
+
+		}
         void database::store_invoke_result(const transaction_id_type& trx_id, int op_num, const contract_invoke_result& res)
         {
             try {

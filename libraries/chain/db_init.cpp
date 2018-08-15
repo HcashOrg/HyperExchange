@@ -335,6 +335,7 @@ void database::initialize_indexes()
    add_index<primary_index<contract_invoke_result_index>>();
    add_index<primary_index<contract_storage_change_index>>();
    add_index <primary_index<guarantee_index                               > >();
+   add_index <primary_index<contract_history_object_index                               > >();
   
 }
 

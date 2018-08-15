@@ -157,7 +157,25 @@ namespace graphene {
 			>
 		>;
 		using contract_event_notify_index = generic_index<contract_event_notify_object, contract_event_notify_multi_index_type>;
-
+		class contract_history_object : public abstract_object<contract_history_object>
+		{
+		public:
+			contract_address_type contract_id;
+			transaction_id_type trx_id;
+			uint64_t block_num;
+		};
+		struct by_contract_id_and_block_num {};
+		using contract_history_object_multi_index_type = multi_index_container <
+			contract_history_object,
+			indexed_by <
+			ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+			ordered_non_unique<tag<by_contract_id_and_block_num>,
+			composite_key<contract_history_object,
+			member<contract_history_object, contract_address_type, &contract_history_object::contract_id>,
+			member<contract_history_object, uint64_t, &contract_history_object::block_num>>>
+			>
+			>;
+		using contract_history_object_index = generic_index<contract_history_object, contract_history_object_multi_index_type>;
         class contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
         {
         public:
@@ -231,4 +249,5 @@ FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db
     //(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
 
-FC_REFLECT_DERIVED(graphene::chain::contract_storage_change_object, (graphene::db::object),(contract_address)(block_num))
+FC_REFLECT_DERIVED(graphene::chain::contract_storage_change_object, (graphene::db::object), (contract_address)(block_num))
+FC_REFLECT_DERIVED(graphene::chain::contract_history_object, (graphene::db::object), (contract_id)(trx_id)(block_num))
