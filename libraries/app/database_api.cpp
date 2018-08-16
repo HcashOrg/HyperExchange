@@ -179,7 +179,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_address_type> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
       vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const;
-	  vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr, uint64_t start, uint64_t range) const;
+	  vector<contract_event_notify_object> get_contract_events(const contract_address_type &addr, uint64_t start, uint64_t range) const;
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
