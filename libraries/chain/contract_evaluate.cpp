@@ -228,6 +228,7 @@ namespace graphene {
 
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
+			FC_ASSERT(operation_type::contract_api_check(o));
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);

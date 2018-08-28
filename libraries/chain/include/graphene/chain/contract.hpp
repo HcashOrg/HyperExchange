@@ -169,6 +169,27 @@ namespace graphene {
 			{
 				a.push_back(authority(1, caller_addr, 1));
 			}
+			static inline bool contract_api_check(const contract_invoke_operation& op)
+			{
+				string api_name = op.contract_api;
+				for (auto it : uvm::lua::lib::contract_special_api_names)
+				{
+					if (api_name == it)
+						return false;
+
+				}
+				for (auto it : uvm::lua::lib::contract_int_argument_special_api_names)
+				{
+					if (api_name == it)
+						return false;
+				}
+				for (auto it : uvm::lua::lib::contract_string_argument_special_api_names)
+				{
+					if (api_name == it)
+						return false;
+				}
+				return true;
+			}
 		};
 
 		struct transfer_contract_operation : public base_operation
