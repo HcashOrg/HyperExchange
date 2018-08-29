@@ -140,10 +140,10 @@ void delayed_node_plugin::plugin_startup()
    try
    {
       connect();
-      my->database_api->set_block_applied_callback([this]( const fc::variant& block_id )
+     /* my->database_api->set_block_applied_callback([this]( const fc::variant& block_id )
       {
          fc::from_variant( block_id, my->last_received_remote_head );
-      } );
+      } );*/
       return;
    }
    catch (const fc::exception& e)
