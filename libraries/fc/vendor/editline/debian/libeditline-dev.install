@@ -1,0 +1,3 @@
+usr/include/*.h
+usr/lib/*/libeditline*.*a
+usr/share/man/man3/*

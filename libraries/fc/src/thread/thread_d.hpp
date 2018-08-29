@@ -18,6 +18,7 @@ namespace fc {
     class thread_d {
 
         public:
+           using context_pair = std::pair<thread_d*, fc::context*>;
            thread_d(fc::thread& s)
             :self(s), boost_thread(0),
              task_in_queue(0),
@@ -397,7 +398,11 @@ namespace fc {
                 }
                 // slog( "jump to %p from %p", next, prev );
                 // fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) ); 
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 106100
+                auto p = context_pair{nullptr, prev};
+                auto t = bc::jump_fcontext( next->my_context, &p );
+                static_cast<context_pair*>(t.data)->second->my_context = t.fctx;
+#elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, 0 );
 #elif BOOST_VERSION >= 105300
                 bc::jump_fcontext( prev->my_context, next->my_context, 0 );
@@ -439,7 +444,11 @@ namespace fc {
 
                 // slog( "jump to %p from %p", next, prev );
                 // fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 106100
+                auto p = context_pair{this, prev};
+                auto t = bc::jump_fcontext( next->my_context, &p );
+                static_cast<context_pair*>(t.data)->second->my_context = t.fctx;
+#elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, (intptr_t)this );
 #elif BOOST_VERSION >= 105300
                 bc::jump_fcontext( prev->my_context, next->my_context, (intptr_t)this );
@@ -467,9 +476,17 @@ namespace fc {
               return true;
            }
 
+#if BOOST_VERSION >= 106100
+           static void start_process_tasks( bc::transfer_t my )
+           {
+              auto p = static_cast<context_pair*>(my.data); 
+              auto self = static_cast<thread_d*>(p->first);
+              p->second->my_context = my.fctx;
+#else
            static void start_process_tasks( intptr_t my ) 
            {
               thread_d* self = (thread_d*)my;
+#endif
               try 
               {
                 self->process_tasks();

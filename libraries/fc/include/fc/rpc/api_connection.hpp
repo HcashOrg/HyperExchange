@@ -137,13 +137,12 @@ namespace fc {
          {
             return [=]( Args... args ) { return f( a0, args... ); };
          }
-
          template<typename R>
          R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e )const
          {
             return f();
          }
-
+		 /*
          template<typename R, typename Signature, typename ... Args>
          R call_generic( const std::function<R(std::function<Signature>,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
          {
@@ -151,19 +150,21 @@ namespace fc {
             detail::callback_functor<Signature> arg0( get_connection(), a0->as<uint64_t>() );
             return  call_generic<R,Args...>( this->bind_first_arg<R,std::function<Signature>,Args...>( f, std::function<Signature>(arg0) ), a0+1, e );
          }
+		
          template<typename R, typename Signature, typename ... Args>
          R call_generic( const std::function<R(const std::function<Signature>&,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
          {
             FC_ASSERT( a0 != e, "too few arguments passed to method" );
             detail::callback_functor<Signature> arg0( get_connection(), a0->as<uint64_t>() );
             return  call_generic<R,Args...>( this->bind_first_arg<R,const std::function<Signature>&,Args...>( f, arg0 ), a0+1, e );
-         }
+         }*/
 
          template<typename R, typename Arg0, typename ... Args>
          R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
          {
             FC_ASSERT( a0 != e, "too few arguments passed to method" );
-            return  call_generic<R,Args...>( this->bind_first_arg<R,Arg0,Args...>( f, a0->as< typename std::decay<Arg0>::type >() ), a0+1, e );
+			auto func = this->bind_first_arg<R, Arg0, Args...>(f, a0->as< typename std::decay<Arg0>::type >());
+            return  call_generic<R,Args...>( func, a0+1, e );
          }
 
          struct api_visitor
