@@ -68,9 +68,8 @@ target_compile_definitions( crosschain_privatekey_management PUBLIC
 ENDIF()
 IF(WIN32)
 
-target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/threadsafestatics.lib
-                                                                $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin_secp256k1.lib 
-                                                                $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin.lib
+target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain   $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin_secp256k1.lib 
+                                                                                $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin.lib
 															   )
 ELSE()
 	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a)

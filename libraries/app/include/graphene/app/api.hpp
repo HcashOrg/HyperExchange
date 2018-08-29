@@ -473,7 +473,6 @@ FC_API(graphene::app::transaction_api,
 	)
 FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
-       (broadcast_transaction_with_callback)
        (broadcast_transaction_synchronous)
        (broadcast_block)
      )

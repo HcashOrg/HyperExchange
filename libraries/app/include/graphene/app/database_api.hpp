@@ -657,6 +657,7 @@ class database_api
       vector<contract_blocknum_pair> get_contract_registered(const uint32_t block_num) const;
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0)const ;
 	  optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
+	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -674,9 +675,6 @@ FC_API(graphene::app::database_api,
 	(get_objects)
 
 	// Subscriptions
-	(set_subscribe_callback)
-	(set_pending_transaction_callback)
-	(set_block_applied_callback)
 	(cancel_all_subscriptions)
 
 	// Blocks and transactions
@@ -736,7 +734,6 @@ FC_API(graphene::app::database_api,
 	(get_call_orders)
 	(get_settle_orders)
 	(get_margin_positions)
-	(subscribe_to_market)
 	(unsubscribe_from_market)
 	(get_ticker)
 	(get_24_volume)
@@ -807,9 +804,6 @@ FC_API(graphene::app::database_api,
     (get_address_pay_back_balance)
 	(get_bonus_balances)
 	(get_miner_pay_per_block)
-
-
-
     //contract
     (get_contract_object)
 	(get_contract_object_by_name)
@@ -832,4 +826,5 @@ FC_API(graphene::app::database_api,
     (get_contract_addresses_by_owner)
 	(get_contract_history)
 	(get_current_multisig_account)
+	(get_citizen_lockbalance_info)
 );

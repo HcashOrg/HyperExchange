@@ -183,6 +183,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
+	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
 
    //private:
       template<typename T>
@@ -559,6 +560,28 @@ optional<multisig_account_pair_object> database_api_impl::lookup_multisig_accoun
 	if (iter != multisig_accounts_byid.end())
 		return *iter;
 	return optional < multisig_account_pair_object>();
+}
+
+map<account_id_type, vector<asset>> database_api_impl::get_citizen_lockbalance_info(const miner_id_type& id) const
+{
+	map<account_id_type, vector<asset>> result;
+	const auto& index = _db.get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+	auto range = index.equal_range(boost::make_tuple(id));
+	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
+		if (localbalance_obj.lockto_miner_account != id)
+			continue;
+		if (result.count(localbalance_obj.lock_balance_account) == 0)
+		{
+			vector<asset> temp;
+			temp.push_back(asset(localbalance_obj.lock_asset_amount,localbalance_obj.lock_asset_id));
+			result[localbalance_obj.lock_balance_account] = temp;
+		}
+		else
+		{
+			result[localbalance_obj.lock_balance_account].push_back(asset(localbalance_obj.lock_asset_amount, localbalance_obj.lock_asset_id));
+		}
+	}
+	return result;
 }
 
 
@@ -2643,6 +2666,11 @@ optional<multisig_account_pair_object> database_api::get_current_multisig_accoun
 		}
 	}
 	return result;
+}
+
+map<account_id_type, vector<asset>> database_api::get_citizen_lockbalance_info(const miner_id_type& id) const
+{
+	return my->get_citizen_lockbalance_info(id);
 }
 
 optional<multisig_account_pair_object> database_api::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const

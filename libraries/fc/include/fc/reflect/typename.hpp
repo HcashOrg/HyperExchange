@@ -69,6 +69,14 @@ namespace fc {
          return n.c_str();  
      } 
   };
+  template<typename T> struct get_typename<std::function<T>>
+  {
+	  static const char* name() {
+		  static std::string n = std::string("function<>");
+		  return n.c_str();
+	  }
+  };
+
 
   struct signed_int;
   struct unsigned_int;

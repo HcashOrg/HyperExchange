@@ -6,7 +6,14 @@
 
 #include <boost/version.hpp>
 
-#if BOOST_VERSION >= 105400
+#define BOOST_COROUTINES_NO_DEPRECATION_WARNING // Boost 1.61
+#define BOOST_COROUTINE_NO_DEPRECATION_WARNING // Boost 1.62
+#if BOOST_VERSION >= 106100
+  #include <boost/coroutine/stack_allocator.hpp>
+  namespace bc  = boost::context::detail;
+  namespace bco = boost::coroutines;
+  typedef bco::stack_allocator stack_allocator;
+#elif BOOST_VERSION >= 105400
 # include <boost/coroutine/stack_context.hpp>
   namespace bc  = boost::context;
   namespace bco = boost::coroutines;
@@ -47,8 +54,13 @@ namespace fc {
     bco::stack_context stack_ctx;
 #endif
 
+#if BOOST_VERSION >= 106100
+    using context_fn = void (*)(bc::transfer_t);
+#else
+    using context_fn = void(*)(intptr_t);
+#endif
 
-    context( void (*sf)(intptr_t), stack_allocator& alloc, fc::thread* t )
+    context( context_fn sf, stack_allocator& alloc, fc::thread* t )
     : caller_context(0),
       stack_alloc(&alloc),
       next_blocked(0), 

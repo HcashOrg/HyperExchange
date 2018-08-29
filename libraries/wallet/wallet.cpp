@@ -1,26 +1,3 @@
-/*
- * Copyright (c) 2015 Cryptonomex, Inc., and contributors.
- *
- * The MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
@@ -414,7 +391,6 @@ private:
           save_wallet_file();
       }
    }
-
    void enable_umask_protection()
    {
 #ifdef __unix__
@@ -485,15 +461,16 @@ public:
       }
       init_prototype_ops();
 
-      _remote_db->set_block_applied_callback( [this](const variant& block_id )
+     /* _remote_db->set_block_applied_callback( [this](const variant& block_id )
       {
          on_block_applied( block_id );
-      } );
+      } );*/
 
       _wallet.chain_id = _chain_id;
       _wallet.ws_server = initial_data.ws_server;
       _wallet.ws_user = initial_data.ws_user;
       _wallet.ws_password = initial_data.ws_password;
+	  schedule_loop();
    }
    virtual ~wallet_api_impl()
    {
@@ -510,6 +487,15 @@ public:
          // dlog("Caught exception ${e} while canceling database subscriptions", ("e", e));
       }
    }
+
+   void schedule_loop()
+   {
+	   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
+	   fc::time_point now = fc::time_point::now();
+	   fc::time_point next_wakeup(now + fc::seconds(block_interval));
+	   fc::schedule([this] {resync(); schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+   }
+
 
    void encrypt_keys()
    {
@@ -2855,7 +2841,11 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(lockbalance)(expiration_time)(broadcast))
    }
-
+   map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account)
+   {
+	   auto obj = get_miner(account);
+	   return _remote_db->get_citizen_lockbalance_info(obj.id);
+   }
    miner_object get_miner(string owner_account)
    {
       try
@@ -7024,6 +7014,11 @@ full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& acco
 full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+}
+
+map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(const string& account)
+{
+	return my->get_citizen_lockbalance_info(account);
 }
 
 full_transaction wallet_api::sell_asset(string seller_account,

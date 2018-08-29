@@ -185,7 +185,6 @@ set( fc_sources
      src/io/varint.cpp
      src/io/console.cpp
      src/filesystem.cpp
-     src/interprocess/process.cpp
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
      src/interprocess/mmap_struct.cpp
@@ -391,9 +390,6 @@ ENDIF(MSVC)
 ENDIF()
 
 include_directories( vendor/websocketpp )
-
-add_subdirectory(tests)
-
 if(WIN32)
    # add addtional import library on windows platform
    target_link_libraries( fc PUBLIC crypt32.lib)
