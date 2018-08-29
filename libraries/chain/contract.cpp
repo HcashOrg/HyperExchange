@@ -171,7 +171,7 @@ namespace graphene {
                 FC_ASSERT(caller_addr != address());
                 FC_ASSERT(address(caller_pubkey) == caller_addr);
                 FC_ASSERT(contract_id != contract_address_type());
-				FC_ASSERT(contract_api_check(*this));
+				//FC_ASSERT(contract_api_check(*this));
 				FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 				// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
 				FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);

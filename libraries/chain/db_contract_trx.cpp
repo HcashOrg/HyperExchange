@@ -473,11 +473,15 @@ namespace graphene {
             }
             return res;
 		}
-		bool database::has_contract(const contract_address_type& contract_address)
+		bool database::has_contract(const contract_address_type& contract_address, const string& method/*=""*/)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 			auto itr = index.find(contract_address);
-			return itr != index.end();
+			if(method=="")
+				return itr != index.end();
+			auto& apis = itr->code.abi;
+			auto& offline_apis = itr->code.offline_abi;
+			return apis.find(method) != apis.end()|| offline_apis.find(method)!= offline_apis.end();
 		}
 
         void database::set_min_gas_price(const share_type min_price)

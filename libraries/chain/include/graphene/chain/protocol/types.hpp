@@ -432,6 +432,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (script_binding_object_type)
 				 (pay_back_object_type)
 	             (bonus_object_type)
+				 (contract_history_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -500,6 +501,7 @@ FC_REFLECT_TYPENAME(graphene::chain::contract_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_storage_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::transaction_contract_storage_diff_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_event_notify_object_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::contract_history_object_id_type)
 
 FC_REFLECT( graphene::chain::void_t, )
 

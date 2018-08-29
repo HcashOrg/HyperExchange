@@ -1637,15 +1637,21 @@ public:
 		   auto caller_pubkey = privkey.get_public_key();
 
 		   std::string contract_address;
+		   contract_object cont;
 		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 		   {
 			   contract_address = contract_address_or_name;
+			   cont = _remote_db->get_contract_object(contract_address);
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
+
 		   }
+		   auto& abi = cont.code.abi;
+		   if (abi.find(contract_api) == abi.end())
+			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
            fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
            contract_invoke_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
 
@@ -1687,17 +1693,22 @@ public:
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
-
+		   contract_object cont;
 		   std::string contract_address;
 		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
 		   {
 			   contract_address = contract_address_or_name;
+			   cont = _remote_db->get_contract_object(contract_address);
 		   }
 		   else {
 
-			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
+
 		   }
+		   auto& abi = cont.code.offline_abi;
+		   if (abi.find(contract_api) == abi.end())
+			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 
 		   contract_invoke_op.gas_price = 0;
 		   contract_invoke_op.invoke_cost = 0;
