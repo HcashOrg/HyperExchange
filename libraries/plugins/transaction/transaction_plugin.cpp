@@ -123,6 +123,13 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 			const auto tunnel_itr = tunnel_idx.find(boost::make_tuple(op_record.cross_chain_trx.from_account, op_record.cross_chain_trx.asset_symbol));
 			addresses.insert(tunnel_itr->owner);
 		}
+		auto id = operation_gurantee_id(op);
+		if (id.valid())
+		{
+			const auto& obj = db.get(*id);
+			addresses.insert(obj.owner_addr);
+		}
+		
 	}
 
 

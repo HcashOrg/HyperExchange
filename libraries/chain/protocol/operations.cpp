@@ -47,6 +47,13 @@ struct operation_validator
    template<typename T>
    void operator()( const T& v )const { v.validate(); }
 };
+struct operation_guarantee_idor
+{
+	typedef optional<guarantee_object_id_type> result_type;
+	template<typename T>
+	optional<guarantee_object_id_type> operator()(const T& v)const { return v.get_guarantee_id(); }
+};
+
 
 struct operation_get_required_auth
 {
@@ -76,7 +83,10 @@ void operation_validate( const operation& op )
    op.visit( operation_validator() );
 }
 
-
+optional<guarantee_object_id_type> operation_gurantee_id(const operation& op)
+{
+	return op.visit(operation_guarantee_idor());
+}
 
 
 void operation_get_required_authorities( const operation& op, 
