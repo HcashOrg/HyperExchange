@@ -120,7 +120,7 @@ namespace graphene {
 	    {
             id = obj.contract_address.operator fc::string();
             owner_address = obj.owner_address;
-            name = obj.name;
+            name = obj.contract_name;
             description = obj.contract_desc;
             type_of_contract = obj.type_of_contract;
             code_printable = obj.code;
