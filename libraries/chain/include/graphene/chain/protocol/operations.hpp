@@ -147,7 +147,8 @@ namespace graphene { namespace chain {
 	   asset_fee_modification_operation,
 	   bonus_operation,
 	   set_guard_lockbalance_operation,
-	   publisher_canceled_operation
+	   publisher_canceled_operation,
+	   senator_determine_withdraw_deposit_operation
          > operation;
 
    /// @} // operations group

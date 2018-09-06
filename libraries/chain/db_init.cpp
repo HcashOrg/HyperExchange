@@ -270,6 +270,7 @@ void database::initialize_evaluators()
    register_evaluator<publisher_canceled_evaluator>();
    register_evaluator<asset_fee_modification_evaluator>();
    register_evaluator<guard_lock_balance_evaluator>();
+   register_evaluator<senator_determine_withdraw_deposit_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -208,5 +208,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const set_guard_lockbalance_operation& o);
 	   void_result do_apply(const set_guard_lockbalance_operation& o);
    };
+   class senator_determine_withdraw_deposit_evaluator : public evaluator<senator_determine_withdraw_deposit_evaluator>
+   {
+   public:
+	   typedef senator_determine_withdraw_deposit_operation operation_type;
+	   void_result do_evaluate(const senator_determine_withdraw_deposit_operation& o);
+	   void_result do_apply(const senator_determine_withdraw_deposit_operation& o);
+   };
+
 
 } } // graphene::chain

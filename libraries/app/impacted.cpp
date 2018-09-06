@@ -205,6 +205,7 @@ struct get_impacted_account_visitor
    void operator() (const publisher_canceled_operation& op) {}
    void operator() (const gurantee_cancel_operation& op) {}
    void operator() (const asset_fee_modification_operation& op) {}
+   void operator() (const senator_determine_withdraw_deposit_operation& op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );

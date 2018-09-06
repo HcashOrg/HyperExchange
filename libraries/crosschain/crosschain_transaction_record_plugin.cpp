@@ -34,6 +34,9 @@ namespace graphene {
 					uint32_t start_num;
 
 					chain::database& db = database();
+					auto asset_obj = db.get_asset(asset_symbol);
+					if (!asset_obj->allow_withdraw_deposit)
+						continue;
 					//auto sess = db._undo_db.start_undo_session();
 					auto& trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
 					auto trx_iter = trx_iters.find(asset_symbol);

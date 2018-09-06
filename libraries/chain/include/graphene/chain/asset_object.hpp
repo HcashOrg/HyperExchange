@@ -144,7 +144,7 @@ namespace graphene { namespace chain {
 		 price_feed current_feed;
 
 		 time_point_sec current_feed_publication_time;
-
+		 bool allow_withdraw_deposit=true;
          asset_id_type get_id()const { return id; }
 
          void validate()const
@@ -334,6 +334,7 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
 	                (publishers)
 					(current_feed)
 					(current_feed_publication_time)
+	                (allow_withdraw_deposit)
                     (bitasset_data_id)
                     (buyback_account)
                   )

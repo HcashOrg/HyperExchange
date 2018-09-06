@@ -73,6 +73,7 @@ namespace graphene {
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
+			FC_ASSERT(asset_itr->allow_withdraw_deposit,"this asset does not allow to withdraw and deposit.");
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			if (!manager.contain_crosschain_handles(o.asset_symbol))
 				return void_result();

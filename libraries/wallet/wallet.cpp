@@ -2841,6 +2841,31 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(lockbalance)(expiration_time)(broadcast))
    }
+   full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   senator_determine_withdraw_deposit_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.can = can;
+		   op.symbol = symbol;
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   prop_op.type = vote_id_type::witness;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(can)(expiration_time)(broadcast))
+   }
    map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account)
    {
 	   auto obj = get_miner(account);
@@ -4115,6 +4140,7 @@ public:
 		   FC_ASSERT(!self.is_locked());
 		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   FC_ASSERT(asset_obj->allow_withdraw_deposit,"${asset} does not allow withdraw and deposit",("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
 		   crosschain_withdraw_operation op;
@@ -7014,6 +7040,11 @@ full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& acco
 full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+}
+
+full_transaction wallet_api::senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)
+{
+	return my->senator_determine_withdraw_deposit(account, can, symbol,expiration_time, broadcast);
 }
 
 map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(const string& account)

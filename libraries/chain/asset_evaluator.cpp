@@ -763,5 +763,28 @@ void_result guard_lock_balance_set_evaluator::do_apply(const set_guard_lockbalan
 		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+void_result senator_determine_withdraw_deposit_evaluator::do_evaluate(const senator_determine_withdraw_deposit_operation& o)
+{
+	try {
+		const auto& d = db();
+		auto asset_obj = d.get_asset(o.symbol);
+		FC_ASSERT(asset_obj.valid(),"asset does not exist.");
+		FC_ASSERT(asset_obj->allow_withdraw_deposit != o.can,"it has been set before.");
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result senator_determine_withdraw_deposit_evaluator::do_apply(const senator_determine_withdraw_deposit_operation& o)
+{
+	try {
+		auto& d = db();
+		auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		auto iter = asset_indx.find(o.symbol);
+
+		d.modify(*iter, [this, o](asset_object& obj) {
+			obj.allow_withdraw_deposit = o.can;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 
 } } // graphene::chain
