@@ -35,6 +35,8 @@ namespace graphene {
 
 					chain::database& db = database();
 					auto asset_obj = db.get_asset(asset_symbol);
+					if (!asset_obj.valid())
+						continue;
 					if (!asset_obj->allow_withdraw_deposit)
 						continue;
 					//auto sess = db._undo_db.start_undo_session();
