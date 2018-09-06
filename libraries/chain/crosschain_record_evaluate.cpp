@@ -28,7 +28,7 @@ namespace graphene {
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
 			FC_ASSERT(asset_itr->symbol == o.cross_chain_trx.asset_symbol);
-			FC_ASSERT(asset_itr->allow_confidential);
+			FC_ASSERT(asset_itr->allow_withdraw_deposit==true);
 			auto multisig_obj = db().get_multisgi_account(o.cross_chain_trx.to_account,o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
 			FC_ASSERT(multisig_obj->effective_block_num >0, "multisig address has not worked yet.");
