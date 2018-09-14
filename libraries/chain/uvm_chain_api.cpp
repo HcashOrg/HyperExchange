@@ -191,6 +191,9 @@ namespace graphene {
 				*address_size = address_str.length();
 				strncpy(address, address_str.c_str(), CONTRACT_ID_MAX_LENGTH - 1);
 				address[CONTRACT_ID_MAX_LENGTH - 1] = '\0';
+				if (*address_size >= CONTRACT_ID_MAX_LENGTH) {
+					*address_size = CONTRACT_ID_MAX_LENGTH - 1;
+				}
 			}
 		}
 
