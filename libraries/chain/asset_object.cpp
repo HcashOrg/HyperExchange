@@ -186,7 +186,7 @@ asset asset_object::amount_from_string(string amount_string) const
          satoshis += std::stoll( rhs );
    }
 
-   FC_ASSERT( satoshis <= GRAPHENE_MAX_SHARE_SUPPLY );
+   FC_ASSERT( satoshis <= options.max_supply);   // need to confirm the real supply
 
    if( negative_found )
       satoshis *= -1;
