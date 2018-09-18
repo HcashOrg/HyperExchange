@@ -4329,7 +4329,7 @@ public:
 			   xfer_op.memo->to = public_key_type();
 			   xfer_op.memo->set_message(private_key_type(),
 			      public_key_type(), memo);
-			   std::cout << "dsfsdfds" <<xfer_op.memo->message.size() << std::endl;
+			   
 		   }
 		   signed_transaction tx;
 
@@ -4340,6 +4340,18 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   } FC_CAPTURE_AND_RETHROW((from)(to)(amount)(asset_symbol)(memo)(broadcast))
 
+   }
+
+   string  lightwallet_broadcast(signed_transaction tx)        
+   {
+       try {
+
+         _remote_net_broadcast->broadcast_transaction(tx); 
+         return tx.id().str();
+
+        }FC_CAPTURE_AND_RETHROW((tx))
+      
+      
    }
 
 

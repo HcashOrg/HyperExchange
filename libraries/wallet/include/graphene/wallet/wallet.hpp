@@ -989,6 +989,16 @@ class wallet_api
 		  string memo,
 		  bool broadcast = false);
 
+
+       /** broadcast a transaction to the chain.
+      * @param trx  the transaction to broadcast
+      * @returns the transaction id
+      */
+      string lightwallet_broadcast(signed_transaction trx);
+
+
+
+
 	  /** Transfer an amount from one address to another.
 	  * @param from the name or id of the account sending the funds
 	  * @param to the name or id of the account receiving the funds
@@ -2249,9 +2259,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_events)
 		(get_contract_events_in_range)
 		(get_contract_history)
-        (add_script)
-        (list_scripts)
-        (remove_script)
         (bind_script_to_event)
         (remove_event_handle)
 		(create_guarantee_order)
@@ -2290,4 +2297,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_citizen_lockbalance_info)
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
+        (lightwallet_broadcast)
       )
