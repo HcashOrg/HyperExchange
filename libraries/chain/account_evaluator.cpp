@@ -35,6 +35,7 @@
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
+#include <graphene/chain/balance_object.hpp>
 #include <algorithm>
 
 namespace graphene { namespace chain {
@@ -453,6 +454,43 @@ void_result account_multisig_create_evaluator::do_apply(const account_multisig_c
 	});
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result account_create_multisignature_address_evaluator::do_evaluate(const account_create_multisignature_address_operation& o)
+{
+	try {
+		const database& d = db();
+		FC_ASSERT(o.addrs.size() <= 15);
+		auto addr = address();
+		auto& bal_idx =d.get_index_type<balance_index>();
+		const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+		auto itr = by_owner_idx.find(boost::make_tuple(o.multisignature, asset_id_type()));
+		FC_ASSERT(itr == by_owner_idx.end(),"this multisignature address has existed.");
+		std::string temp = "";
+		for (auto iter : o.addrs)
+		{
+			temp = temp + iter.address_to_string();
+		}
+		temp = temp + fc::variant(o.required).as_string();
+		auto base58 = GRAPHENE_ADDRESS_PREFIX + fc::ripemd160::hash(fc::sha512::hash(temp)).str();
+		FC_ASSERT(o.multisignature == address(base58));
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result account_create_multisignature_address_evaluator::do_apply(const account_create_multisignature_address_operation& o)
+{
+	try {
+		database& d = db();
+		std::map<int, fc::flat_set<address>> temp;
+		temp[o.required] = o.addrs;
+		d.create<balance_object>([&](balance_object& obj) {
+			obj.balance = asset();
+			obj.owner = o.addr;
+			obj.multisignatures = temp;
+		});
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
 }
 
 } } // graphene::chain

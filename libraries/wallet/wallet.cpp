@@ -2866,6 +2866,35 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(can)(expiration_time)(broadcast))
    }
+
+   address create_multisignature_address(const string& account, const fc::flat_set<address>& addrs, int required, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   account_create_multisignature_address_operation op;
+		   auto acc = get_account(account);
+		   op.addr = acc.addr;
+		   op.addrs = addrs;
+		   op.required = required;
+		   std::string temp="";
+		   for (auto iter : addrs)
+		   {
+			   temp = temp + iter.address_to_string();
+		   }
+		   temp = temp + fc::variant(required).as_string();
+
+		   auto base58 = GRAPHENE_ADDRESS_PREFIX+fc::ripemd160::hash(fc::sha512::hash(temp)).str();
+		   op.multisignature = address(base58);
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   sign_transaction(tx,broadcast);
+		   return address(base58);
+
+	   }FC_CAPTURE_AND_RETHROW((account)(addrs)(required)(broadcast))
+   }
+
    map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account)
    {
 	   auto obj = get_miner(account);
@@ -7063,7 +7092,10 @@ full_transaction wallet_api::senator_determine_withdraw_deposit(const string& ac
 {
 	return my->senator_determine_withdraw_deposit(account, can, symbol,expiration_time, broadcast);
 }
-
+address wallet_api::create_multisignature_address(const string& account, const fc::flat_set<address>& addrs, int required, bool broadcast)
+{
+	return my->create_multisignature_address(account,addrs,required,broadcast);
+}
 map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(const string& account)
 {
 	return my->get_citizen_lockbalance_info(account);

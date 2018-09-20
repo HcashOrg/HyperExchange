@@ -58,6 +58,7 @@ namespace graphene { namespace chain {
          address owner;
          asset   balance;
 		 share_type   frozen;
+		 optional<std::map<int, fc::flat_set<address>>> multisignatures;    //all symbols will depend on "HX"
          optional<linear_vesting_policy> vesting_policy;
          time_point_sec last_claim_date;
          asset_id_type asset_type()const { return balance.asset_id; }
@@ -92,4 +93,4 @@ namespace graphene { namespace chain {
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::balance_object, (graphene::db::object),
-                    (owner)(balance)(frozen)(vesting_policy)(last_claim_date) )
+                    (owner)(balance)(frozen)(vesting_policy)(last_claim_date)(multisignatures) )
