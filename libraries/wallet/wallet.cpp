@@ -5936,6 +5936,11 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
 
+string wallet_api::lightwallet_broadcast(signed_transaction trx)
+{
+    return my->lightwallet_broadcast(trx);
+}
+
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
 	string asset_symbol, string memo, bool broadcast /* = false */)
 {
