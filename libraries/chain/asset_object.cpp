@@ -170,14 +170,15 @@ asset asset_object::amount_from_string(string amount_string) const
    const string lhs = amount_string.substr( negative_found, decimal_pos );
    if( !lhs.empty() )
       satoshis += fc::safe<int64_t>(std::stoll(lhs)) *= scaled_precision;
-
+   /* for this function, we need to transfer the value to a certain result instead of telling decimal*/
    if( decimal_found )
    {
       const size_t max_rhs_size = std::to_string( scaled_precision.value ).substr( 1 ).size();
 
       string rhs = amount_string.substr( decimal_pos + 1 );
-      FC_ASSERT( rhs.size() <= max_rhs_size );
-
+      //FC_ASSERT( rhs.size() <= max_rhs_size );
+	  if (rhs.size() > max_rhs_size)
+		  rhs = rhs.substr(0, max_rhs_size);    // ignore the real precision
       while( rhs.size() < max_rhs_size )
          rhs += '0';
 
@@ -185,7 +186,7 @@ asset asset_object::amount_from_string(string amount_string) const
          satoshis += std::stoll( rhs );
    }
 
-   FC_ASSERT( satoshis <= GRAPHENE_MAX_SHARE_SUPPLY );
+   FC_ASSERT( satoshis <= options.max_supply);   // need to confirm the real supply
 
    if( negative_found )
       satoshis *= -1;
