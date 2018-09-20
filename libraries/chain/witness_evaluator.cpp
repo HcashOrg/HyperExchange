@@ -161,6 +161,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		auto iter = account_pair_index.find(boost::make_tuple(o.multi_address_hot,o.multi_address_cold,o.chain_type));
 		if (iter != account_pair_index.end())
 		{
+			std::cout << "dxdfd" << std::endl;
 			db().remove(*iter);
 		}
 		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
@@ -171,6 +172,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;
 		});
+		std::cout <<"hello is   " <<fc::variant(new_acnt_object.id).as_string() << std::endl;;
 		//we need change the status of the multisig_address_object
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)

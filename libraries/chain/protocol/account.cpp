@@ -297,4 +297,10 @@ void account_multisig_create_operation::validate()const
 {
 }
 
+void account_create_multisignature_address_operation::validate() const
+{
+	FC_ASSERT(required > 0);
+	FC_ASSERT(required <= addrs.size());
+}
+
 } } // graphene::chain

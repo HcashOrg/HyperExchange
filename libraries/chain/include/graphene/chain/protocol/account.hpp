@@ -356,6 +356,22 @@ namespace graphene { namespace chain {
 	   }
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
    };
+   struct account_create_multisignature_address_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+	   asset                 fee;
+	   address               addr;
+	   address               multisignature;
+	   fc::flat_set<address> addrs;
+	   int                   required;
+
+	   address fee_payer()const { return addr; }
+	   void validate()const;
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, addr, 1));
+	   }
+   };
+
 
 
 } } // graphene::chain
@@ -394,3 +410,5 @@ FC_REFLECT(graphene::chain::account_unbind_operation::fee_parameters_type, (fee)
 FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(addr)(account_signature)(tunnel_address)(tunnel_signature)(guarantee_id))
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))
+FC_REFLECT(graphene::chain::account_create_multisignature_address_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::account_create_multisignature_address_operation, (fee)(addr)(multisignature)(addrs)(required))

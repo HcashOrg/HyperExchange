@@ -97,5 +97,14 @@ public:
 	void_result do_evaluate(const account_multisig_create_operation& o);
 	void_result do_apply(const account_multisig_create_operation& o);
 };
+class account_create_multisignature_address_evaluator : public evaluator<account_create_multisignature_address_evaluator>
+{
+public:
+	typedef account_create_multisignature_address_operation operation_type;
+	void_result do_evaluate(const account_create_multisignature_address_operation& o);
+	void_result do_apply(const account_create_multisignature_address_operation& o);
+};
+
+
 
 } } // graphene::chain
