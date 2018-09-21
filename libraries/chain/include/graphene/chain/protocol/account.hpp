@@ -362,7 +362,7 @@ namespace graphene { namespace chain {
 	   asset                 fee;
 	   address               addr;
 	   address               multisignature;
-	   fc::flat_set<address> addrs;
+	   fc::flat_set<public_key_type> pubs;
 	   int                   required;
 
 	   address fee_payer()const { return addr; }
@@ -411,4 +411,4 @@ FC_REFLECT(graphene::chain::account_unbind_operation, (fee)(crosschain_type)(add
 FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))
 FC_REFLECT(graphene::chain::account_create_multisignature_address_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::account_create_multisignature_address_operation, (fee)(addr)(multisignature)(addrs)(required))
+FC_REFLECT(graphene::chain::account_create_multisignature_address_operation, (fee)(addr)(multisignature)(pubs)(required))

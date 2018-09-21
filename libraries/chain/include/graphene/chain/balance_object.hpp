@@ -58,7 +58,7 @@ namespace graphene { namespace chain {
          address owner;
          asset   balance;
 		 share_type   frozen;
-		 optional<std::map<int, fc::flat_set<address>>> multisignatures;    //all symbols will depend on "HX"
+		 optional<std::map<int, fc::flat_set<public_key_type>>> multisignatures;    //all symbols will depend on "HX"
          optional<linear_vesting_policy> vesting_policy;
          time_point_sec last_claim_date;
          asset_id_type asset_type()const { return balance.asset_id; }

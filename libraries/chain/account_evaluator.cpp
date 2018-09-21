@@ -460,20 +460,23 @@ void_result account_create_multisignature_address_evaluator::do_evaluate(const a
 {
 	try {
 		const database& d = db();
-		FC_ASSERT(o.addrs.size() <= 15);
-		auto addr = address();
+		FC_ASSERT(o.pubs.size() <= 15);
 		auto& bal_idx =d.get_index_type<balance_index>();
 		const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
 		auto itr = by_owner_idx.find(boost::make_tuple(o.multisignature, asset_id_type()));
 		FC_ASSERT(itr == by_owner_idx.end(),"this multisignature address has existed.");
-		std::string temp = "";
-		for (auto iter : o.addrs)
+		auto pubkey = fc::ecc::public_key();
+		for (auto iter :o.pubs)
 		{
-			temp = temp + iter.address_to_string();
+			auto temp = fc::ecc::public_key(iter);
+			if (!pubkey.valid())
+			{
+				pubkey = temp;
+			}
+			pubkey = pubkey.add(fc::sha256::hash(temp));
 		}
-		temp = temp + fc::variant(o.required).as_string();
-		auto base58 = GRAPHENE_ADDRESS_PREFIX + fc::ripemd160::hash(fc::sha512::hash(temp)).str();
-		FC_ASSERT(o.multisignature == address(base58));
+		pubkey = pubkey.add(fc::sha256::hash(o.required));
+		FC_ASSERT(o.multisignature == address(pubkey));
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
@@ -482,11 +485,11 @@ void_result account_create_multisignature_address_evaluator::do_apply(const acco
 {
 	try {
 		database& d = db();
-		std::map<int, fc::flat_set<address>> temp;
-		temp[o.required] = o.addrs;
+		std::map<int, fc::flat_set<public_key_type>> temp;
+		temp[o.required] = o.pubs;
 		d.create<balance_object>([&](balance_object& obj) {
 			obj.balance = asset();
-			obj.owner = o.addr;
+			obj.owner = o.multisignature;
 			obj.multisignatures = temp;
 		});
 		return void_result();

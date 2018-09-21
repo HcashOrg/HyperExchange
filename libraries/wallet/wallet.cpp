@@ -2867,32 +2867,36 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(can)(expiration_time)(broadcast))
    }
 
-   address create_multisignature_address(const string& account, const fc::flat_set<address>& addrs, int required, bool broadcast)
+   address create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
 		   account_create_multisignature_address_operation op;
 		   auto acc = get_account(account);
 		   op.addr = acc.addr;
-		   op.addrs = addrs;
+		   op.pubs = pubs;
 		   op.required = required;
 		   std::string temp="";
-		   for (auto iter : addrs)
+		   auto pubkey = fc::ecc::public_key();
+		   for (auto iter : pubs)
 		   {
-			   temp = temp + iter.address_to_string();
+			   auto temp = fc::ecc::public_key(iter);
+			   if (!pubkey.valid())
+			   {
+				   pubkey = temp;
+			   }
+			  pubkey = pubkey.add(fc::sha256::hash(temp));
 		   }
-		   temp = temp + fc::variant(required).as_string();
-
-		   auto base58 = GRAPHENE_ADDRESS_PREFIX+fc::ripemd160::hash(fc::sha512::hash(temp)).str();
-		   op.multisignature = address(base58);
+		   pubkey=pubkey.add(fc::sha256::hash(required));
+		   op.multisignature = address(pubkey);
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
 		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
 		   tx.validate();
 		   sign_transaction(tx,broadcast);
-		   return address(base58);
+		   return  op.multisignature;
 
-	   }FC_CAPTURE_AND_RETHROW((account)(addrs)(required)(broadcast))
+	   }FC_CAPTURE_AND_RETHROW((account)(pubs)(required)(broadcast))
    }
 
    map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account)
@@ -7092,9 +7096,9 @@ full_transaction wallet_api::senator_determine_withdraw_deposit(const string& ac
 {
 	return my->senator_determine_withdraw_deposit(account, can, symbol,expiration_time, broadcast);
 }
-address wallet_api::create_multisignature_address(const string& account, const fc::flat_set<address>& addrs, int required, bool broadcast)
+address wallet_api::create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
 {
-	return my->create_multisignature_address(account,addrs,required,broadcast);
+	return my->create_multisignature_address(account,pubs,required,broadcast);
 }
 map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(const string& account)
 {
