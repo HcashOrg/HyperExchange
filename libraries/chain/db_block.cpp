@@ -636,9 +636,22 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    eval_state.testing = testing;
    if( !(skip & (skip_transaction_signatures | skip_authority_check) ) )
    {
-      auto get_active = [&]( account_id_type id ) { return &id(*this).active; };
-      auto get_owner  = [&]( account_id_type id ) { return &id(*this).owner;  };
-      trx.verify_authority( chain_id, get_active, get_owner, get_global_properties().parameters.max_authority_depth );
+	      auto get_addresses = [&](address addr) {
+		  const auto& bal_idx = get_index_type<balance_index>();
+		  const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+		  auto iter = by_owner_idx.find(boost::make_tuple(addr, asset_id_type(0)));
+		  if (iter != by_owner_idx.end())
+		  {
+			  if (iter->multisignatures.valid())
+			  {
+				  auto required = iter->multisignatures->begin()->first;
+				  auto addresses = iter->multisignatures->begin()->second;
+				  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,required,addresses);
+			  }
+		  }
+		  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,0,fc::flat_set<public_key_type>());
+	  };
+      trx.verify_authority( chain_id,get_addresses, get_global_properties().parameters.max_authority_depth );
    }
 
    //Skip all manner of expiration and TaPoS checking if we're on block 1; It's impossible that the transaction is
