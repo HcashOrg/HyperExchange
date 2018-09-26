@@ -870,7 +870,6 @@ namespace graphene {
 		}
 		fc::variant_object crosschain_interface_eth::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
-			//TODO 传入签名人
 			std::string signs_r;
 			std::string signs_s;
 			std::string signs_v;
