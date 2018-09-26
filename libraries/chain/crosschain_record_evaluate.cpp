@@ -29,7 +29,22 @@ namespace graphene {
 			FC_ASSERT(asset_itr != asset_idx.end());
 			FC_ASSERT(asset_itr->symbol == o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(asset_itr->allow_withdraw_deposit==true);
-			auto multisig_obj = db().get_multisgi_account(o.cross_chain_trx.to_account,o.cross_chain_trx.asset_symbol);
+			std::string to_account;
+			if ((o.cross_chain_trx.asset_symbol.find("ETH") != o.cross_chain_trx.asset_symbol.npos) || (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)) {
+				auto pos = o.cross_chain_trx.to_account.find("|");
+				if (pos != o.cross_chain_trx.to_account.npos) {
+					to_account = o.cross_chain_trx.to_account.substr(0, pos);
+				}
+				else {
+					to_account = o.cross_chain_trx.to_account;
+				}
+			}
+			else {
+				to_account = o.cross_chain_trx.to_account;
+			}
+			auto multisig_obj = db().get_multisgi_account(to_account,o.cross_chain_trx.asset_symbol);
+			
+			//auto multisig_obj = db().get_multisgi_account(o.cross_chain_trx.to_account,o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
 			FC_ASSERT(multisig_obj->effective_block_num >0, "multisig address has not worked yet.");
 			auto current_obj = db().get_current_multisig_account(o.cross_chain_trx.asset_symbol);
@@ -48,7 +63,32 @@ namespace graphene {
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 			auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 			auto asset_itr = asset_idx.find(o.asset_id);
-			auto amount = asset_itr->amount_from_string(o.cross_chain_trx.amount);
+			asset amount;
+			if ((o.cross_chain_trx.asset_symbol.find("ETH") != o.cross_chain_trx.asset_symbol.npos) || (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)) {
+				auto pr = asset_itr->precision;
+				auto temp_amount = o.cross_chain_trx.amount;
+				std::string handle_amount;
+				auto float_pos = temp_amount.find('.');
+				auto float_amount = temp_amount.substr(float_pos + 1);
+				std::string float_temp;
+				if (float_amount.size() >=1)
+				{
+					int breakCondition = 0;
+					for (int i = pr; i >= 1;i--)
+					{
+						float_temp += float_amount[breakCondition];
+						++breakCondition;
+						if (breakCondition >= float_amount.size())
+						{
+							break;
+						}
+					}
+				}
+				amount = asset_itr->amount_from_string(temp_amount.substr(0, float_pos) + '.' + float_temp);
+			}
+			else {
+				amount = asset_itr->amount_from_string(o.cross_chain_trx.amount);
+			}
 			db().adjust_balance(tunnel_itr->owner, amount);
 			db().adjust_deposit_to_link_trx(o.cross_chain_trx);
 //			}
@@ -176,7 +216,15 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
-			auto create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
+			crosschain_trx create_trxs;
+			if ((o.asset_symbol.find("ETH") != o.asset_symbol.npos) || (o.asset_symbol.find("ERC") != o.asset_symbol.npos))
+			{
+				create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign",o.withdraw_source_trx));
+			}
+			else {
+				create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
+			}
+			
 			auto trx_itr_relate = trx_db.find(trx_state->_trx->id());
 			FC_ASSERT(trx_itr_relate == trx_db.end(), "Crosschain transaction has been created");
 			auto asset_fee = db().get_asset(o.asset_symbol)->dynamic_data(db()).fee_pool;
@@ -284,7 +332,13 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
+			if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos)
+			{
+
+			}
+			else {
 			hdl->broadcast_transaction(o.cross_chain_trx);
+			}
 			return void_result();
 		}
 		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {

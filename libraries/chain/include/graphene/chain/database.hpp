@@ -323,6 +323,10 @@ namespace graphene { namespace chain {
 			 signed_transaction current_trx,
 			 uint64_t op_type
 			 );
+		 void adjust_eths_multi_account_record(transaction_id_type pre_trx_id,
+			 transaction_id_type current_trx_id,
+			 signed_transaction current_trx,
+			 uint64_t op_type);
 		 void create_coldhot_transfer_trx(miner_id_type miner, fc::ecc::private_key pk);
 		 void combine_coldhot_sign_transaction(miner_id_type miner, fc::ecc::private_key pk);
 

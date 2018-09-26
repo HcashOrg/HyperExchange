@@ -105,6 +105,7 @@ struct get_impacted_account_visitor
 
    void operator()( const asset_reserve_operation& op ) {}
    void operator()(const asset_real_create_operation& op) {}
+   void operator()(const asset_eth_create_operation& op) {}
    void operator()( const asset_fund_fee_pool_operation& op ) {}
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
@@ -257,6 +258,11 @@ struct get_impacted_account_visitor
    void operator()(const transfer_contract_operation& op) {}
    void operator()(const contract_transfer_fee_proposal_operation& op) {}
 
+   void operator()(const eth_seri_guard_sign_operation & op){}
+   void operator()(const eths_guard_sign_final_operation & op) {}
+   void operator()(const eth_series_multi_sol_create_operation & op) {}
+   void operator()(const eths_multi_sol_guard_sign_operation & op) {}
+   void operator()(const eth_multi_account_create_record_operation & op) {}
 };
 
 void operation_get_impacted_accounts( const operation& op, flat_set<account_id_type>& result )

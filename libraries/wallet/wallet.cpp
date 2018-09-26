@@ -798,15 +798,28 @@ public:
    crosschain_prkeys create_crosschain_symbol(const string& symbol)
    {
 	   try {
+		   auto pos = symbol.find("|etguard");
+		   auto real_symbol = symbol;
+		   bool bGuard = false;
+		   if (pos != symbol.npos) {
+			   real_symbol = symbol.substr(0, pos);
+			   bGuard = true;
+		   }
 		   FC_ASSERT(!self.is_locked());
 		   string config = (*_crosschain_manager)->get_config();
-		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(real_symbol), "no this plugin");
 		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-		   auto fd = instance.get_crosschain_handle(symbol);
+		   auto fd = instance.get_crosschain_handle(real_symbol);
 		   fd->initialize_config(fc::json::from_string(config).get_object());
-		   auto wif_key = fd->create_normal_account("");
+		   std::string wif_key;
+		   if (bGuard){
+			   wif_key = fd->create_normal_account("guard");
+		   }
+		   else {
+			   wif_key = fd->create_normal_account("");
+		   }
 		   FC_ASSERT(wif_key != "");
-		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(real_symbol);
 		   auto pk = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(pk.valid());
 		   prk_ptr->set_key(*pk);
@@ -1819,7 +1832,20 @@ public:
 		   FC_ASSERT(crosschain->validate_address(to));
 		   map<string, string> dest;
 		   dest[to] = amount;
+		   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)) {
+			   fc::optional<asset_object> asset_obj = get_asset(symbol);
+
+			   std::string from_acount = from;
+			   std::string to_account = to;
+			   std::string amount_to_trans = amount;
+			   std::string _symbol = symbol;
+			   std::string memo = asset_obj->options.description;
+			   return crosschain->create_multisig_transaction(from_acount, to_account,amount_to_trans,_symbol, memo,false);
+		   }
+		   else {
 		   return crosschain->create_multisig_transaction(from,dest,symbol,"");
+		   }
+		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
 
@@ -1833,12 +1859,20 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
+		   std::string raw;
+		   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)){
+			   raw = trx["without_sign"].as_string();
+			   raw = prk_ptr->sign_trx(raw, 0);
+		   }
+		   else {
 		   auto vins = trx["trx"].get_object()["vin"].get_array();
-		   string raw = trx["hex"].as_string();
+				raw = trx["hex"].as_string();
 		   for (auto index=0;index < vins.size(); index++)
 		   {
 			   raw=prk_ptr->sign_trx(raw,index);
 		   }
+		   }
+		   
 		   if (broadcast)
 		   {
 			   string config = (*_crosschain_manager)->get_config();
@@ -1846,8 +1880,14 @@ public:
 			   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 			   auto fd = instance.get_crosschain_handle(symbol);
 			   fd->initialize_config(fc::json::from_string(config).get_object());
+			   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)) {
+				   fc::variant_object new_trx("trx", "0x"+raw);
+				   fd->broadcast_transaction(new_trx);
+			   }
+			   else {
 			   fc::variant_object new_trx("hex", raw);
 			   fd->broadcast_transaction(new_trx);
+		   }
 		   }
 		   return raw;
 	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
@@ -2405,7 +2445,45 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   } FC_CAPTURE_AND_RETHROW((issuer)(symbol)(precision)(max_supply)(broadcast))
    }
+   full_transaction wallet_create_erc_asset(string issuer,
+	   string symbol,
+	   uint8_t precision,
+	   share_type max_supply,
+	   share_type core_fee_paid,
+	   std::string erc_address,
+	   bool broadcast = false) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   FC_ASSERT(!find_asset(symbol).valid(), "Asset with that symbol already exists!");
+		   FC_ASSERT(symbol.find("ERC") != symbol.npos);
+		   FC_ASSERT(erc_address != "");
+		   auto precison_pos = erc_address.find('|');
+		   FC_ASSERT(precison_pos != erc_address.npos);
+		   auto erc_real_address = erc_address.substr(0, precison_pos);
+		   auto erc_precision = erc_address.substr(precison_pos+1);
+		   //need a create asset op create a new asset
+		    string config = (*_crosschain_manager)->get_config();
+			auto fd = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+			fd->initialize_config(fc::json::from_string(config).get_object());
+			fd->create_wallet(symbol, erc_address);
+		   asset_eth_create_operation op;
+		   auto issuer_account = get_guard_member(issuer);
+		   op.issuer = issuer_account.guard_member_account;
+		   op.issuer_addr = get_account(op.issuer).addr;
+		   op.precision = precision;
+		   op.max_supply = max_supply;
+		   op.erc_real_precision = erc_precision;
+		   op.symbol = symbol;
+		   op.core_fee_paid = core_fee_paid;
+		   op.erc_address = erc_real_address;
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
 
+		   return sign_transaction(tx, broadcast);
+	   } FC_CAPTURE_AND_RETHROW((issuer)(symbol)(precision)(max_supply)(broadcast)(erc_address))
+   }
 
    full_transaction update_asset(string symbol,
                                    optional<string> new_issuer,
@@ -2904,6 +2982,10 @@ public:
 	   auto obj = get_miner(account);
 	   return _remote_db->get_citizen_lockbalance_info(obj.id);
    }
+   vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state) {
+	   eth_multi_account_trx_state temp = eth_multi_account_trx_state(mul_acc_tx_state);
+	   return _remote_db->get_eths_multi_create_account_trx(temp,transaction_id_type());
+   }
    miner_object get_miner(string owner_account)
    {
       try
@@ -3316,9 +3398,9 @@ public:
 		   auto guard_account = get_guard_member(from_account);
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
-		   auto  hot_keys =create_crosschain_symbol(symbol);
+		   auto  hot_keys =create_crosschain_symbol(symbol+"|etguard");
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
-		   auto cold_keys = create_crosschain_symbol(symbol);
+		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard");
 
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
@@ -3968,7 +4050,58 @@ public:
 		   return optional<multisig_account_pair_object>();
 	   return get_multisig_account_pair(ret->multisig_account_pair_object_id);
    }
+   void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
+		FC_ASSERT(!is_locked());
+		auto guard_obj = get_guard_member(senator);
+		const account_object & account_obj = get_account(senator);
+		//get transaction and eth crosschain plugin
+		FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(), "not correct transction.");
+		auto trx_range = _remote_db->get_eths_multi_create_account_trx(eth_multi_account_trx_state::sol_create_need_guard_sign, transaction_id_type(tx_id));
+		FC_ASSERT(trx_range.size() == 1);
+		auto trx = trx_range[0];
+		FC_ASSERT(trx.valid(), "Transaction find error");
+		FC_ASSERT(trx->op_type == operation::tag<graphene::chain::eth_series_multi_sol_create_operation>::value, "Transaction find error");
+		auto op = trx->object_transaction.operations[0];
+		auto multi_account_op = op.get<graphene::chain::eth_series_multi_sol_create_operation>();
+		FC_ASSERT(guard_obj.id == multi_account_op.guard_to_sign);
+		auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+		auto crosschain_plugin = manager.get_crosschain_handle(multi_account_op.chain_type);
+		string config = (*_crosschain_manager)->get_config();
+		crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+		auto prk_cold_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
+		auto prk_hot_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
+		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_hot_address) > 0, "private key doesnt belong to this wallet.");
+		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0, "private key doesnt belong to this wallet.");
+		auto wif_key_cold = _crosschain_keys[multi_account_op.guard_sign_cold_address].wif_key;
+		auto wif_key_hot = _crosschain_keys[multi_account_op.guard_sign_hot_address].wif_key;
 
+		auto key_cold_ptr = prk_cold_ptr->import_private_key(wif_key_cold);
+		FC_ASSERT(key_cold_ptr.valid());
+		prk_cold_ptr->set_key(*key_cold_ptr);
+		string siging_cold = crosschain_plugin->sign_multisig_transaction(fc::variant_object("without_sign_trx_sign",multi_account_op.multi_account_tx_without_sign_cold), prk_cold_ptr, "", false);
+
+		auto key_hot_ptr = prk_hot_ptr->import_private_key(wif_key_hot);
+		FC_ASSERT(key_hot_ptr.valid());
+		prk_hot_ptr->set_key(*key_hot_ptr);
+		string siging_hot = crosschain_plugin->sign_multisig_transaction(fc::variant_object("without_sign_trx_sign", multi_account_op.multi_account_tx_without_sign_hot), prk_hot_ptr, "", false);
+		auto hot_hdtx = crosschain_plugin->turn_trx(fc::variant_object("get_with_sign", siging_hot));
+		auto cold_hdtx = crosschain_plugin->turn_trx(fc::variant_object("get_with_sign", siging_cold));
+		eths_multi_sol_guard_sign_operation tx_op;
+		tx_op.guard_to_sign = multi_account_op.guard_to_sign;
+		tx_op.guard_sign_address = account_obj.addr;
+		tx_op.multi_hot_sol_guard_sign = siging_hot;
+		tx_op.multi_cold_sol_guard_sign = siging_cold;
+		tx_op.sol_without_sign_txid = transaction_id_type(tx_id);
+		tx_op.chain_type = multi_account_op.chain_type;
+		tx_op.multi_cold_trxid = cold_hdtx.trx_id;
+		tx_op.multi_hot_trxid = hot_hdtx.trx_id;
+
+		signed_transaction transaction;
+		transaction.operations.push_back(tx_op);
+		set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+		transaction.validate();
+		sign_transaction(transaction, true);
+   }
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
@@ -4034,6 +4167,93 @@ public:
 	   transaction.validate();
 	   sign_transaction(transaction, true);
 	   
+   }
+   
+   void senator_sign_eths_final_trx(const string& trx_id, const string & senator) {
+	   FC_ASSERT(!is_locked());
+	   auto guard_obj = get_guard_member(senator);
+	   auto guard_id = guard_obj.guard_member_account;
+	   if (trx_id == "ALL") {
+		   auto trxs = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_eth_guard_need_sign, transaction_id_type());
+
+		   for (const auto& trx : trxs) {
+			   /*auto id = trx.transaction_id.str();
+			   std::cout << id << std::endl;
+			   auto op = trx.real_transaction.operations[0];
+			   std::cout << op.which() << std::endl;*/
+
+			   auto operations = trx.real_transaction.operations;
+			   auto op = trx.real_transaction.operations[0];
+			   if (op.which() != operation::tag<graphene::chain::crosschain_withdraw_combine_sign_operation>::value)
+			   {
+				   continue;
+			   }
+			   auto withop_without_sign = op.get<graphene::chain::crosschain_withdraw_combine_sign_operation>();
+			   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
+			   string config = (*_crosschain_manager)->get_config();
+			   hdl->initialize_config(fc::json::from_string(config).get_object());
+			   string temp_guard(senator);
+			   auto current_multi_obj = get_current_multi_address_obj(withop_without_sign.asset_symbol, guard_id);
+			   FC_ASSERT(current_multi_obj.valid());
+			   auto account_pair_obj = get_multisig_account_pair(current_multi_obj->multisig_account_pair_object_id);
+
+			   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
+			   FC_ASSERT(_crosschain_keys.count(current_multi_obj->new_address_hot)>0, "private key doesnt belong to this wallet.");
+			   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
+			   auto key_ptr = prk_ptr->import_private_key(wif_key);
+			   FC_ASSERT(key_ptr.valid());
+			   string siging = hdl->sign_multisig_transaction(withop_without_sign.cross_chain_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   eths_guard_sign_final_operation trx_op;
+			   account_object & account_obj = get_account(senator);
+			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+			   trx_op.guard_to_sign = guard_obj->id;
+			   trx_op.combine_trx_id = trx.transaction_id;
+			   trx_op.signed_crosschain_trx = siging;
+			   trx_op.guard_address = account_obj.addr;
+			   signed_transaction transaction;
+			   transaction.operations.push_back(trx_op);
+			   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+			   transaction.validate();
+			   sign_transaction(transaction, true);
+		   }
+	   }
+	   else {
+		   auto trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_eth_guard_need_sign, transaction_id_type(trx_id));
+		   FC_ASSERT(trx.size() == 1, "Transaction error");
+		   auto& op = trx[0].real_transaction.operations[0];
+		   auto withop_without_sign = op.get<crosschain_withdraw_combine_sign_operation>();
+		   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+		   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
+		   string config = (*_crosschain_manager)->get_config();
+		   hdl->initialize_config(fc::json::from_string(config).get_object());
+		   auto eth_without_sign_trx_obj = withop_without_sign.cross_chain_trx;
+		   auto sign_senator = eth_without_sign_trx_obj["signer"].as_string();
+		   auto without_sign = eth_without_sign_trx_obj["without_sign"].as_string();
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
+		   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[sign_senator].wif_key;
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   string siging = hdl->sign_multisig_transaction(fc::variant_object("without_sign_trx_sign", without_sign), prk_ptr, "", false);
+		   std::cout << siging << std::endl;
+		   auto hdtx = hdl->turn_trx(fc::variant_object("get_with_sign", siging));
+		   eths_guard_sign_final_operation trx_op;
+		   trx_op.signed_crosschain_trx_id = hdtx.trx_id;
+		   account_object & account_obj = get_account(senator);
+		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+		   trx_op.guard_to_sign = guard_obj->id;
+		   trx_op.chain_type = withop_without_sign.asset_symbol;
+		   trx_op.combine_trx_id = transaction_id_type(trx_id);
+		   trx_op.signed_crosschain_trx = siging;
+		   trx_op.guard_address = account_obj.addr;
+		   signed_transaction transaction;
+		   transaction.operations.push_back(trx_op);
+		   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+		   transaction.validate();
+		   sign_transaction(transaction, true);
+	   }
+
    }
    void guard_sign_crosschain_transaction(const string& trx_id,const string & guard){
 	   FC_ASSERT(!is_locked());
@@ -4104,7 +4324,14 @@ public:
 		   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
-		   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+		   string siging;
+		   if (withop_without_sign.asset_symbol == "ETH" || withop_without_sign.asset_symbol.find("ERC") != withop_without_sign.asset_symbol.npos) {
+				siging = hdl->sign_multisig_transaction(fc::variant_object("get_param_hash",withop_without_sign.withdraw_source_trx), prk_ptr, account_pair_obj->redeemScript_hot, false);
+		   }
+		   else {
+			   siging = hdl->sign_multisig_transaction( withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+		   }
+		   
 		   std::cout << siging << std::endl;
 		   crosschain_withdraw_with_sign_operation trx_op;
 	
@@ -4945,7 +5172,7 @@ public:
 
 	   return _remote_db->get_voter_transactions_waiting(acc.addr);
    }
-
+   /*
    void dbg_make_uia(string creator, string symbol)
    {
       asset_options opts;
@@ -4964,6 +5191,7 @@ public:
       bitasset_options bopts;
       create_asset(get_account(creator).name, symbol, 2, opts, bopts, true);
    }
+   */
 
    void dbg_push_blocks( const std::string& src_filename, uint32_t count )
    {
@@ -5113,7 +5341,7 @@ public:
          number_of_transactions -= number_of_accounts;
          //auto key = derive_private_key("floodshill", 0);
          try {
-            dbg_make_uia(master.name, "SHILL");
+           // dbg_make_uia(master.name, "SHILL");
          } catch(...) {/* Ignore; the asset probably already exists.*/}
 
          fc::time_point start = fc::time_point::now();
@@ -5968,6 +6196,13 @@ std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_cross
 void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	return my->guard_sign_coldhot_transaction(tx_id, guard);
 }
+
+void wallet_api::senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
+	my->senator_sign_eths_multi_account_create_trx(tx_id, senator);
+}
+void wallet_api::senator_sign_eths_final_trx(const string& trx_id, const string & senator) {
+	my->senator_sign_eths_final_trx(trx_id, senator);
+}
 void wallet_api::senator_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);
 }
@@ -6043,7 +6278,16 @@ full_transaction wallet_api::wallet_create_asset(string issuer,
 {
 	return my->wallet_create_asset(issuer, symbol, precision,max_supply, core_fee_paid, broadcast);
 }
+full_transaction wallet_api::wallet_create_erc_asset(string issuer,
+	string symbol,
+	uint8_t precision,
+	share_type max_supply,
+	share_type core_fee_paid,
+	std::string erc_address,
+	bool broadcast) {
+	return my->wallet_create_erc_asset(issuer, symbol, precision, max_supply, core_fee_paid, erc_address, broadcast);
 
+}
 full_transaction wallet_api::update_asset(string symbol,
                                             optional<string> new_issuer,
                                             asset_options new_options,
@@ -6264,7 +6508,7 @@ operation wallet_api::get_prototype_operation(string operation_name)
 {
    return my->get_prototype_operation( operation_name );
 }
-
+/*
 void wallet_api::dbg_make_uia(string creator, string symbol)
 {
    FC_ASSERT(!is_locked());
@@ -6276,7 +6520,7 @@ void wallet_api::dbg_make_mia(string creator, string symbol)
    FC_ASSERT(!is_locked());
    my->dbg_make_mia(creator, symbol);
 }
-
+*/
 void wallet_api::dbg_push_blocks( std::string src_filename, uint32_t count )
 {
    my->dbg_push_blocks( src_filename, count );
@@ -7104,6 +7348,9 @@ map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(con
 {
 	return my->get_citizen_lockbalance_info(account);
 }
+vector<optional< eth_multi_account_trx_object>> wallet_api::get_eth_multi_account_trx(const int & mul_acc_tx_state) {
+	return my->get_eth_multi_account_trx(mul_acc_tx_state);
+}
 
 full_transaction wallet_api::sell_asset(string seller_account,
                                           string amount_to_sell,
@@ -7129,7 +7376,7 @@ full_transaction wallet_api::sell( string seller_account,
                           std::to_string( rate * amount ), quote, 0, false, broadcast );
 }
 
-full_transaction wallet_api::buy( string buyer_account,
+/*full_transaction wallet_api::buy( string buyer_account,
                                     string base,
                                     string quote,
                                     double rate,
@@ -7138,7 +7385,7 @@ full_transaction wallet_api::buy( string buyer_account,
 {
    return my->sell_asset( buyer_account, std::to_string( rate * amount ), quote,
                           std::to_string( amount ), base, 0, false, broadcast );
-}
+}*/
 vector<optional<account_binding_object>> wallet_api::get_binding_account(const string& account, const string& symbol) const
 {
 	return my->get_binding_account(account,symbol);

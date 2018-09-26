@@ -10,6 +10,71 @@ namespace graphene {
 	namespace chain {
 		using namespace graphene::db;
 		using namespace graphene::crosschain;
+		enum eth_multi_account_trx_state {
+			sol_create_need_guard_sign = 0,
+			sol_create_guard_signed = 1,
+			sol_multi_account_ethchain_create = 2,
+			sol_create_comlete = 3
+		};
+		class eth_multi_account_trx_object;
+		class eth_multi_account_trx_object :public graphene::db::abstract_object<eth_multi_account_trx_object> {
+		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = eth_multi_account_trx_object_type;
+			std::string symbol;
+			transaction_id_type multi_account_pre_trx_id;
+			transaction_id_type multi_account_create_trx_id;
+			signed_transaction object_transaction;
+			std::string hot_addresses;
+			std::string cold_addresses;
+			std::string hot_sol_trx_id;
+			std::string cold_sol_trx_id;
+			bool cold_trx_success;
+			bool hot_trx_success;
+			eth_multi_account_trx_state state;
+			uint64_t op_type;
+		};
+		struct by_mulaccount_trx_id;
+		struct by_eth_hot_multi;
+		struct by_eth_cold_multi;
+		struct by_eth_hot_multi_trx_id;
+		struct by_eth_cold_multi_trx_id;
+		struct by_eth_mulacc_tx_state;
+		struct by_eth_mulacc_tx_op;
+		struct by_pre_trx_id;
+		using eth_multi_account_trx_index_type = multi_index_container <
+			eth_multi_account_trx_object,
+			indexed_by <
+			ordered_unique< tag<by_id>,
+			member<object, object_id_type, &object::id>
+			>, 
+			ordered_non_unique< tag<by_eth_mulacc_tx_state>,
+			member<eth_multi_account_trx_object, eth_multi_account_trx_state, &eth_multi_account_trx_object::state>
+			>,
+			ordered_non_unique< tag<by_eth_mulacc_tx_op>,
+			member<eth_multi_account_trx_object, uint64_t, &eth_multi_account_trx_object::op_type>
+			>,
+			ordered_non_unique< tag<by_eth_hot_multi>,
+			member<eth_multi_account_trx_object, std::string, &eth_multi_account_trx_object::hot_addresses>
+			>,
+			ordered_non_unique< tag<by_eth_cold_multi>,
+			member<eth_multi_account_trx_object, std::string, &eth_multi_account_trx_object::cold_addresses>
+			>,
+			ordered_non_unique< tag<by_eth_hot_multi_trx_id>,
+			member<eth_multi_account_trx_object, std::string, &eth_multi_account_trx_object::hot_sol_trx_id>
+			>,
+			ordered_non_unique< tag<by_eth_cold_multi_trx_id>,
+			member<eth_multi_account_trx_object, std::string, &eth_multi_account_trx_object::cold_sol_trx_id>
+			>,
+			ordered_non_unique<tag<by_pre_trx_id>,
+			member<eth_multi_account_trx_object, transaction_id_type, &eth_multi_account_trx_object::multi_account_pre_trx_id>
+			>,
+			ordered_unique< tag<by_mulaccount_trx_id>,
+			member<eth_multi_account_trx_object, transaction_id_type, &eth_multi_account_trx_object::multi_account_create_trx_id>
+			>
+			>
+		>;
+		using eth_multi_account_trx_index = generic_index<eth_multi_account_trx_object, eth_multi_account_trx_index_type>;
 		enum transaction_stata {
 			withdraw_without_sign_trx_uncreate = 0,
 			withdraw_without_sign_trx_create = 1,
@@ -17,7 +82,9 @@ namespace graphene {
 			withdraw_combine_trx_create = 3,
 			withdraw_transaction_confirm = 4,
 			withdraw_transaction_fail = 5,
-			withdraw_canceled =6
+			withdraw_canceled =6,
+			withdraw_eth_guard_need_sign = 7,
+			withdraw_eth_guard_sign = 8
 		};
 		enum acquired_trx_state {
 			acquired_trx_uncreate = 0,
@@ -163,6 +230,7 @@ namespace graphene {
 		using crosschain_trx_index = generic_index<crosschain_trx_object, crosschain_multi_index_type>;
 	}
 }
+FC_REFLECT_ENUM(graphene::chain::eth_multi_account_trx_state,(sol_create_need_guard_sign)(sol_create_guard_signed)(sol_multi_account_ethchain_create)(sol_create_comlete))
 FC_REFLECT_ENUM(graphene::chain::transaction_stata,
 (withdraw_without_sign_trx_uncreate)
 (withdraw_without_sign_trx_create)
@@ -170,7 +238,10 @@ FC_REFLECT_ENUM(graphene::chain::transaction_stata,
 (withdraw_combine_trx_create)
 (withdraw_transaction_confirm)
 (withdraw_transaction_fail)
-(withdraw_canceled))
+(withdraw_canceled)
+(withdraw_eth_guard_need_sign)
+(withdraw_eth_guard_sign)
+)
 FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object),
 	(relate_transaction_id)
 	(transaction_id)
@@ -192,7 +263,8 @@ FC_REFLECT_DERIVED(graphene::chain::acquired_crosschain_trx_object, (graphene::d
 (handle_trx)
 (handle_trx_id)
 (acquired_transaction_state))
-
+FC_REFLECT_DERIVED(graphene::chain::eth_multi_account_trx_object, (graphene::db::object), (multi_account_pre_trx_id)
+(hot_sol_trx_id)(cold_sol_trx_id)(hot_addresses)(cold_addresses)(cold_trx_success)(symbol)(hot_trx_success)(multi_account_create_trx_id)(object_transaction)(state)(op_type))
 FC_REFLECT_DERIVED(graphene::chain::crosschain_transaction_history_count_object, (graphene::db::object), 
 	(asset_symbol)
 	(local_count)

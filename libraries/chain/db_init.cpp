@@ -78,6 +78,8 @@
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/pay_back_object.hpp>
 #include <graphene/chain/pay_back_evaluator.hpp>
+#include <graphene/chain/eth_seri_record.hpp>
+#include <graphene/chain/eth_seri_record_evaluate.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -181,6 +183,9 @@ const uint8_t pay_back_object::type_id;
 
 const uint8_t bonus_object::space_id;
 const uint8_t bonus_object::type_id;
+
+const uint8_t eth_multi_account_trx_object::space_id;
+const uint8_t eth_multi_account_trx_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -272,6 +277,11 @@ void database::initialize_evaluators()
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<senator_determine_withdraw_deposit_evaluator>();
    register_evaluator<account_create_multisignature_address_evaluator>();
+	register_evaluator<eth_series_multi_sol_create_evaluator>();
+   register_evaluator<eth_series_multi_sol_guard_sign_evaluator>();
+   register_evaluator<eth_multi_account_create_record_evaluator>();
+   register_evaluator<eths_guard_sign_final_evaluator>();
+   register_evaluator<asset_eth_create_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -338,6 +348,7 @@ void database::initialize_indexes()
    add_index<primary_index<contract_storage_change_index>>();
    add_index <primary_index<guarantee_index                               > >();
    add_index <primary_index<contract_history_object_index                               > >();
+   add_index<primary_index<eth_multi_account_trx_index>>();
   
 }
 

@@ -11,6 +11,7 @@
 
 #include <fc/crypto/elliptic.hpp>
 #include <string>
+#include "Keccak.hpp"
 #include <fc/variant_object.hpp>
 namespace graphene {
 	namespace privatekey_management {
@@ -114,6 +115,26 @@ namespace graphene {
 		private:
 			void init();
 
+		};
+		class eth_privatekey : public crosschain_privatekey_base {
+		public:
+			eth_privatekey() { init(); };
+			eth_privatekey(fc::ecc::private_key& priv_key) : crosschain_privatekey_base(priv_key) { init(); };
+
+			virtual std::string get_wif_key();
+			virtual std::string get_address();
+			virtual std::string get_public_key();
+			virtual std::string get_address_by_pubkey(const std::string& pub);
+			virtual std::string  sign_message(const std::string& msg);
+			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
+			static  fc::variant_object  decoderawtransaction(const std::string& trx) { return fc::variant_object(); };
+			virtual std::string  sign_trx(const std::string& raw_trx, int index);
+			virtual bool validate_address(const std::string& addr);
+		private:
+			void init() {
+
+			};
 		};
 		class hc_privatekey : public crosschain_privatekey_base
 		{

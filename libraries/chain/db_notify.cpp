@@ -122,6 +122,7 @@ struct get_impacted_account_visitor
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()(const guard_refund_crosschain_trx_operation& op) {}
    void operator()(const asset_real_create_operation& op) {}
+   void operator()(const asset_eth_create_operation&op){}
    void operator()(const gurantee_create_operation& op) {}
    void operator()(const gurantee_cancel_operation& op) {}
    void operator()(const senator_determine_withdraw_deposit_operation& op) {}
@@ -239,6 +240,11 @@ struct get_impacted_account_visitor
    void operator()(const storage_operation& op) {}
    void operator()(const transfer_contract_operation& op) {}
    void operator()(const contract_transfer_fee_proposal_operation& op) {}
+   void operator()(const eth_seri_guard_sign_operation & op){}
+   void operator()(const eths_guard_sign_final_operation & op) {}
+   void operator()(const eth_series_multi_sol_create_operation & op) {}
+   void operator()(const eths_multi_sol_guard_sign_operation & op) {}
+   void operator()(const eth_multi_account_create_record_operation & op) {}
 
 };
 

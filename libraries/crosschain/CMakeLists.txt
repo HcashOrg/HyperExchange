@@ -16,6 +16,8 @@ set(sources
    crosschain_interface_ltc.cpp
    crosschain_interface_ub.cpp
    crosschain_interface_hc.cpp
+   crosschain_interface_eth.cpp
+   crosschain_interface_erc.cpp
    crosschain_transaction_record_plugin.cpp
    ${HEADERS})
 

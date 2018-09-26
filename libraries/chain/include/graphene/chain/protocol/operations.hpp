@@ -47,6 +47,7 @@
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/storage.hpp>
+#include <graphene/chain/eth_seri_record.hpp>
 
 namespace graphene { namespace chain {
 
@@ -148,7 +149,13 @@ namespace graphene { namespace chain {
 	        set_guard_lockbalance_operation,
 	        publisher_canceled_operation,
 	        senator_determine_withdraw_deposit_operation,
-	        account_create_multisignature_address_operation
+	        account_create_multisignature_address_operation,
+			graphene::chain::eth_seri_guard_sign_operation,
+	   graphene::chain::eth_series_multi_sol_create_operation,
+	   graphene::chain::eth_multi_account_create_record_operation,
+	   graphene::chain::eths_multi_sol_guard_sign_operation,
+	   graphene::chain::eths_guard_sign_final_operation,
+	   graphene::chain::asset_eth_create_operation
          > operation;
 
    /// @} // operations group

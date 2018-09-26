@@ -260,6 +260,13 @@ void asset_real_create_operation::validate()const {
 	FC_ASSERT(max_supply > 0);
 	FC_ASSERT(core_fee_paid >= 0);
 }
+void asset_eth_create_operation::validate()const {
+	FC_ASSERT(fee.amount >= 0);
+	FC_ASSERT(precision > 0);
+	FC_ASSERT(max_supply > 0);
+	FC_ASSERT(core_fee_paid >= 0);
+}
+
 
 
 } } // namespace graphene::chain

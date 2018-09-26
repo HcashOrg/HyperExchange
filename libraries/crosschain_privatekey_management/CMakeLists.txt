@@ -16,7 +16,7 @@ endif()
 # build library crosschain_privatekey_management
 message(STATUS "build library crosschain_privatekey_management")
 
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include)
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign)
 message(STATUS "HEADERS: ${HEADERS}")
 
 set(sources
@@ -70,12 +70,17 @@ IF(WIN32)
 
 target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain   $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin_secp256k1.lib 
                                                                                 $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin.lib
+																$ENV{ETH_CROSSCHAIN_PROJECT}/libs/eth_sign.lib
+																$ENV{ETH_CROSSCHAIN_PROJECT}/libs/cryptlib.lib
 															   )
 ELSE()
-	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a)
+	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
+	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign.a
+	$ENV{ETH_CROSSCHAIN_PROJECT}/cryptlib.a
+	)
 ENDIF()
 target_include_directories( crosschain_privatekey_management
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include  
+                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign 
 							PRIVATE ${BOOST_INCLUDE_DIR}/)
 	
 
@@ -85,17 +90,21 @@ add_executable( crosschain_privatekey_management_exe main.cpp )
 IF(WIN32)
 target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_privatekey_management ${Boost_LIBRARIES}
                                                             $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin_secp256k1.lib 
-                                                            $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin.lib)
+                                                            $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/third_libs/blocklink_libbitcoin.lib
+															$ENV{ETH_CROSSCHAIN_PROJECT}/libs/eth_sign.lib
+															$ENV{ETH_CROSSCHAIN_PROJECT}/libs/cryptlib.lib)
 
 ELSE()
  target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_privatekey_management ${Boost_LIBRARIES}
                                                             $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a
                                                             $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
+															$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign.a
+															$ENV{ETH_CROSSCHAIN_PROJECT}/cryptlib.a
 								)
 
 ENDIF()
 
-target_include_directories(crosschain_privatekey_management_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include PRIVATE ${BOOST_ROOT}/)
+target_include_directories(crosschain_privatekey_management_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign PRIVATE ${BOOST_ROOT}/)
 
 if (USE_PCH)
   set_target_properties(crosschain_privatekey_management PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)

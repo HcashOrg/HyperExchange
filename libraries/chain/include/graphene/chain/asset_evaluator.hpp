@@ -163,6 +163,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const asset_real_create_operation& o);
 	   void_result do_apply(const asset_real_create_operation& o);
    };
+   class asset_eth_create_evaluator :public evaluator<asset_eth_create_evaluator> {
+   public:
+	   typedef asset_eth_create_operation operation_type;
+
+	   void_result do_evaluate(const asset_eth_create_operation& o);
+	   void_result do_apply(const asset_eth_create_operation& o);
+   };
    class gurantee_create_evaluator :public evaluator<gurantee_create_evaluator>
    {
    public:

@@ -11,6 +11,7 @@
 #include <graphene/utilities/key_conversion.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/ripemd160.hpp>
+#include <fc/crypto/hex.hpp>
 #include <fc/optional.hpp>
 #include <graphene/chain/pts_address.hpp>
 #include <bitcoin/bitcoin.hpp>
@@ -18,7 +19,10 @@
 #include <assert.h>
 #include <graphene/utilities/hash.hpp>
 #include <list>
-
+#include <libethcore/TransactionBase.h>
+#include <libdevcore/DevCoreCommonJS.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/FixedHash.h>
 namespace graphene { namespace privatekey_management {
 
 
@@ -1014,6 +1018,242 @@ namespace graphene { namespace privatekey_management {
 			return false;
 		}
 	}
+	bool  from_hex(const char *pSrc, std::vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
+	{
+		if (pSrc == 0)
+		{
+			return false;
+		}
+
+		nDstLength = 0;
+
+		if (pSrc[0] == 0) // nothing to convert  
+			return 0;
+
+		// 计算需要转换的字节数  
+		for (int j = 0; pSrc[j]; j++)
+		{
+			if (isxdigit(pSrc[j]))
+				nDstLength++;
+		}
+
+		// 判断待转换字节数是否为奇数，然后加一  
+		if (nDstLength & 0x01) nDstLength++;
+		nDstLength /= 2;
+
+		if (nDstLength > nSrcLength)
+			return false;
+
+		nDstLength = 0;
+
+		int phase = 0;
+		char temp_char;
+
+		for (int i = 0; pSrc[i]; i++)
+		{
+			if (!isxdigit(pSrc[i]))
+				continue;
+
+			unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
+
+			if (phase == 0)
+			{
+				temp_char = val << 4;
+				phase++;
+			}
+			else
+			{
+				temp_char |= val;
+				phase = 0;
+				pDst.push_back(temp_char);
+				nDstLength++;
+			}
+		}
+
+		return true;
+	}
+	std::string BinToHex(const std::vector<char> &strBin, bool bIsUpper)
+	{
+		std::string strHex;
+		strHex.resize(strBin.size() * 2);
+		for (size_t i = 0; i < strBin.size(); i++)
+		{
+			uint8_t cTemp = strBin[i];
+			for (size_t j = 0; j < 2; j++)
+			{
+				uint8_t cCur = (cTemp & 0x0f);
+				if (cCur < 10)
+				{
+					cCur += '0';
+				}
+				else
+				{
+					cCur += ((bIsUpper ? 'A' : 'a') - 10);
+				}
+				strHex[2 * i + 1 - j] = cCur;
+				cTemp >>= 4;
+			}
+		}
+
+		return strHex;
+	}
+	std::string eth_privatekey::get_address() {
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+		auto pubkey = get_private_key().get_public_key();
+		auto dat = pubkey.serialize_ecc_point();
+		Keccak tmp_addr;
+		tmp_addr.add(dat.begin() + 1, dat.size() - 1);
+		auto addr_str_keccaksha3 = tmp_addr.getHash();
+		auto hex_str = addr_str_keccaksha3.substr(24, addr_str_keccaksha3.size());
+		return  "0x" + fc::ripemd160(hex_str).str();
+	}
+	std::string eth_privatekey::get_public_key() {
+		auto pubkey = get_private_key().get_public_key();
+		auto dat = pubkey.serialize_ecc_point();
+		return "0x" + fc::to_hex(dat.data,dat.size());
+	}
+	std::string eth_privatekey::get_address_by_pubkey(const std::string& pub) {
+		FC_ASSERT(pub.size() > 2, "eth pubkey size error");
+		const int size_of_data_to_hash = ((pub.size() - 2) / 2);
+		//FC_ASSERT(((size_of_data_to_hash == 33) || (size_of_data_to_hash == 65)), "eth pubkey size error");
+		FC_ASSERT(((pub.at(0) == '0') && (pub.at(1) == 'x')), "eth pubkey start error");
+		std::string pubwithout(pub.begin() + 2, pub.end());
+		char pubchar[1024];
+		fc::from_hex(pubwithout, pubchar, size_of_data_to_hash);
+		Keccak tmp_addr;
+		tmp_addr.add(pubchar + 1, size_of_data_to_hash - 1);
+		auto addr_str_keccaksha3 = tmp_addr.getHash();
+		auto hex_str = addr_str_keccaksha3.substr(24, addr_str_keccaksha3.size());
+		return  "0x" + fc::ripemd160(hex_str).str();
+	}
+	std::string  eth_privatekey::sign_message(const std::string& msg) {
+		auto msgHash = msg.substr(2);
+		dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
+		std::string prefix = "\x19";
+		prefix += "Ethereum Signed Message:\n";
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(msgHash.data(), temp, msgHash.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		std::string msg_prefix = prefix +fc::to_string(temp.size())+std::string(temp.begin(),temp.end());//std::string(temp.begin(), temp.end());
+		Keccak real_hash;
+		real_hash.add(msg_prefix.data(), msg_prefix.size());
+		dev::h256 hash;
+		msgHash = real_hash.getHash();
+		std::vector<char> temp1;
+		nDeplength = 0;
+		b_converse = from_hex(msgHash.data(), temp1, msgHash.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		for (int i = 0; i < temp1.size(); ++i)
+		{
+			hash[i] = temp1[i];
+		}
+		auto sign_str = dev::sign(sec, hash);
+		std::vector<char> sign_bin(sign_str.begin(), sign_str.end());
+		std::string signs = BinToHex(sign_bin, false);
+		if (signs.substr(signs.size() - 2) == "00")
+		{
+			signs[signs.size() - 2] = '1';
+			signs[signs.size() - 1] = 'b';
+		}
+		else if (signs.substr(signs.size() - 2) == "01")
+		{
+			signs[signs.size() - 2] = '1';
+			signs[signs.size() - 1] = 'c';
+		}
+		return signs;
+	}
+	std::string  eth_privatekey::sign_trx(const std::string& raw_trx, int index) {
+		auto eth_trx = raw_trx;
+
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(eth_trx.data(), temp, eth_trx.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		dev::bytes trx(temp.begin(), temp.end());
+		dev::eth::TransactionBase trx_base(trx, dev::eth::CheckTransaction::None);
+
+		dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
+		trx_base.sign(sec);
+		auto signed_trx = trx_base.rlp(dev::eth::WithSignature);
+		std::string signed_trx_str(signed_trx.begin(), signed_trx.end());
+		std::vector<char> hex_trx(signed_trx.begin(), signed_trx.end());
+		return BinToHex(hex_trx, false);
+	}
+
+	std::string eth_privatekey::get_wif_key() {
+		/*char buf[1024];
+		::memset(buf, 0, 1024);
+		sprintf_s(buf, "%x", get_private_key().get_secret().data());
+		std::string eth_pre_key(buf);*/
+		return  get_private_key().get_secret().str();
+	}
+	fc::optional<fc::ecc::private_key>  eth_privatekey::import_private_key(const std::string& wif_key) {
+		//char buf[1024];
+		//::memset(buf, 0, 1024);
+		//fc::from_hex(wif_key,buf,wif_key.size());
+		fc::ecc::private_key_secret ad(wif_key);
+		fc::ecc::private_key key = fc::variant(ad).as<fc::ecc::private_key>();
+		set_key(key);
+		return key;
+	}
+	
+
+	std::string eth_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx) {
+		if (raw_trx.contains("without_sign_trx_sign"))
+		{
+			auto eth_trx = raw_trx["without_sign_trx_sign"].as_string();
+		
+			std::vector<char> temp;
+			unsigned int nDeplength = 0;
+			bool b_converse = from_hex(eth_trx.data(), temp, eth_trx.size(), nDeplength);
+			FC_ASSERT(b_converse);
+			dev::bytes trx(temp.begin(), temp.end());
+			dev::eth::TransactionBase trx_base(trx,dev::eth::CheckTransaction::None);
+
+			dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
+			trx_base.sign(sec);
+			auto signed_trx = trx_base.rlp(dev::eth::WithSignature);
+			std::string signed_trx_str(signed_trx.begin(), signed_trx.end());
+			std::vector<char> hex_trx(signed_trx.begin(), signed_trx.end());
+			return BinToHex(hex_trx,false);
+		}
+		else if (raw_trx.contains("get_param_hash"))
+		{
+			//std::string cointype = raw_trx["get_param_hash"]["cointype"].as_string();
+			std::string cointype = raw_trx["get_param_hash"]["cointype"].as_string();
+			std::string msg_address = raw_trx["get_param_hash"]["msg_address"].as_string();
+			std::string msg_amount = raw_trx["get_param_hash"]["msg_amount"].as_string();
+			std::string msg_prefix = raw_trx["get_param_hash"]["msg_prefix"].as_string();
+			std::string msg_to_hash = msg_address + msg_amount + cointype.substr(24);
+			std::vector<char> temp;
+			unsigned int nDeplength = 0;
+			bool b_converse = from_hex(msg_to_hash.data(), temp, msg_to_hash.size(), nDeplength);
+			FC_ASSERT(b_converse);
+			Keccak messageHash;
+			messageHash.add(msg_prefix.data(), msg_prefix.size());
+			messageHash.add(temp.data(), temp.size());
+			auto msgHash = messageHash.getHash();
+			return sign_message("0x"+msgHash);
+		}
+		else {
+			std::string msg_address = raw_trx["msg_address"].as_string();
+			std::string msg_amount = raw_trx["msg_amount"].as_string();
+			std::string msg_prefix = raw_trx["msg_prefix"].as_string();
+			std::string sign_msg = msg_prefix + msg_address + msg_amount;
+			return sign_message(sign_msg);
+		}
+		
+	}
+	bool eth_privatekey::validate_address(const std::string& addr) {
+		FC_ASSERT(addr.size() >= 2 && addr[0] == '0' && addr[1] == 'x');
+		auto addr_str = addr.substr(2, addr.size());
+		for (auto i = addr_str.begin(); i != addr_str.end(); ++i)
+		{
+			fc::from_hex(*i);
+		}
+		return true;
+	}
 	crosschain_management::crosschain_management()
 	{
 		crosschain_decode.insert(std::make_pair("BTC", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
@@ -1046,6 +1286,14 @@ namespace graphene { namespace privatekey_management {
 		}
 		else if (name == "HC") {
 			auto itr = crosschain_prks.insert(std::make_pair(name, new hc_privatekey()));
+			return itr.first->second;
+		}
+		else if (name == "ETH") {
+			auto itr = crosschain_prks.insert(std::make_pair(name, new eth_privatekey()));
+			return itr.first->second;
+		}
+		else if (name.find("ERC") != name.npos){
+			auto itr = crosschain_prks.insert(std::make_pair(name, new eth_privatekey()));
 			return itr.first->second;
 		}
 		return nullptr;

@@ -1229,13 +1229,13 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network.
        * @param The signed transaction selling the funds.
        */
-      full_transaction buy( string buyer_account,
+      /*full_transaction buy( string buyer_account,
                               string base,
                               string quote,
                               double rate,
                               double amount,
                               bool broadcast );
-
+*/
       /** Borrow an asset or update the debt/collateral ratio for the loan.
        *
        * This is the first step in shorting an asset.  Call \c sell_asset() to complete the short.
@@ -1319,7 +1319,13 @@ class wallet_api
 		  share_type max_supply,
 		  share_type core_fee_paid,
 		  bool broadcast = false);
-
+	  full_transaction wallet_create_erc_asset(string issuer,
+		  string symbol,
+		  uint8_t precision,
+		  share_type max_supply,
+		  share_type core_fee_paid,
+		  std::string erc_address,
+		  bool broadcast = false);
       /** Issue new shares of an asset.
        *
        * @param to_account the name or id of the account to receive the new shares
@@ -1791,6 +1797,8 @@ class wallet_api
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
 	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
+	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1890,9 +1898,9 @@ class wallet_api
 	  vector<proposal_object>  get_proposal(const string& proposer) ;
 	  vector<proposal_object>  get_proposal_for_voter(const string& voter);
       order_book get_order_book( const string& base, const string& quote, unsigned limit = 50);
-
+	  /*
       void dbg_make_uia(string creator, string symbol);
-      void dbg_make_mia(string creator, string symbol);
+      void dbg_make_mia(string creator, string symbol);*/
       void dbg_push_blocks( std::string src_filename, uint32_t count );
       void dbg_generate_blocks( std::string debug_wif_key, uint32_t count );
       void dbg_stream_json_objects( const std::string& filename );
@@ -2004,6 +2012,7 @@ class wallet_api
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2112,7 +2121,7 @@ FC_API( graphene::wallet::wallet_api,
 	    (wallet_create_account)
         (sell_asset)
         (sell)
-        (buy)
+        (get_eth_multi_account_trx)
         (borrow_asset)
         (cancel_order)
         (transfer)
@@ -2181,8 +2190,6 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
-        (dbg_make_uia)
-        (dbg_make_mia)
         (dbg_push_blocks)
         (dbg_generate_blocks)
         (dbg_stream_json_objects)
@@ -2233,6 +2240,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
+		(wallet_create_erc_asset)
 		(create_crosschain_symbol)
 		(bind_tunnel_account)
 		(unbind_tunnel_account)
@@ -2241,6 +2249,8 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)
 		(senator_sign_coldhot_transaction)
+		(senator_sign_eths_multi_account_create_trx)
+		(senator_sign_eths_final_trx)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(get_current_multi_address)

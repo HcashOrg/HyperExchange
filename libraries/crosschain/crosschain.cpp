@@ -6,6 +6,8 @@
 #include <graphene/crosschain/crosschain_interface_ltc.hpp>
 #include <graphene/crosschain/crosschain_interface_ub.hpp>
 #include <graphene/crosschain/crosschain_interface_hc.hpp>
+#include <graphene/crosschain/crosschain_interface_eth.hpp>
+#include <graphene/crosschain/crosschain_interface_erc.hpp>
 namespace graphene {
 	namespace crosschain {
 		crosschain_manager::crosschain_manager()
@@ -48,6 +50,16 @@ namespace graphene {
 				else if (name == "HC")
 				{
 					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_hc()));
+					return itr.first->second;
+				}
+				else if (name == "ETH") {
+					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_eth()));
+					return itr.first->second;
+				}
+				else if (name.find("ERC") != name.npos){
+					std::string chain_type;
+					transform(name.begin(), name.end(), chain_type.begin(), ::tolower);
+					auto itr = crosschain_handles.insert(std::make_pair(name, new crosschain_interface_erc(name)));
 					return itr.first->second;
 				}
 			}
