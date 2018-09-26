@@ -144,6 +144,17 @@ namespace graphene {
 			return core_fee_required+schedule.fee;
 		}
 
+		contract_address_type contract_register_operation::get_first_contract_id()
+		{
+			contract_address_type id;
+			fc::sha512::encoder enc;
+			Code co;
+			time_point_sec regtm;
+			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(co,regtm );
+			fc::raw::pack(enc, info_to_digest);
+			id.addr = fc::ripemd160::hash(enc.result());
+			return id;
+		}
         contract_address_type contract_register_operation::calculate_contract_id() const
 		{ 
             contract_address_type id;

@@ -6777,6 +6777,11 @@ void wallet_api::encrypt_keys()
    my->encrypt_keys();
 }
 
+fc::string wallet_api::get_first_contract_address()
+{
+	return contract_register_operation::get_first_contract_id().operator fc::string();
+}
+
 void wallet_api::lock()
 { try {
    FC_ASSERT( !is_locked() );

@@ -68,7 +68,7 @@ namespace uvm {
 			std::set<std::string> events;
 			std::map<std::string, fc::enum_type<fc::unsigned_int, uvm::blockchain::StorageValueTypes>> storage_properties;
 			std::vector<unsigned char> code;
-			std::string code_hash;
+			std::string code_hash="";
 			Code() {}
 			void SetApis(char* module_apis[], int count, int api_type);
 			bool valid() const;
