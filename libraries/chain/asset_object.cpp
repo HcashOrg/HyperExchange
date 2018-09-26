@@ -158,7 +158,6 @@ asset asset_object::amount_from_string(string amount_string) const
          decimal_found = true;
          continue;
       }
-
       FC_THROW( (amount_string) );
    }
 

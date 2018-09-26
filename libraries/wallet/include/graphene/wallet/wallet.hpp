@@ -988,7 +988,15 @@ class wallet_api
 		  string asset_symbol,
 		  string memo,
 		  bool broadcast = false);
-
+	  /** this is only for the multisignature of HX or 
+	  * @param from the address from the account sending the funds
+	  * @param to the address to the account receiving the funds
+	  */
+	  signed_transaction transfer_from_to_address(string from,
+		  string to,
+		  string amount,
+		  string asset_symbol,
+		  string memo);
 
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
@@ -2004,6 +2012,8 @@ class wallet_api
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+	  public_key_type get_pubkey_from_priv(const string& privkey);
+	  signed_transaction sign_multisig_trx(const address& addr,const signed_transaction& trx);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2167,10 +2177,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_object)
         (get_private_key)
         (load_wallet_file)
-        (normalize_brain_key)
-        (get_limit_orders)
-        (get_call_orders)
-        (get_settle_orders)
         (save_wallet_file)
         (serialize_transaction)
         (sign_transaction)
@@ -2181,17 +2187,9 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
-        (dbg_make_uia)
-        (dbg_make_mia)
-        (dbg_push_blocks)
-        (dbg_generate_blocks)
-        (dbg_stream_json_objects)
-        (dbg_update_object)
         (flood_network)
         (network_add_nodes)
         (network_get_connected_peers)
-        (set_key_label)
-        (get_key_label)
         (get_public_key)
         (get_blind_accounts)
         (get_my_blind_accounts)
@@ -2301,4 +2299,6 @@ FC_API( graphene::wallet::wallet_api,
         (lightwallet_broadcast)
         (create_multisignature_address)
 		(get_first_contract_address)
+	    (get_pubkey_from_priv)
+		(sign_multisig_trx)
       )

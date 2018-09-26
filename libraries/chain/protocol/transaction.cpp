@@ -149,13 +149,34 @@ struct sign_state
 		 //elog("address is  ${id}:", ("id",string(a))("e", e.to_detail_string()));
          if( itr == provided_address_sigs->end() )
          {
-            auto aitr = available_address_sigs->find(a);
+           /* auto aitr = available_address_sigs->find(a);
             if( aitr != available_address_sigs->end() ) {
                auto pk = available_keys.find(aitr->second);
                if( pk != available_keys.end() )
                   return provided_signatures[aitr->second] = true;
                return false;
-            }
+            }*/
+			auto tupp = get_addresses(a);
+			auto required = std::get<1>(tupp);
+			int has_signed = 0;
+			if (required != 0)
+			{
+				auto pubkeys = std::get<2>(tupp);
+				for (auto& item : pubkeys)
+				{
+					if (provided_address_sigs->find(address(pts_address(item, false, 56))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, true, 56))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, false, 0))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, true, 0))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(item)) != provided_address_sigs->end() )
+					{
+						provided_signatures[item] = true;
+						has_signed++;
+					}
+				}
+			}
+			if (has_signed >= required && required != 0)
+				return true;
 			return false;
          }
          return provided_signatures[itr->second] = true;
@@ -230,9 +251,11 @@ struct sign_state
       }
 
       sign_state( const flat_set<public_key_type>& sigs,
-                  const std::function<const authority*(account_id_type)>& a,
+                  const std::function<const authority*(account_id_type)>& a, 
+		          const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& b \
+		          = std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>(),
                   const flat_set<public_key_type>& keys = flat_set<public_key_type>() )
-      :get_active(a),available_keys(keys)
+      :get_active(a),get_addresses(b),available_keys(keys)
       {
          for( const auto& key : sigs )
             provided_signatures[ key ] = false;
@@ -240,12 +263,42 @@ struct sign_state
       }
 
       const std::function<const authority*(account_id_type)>& get_active;
+	  const std::function<std::tuple<address, int, fc::flat_set<public_key_type>> (address)>& get_addresses;
       const flat_set<public_key_type>&                        available_keys;
 
       flat_map<public_key_type,bool>   provided_signatures;
       flat_set<account_id_type>        approved_by;
       uint32_t                         max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH;
 };
+
+void verify_authority(const vector<operation>& ops, const flat_set<public_key_type>& sigs,
+	const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	uint32_t max_recursion,
+	bool allow_committe)
+{
+	try {
+		flat_set<account_id_type> required_active;
+		flat_set<account_id_type> required_owner;
+		vector<authority> other;
+
+		for (const auto& op : ops)
+			operation_get_required_authorities(op, required_active, required_owner, other);
+
+		sign_state s(sigs, [](account_id_type) {return nullptr; },get_addresses);
+		s.max_recursion = max_recursion;
+		for (const auto& auth : other)
+		{
+			GRAPHENE_ASSERT(s.check_authority(&auth), tx_missing_other_auth, "Missing Authority", ("auth", auth)("sigs", sigs));
+		}
+		FC_ASSERT(other.size() != 0);
+		GRAPHENE_ASSERT(
+			!s.remove_unused_signatures(),
+			tx_irrelevant_sig,
+			"Unnecessary signature(s) detected"
+		);
+
+	} FC_CAPTURE_AND_RETHROW((ops)(sigs))
+}
 
 
 void verify_authority( const vector<operation>& ops, const flat_set<public_key_type>& sigs, 
@@ -336,7 +389,7 @@ set<public_key_type> signed_transaction::get_required_signatures(
    get_required_authorities( required_active, required_owner, other );
 
 
-   sign_state s(get_signature_keys( chain_id ),get_active,available_keys);
+   sign_state s(get_signature_keys( chain_id ),get_active);
    s.max_recursion = max_recursion_depth;
 
    for( const auto& auth : other )
@@ -392,5 +445,17 @@ void signed_transaction::verify_authority(
 { try {
    graphene::chain::verify_authority( operations, get_signature_keys( chain_id ), get_active, get_owner, max_recursion );
 } FC_CAPTURE_AND_RETHROW( (*this) ) }
+
+void signed_transaction::verify_authority(
+	const chain_id_type& chain_id,
+	const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	uint32_t max_recursion)const
+{
+	try {
+		graphene::chain::verify_authority(operations, get_signature_keys(chain_id), get_addresses, max_recursion);
+
+	}FC_CAPTURE_AND_RETHROW((*this))
+}
+
 
 } } // graphene::chain
