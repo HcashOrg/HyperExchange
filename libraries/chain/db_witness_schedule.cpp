@@ -136,15 +136,14 @@ void database::modify_current_collected_fee(asset changed_fee)
 }
 
 share_type database::get_miner_pay_per_block(uint32_t block_num) {
-	std::vector<share_type> reward_list = { 2558000,1811000,1357000,1357000,1357000 };
-	uint32_t block_interval = 25228800;//4 * 365* 24* 720
-	uint32_t cur_int = block_num / block_interval;
-	if (cur_int > 4) {
-		return 0;
+
+	auto order_blocks = get_global_properties().unorder_blocks_match;
+	for (const auto& item : order_blocks)
+	{
+		if (block_num < item.first)
+			return item.second;
 	}
-	else {
-		return reward_list[cur_int];
-	}
+	return 0;
 }
 
 asset database::get_fee_from_block(const signed_block& b)

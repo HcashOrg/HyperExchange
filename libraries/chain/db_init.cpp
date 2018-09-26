@@ -510,7 +510,14 @@ void database::init_genesis(const genesis_state_type& genesis_state)
        // Set fees to zero initially, so that genesis initialization needs not pay them
        // We'll fix it at the end of the function
        p.parameters.current_fees->zero_all_fees();
-
+	   p.unorder_blocks_match[6307200] = 27;
+	   p.unorder_blocks_match[12614400] = 25;
+	   p.unorder_blocks_match[18921600] = 24;
+	   p.unorder_blocks_match[25228800] = 22;
+	   p.unorder_blocks_match[31536000] = 21;
+	   p.unorder_blocks_match[37843200] = 19;
+	   p.unorder_blocks_match[44150400] = 17;
+	   p.unorder_blocks_match[-1] = 2;
    });
    create<dynamic_global_property_object>([&](dynamic_global_property_object& p) {
       p.time = genesis_state.initial_timestamp;

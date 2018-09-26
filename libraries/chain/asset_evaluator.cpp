@@ -598,7 +598,10 @@ void_result asset_real_create_evaluator::do_apply(const asset_real_create_operat
 			a.symbol = o.symbol;
 			a.precision = o.precision;
 			a.options.core_exchange_rate.base.asset_id = next_asset_id;
-			a.options.max_supply = o.max_supply*o.precision;
+			share_type scaled_precision = 1;
+			for (uint8_t i = 0; i < o.precision; ++i)
+				scaled_precision *= 10;
+			a.options.max_supply = o.max_supply * scaled_precision;
 			a.dynamic_asset_data_id = dyn_asset.id;
 		});
 		assert(new_asset.id == next_asset_id);
