@@ -2017,7 +2017,7 @@ class wallet_api
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
-
+	  fc::string get_first_contract_address();
       //citizen
       void start_citizen(bool);
 
@@ -2298,6 +2298,7 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
         (create_multisignature_address)
+		(get_first_contract_address)
 	    (get_pubkey_from_priv)
 		(sign_multisig_trx)
       )
