@@ -149,29 +149,35 @@ struct sign_state
 		 //elog("address is  ${id}:", ("id",string(a))("e", e.to_detail_string()));
          if( itr == provided_address_sigs->end() )
          {
-            auto aitr = available_address_sigs->find(a);
+           /* auto aitr = available_address_sigs->find(a);
             if( aitr != available_address_sigs->end() ) {
                auto pk = available_keys.find(aitr->second);
                if( pk != available_keys.end() )
                   return provided_signatures[aitr->second] = true;
                return false;
-            }
+            }*/
 			auto tupp = get_addresses(a);
-			if (std::get<1>(tupp) != 0)
+			auto required = std::get<1>(tupp);
+			int has_signed = 0;
+			if (required != 0)
 			{
 				auto pubkeys = std::get<2>(tupp);
 				for (auto& item : pubkeys)
 				{
-					(*provided_address_sigs)[address(pts_address(item, false, 56))] = item;
-					(*provided_address_sigs)[address(pts_address(item, true, 56))] = item;
-					(*provided_address_sigs)[address(pts_address(item, false, 0))] = item;
-					(*provided_address_sigs)[address(pts_address(item, true, 0))] = item;
-					(*provided_address_sigs)[address(item)] = item;
+					if (provided_address_sigs->find(address(pts_address(item, false, 56))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, true, 56))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, false, 0))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(pts_address(item, true, 0))) != provided_address_sigs->end() ||
+						provided_address_sigs->find(address(item)) != provided_address_sigs->end() )
+					{
+						provided_signatures[item] = true;
+						has_signed++;
+					}
 				}
 			}
-			itr = provided_address_sigs->find(a);
-			if (itr == provided_address_sigs->end())
-				return false;
+			if (has_signed >= required && required != 0)
+				return true;
+			return false;
          }
          return provided_signatures[itr->second] = true;
       }

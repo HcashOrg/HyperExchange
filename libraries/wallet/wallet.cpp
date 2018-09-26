@@ -992,6 +992,18 @@ public:
 	   return true;
    }
 
+   signed_transaction sign_multisig_trx(const address& addr, const signed_transaction& trx)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto itr = _keys.find(addr);
+		   FC_ASSERT(itr != _keys.end());
+		   auto privkey = wif_to_key(itr->second);
+		   FC_ASSERT(privkey.valid());
+		   trx.sign(*privkey, _chain_id);
+		   return trx;
+	   }FC_CAPTURE_AND_RETHROW((addr)(trx))
+   }
 
    vector< signed_transaction > import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast );
 
@@ -4340,6 +4352,14 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
+   signed_transaction transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
+   {
+	   try {
+		   FC_ASSERT(is_locked());
+
+	   } FC_CAPTURE_AND_RETHROW((from)(to)(amount)(asset_symbol)(memo))
+   }
+
    full_transaction transfer_to_address(string from, string to, string amount,
 	   string asset_symbol, string memo, bool broadcast = false)
    {
@@ -5707,6 +5727,17 @@ asset_id_type wallet_api::get_asset_id(string asset_symbol_or_id) const
    return my->get_asset_id(asset_symbol_or_id);
 }
 
+public_key_type wallet_api::get_pubkey_from_priv(const string& privkey)
+{
+	auto priv = wif_to_key(privkey);
+	FC_ASSERT(priv.valid());
+	return priv->get_public_key();
+}
+signed_transaction wallet_api::sign_multisig_trx(const address& addr, const signed_transaction& trx)
+{
+	return my->sign_multisig_trx(addr,trx);
+}
+
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {
    FC_ASSERT(!is_locked());
@@ -5943,6 +5974,12 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 string wallet_api::lightwallet_broadcast(signed_transaction trx)
 {
     return my->lightwallet_broadcast(trx);
+}
+
+signed_transaction wallet_api::transfer_from_to_address(string from, string to, string amount,
+	string asset_symbol, string memo)
+{
+	return my->transfer_from_to_address(from,to,amount,asset_symbol,memo);
 }
 
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
