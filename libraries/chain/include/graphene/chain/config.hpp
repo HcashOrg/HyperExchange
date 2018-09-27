@@ -166,7 +166,8 @@
 #define GRAPHENE_MINER_PLEDGE_PAY_RATIO						 70
 #define GRAPHENE_MINER_PAY_BACK_RATIO						 10
 #define GRAPHENE_GUARD_PAY_RATIO							 30
-#define GRAPHENE_ALL_MINER_PAY_RATIO						 70
+#define GRAPHENE_ALL_MINER_PAY_RATIO						 50
+#define HX_DEVELOP_TEAM_PAY_TATIO                            20
 
 /**
  *  Reserved Account IDs with special meaning
