@@ -148,7 +148,8 @@ namespace graphene { namespace chain {
 	        set_guard_lockbalance_operation,
 	        publisher_canceled_operation,
 	        senator_determine_withdraw_deposit_operation,
-	        account_create_multisignature_address_operation
+	        account_create_multisignature_address_operation,
+	        senator_determine_block_payment_operation
          > operation;
 
    /// @} // operations group

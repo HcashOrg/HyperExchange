@@ -789,5 +789,24 @@ void_result senator_determine_withdraw_deposit_evaluator::do_apply(const senator
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result senator_determine_block_payment_evaluator::do_evaluate(const senator_determine_block_payment_operation& o)
+{
+	try {
+		return void_result();
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result senator_determine_block_payment_evaluator::do_apply(const senator_determine_block_payment_operation& o)
+{
+	try {
+		auto& d = db();
+		d.modify(d.get(global_property_id_type()), [&](global_property_object& obj) {
+			obj.unorder_blocks_match = o.blocks_pairs;
+		});
+		return void_result();
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 } } // graphene::chain

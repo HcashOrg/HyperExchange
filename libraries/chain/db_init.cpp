@@ -272,6 +272,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<senator_determine_withdraw_deposit_evaluator>();
    register_evaluator<account_create_multisignature_address_evaluator>();
+   register_evaluator<senator_determine_block_payment_evaluator>();
 }
 
 void database::initialize_indexes()
