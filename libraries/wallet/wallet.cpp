@@ -2870,7 +2870,6 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(determine_op);
-		   prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -2896,6 +2895,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
