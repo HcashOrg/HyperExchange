@@ -1,6 +1,6 @@
 {
-  "initial_timestamp": "2018-07-26T10:27:15",
-  "max_core_supply": "840000000000000",
+  "initial_timestamp": "2018-09-28T10:27:15",
+  "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
       "parameters": [[
@@ -584,12 +584,7 @@
     }
   ],
   "initial_assets": [],
-  "initial_balances": [{
-      "owner": "HX9bJW2AhiQT4UYySwsGLns5kyPSnv5HFqp",
-      "asset_symbol": "HX",
-      "amount": "620000000000000"
-    }
-  ],
+  "initial_balances": [],
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
   "initial_miner_candidates": [{
