@@ -458,7 +458,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create core asset
    const asset_dynamic_data_object& dyn_asset =
       create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-         a.current_supply = GRAPHENE_MAX_SHARE_SUPPLY;
+         a.current_supply = 0;
       });
    const asset_object& core_asset =
      create<asset_object>( [&]( asset_object& a ) {
