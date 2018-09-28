@@ -272,6 +272,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<senator_determine_withdraw_deposit_evaluator>();
    register_evaluator<account_create_multisignature_address_evaluator>();
+   register_evaluator<senator_determine_block_payment_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -457,7 +458,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create core asset
    const asset_dynamic_data_object& dyn_asset =
       create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-         a.current_supply = GRAPHENE_MAX_SHARE_SUPPLY;
+         a.current_supply = 0;
       });
    const asset_object& core_asset =
      create<asset_object>( [&]( asset_object& a ) {
@@ -510,7 +511,14 @@ void database::init_genesis(const genesis_state_type& genesis_state)
        // Set fees to zero initially, so that genesis initialization needs not pay them
        // We'll fix it at the end of the function
        p.parameters.current_fees->zero_all_fees();
-
+	   p.unorder_blocks_match[6307200] = 27 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[12614400] = 25 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[18921600] = 24 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[25228800] = 22 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[31536000] = 21 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[37843200] = 19 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[44150400] = 17* GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[-1] = 2 * GRAPHENE_HXCHAIN_PRECISION;
    });
    create<dynamic_global_property_object>([&](dynamic_global_property_object& p) {
       p.time = genesis_state.initial_timestamp;

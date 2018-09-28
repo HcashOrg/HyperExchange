@@ -2853,6 +2853,30 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(lockbalance)(expiration_time)(broadcast))
    }
+   full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   senator_determine_block_payment_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.blocks_pairs = blocks_pays;
+		   auto determine_op = operation(op);
+		   current_params.current_fees->set_fee(determine_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(determine_op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(blocks_pays)(expiration_time)(broadcast))
+   }
+
    full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -2892,7 +2916,7 @@ public:
 		   auto pubkey = fc::ecc::public_key();
 		   for (auto iter : pubs)
 		   {
-			   auto temp = fc::ecc::public_key(iter);
+			   auto temp = iter.operator fc::ecc::public_key();
 			   if (!pubkey.valid())
 			   {
 				   pubkey = temp;
@@ -7132,6 +7156,10 @@ full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& acco
 full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+}
+full_transaction wallet_api::senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
+{
+	return my->senator_determine_block_payment(account, blocks_pays,expiration_time,broadcast);
 }
 
 full_transaction wallet_api::senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)

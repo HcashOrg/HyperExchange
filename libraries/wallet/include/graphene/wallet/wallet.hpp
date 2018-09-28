@@ -2010,6 +2010,7 @@ class wallet_api
 	  full_transaction citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	  public_key_type get_pubkey_from_priv(const string& privkey);
@@ -2301,4 +2302,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_first_contract_address)
 	    (get_pubkey_from_priv)
 		(sign_multisig_trx)
+		(senator_determine_block_payment)
       )
