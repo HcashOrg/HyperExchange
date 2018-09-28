@@ -305,6 +305,7 @@ namespace graphene {
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
 				undo_contract_effected(total_fee);
+				invoke_contract_result.api_result = string("gas ran out");
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
