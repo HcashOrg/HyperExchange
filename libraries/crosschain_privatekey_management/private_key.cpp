@@ -95,7 +95,7 @@ namespace graphene { namespace privatekey_management {
 	{
 		try {
 			graphene::chain::pts_address pts(addr);
-			return pts.is_valid();
+			return pts.is_valid() && pts.version() == get_pubkey_prefix();
 		}
 		catch (fc::exception& e) {
 			return false;
@@ -1007,8 +1007,8 @@ namespace graphene { namespace privatekey_management {
 	bool hc_privatekey::validate_address(const std::string& addr) {
 		try {
 			graphene::chain::pts_address_extra pts(addr);
-			return pts.is_valid() && pts.version() == get_pubkey_prefix();
-			//return pts.is_valid();
+			//return pts.is_valid() && pts.version() == get_pubkey_prefix();
+			return pts.is_valid();
 		}
 		catch (fc::exception& e) {
 			return false;
