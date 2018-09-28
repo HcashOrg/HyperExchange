@@ -1718,6 +1718,7 @@ public:
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
 		   contract_invoke_op.fee.asset_id = asset_id_type(0);
+		   //contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   //contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);
@@ -1739,7 +1740,8 @@ public:
 			   // FIXME: 更好地获取到offline调用合约API的返回值
 			   auto detail = e.to_detail_string();
 			   auto estr = e.to_string();
-			   if (strstr(detail.c_str(), "blockchain::contract_engine::contract_api_result_error"))
+			   auto detail_c_str = detail.c_str();
+			   if (strstr(detail_c_str, "blockchain") && strstr(detail_c_str, "contract_engine") && strstr(detail_c_str, "contract_api_result_error"))
 			   {
 				   auto elog = e.get_log();
 				   std::string double_result;
