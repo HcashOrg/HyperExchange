@@ -205,7 +205,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
 			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100 + trxfee.amount.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
-			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
+			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / 100;
 			uint64_t all_pledge_paid = 0;
 			boost::multiprecision::uint256_t cal_cur_pledge = 0;
 			for (auto one_pledge : one_data)
