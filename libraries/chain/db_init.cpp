@@ -369,10 +369,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    bsi.resize(0xffff+1);
 
    // Create blockchain accounts
-   fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   create<balance_object>([](balance_object& b) {
-      b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
-   });
+   //fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+   //create<balance_object>([](balance_object& b) {
+   //   b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
+   //});
    const account_object& committee_account =
       create<account_object>( [&](account_object& n) {
          n.membership_expiration_date = time_point_sec::maximum();
@@ -458,7 +458,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create core asset
    const asset_dynamic_data_object& dyn_asset =
       create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-         a.current_supply = 0;
+         //a.current_supply = GRAPHENE_MAX_SHARE_SUPPLY;
       });
    const asset_object& core_asset =
      create<asset_object>( [&]( asset_object& a ) {
@@ -704,7 +704,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       total_supplies[ asset_id ] += vest.amount;
    }
 
-   if( total_supplies[ asset_id_type(0) ] > 0 )
+   /*if( total_supplies[ asset_id_type(0) ] > 0 )
    {
        adjust_balance(GRAPHENE_GUARD_ACCOUNT, -get_balance(GRAPHENE_GUARD_ACCOUNT,{}));
    }
@@ -712,7 +712,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    {
        total_supplies[ asset_id_type(0) ] = GRAPHENE_MAX_SHARE_SUPPLY;
    }
-
+*/
    const auto& idx = get_index_type<asset_index>().indices().get<by_symbol>();
    auto it = idx.begin();
    bool has_imbalanced_assets = false;
