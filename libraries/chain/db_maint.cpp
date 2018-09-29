@@ -400,91 +400,91 @@ void database::process_budget()
 {
    try
    {
-      const global_property_object& gpo = get_global_properties();
-      const dynamic_global_property_object& dpo = get_dynamic_global_properties();
-      const asset_dynamic_data_object& core =
-         asset_id_type(0)(*this).dynamic_asset_data_id(*this);
-      fc::time_point_sec now = head_block_time();
+      //const global_property_object& gpo = get_global_properties();
+      //const dynamic_global_property_object& dpo = get_dynamic_global_properties();
+      //const asset_dynamic_data_object& core =
+      //   asset_id_type(0)(*this).dynamic_asset_data_id(*this);
+      //fc::time_point_sec now = head_block_time();
 
-      int64_t time_to_maint = (dpo.next_maintenance_time - now).to_seconds();
-      //
-      // The code that generates the next maintenance time should
-      //    only produce a result in the future.  If this assert
-      //    fails, then the next maintenance time algorithm is buggy.
-      //
-      assert( time_to_maint > 0 );
-      //
-      // Code for setting chain parameters should validate
-      //    block_interval > 0 (as well as the humans proposing /
-      //    voting on changes to block interval).
-      //
-      assert( gpo.parameters.block_interval > 0 );
-      uint64_t blocks_to_maint = (uint64_t(time_to_maint) + gpo.parameters.block_interval - 1) / gpo.parameters.block_interval;
+      //int64_t time_to_maint = (dpo.next_maintenance_time - now).to_seconds();
+      ////
+      //// The code that generates the next maintenance time should
+      ////    only produce a result in the future.  If this assert
+      ////    fails, then the next maintenance time algorithm is buggy.
+      ////
+      //assert( time_to_maint > 0 );
+      ////
+      //// Code for setting chain parameters should validate
+      ////    block_interval > 0 (as well as the humans proposing /
+      ////    voting on changes to block interval).
+      ////
+      //assert( gpo.parameters.block_interval > 0 );
+      //uint64_t blocks_to_maint = (uint64_t(time_to_maint) + gpo.parameters.block_interval - 1) / gpo.parameters.block_interval;
 
-      // blocks_to_maint > 0 because time_to_maint > 0,
-      // which means numerator is at least equal to block_interval
+      //// blocks_to_maint > 0 because time_to_maint > 0,
+      //// which means numerator is at least equal to block_interval
 
-      budget_record rec;
-      initialize_budget_record( now, rec );
-      share_type available_funds = rec.total_budget;
+      //budget_record rec;
+      //initialize_budget_record( now, rec );
+      //share_type available_funds = rec.total_budget;
 
-      share_type miner_budget = gpo.parameters.miner_pay_per_block.value * blocks_to_maint;
-      rec.requested_miner_budget = miner_budget;
-      miner_budget = std::min(miner_budget, available_funds);
-      rec.miner_budget = miner_budget;
-      available_funds -= miner_budget;
+      //share_type miner_budget = gpo.parameters.miner_pay_per_block.value * blocks_to_maint;
+      //rec.requested_miner_budget = miner_budget;
+      //miner_budget = std::min(miner_budget, available_funds);
+      //rec.miner_budget = miner_budget;
+      //available_funds -= miner_budget;
 
-      fc::uint128_t worker_budget_u128 = gpo.parameters.worker_budget_per_day.value;
-      worker_budget_u128 *= uint64_t(time_to_maint);
-      worker_budget_u128 /= 60*60*24;
+      //fc::uint128_t worker_budget_u128 = gpo.parameters.worker_budget_per_day.value;
+      //worker_budget_u128 *= uint64_t(time_to_maint);
+      //worker_budget_u128 /= 60*60*24;
 
-      share_type worker_budget;
-      if( worker_budget_u128 >= available_funds.value )
-         worker_budget = available_funds;
-      else
-         worker_budget = worker_budget_u128.to_uint64();
-      rec.worker_budget = worker_budget;
-      available_funds -= worker_budget;
+      //share_type worker_budget;
+      //if( worker_budget_u128 >= available_funds.value )
+      //   worker_budget = available_funds;
+      //else
+      //   worker_budget = worker_budget_u128.to_uint64();
+      //rec.worker_budget = worker_budget;
+      //available_funds -= worker_budget;
 
-      share_type leftover_worker_funds = worker_budget;
-      pay_workers(leftover_worker_funds);
-      rec.leftover_worker_funds = leftover_worker_funds;
-      available_funds += leftover_worker_funds;
+      //share_type leftover_worker_funds = worker_budget;
+      //pay_workers(leftover_worker_funds);
+      //rec.leftover_worker_funds = leftover_worker_funds;
+      //available_funds += leftover_worker_funds;
 
-      rec.supply_delta = rec.miner_budget
-         + rec.worker_budget
-         - rec.leftover_worker_funds
-         - rec.from_accumulated_fees
-         - rec.from_unused_miner_budget;
+      //rec.supply_delta = rec.miner_budget
+      //   + rec.worker_budget
+      //   - rec.leftover_worker_funds
+      //   - rec.from_accumulated_fees
+      //   - rec.from_unused_miner_budget;
 
-      modify(core, [&]( asset_dynamic_data_object& _core )
-      {
-         _core.current_supply = (_core.current_supply + rec.supply_delta );
+      //modify(core, [&]( asset_dynamic_data_object& _core )
+      //{
+      //   _core.current_supply = (_core.current_supply + rec.supply_delta );
 
-         assert( rec.supply_delta ==
-                                   miner_budget
-                                 + worker_budget
-                                 - leftover_worker_funds
-                                 - _core.accumulated_fees
-                                 - dpo.miner_budget
-                                );
-         _core.accumulated_fees = 0;
-      });
+      //   assert( rec.supply_delta ==
+      //                             miner_budget
+      //                           + worker_budget
+      //                           - leftover_worker_funds
+      //                           - _core.accumulated_fees
+      //                           - dpo.miner_budget
+      //                          );
+      //   _core.accumulated_fees = 0;
+      //});
 
-      modify(dpo, [&]( dynamic_global_property_object& _dpo )
-      {
-         // Since initial witness_budget was rolled into
-         // available_funds, we replace it with witness_budget
-         // instead of adding it.
-         _dpo.miner_budget = miner_budget;
-         _dpo.last_budget_time = now;
-      });
+      //modify(dpo, [&]( dynamic_global_property_object& _dpo )
+      //{
+      //   // Since initial witness_budget was rolled into
+      //   // available_funds, we replace it with witness_budget
+      //   // instead of adding it.
+      //   _dpo.miner_budget = miner_budget;
+      //   _dpo.last_budget_time = now;
+      //});
 
-      create< budget_record_object >( [&]( budget_record_object& _rec )
-      {
-         _rec.time = head_block_time();
-         _rec.record = rec;
-      });
+      //create< budget_record_object >( [&]( budget_record_object& _rec )
+      //{
+      //   _rec.time = head_block_time();
+      //   _rec.record = rec;
+      //});
 
       // available_funds is money we could spend, but don't want to.
       // we simply let it evaporate back into the reserve.
@@ -707,9 +707,9 @@ void split_fba_balance(
 
 void distribute_fba_balances( database& db )
 {
-   split_fba_balance( db, fba_accumulator_id_transfer_to_blind  , 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
-   split_fba_balance( db, fba_accumulator_id_blind_transfer     , 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
-   split_fba_balance( db, fba_accumulator_id_transfer_from_blind, 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
+   //split_fba_balance( db, fba_accumulator_id_transfer_to_blind  , 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
+   //split_fba_balance( db, fba_accumulator_id_blind_transfer     , 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
+   //split_fba_balance( db, fba_accumulator_id_transfer_from_blind, 20*GRAPHENE_1_PERCENT, 60*GRAPHENE_1_PERCENT, 20*GRAPHENE_1_PERCENT );
 }
 
 void create_buyback_orders( database& db )
