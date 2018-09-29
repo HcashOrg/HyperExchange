@@ -95,7 +95,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		try {
 			graphene::chain::pts_address pts(addr);
-			return pts.is_valid();
+			std::cout << addr << " 1" << fc::variant(pts.version()).as_string() << std::endl;
+			std::cout << addr << " 2" <<get_pubkey_prefix() << std::endl;
+			std::cout << addr << " 3" << get_script_prefix() << std::endl;
+			return pts.is_valid() && (pts.version() == get_pubkey_prefix()|| pts.version() == get_script_prefix());
 		}
 		catch (fc::exception& e) {
 			return false;
@@ -108,8 +111,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		set_id(0);
 		set_pubkey_prefix(0x6F);
+		set_script_prefix(0xC4);
 		set_privkey_prefix(0xEF);
 		//set_pubkey_prefix(0x0);
+		//set_script_prefix(0x05);
 		//set_privkey_prefix(0x80);
 	}
 
@@ -204,8 +209,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		set_id(0);
 		set_pubkey_prefix(0x6F);
+		set_script_prefix(0x3A);
 		set_privkey_prefix(0xEF);
 		//set_pubkey_prefix(0x30);
+		//set_script_prefix(0x32);
 		//set_privkey_prefix(0xB0);
 	}
 
