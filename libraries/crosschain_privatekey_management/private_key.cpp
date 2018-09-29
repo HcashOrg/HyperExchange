@@ -363,6 +363,7 @@ namespace graphene { namespace privatekey_management {
 	{
 		set_id(0);
 		set_pubkey_prefix(0x0);
+		set_script_prefix(0x05);
 		set_privkey_prefix(0x80);
 	}
 
