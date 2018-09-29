@@ -95,9 +95,6 @@ namespace graphene { namespace privatekey_management {
 	{
 		try {
 			graphene::chain::pts_address pts(addr);
-			std::cout << addr << " 1" << fc::variant(pts.version()).as_string() << std::endl;
-			std::cout << addr << " 2" <<get_pubkey_prefix() << std::endl;
-			std::cout << addr << " 3" << get_script_prefix() << std::endl;
 			return pts.is_valid() && (pts.version() == get_pubkey_prefix()|| pts.version() == get_script_prefix());
 		}
 		catch (fc::exception& e) {
