@@ -14,7 +14,7 @@
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
-#define HX_TEST_FORK_FOR_INVOKE 470000
+#define HX_TEST_FORK_FOR_INVOKE 0
 namespace graphene {
 	namespace chain {
 
