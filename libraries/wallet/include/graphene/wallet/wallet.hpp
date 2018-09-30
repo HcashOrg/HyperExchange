@@ -997,7 +997,9 @@ class wallet_api
 		  string amount,
 		  string asset_symbol,
 		  string memo);
-
+	  full_transaction combine_transaction(const vector<signed_transaction>& trxs,
+		  bool broadcast = false
+	  ); 
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
       * @returns the transaction id
@@ -2303,4 +2305,6 @@ FC_API( graphene::wallet::wallet_api,
 	    (get_pubkey_from_priv)
 		(sign_multisig_trx)
 		(senator_determine_block_payment)
+		(transfer_from_to_address)
+		(combine_transaction)
       )

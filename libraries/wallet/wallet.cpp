@@ -1000,8 +1000,9 @@ public:
 		   FC_ASSERT(itr != _keys.end());
 		   auto privkey = wif_to_key(itr->second);
 		   FC_ASSERT(privkey.valid());
-		   trx.sign(*privkey, _chain_id);
-		   return trx;
+		   signed_transaction tx = trx;
+		   auto sig = tx.sign(*privkey, _chain_id);
+		   return tx;
 	   }FC_CAPTURE_AND_RETHROW((addr)(trx))
    }
 
@@ -4381,10 +4382,60 @@ public:
    signed_transaction transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
-		   FC_ASSERT(is_locked());
+		   FC_ASSERT(!is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   transfer_operation xfer_op;
+		   xfer_op.from_addr = address(from);
+		   xfer_op.to_addr = address(to);
+		   xfer_op.amount = asset_obj->amount_from_string(amount);
+		   xfer_op.guarantee_id = get_guarantee_id();
+		   if(memo.size())
+		   {
+			   xfer_op.memo = memo_data();
+			   xfer_op.memo->from = public_key_type();
+			   xfer_op.memo->to = public_key_type();
+			   xfer_op.memo->set_message(private_key_type(),
+				   public_key_type(), memo);
+
+		   }
+		   signed_transaction tx;
+		   tx.operations.push_back(xfer_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600*24 + expiration_time_offset));
+		   tx.validate();
+		   return tx;
 
 	   } FC_CAPTURE_AND_RETHROW((from)(to)(amount)(asset_symbol)(memo))
    }
+
+   full_transaction combine_transaction(const vector<signed_transaction>& trxs, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   signed_transaction trx;
+		   if (trxs.size() > 0)
+			   trx = trxs[0];
+		   trx.signatures.clear();
+		   for (const auto& tx : trxs)
+		   {
+			   for (const auto& sig : tx.signatures)
+			   {
+				   if (std::find(trx.signatures.begin(),trx.signatures.end(),sig) == trx.signatures.end())
+					   trx.signatures.push_back(sig);
+			   }
+		   }
+		   if (broadcast)
+			   _remote_net_broadcast->broadcast_transaction(trx);
+		   return trx;
+
+	   }FC_CAPTURE_AND_RETHROW((trxs)(broadcast))
+   }
+
 
    full_transaction transfer_to_address(string from, string to, string amount,
 	   string asset_symbol, string memo, bool broadcast = false)
@@ -5996,6 +6047,12 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 {
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
+
+full_transaction wallet_api::combine_transaction(const vector<signed_transaction>& trxs, bool broadcast)
+{
+	return my->combine_transaction(trxs,broadcast);
+}
+
 
 string wallet_api::lightwallet_broadcast(signed_transaction trx)
 {
