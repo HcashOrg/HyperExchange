@@ -178,7 +178,7 @@ namespace graphene {
 
 				create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
 					obj.op_type = op_type;
-					obj.relate_trx_id = relate_trx_id;
+					obj.relate_trx_id = tx_combine_sign_iter->relate_trx_id;
 					obj.current_id = current_trx_id;
 					obj.current_trx = current_trx;
 					obj.original_trx_id = eth_signed_op.signed_crosschain_trx_id;
