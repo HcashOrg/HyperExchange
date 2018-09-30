@@ -37,5 +37,12 @@ namespace graphene {
 			object_id_type do_apply(const eths_guard_sign_final_operation& o);
 			void pay_fee() override;
 		};
+		class eths_coldhot_guard_sign_final_evaluator : public evaluator<eths_coldhot_guard_sign_final_evaluator> {
+		public:
+			typedef eths_coldhot_guard_sign_final_operation operation_type;
+			void_result do_evaluate(const eths_coldhot_guard_sign_final_operation& o);
+			object_id_type do_apply(const eths_coldhot_guard_sign_final_operation& o);
+			void pay_fee() override;
+		};
 	}
 }

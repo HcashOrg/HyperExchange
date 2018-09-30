@@ -245,6 +245,7 @@ struct get_impacted_account_visitor
    void operator()(const eth_series_multi_sol_create_operation & op) {}
    void operator()(const eths_multi_sol_guard_sign_operation & op) {}
    void operator()(const eth_multi_account_create_record_operation & op) {}
+   void operator()(const eths_coldhot_guard_sign_final_operation & op) {}
 
 };
 

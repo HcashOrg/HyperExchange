@@ -282,6 +282,7 @@ void database::initialize_evaluators()
    register_evaluator<eth_multi_account_create_record_evaluator>();
    register_evaluator<eths_guard_sign_final_evaluator>();
    register_evaluator<asset_eth_create_evaluator>();
+   register_evaluator<eths_coldhot_guard_sign_final_evaluator>();
 }
 
 void database::initialize_indexes()

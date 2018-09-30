@@ -155,7 +155,8 @@ namespace graphene { namespace chain {
 	   graphene::chain::eth_multi_account_create_record_operation,
 	   graphene::chain::eths_multi_sol_guard_sign_operation,
 	   graphene::chain::eths_guard_sign_final_operation,
-	   graphene::chain::asset_eth_create_operation
+	   graphene::chain::asset_eth_create_operation,
+	   eths_coldhot_guard_sign_final_operation
          > operation;
 
    /// @} // operations group

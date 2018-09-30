@@ -586,10 +586,10 @@ namespace graphene {
 			hd_trx hdtx;
 			crosschain_trx hdtxs;
 			if (trx.contains("eth_trx")){
-				std::string contract_addr = trx["contract_addr"].as_string();
-				std::string msg_address = trx["msg_address"].as_string();
-				std::string msg_amount = trx["msg_amount"].as_string();
-				std::string msg_prefix = trx["msg_prefix"].as_string();
+				std::string contract_addr = trx["eth_trx"]["contract_addr"].as_string();
+				std::string msg_address = trx["eth_trx"]["msg_address"].as_string();
+				std::string msg_amount = trx["eth_trx"]["msg_amount"].as_string();
+				std::string msg_prefix = trx["eth_trx"]["msg_prefix"].as_string();
 				FC_ASSERT((msg_amount.size() % 64 == 0 && msg_address.size() % 64 == 0 && msg_amount.size() == msg_address.size()), "eth msg_address or msg_account size error");
 				for (size_t i = 0; i < msg_address.size() / 64; ++i) {
 					hdtx.from_account = contract_addr;

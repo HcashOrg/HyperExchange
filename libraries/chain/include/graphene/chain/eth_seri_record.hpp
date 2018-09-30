@@ -74,7 +74,7 @@ namespace graphene {
 				a.push_back(authority(1, miner_address, 1));
 			}
 		};
-
+		
 		struct eth_seri_guard_sign_operation :public base_operation {
 			struct fee_parameters_type {
 				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
@@ -112,6 +112,26 @@ namespace graphene {
 				a.push_back(authority(1, guard_address, 1));
 			}
 		};
+		struct eths_coldhot_guard_sign_final_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+			};
+			asset fee;
+			guard_member_id_type guard_to_sign;
+			transaction_id_type combine_trx_id;
+			std::string signed_crosschain_trx;
+			std::string signed_crosschain_trx_id;
+			address guard_address;
+			std::string chain_type;
+			address fee_payer()const {
+				return guard_address;
+			}
+			void            validate()const;
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+			void get_required_authorities(vector<authority>& a)const {
+				a.push_back(authority(1, guard_address, 1));
+			}
+		};
 		
 	}
 }
@@ -127,3 +147,5 @@ FC_REFLECT(graphene::chain::eths_multi_sol_guard_sign_operation, (fee)(sol_witho
 																(multi_hot_sol_guard_sign)(multi_cold_trxid)(multi_hot_trxid)(multi_cold_sol_guard_sign)(chain_type))
 FC_REFLECT(graphene::chain::eths_guard_sign_final_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eths_guard_sign_final_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(chain_type)(signed_crosschain_trx)(guard_address))
+FC_REFLECT(graphene::chain::eths_coldhot_guard_sign_final_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::eths_coldhot_guard_sign_final_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(chain_type)(signed_crosschain_trx)(guard_address))

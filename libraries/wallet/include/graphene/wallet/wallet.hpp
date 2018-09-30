@@ -1182,7 +1182,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction selling the funds
        */
-      full_transaction sell_asset(string seller_account,
+     /* full_transaction sell_asset(string seller_account,
                                     string amount_to_sell,
                                     string   symbol_to_sell,
                                     string min_to_receive,
@@ -1190,7 +1190,7 @@ class wallet_api
                                     uint32_t timeout_sec = 0,
                                     bool     fill_or_kill = false,
                                     bool     broadcast = false);
-                                    
+                                    */
       /** Place a limit order attempting to sell one asset for another.
        * 
        * This API call abstracts away some of the details of the sell_asset call to be more
@@ -1799,6 +1799,7 @@ class wallet_api
 	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
 	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
 	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -2119,7 +2120,7 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_account)
         (create_account_with_brain_key)
 	    (wallet_create_account)
-        (sell_asset)
+        
         (sell)
         (get_eth_multi_account_trx)
         (borrow_asset)
@@ -2251,6 +2252,7 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_sign_coldhot_transaction)
 		(senator_sign_eths_multi_account_create_trx)
 		(senator_sign_eths_final_trx)
+		(senator_sign_eths_coldhot_final_trx)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(get_current_multi_address)

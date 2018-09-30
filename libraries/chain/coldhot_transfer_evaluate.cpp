@@ -66,7 +66,15 @@ namespace graphene {
 				auto crosschain_handle = instance.get_crosschain_handle(o.asset_symbol);
 				if (!crosschain_handle->valid_config())
 					return void_result();
-				auto created_trx = crosschain_handle->turn_trxs(o.coldhot_trx_original_chain);
+				crosschain_trx create_trxs;
+				if ((o.asset_symbol.find("ETH") != o.asset_symbol.npos) || (o.asset_symbol.find("ERC") != o.asset_symbol.npos))
+				{
+					create_trxs = crosschain_handle->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
+				}
+				else {
+					create_trxs = crosschain_handle->turn_trxs(o.coldhot_trx_original_chain);
+				}
+				//auto created_trx = crosschain_handle->turn_trxs(o.coldhot_trx_original_chain);
 				
 				//FC_ASSERT(created_trx.size() == 1);
 				//auto & coldhot_trx_db = db().get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
@@ -95,8 +103,8 @@ namespace graphene {
 						++withdraw_account_count;
 					}
 					FC_ASSERT((withdraw_account_count == o.withdraw_account_count),"withdraw multi account count error");
-					FC_ASSERT(created_trx.trxs.count(coldhot_transfer_op.multi_account_deposit) == 1);
-					auto one_trx = created_trx.trxs[coldhot_transfer_op.multi_account_deposit];
+					FC_ASSERT(create_trxs.trxs.count(coldhot_transfer_op.multi_account_deposit) == 1);
+					auto one_trx = create_trxs.trxs[coldhot_transfer_op.multi_account_deposit];
 					FC_ASSERT(one_trx.to_account == coldhot_transfer_op.multi_account_deposit);
 					FC_ASSERT(one_trx.from_account == coldhot_transfer_op.multi_account_withdraw);
 					const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
@@ -205,7 +213,13 @@ namespace graphene {
 				auto crosschain_plugin = manager.get_crosschain_handle(std::string(o.asset_symbol));
 				if (!crosschain_plugin->valid_config())
 					return void_result();
-				crosschain_plugin->broadcast_transaction(o.coldhot_trx_original_chain);
+				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos)
+				{
+
+				}
+				else {
+					crosschain_plugin->broadcast_transaction(o.coldhot_trx_original_chain);
+				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			
