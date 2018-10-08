@@ -4803,13 +4803,14 @@ public:
 
 	full_transaction propose_pay_back_asset_rate_change(
 		const string& proposing_account,
-		fc::time_point_sec expiration_time,
+		const int64_t& expiration_time,
 		const variant_object& changed_values,
 		bool broadcast = false
 	) {
 		FC_ASSERT(changed_values.contains("min_pay_back_balance_other_asset"));
-		variant_object temp_asset_set1 = changed_values.find("min_pay_back_balance_other_asset")->value().get_object();
+		auto temp_asset_set1 = changed_values.find("min_pay_back_balance_other_asset")->value().get_object();
 		const chain_parameters& current_params = get_global_properties().parameters;
+		
 		chain_parameters new_params = current_params;
 		for (const auto& item : temp_asset_set1) {
 			new_params.min_pay_back_balance_other_asset[item.key()] = asset(item.value().as_uint64(), get_asset_id(item.key()));
@@ -4818,8 +4819,9 @@ public:
 		update_op.new_parameters = new_params;
 
 		proposal_create_operation prop_op;
+		auto guard_obj = get_guard_member(proposing_account);
 		prop_op.proposer = get_account(proposing_account).get_id();
-		prop_op.expiration_time = expiration_time;
+		prop_op.expiration_time = fc::time_point_sec(time_point::now()) + expiration_time;
 
 		prop_op.fee_paying_account = get_account(proposing_account).addr;
 
@@ -6468,8 +6470,8 @@ full_transaction wallet_api::propose_senator_pledge_change(
 }
 full_transaction wallet_api::propose_pay_back_asset_rate_change(
 	const string& proposing_account,
-	fc::time_point_sec expiration_time,
 	const variant_object& changed_values,
+	const int64_t& expiration_time,
 	bool broadcast
 ) {
 	return my->propose_pay_back_asset_rate_change(proposing_account, expiration_time, changed_values, broadcast);

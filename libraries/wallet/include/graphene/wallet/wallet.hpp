@@ -1859,8 +1859,8 @@ class wallet_api
 		  bool broadcast = false);
 	  full_transaction propose_pay_back_asset_rate_change(
 		  const string& proposing_account,
-		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
+		  const int64_t& expiration_time,
 		  bool broadcast = false
 	  );
       /** Propose a fee change.
