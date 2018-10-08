@@ -83,7 +83,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.new_owner );
    }
-
+   void operator() (const senator_determine_block_payment_operation& op) {}
    void operator()(const account_bind_operation& op) {}
    void operator()(const account_unbind_operation& op) {}
    void operator()(const account_multisig_create_operation& op) {}

@@ -1005,6 +1005,19 @@ public:
 	   return true;
    }
 
+   signed_transaction sign_multisig_trx(const address& addr, const signed_transaction& trx)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto itr = _keys.find(addr);
+		   FC_ASSERT(itr != _keys.end());
+		   auto privkey = wif_to_key(itr->second);
+		   FC_ASSERT(privkey.valid());
+		   signed_transaction tx = trx;
+		   auto sig = tx.sign(*privkey, _chain_id);
+		   return tx;
+	   }FC_CAPTURE_AND_RETHROW((addr)(trx))
+   }
 
    vector< signed_transaction > import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast );
 
@@ -1719,6 +1732,7 @@ public:
 		   contract_invoke_op.contract_arg = contract_arg;
 		   contract_invoke_op.fee.amount = 0;
 		   contract_invoke_op.fee.asset_id = asset_id_type(0);
+		   //contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   //contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
 		   tx.operations.push_back(contract_invoke_op);
@@ -1740,7 +1754,8 @@ public:
 			   // FIXME: 更好地获取到offline调用合约API的返回值
 			   auto detail = e.to_detail_string();
 			   auto estr = e.to_string();
-			   if (strstr(detail.c_str(), "blockchain::contract_engine::contract_api_result_error"))
+			   auto detail_c_str = detail.c_str();
+			   if (strstr(detail_c_str, "blockchain") && strstr(detail_c_str, "contract_engine") && strstr(detail_c_str, "contract_api_result_error"))
 			   {
 				   auto elog = e.get_log();
 				   std::string double_result;
@@ -2919,6 +2934,30 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(lockbalance)(expiration_time)(broadcast))
    }
+   full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   senator_determine_block_payment_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.blocks_pairs = blocks_pays;
+		   auto determine_op = operation(op);
+		   current_params.current_fees->set_fee(determine_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(determine_op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(blocks_pays)(expiration_time)(broadcast))
+   }
+
    full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -2958,7 +2997,7 @@ public:
 		   auto pubkey = fc::ecc::public_key();
 		   for (auto iter : pubs)
 		   {
-			   auto temp = fc::ecc::public_key(iter);
+			   auto temp = iter.operator fc::ecc::public_key();
 			   if (!pubkey.valid())
 			   {
 				   pubkey = temp;
@@ -4621,6 +4660,64 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
+   signed_transaction transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+		   transfer_operation xfer_op;
+		   xfer_op.from_addr = address(from);
+		   xfer_op.to_addr = address(to);
+		   xfer_op.amount = asset_obj->amount_from_string(amount);
+		   xfer_op.guarantee_id = get_guarantee_id();
+		   if(memo.size())
+		   {
+			   xfer_op.memo = memo_data();
+			   xfer_op.memo->from = public_key_type();
+			   xfer_op.memo->to = public_key_type();
+			   xfer_op.memo->set_message(private_key_type(),
+				   public_key_type(), memo);
+
+		   }
+		   signed_transaction tx;
+		   tx.operations.push_back(xfer_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600*24 + expiration_time_offset));
+		   tx.validate();
+		   return tx;
+
+	   } FC_CAPTURE_AND_RETHROW((from)(to)(amount)(asset_symbol)(memo))
+   }
+
+   full_transaction combine_transaction(const vector<signed_transaction>& trxs, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   signed_transaction trx;
+		   if (trxs.size() > 0)
+			   trx = trxs[0];
+		   trx.signatures.clear();
+		   for (const auto& tx : trxs)
+		   {
+			   for (const auto& sig : tx.signatures)
+			   {
+				   if (std::find(trx.signatures.begin(),trx.signatures.end(),sig) == trx.signatures.end())
+					   trx.signatures.push_back(sig);
+			   }
+		   }
+		   if (broadcast)
+			   _remote_net_broadcast->broadcast_transaction(trx);
+		   return trx;
+
+	   }FC_CAPTURE_AND_RETHROW((trxs)(broadcast))
+   }
+
+
    full_transaction transfer_to_address(string from, string to, string amount,
 	   string asset_symbol, string memo, bool broadcast = false)
    {
@@ -5989,6 +6086,17 @@ asset_id_type wallet_api::get_asset_id(string asset_symbol_or_id) const
    return my->get_asset_id(asset_symbol_or_id);
 }
 
+public_key_type wallet_api::get_pubkey_from_priv(const string& privkey)
+{
+	auto priv = wif_to_key(privkey);
+	FC_ASSERT(priv.valid());
+	return priv->get_public_key();
+}
+signed_transaction wallet_api::sign_multisig_trx(const address& addr, const signed_transaction& trx)
+{
+	return my->sign_multisig_trx(addr,trx);
+}
+
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {
    FC_ASSERT(!is_locked());
@@ -6222,9 +6330,21 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
 
+full_transaction wallet_api::combine_transaction(const vector<signed_transaction>& trxs, bool broadcast)
+{
+	return my->combine_transaction(trxs,broadcast);
+}
+
+
 string wallet_api::lightwallet_broadcast(signed_transaction trx)
 {
     return my->lightwallet_broadcast(trx);
+}
+
+signed_transaction wallet_api::transfer_from_to_address(string from, string to, string amount,
+	string asset_symbol, string memo)
+{
+	return my->transfer_from_to_address(from,to,amount,asset_symbol,memo);
 }
 
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
@@ -7078,6 +7198,11 @@ void wallet_api::encrypt_keys()
    my->encrypt_keys();
 }
 
+fc::string wallet_api::get_first_contract_address()
+{
+	return contract_register_operation::get_first_contract_id().operator fc::string();
+}
+
 void wallet_api::lock()
 { try {
    FC_ASSERT( !is_locked() );
@@ -7391,6 +7516,10 @@ full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& acco
 full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
 	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+}
+full_transaction wallet_api::senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
+{
+	return my->senator_determine_block_payment(account, blocks_pays,expiration_time,broadcast);
 }
 
 full_transaction wallet_api::senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)

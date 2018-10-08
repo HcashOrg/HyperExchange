@@ -150,6 +150,7 @@ namespace graphene { namespace chain {
 	        publisher_canceled_operation,
 	        senator_determine_withdraw_deposit_operation,
 	        account_create_multisignature_address_operation,
+			senator_determine_block_payment_operation,
 			graphene::chain::eth_seri_guard_sign_operation,
 	   graphene::chain::eth_series_multi_sol_create_operation,
 	   graphene::chain::eth_multi_account_create_record_operation,

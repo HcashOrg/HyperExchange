@@ -127,6 +127,7 @@ struct get_impacted_account_visitor
    void operator()(const gurantee_cancel_operation& op) {}
    void operator()(const senator_determine_withdraw_deposit_operation& op) {}
    void operator()(const account_create_multisignature_address_operation& op) {}
+   void operator()(const senator_determine_block_payment_operation& op) {}
    void operator()( const miner_create_operation& op )
    {
       _impacted.insert( op.miner_account );

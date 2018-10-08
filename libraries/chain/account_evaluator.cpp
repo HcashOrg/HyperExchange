@@ -468,7 +468,7 @@ void_result account_create_multisignature_address_evaluator::do_evaluate(const a
 		auto pubkey = fc::ecc::public_key();
 		for (auto iter :o.pubs)
 		{
-			auto temp = fc::ecc::public_key(iter);
+			auto temp = iter.operator fc::ecc::public_key();
 			if (!pubkey.valid())
 			{
 				pubkey = temp;

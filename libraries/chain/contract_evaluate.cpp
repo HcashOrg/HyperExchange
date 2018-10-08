@@ -14,7 +14,7 @@
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
-#define HX_TEST_FORK_FOR_INVOKE 470000
+#define HX_TEST_FORK_FOR_INVOKE 0
 namespace graphene {
 	namespace chain {
 
@@ -75,7 +75,9 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
-            invoke_contract_result.invoker = o.owner_addr;
+
+			contract_address_type fid = contract_register_operation::get_first_contract_id();
+
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
             total_fee = o.fee.amount;
@@ -97,6 +99,8 @@ namespace graphene {
             gas_count = o.init_cost;
 			try {
 				origin_op = o;
+				if (!d.has_contract(fid))
+					origin_op.contract_id = fid;
 				engine->set_caller(o.owner_pubkey.to_base58(), (string)(o.owner_addr));
 				engine->set_state_pointer_value("register_evaluate_state", this);
 				engine->clear_exceptions();
@@ -108,7 +112,7 @@ namespace graphene {
 				invoke_contract_result.reset();
 				try
 				{
-					engine->execute_contract_init_by_address(o.contract_id.operator fc::string(), "", nullptr);
+					engine->execute_contract_init_by_address(origin_op.contract_id.operator fc::string(), "", nullptr);
 				}
 				catch (std::exception &e)
 				{
@@ -121,9 +125,9 @@ namespace graphene {
 
 				
                 gas_count = gas_used_counts;
-				// TODO: deposit margin balance to contract
-				
-                new_contract.contract_address = o.calculate_contract_id();
+				new_contract.contract_address = origin_op.contract_id;
+				string fid_str = string(new_contract.contract_address);
+				std::cout << fid_str << "\n";
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
@@ -301,6 +305,7 @@ namespace graphene {
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
 				undo_contract_effected(total_fee);
+				invoke_contract_result.api_result = string("gas ran out");
 				unspent_fee = 0;
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)

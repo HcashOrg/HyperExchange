@@ -277,6 +277,7 @@ void database::initialize_evaluators()
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<senator_determine_withdraw_deposit_evaluator>();
    register_evaluator<account_create_multisignature_address_evaluator>();
+	register_evaluator<senator_determine_block_payment_evaluator>();
 	register_evaluator<eth_series_multi_sol_create_evaluator>();
    register_evaluator<eth_series_multi_sol_guard_sign_evaluator>();
    register_evaluator<eth_multi_account_create_record_evaluator>();
@@ -380,10 +381,10 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    bsi.resize(0xffff+1);
 
    // Create blockchain accounts
-   fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   create<balance_object>([](balance_object& b) {
-      b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
-   });
+   //fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
+   //create<balance_object>([](balance_object& b) {
+   //   b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
+   //});
    const account_object& committee_account =
       create<account_object>( [&](account_object& n) {
          n.membership_expiration_date = time_point_sec::maximum();
@@ -469,7 +470,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create core asset
    const asset_dynamic_data_object& dyn_asset =
       create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-         a.current_supply = GRAPHENE_MAX_SHARE_SUPPLY;
+         //a.current_supply = GRAPHENE_MAX_SHARE_SUPPLY;
       });
    const asset_object& core_asset =
      create<asset_object>( [&]( asset_object& a ) {
@@ -522,7 +523,14 @@ void database::init_genesis(const genesis_state_type& genesis_state)
        // Set fees to zero initially, so that genesis initialization needs not pay them
        // We'll fix it at the end of the function
        p.parameters.current_fees->zero_all_fees();
-
+	   p.unorder_blocks_match[6307200] = 27 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[12614400] = 25 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[18921600] = 24 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[25228800] = 22 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[31536000] = 21 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[37843200] = 19 * GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[44150400] = 17* GRAPHENE_HXCHAIN_PRECISION;
+	   p.unorder_blocks_match[-1] = 2 * GRAPHENE_HXCHAIN_PRECISION;
    });
    create<dynamic_global_property_object>([&](dynamic_global_property_object& p) {
       p.time = genesis_state.initial_timestamp;
@@ -708,7 +716,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
       total_supplies[ asset_id ] += vest.amount;
    }
 
-   if( total_supplies[ asset_id_type(0) ] > 0 )
+   /*if( total_supplies[ asset_id_type(0) ] > 0 )
    {
        adjust_balance(GRAPHENE_GUARD_ACCOUNT, -get_balance(GRAPHENE_GUARD_ACCOUNT,{}));
    }
@@ -716,7 +724,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    {
        total_supplies[ asset_id_type(0) ] = GRAPHENE_MAX_SHARE_SUPPLY;
    }
-
+*/
    const auto& idx = get_index_type<asset_index>().indices().get<by_symbol>();
    auto it = idx.begin();
    bool has_imbalanced_assets = false;
