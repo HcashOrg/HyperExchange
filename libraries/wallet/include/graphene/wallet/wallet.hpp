@@ -2017,6 +2017,7 @@ class wallet_api
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	  public_key_type get_pubkey_from_priv(const string& privkey);
 	  signed_transaction sign_multisig_trx(const address& addr,const signed_transaction& trx);
+	  variant_object  get_multisig_address(const address& addr);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2307,4 +2308,5 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_determine_block_payment)
 		(transfer_from_to_address)
 		(combine_transaction)
+		(get_multisig_address)
       )

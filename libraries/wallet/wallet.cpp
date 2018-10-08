@@ -5521,7 +5521,29 @@ vector<asset> wallet_api::get_addr_balances(const string& addr)
 	return ret;
 
 }
-
+variant_object wallet_api::get_multisig_address(const address& addr)
+{
+	vector<address> vec_addr;
+	vec_addr.push_back(addr);
+	auto vec_bal = my->_remote_db->get_balance_objects(vec_addr);
+	if (vec_bal.size() == 0)
+		return variant_object();
+	balance_object obj;
+	for (auto balance : vec_bal)
+	{
+		if (balance.multisignatures.valid())
+		{
+			obj = balance;
+			break;
+		}
+	}
+	fc::mutable_variant_object ret = fc::variant(obj).as<fc::mutable_variant_object>();
+	ret.erase(string("balance"));
+	ret.erase(string("frozen"));
+	ret.erase(string("vesting_policy"));
+	ret.erase(string("last_claim_date"));
+	return ret;
+}
 vector<asset> wallet_api::get_account_balances(const string& account)
 {
 	auto acc = get_account(account);
