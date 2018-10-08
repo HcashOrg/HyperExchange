@@ -4765,9 +4765,7 @@ public:
 
       return m;
    }
-   
-
-	
+ 
 	full_transaction propose_guard_pledge_change(
 	  const string& proposing_account,
 	  fc::time_point_sec expiration_time,
@@ -4783,13 +4781,11 @@ public:
 	  }
 	  committee_member_update_global_parameters_operation update_op;
 	  update_op.new_parameters = new_params;
-	
+
 	  proposal_create_operation prop_op;
 	  prop_op.proposer = get_account(proposing_account).get_id();
 	  prop_op.expiration_time = expiration_time;
-
 	  prop_op.fee_paying_account = get_account(proposing_account).addr;
-	
 	  prop_op.proposed_ops.emplace_back(update_op);
 	  current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 	
@@ -4821,9 +4817,8 @@ public:
 		proposal_create_operation prop_op;
 		auto guard_obj = get_guard_member(proposing_account);
 		prop_op.proposer = get_account(proposing_account).get_id();
-		prop_op.expiration_time = fc::time_point_sec(time_point::now()) + expiration_time;
-
 		prop_op.fee_paying_account = get_account(proposing_account).addr;
+		prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
 
 		prop_op.proposed_ops.emplace_back(update_op);
 		current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
@@ -4836,11 +4831,9 @@ public:
 		return sign_transaction(tx, broadcast);
 	}
 
-   
-
    full_transaction propose_parameter_change(
       const string& proposing_account,
-      fc::time_point_sec expiration_time,
+     const int64_t& expiration_time,
       const variant_object& changed_values,
       bool broadcast = false)
    {
@@ -4856,11 +4849,10 @@ public:
       update_op.new_parameters = new_params;
 
       proposal_create_operation prop_op;
+	  auto guard_obj = get_guard_member(proposing_account);
 	  prop_op.proposer = get_account(proposing_account).get_id();
-      prop_op.expiration_time = expiration_time;
-      prop_op.review_period_seconds = current_params.committee_proposal_review_period;
-      prop_op.fee_paying_account = get_account(proposing_account).addr;
-
+	  prop_op.fee_paying_account = get_account(proposing_account).addr;
+      prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
       prop_op.proposed_ops.emplace_back( update_op );
       current_params.current_fees->set_fee( prop_op.proposed_ops.back().op );
 
@@ -6442,8 +6434,8 @@ void wallet_api::flood_network(string prefix, uint32_t number_of_transactions)
 
 full_transaction wallet_api::propose_parameter_change(
    const string& proposing_account,
-   fc::time_point_sec expiration_time,
    const variant_object& changed_values,
+   const int64_t& expiration_time,
    bool broadcast /* = false */
    )
 {

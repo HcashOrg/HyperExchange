@@ -87,9 +87,8 @@ namespace graphene { namespace chain {
 
       asset             fee;
       chain_parameters  new_parameters;
-	  account_id_type                       guard_member_account;
 	  share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
-      account_id_type fee_payer()const { return guard_member_account; }
+      address fee_payer()const { return address(); }
       void            validate()const;
    };
    struct committee_member_execute_coin_destory_operation : public base_operation

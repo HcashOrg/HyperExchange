@@ -1842,8 +1842,8 @@ class wallet_api
        */
       full_transaction propose_parameter_change(
          const string& proposing_account,
-         fc::time_point_sec expiration_time,
          const variant_object& changed_values,
+		 const int64_t& expiration_time,
          bool broadcast = false);
 
 	  full_transaction propose_coin_destory(
