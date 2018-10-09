@@ -222,6 +222,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const senator_determine_withdraw_deposit_operation& o);
 	   void_result do_apply(const senator_determine_withdraw_deposit_operation& o);
    };
+   class senator_determine_block_payment_evaluator : public evaluator<senator_determine_block_payment_evaluator>
+   {
+   public:
+	   typedef senator_determine_block_payment_operation operation_type;
+	   void_result do_evaluate(const senator_determine_block_payment_operation& o);
+	   void_result do_apply(const senator_determine_block_payment_operation& o);
+   };
 
 
 } } // graphene::chain

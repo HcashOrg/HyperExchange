@@ -109,6 +109,7 @@ namespace graphene {
 				a.push_back(authority(1, owner_addr, 1));
 			}
 			contract_address_type calculate_contract_id() const;
+			static contract_address_type get_first_contract_id();
 		};
 
 		struct contract_upgrade_operation : public base_operation
