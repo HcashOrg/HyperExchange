@@ -5537,12 +5537,22 @@ variant_object wallet_api::get_multisig_address(const address& addr)
 			break;
 		}
 	}
+	if (!obj.multisignatures.valid())
+		return variant_object();
+	map<int, vector<address>> t_map;
+	vec_addr.clear();
+	for (auto pubkey : obj.multisignatures->begin()->second)
+	{
+		vec_addr.emplace_back(pubkey);
+	}
+	t_map[obj.multisignatures->begin()->first] = vec_addr;
 	fc::mutable_variant_object ret = fc::variant(obj).as<fc::mutable_variant_object>();
 	ret.erase(string("id"));
 	ret.erase(string("balance"));
 	ret.erase(string("frozen"));
 	ret.erase(string("vesting_policy"));
 	ret.erase(string("last_claim_date"));
+	ret = ret.set("multisignatures", fc::variant(t_map));
 	return ret;
 }
 vector<asset> wallet_api::get_account_balances(const string& account)
