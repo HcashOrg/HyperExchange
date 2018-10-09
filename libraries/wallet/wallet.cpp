@@ -5538,6 +5538,7 @@ variant_object wallet_api::get_multisig_address(const address& addr)
 		}
 	}
 	fc::mutable_variant_object ret = fc::variant(obj).as<fc::mutable_variant_object>();
+	ret.erase(string("id"));
 	ret.erase(string("balance"));
 	ret.erase(string("frozen"));
 	ret.erase(string("vesting_policy"));
