@@ -1,5 +1,6 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/balance_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
@@ -509,7 +510,7 @@ namespace graphene {
                 FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (addr));
             }
 
-            auto& bal_idx = get_index_type<contract_balance_index>();
+            auto& bal_idx = get_index_type<balance_index>();
             const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
             //subscribe_to_item(addr);
             auto itr = by_owner_idx.find(boost::make_tuple(addr, asset_id));
@@ -524,36 +525,7 @@ namespace graphene {
 
         void database::adjust_contract_balance(const address & addr, const asset & delta)
         {
-            try {
-                if (delta.amount == 0)
-                    return;
-                auto& by_owner_idx = get_index_type<contract_balance_index>().indices().get<by_owner>();
-                auto itr = by_owner_idx.find(boost::make_tuple(addr, delta.asset_id));
-                fc::time_point_sec now = head_block_time();
-                if (itr == by_owner_idx.end())
-                {
-                    FC_ASSERT(delta.amount > 0, "Insufficient Balance: ${a}'s balance of ${b} is less than required ${r}",
-                        ("a", addr)
-                        ("b", to_pretty_string(asset(0, delta.asset_id)))
-                        ("r", to_pretty_string(-delta)));
-                    create<contract_balance_object>([addr, delta, now](contract_balance_object& b) {
-                        b.owner = addr;
-                        b.balance = delta;
-                        b.last_claim_date = now;
-                    });
-                }
-                else
-                {
-                    if (delta.amount < 0)
-                        FC_ASSERT(itr->balance >= -delta, "Insufficient Balance: ${a}'s balance of ${b} is less than required ${r}", ("a", addr)("b", to_pretty_string(itr->balance))("r", to_pretty_string(-delta)));
-                    modify(*itr, [delta, now](contract_balance_object& b) {
-                        b.adjust_balance(delta, now);
-                    });
-
-                }
-
-
-            }FC_CAPTURE_AND_RETHROW((addr)(delta))
+			adjust_balance(addr, delta);
         }
         address database::get_account_address(const string& name)
         {
