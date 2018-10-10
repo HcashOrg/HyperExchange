@@ -578,9 +578,17 @@ namespace graphene {
 
 		std::shared_ptr<UvmContractInfo> native_contract_register_evaluate::get_contract_by_id(const string &contract_id) const
 		{
-			if (!address::is_valid(contract_id, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
+			address contract_addr;
+			try {
+				auto temp = graphene::chain::address(contract_id);
+				if (temp.version != addressVersion::CONTRACT)
+					return nullptr;
+				contract_addr = temp;
+			}
+			catch (fc::exception& e)
+			{
 				return nullptr;
-			address contract_addr(contract_id);
+			}
 			if (origin_op.contract_id == contract_addr)
 			{
 				auto contract_info = std::make_shared<UvmContractInfo>();

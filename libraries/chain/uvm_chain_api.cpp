@@ -182,7 +182,8 @@ namespace graphene {
 		{
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			std::string contract_name = uvm::lua::lib::unwrap_any_contract_name(name);
-			auto is_address = address::is_valid(contract_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX) ? true : false;
+
+			auto is_address = is_valid_contract_address(L, contract_name.c_str());
 			auto code = is_address ? get_contract_code_by_id(evaluator, contract_name) : get_contract_code_by_name(evaluator, contract_name);
 			auto contract_addr = is_address ? (get_contract_info_by_id(evaluator, contract_name)!=nullptr? contract_name : "") : get_contract_object_by_name(evaluator, contract_name).contract_address.operator fc::string();
 			if (code && !contract_addr.empty())
@@ -782,7 +783,16 @@ namespace graphene {
 		bool UvmChainApi::is_valid_contract_address(lua_State *L, const char *address_str)
 		{
 			std::string addr(address_str);
-			return address::is_valid(addr, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+			try {
+				auto temp = graphene::chain::address(addr);
+				if (temp.version != addressVersion::CONTRACT)
+					return false;
+			}
+			catch (fc::exception&)
+			{
+				return false;
+			}
+			return true;
 		}
 		const char* UvmChainApi::get_system_asset_symbol(lua_State *L)
 		{

@@ -44,7 +44,7 @@ namespace graphene {
 		bool address::is_valid(const std::string& base58str, const std::string& prefix)
 		{
 			if (prefix.empty())
-				return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX) || is_valid(base58str, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
+				return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX);
 			const size_t prefix_len = prefix.size();
 			if (base58str.size() <= prefix_len)
 				return false;
@@ -87,12 +87,6 @@ namespace graphene {
 			memcpy(((char*)&bin_addr) + 21, (char*)&checksum._hash[0], 4);
 			return prefix + fc::to_base58(bin_addr.data, sizeof(bin_addr));
 		}
-
-		std::string address::address_to_contract_string() const
-		{
-			return address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-		}
-
 		address::address(const pts_address& ptsaddr)
 		{
 			addr = fc::ripemd160::hash((char*)&ptsaddr, sizeof(ptsaddr));

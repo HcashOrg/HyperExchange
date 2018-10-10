@@ -68,9 +68,6 @@ namespace graphene { namespace chain {
        explicit operator std::string()const; ///< converts to base58 + checksum
 
 	   std::string address_to_string(const char *prefix= GRAPHENE_ADDRESS_PREFIX) const;
-
-	   std::string address_to_contract_string() const;
-
        friend size_t hash_value( const address& v ) { 
           const void* tmp = static_cast<const void*>(v.addr._hash+2);
 
@@ -80,8 +77,8 @@ namespace graphene { namespace chain {
 	   unsigned char version = addressVersion::NORMAL;
        fc::ripemd160 addr;
    };
-   inline bool operator == ( const address& a, const address& b ) { return a.addr == b.addr; }
-   inline bool operator != ( const address& a, const address& b ) { return a.addr != b.addr; }
+   inline bool operator == ( const address& a, const address& b ) { return (a.addr == b.addr)&&(a.version == b.version); }
+   inline bool operator != ( const address& a, const address& b ) { return (a.addr != b.addr)|| (a.version != b.version); }
    inline bool operator <  ( const address& a, const address& b ) { return a.addr <  b.addr; }
 } } // namespace graphene::chain
 

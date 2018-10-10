@@ -1574,16 +1574,16 @@ public:
            auto caller_pubkey = privkey.get_public_key();
 
 		   std::string contract_address;
-		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-		   {
-			   contract_address = contract_address_or_name;
+		   try {
+			   auto temp = graphene::chain::address(contract_address_or_name);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
-		   else {
-
+		   catch (fc::exception& e)
+		   {
 			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
-
+		  
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
@@ -1637,16 +1637,14 @@ public:
 
 		   std::string contract_address;
 		   contract_object cont;
-		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-		   {
-			   contract_address = contract_address_or_name;
-			   cont = _remote_db->get_contract_object(contract_address);
+		   try {
+			   auto temp = graphene::chain::address(contract_address_or_name);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
-		   else {
-
+		   catch (fc::exception& e)
+		   {
 			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
-
 		   }
 		   auto& abi = cont.code.abi;
 		   if (abi.find(contract_api) == abi.end())
@@ -1694,16 +1692,14 @@ public:
 		   auto caller_pubkey = privkey.get_public_key();
 		   contract_object cont;
 		   std::string contract_address;
-		   if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-		   {
-			   contract_address = contract_address_or_name;
-			   cont = _remote_db->get_contract_object(contract_address);
+		   try {
+			   auto temp = graphene::chain::address(contract_address_or_name);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
-		   else {
-
+		   catch (fc::exception& e)
+		   {
 			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
-
 		   }
 		   auto& abi = cont.code.offline_abi;
 		   if (abi.find(contract_api) == abi.end())
@@ -6553,14 +6549,14 @@ std::pair<asset, share_type> wallet_api::register_native_contract_testing(const 
 full_transaction wallet_api::invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-	{
-		contract_address = contract_address_or_name;
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
-	else {
-
+	catch (fc::exception& e)
+	{
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.operator fc::string();
+		contract_address = string(cont.contract_address);
 	}
 	return my->invoke_contract(caller_account_name, gas_price, gas_limit, contract_address, contract_api, contract_arg);
 }
@@ -6568,15 +6564,15 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & caller_account_name, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
 {
     std::string contract_address;
-    if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-    {
-        contract_address = contract_address_or_name;
-    }
-    else {
-
-        auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-        contract_address = cont.contract_address.operator fc::string();
-    }
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+	}
+	catch (fc::exception& e)
+	{
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
+		contract_address = string(cont.contract_address);
+	}
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
 
 }
@@ -6584,14 +6580,14 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-	{
-		contract_address = contract_address_or_name;
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
-	else {
-
+	catch (fc::exception& e)
+	{
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.operator fc::string();
+		contract_address = string(cont.contract_address);
 	}
 	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }
@@ -6623,13 +6619,14 @@ std::pair<asset, share_type> wallet_api::upgrade_contract_testing(const string &
 ContractEntryPrintable wallet_api::get_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-	{
-		contract_address = contract_address_or_name;
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
-	else
+	catch (fc::exception& e)
 	{
-		return my->_remote_db->get_contract_info_by_name(contract_address_or_name);
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
+		contract_address = string(cont.contract_address);
 	}
     return   my->_remote_db->get_contract_info(contract_address);
 }
@@ -6637,15 +6634,14 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
-	if (address::is_valid(contract_address_or_name, GRAPHENE_CONTRACT_ADDRESS_PREFIX))
-	{
-		contract_address = contract_address_or_name;
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
-	else
+	catch (fc::exception& e)
 	{
-
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
-		contract_address = cont.contract_address.operator fc::string();
+		contract_address = string(cont.contract_address);
 	}
 	ContractEntryPrintable result = my->_remote_db->get_contract_object(contract_address);
 	result.code_printable.printable_code = "";

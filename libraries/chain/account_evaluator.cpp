@@ -477,7 +477,7 @@ void_result account_create_multisignature_address_evaluator::do_evaluate(const a
 			pubkey = pubkey.add(fc::sha256::hash(temp));
 		}
 		pubkey = pubkey.add(fc::sha256::hash(o.required));
-		FC_ASSERT(o.multisignature == address(pubkey));
+		FC_ASSERT(o.multisignature == address(pubkey,addressVersion::MULTISIG));
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
