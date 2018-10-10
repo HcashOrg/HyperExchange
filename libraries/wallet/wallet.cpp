@@ -4447,6 +4447,7 @@ public:
 		   transfer_operation xfer_op;
 		   xfer_op.from_addr = iter.find(from)->addr;
 		   xfer_op.to_addr = address(to);
+		   FC_ASSERT(xfer_op.to_addr.version != addressVersion::CONTRACT,"address should not be a contract address.");
 		   xfer_op.amount = asset_obj->amount_from_string(amount);
 		   xfer_op.guarantee_id=get_guarantee_id();
 		   if (memo.size())
