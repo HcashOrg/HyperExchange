@@ -528,10 +528,10 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			//printf("contract transfer from %s to %s, asset[%s] amount %ld\n", contract_address, to_address, asset_type, amount_str);
 			//return true;
-            contract_address_type f_addr;
+            address f_addr;
             address t_addr;
             try {
-                f_addr = contract_address_type(contract_address);
+                f_addr = address(contract_address);
             }
             catch (...)
             {
@@ -591,9 +591,9 @@ namespace graphene {
 		int64_t UvmChainApi::get_contract_balance_amount(lua_State *L, const char *contract_address, const char* asset_symbol)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
-            contract_address_type c_addr;
+            address c_addr;
             try {
-                c_addr = contract_address_type(contract_address);
+                c_addr = address(contract_address);
             }
             catch (...)
             {
@@ -763,7 +763,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-                contract_address_type contract_addr(contract_id);
+                address contract_addr(contract_id);
 				evaluator->emit_event(contract_addr, string(event_name), string(event_param));
 			}
 			catch (const fc::exception&)
