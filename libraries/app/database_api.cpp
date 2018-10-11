@@ -390,7 +390,7 @@ contract_object database_api_impl::get_contract_object_by_name(const string& con
 vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
 {
     vector<asset> res;
-    auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
+    auto& db=_db.get_index_type<balance_index>().indices().get<by_owner>();
     for (auto it : db)
     {
         if (it.owner == contract_address)

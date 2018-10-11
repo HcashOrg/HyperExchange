@@ -491,9 +491,6 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case contract_object_type:  
         return create_obj_unique_ptr<contract_object>(var);
         break;
-    case contract_balance_object_type:
-        return create_obj_unique_ptr<contract_balance_object>(var);
-        break;
     case contract_storage_object_type:  
         return create_obj_unique_ptr<contract_storage_object>(var);
         break;
