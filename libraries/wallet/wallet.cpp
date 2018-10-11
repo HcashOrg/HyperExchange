@@ -1708,7 +1708,6 @@ public:
 
 		   contract_invoke_op.gas_price = 0;
 		   contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
-		   contract_invoke_op.offline = false;
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
 		   contract_invoke_op.contract_id = address(contract_address);
