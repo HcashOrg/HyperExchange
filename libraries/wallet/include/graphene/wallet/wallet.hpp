@@ -2018,6 +2018,7 @@ class wallet_api
 	  public_key_type get_pubkey_from_priv(const string& privkey);
 	  signed_transaction sign_multisig_trx(const address& addr,const signed_transaction& trx);
 	  variant_object  get_multisig_address(const address& addr);
+	  flat_set< miner_id_type> list_active_citizens();
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
@@ -2309,4 +2310,5 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_from_to_address)
 		(combine_transaction)
 		(get_multisig_address)
+		(list_active_citizens)
       )
