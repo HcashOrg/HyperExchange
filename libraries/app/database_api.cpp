@@ -35,6 +35,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include<graphene/chain/witness_schedule_object.hpp>
 #include <cctype>
 
 #include <cfenv>
@@ -184,6 +185,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
+	  vector<miner_id_type> list_scheduled_citizens() const;
 
    //private:
       template<typename T>
@@ -1913,6 +1915,18 @@ map<string, miner_id_type> database_api_impl::lookup_miner_accounts(const string
        ++end_iter;
    miners_by_account_name.erase(end_iter, miners_by_account_name.end());
    return miners_by_account_name;
+}
+
+vector<miner_id_type> database_api::list_scheduled_citizens() const 
+{
+	return my->list_scheduled_citizens();
+}
+
+vector<miner_id_type> database_api_impl::list_scheduled_citizens() const
+{
+	const witness_schedule_object& wso = witness_schedule_id_type()(_db);
+	return wso.current_shuffled_miners;
+
 }
 
 uint64_t database_api::get_miner_count()const

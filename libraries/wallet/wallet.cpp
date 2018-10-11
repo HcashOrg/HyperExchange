@@ -581,8 +581,9 @@ public:
       result["chain_id"] = chain_props.chain_id;
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
 	  result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
-      result["active_miners"] = global_props.active_witnesses;
-      result["active_guard_members"] = global_props.active_committee_members;
+	  auto scheduled_citizens = _remote_db->list_scheduled_citizens();
+	  result["scheduled_citizens"] = scheduled_citizens;
+      //result["active_guard_members"] = global_props.active_committee_members;
       return result;
    }
 
@@ -2986,6 +2987,12 @@ public:
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
+   flat_set<miner_id_type> list_active_citizens()
+   {
+	   auto pro = get_global_properties();
+	   return pro.active_witnesses;
+   }
+
 
    full_transaction create_miner(string owner_account,
                                      string url,
@@ -6287,6 +6294,12 @@ guard_member_object wallet_api::get_senator_member(string owner_account)
 {
    return my->get_guard_member(owner_account);
 }
+
+flat_set<miner_id_type> wallet_api::list_active_citizens()
+{
+	return my->list_active_citizens();
+}
+
 
 full_transaction wallet_api::create_citizen(string owner_account,
                                               string url,
