@@ -1001,14 +1001,14 @@ namespace graphene {
             {
 				if (to_contract->second != 0)
 				{
-					get_db().adjust_contract_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
+					get_db().adjust_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
 				}
             }
             for (auto to_withraw = invoke_contract_result.contract_withdraw.begin(); to_withraw != invoke_contract_result.contract_withdraw.end(); to_withraw++)
             {
                 if (to_withraw->second != 0)
 				{
-					get_db().adjust_contract_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
+					get_db().adjust_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
 				}
 
             }
@@ -1046,7 +1046,7 @@ namespace graphene {
             auto balance = invoke_contract_result.contract_balances.find(index);
             if (balance == invoke_contract_result.contract_balances.end())
             {
-                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
+                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_balance(index.first, index.second).amount));
                 if (res.second)
                 {
                     balance = res.first;
@@ -1134,7 +1134,7 @@ namespace graphene {
             auto balance = invoke_contract_result.contract_balances.find(index);
             if (balance == invoke_contract_result.contract_balances.end())
             {
-                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_contract_balance(index.first, index.second).amount));
+                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_balance(index.first, index.second).amount));
                 if (res.second)
                 {
                     balance = res.first;

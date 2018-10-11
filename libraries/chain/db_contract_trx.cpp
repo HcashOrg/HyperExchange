@@ -500,33 +500,6 @@ namespace graphene {
 			return itr != index.end();
 		}
 
-        asset database::get_contract_balance(const address & addr, const asset_id_type & asset_id)
-        {
-            try {
-                auto contract_idx = get_contract(addr);
-            }
-            catch (...)
-            {
-                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (addr));
-            }
-
-            auto& bal_idx = get_index_type<balance_index>();
-            const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
-            //subscribe_to_item(addr);
-            auto itr = by_owner_idx.find(boost::make_tuple(addr, asset_id));
-            asset result(0, asset_id);
-            if (itr != by_owner_idx.end() && itr->owner == addr)
-            {
-                result += (*itr).balance;
-            }
-            return result;
-        }
-
-
-        void database::adjust_contract_balance(const address & addr, const asset & delta)
-        {
-			adjust_balance(addr, delta);
-        }
         address database::get_account_address(const string& name)
         {
             auto& db = get_index_type<account_index>().indices().get<by_name>();

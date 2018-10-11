@@ -361,8 +361,6 @@ namespace graphene { namespace chain {
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
-         asset get_contract_balance(const address& addr,const asset_id_type& asset_id);
-         void adjust_contract_balance(const address& addr, const asset& delta);
 		 optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
 		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
