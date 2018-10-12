@@ -14,7 +14,6 @@
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
-#define HX_TEST_FORK_FOR_INVOKE 0
 namespace graphene {
 	namespace chain {
 
@@ -236,10 +235,7 @@ namespace graphene {
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
-			if (d.head_block_num()>=HX_TEST_FORK_FOR_INVOKE)
-			{
-				FC_ASSERT(operation_type::contract_api_check(o));
-			}
+			FC_ASSERT(operation_type::contract_api_check(o));
 			
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
