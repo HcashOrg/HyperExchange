@@ -57,6 +57,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
+#include <fc/crypto/base58.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -993,7 +994,7 @@ public:
 	   return true;
    }
 
-   signed_transaction sign_multisig_trx(const address& addr, const signed_transaction& trx)
+   string sign_multisig_trx(const address& addr, const signed_transaction& trx)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -1002,8 +1003,10 @@ public:
 		   auto privkey = wif_to_key(itr->second);
 		   FC_ASSERT(privkey.valid());
 		   signed_transaction tx = trx;
-		   auto sig = tx.sign(*privkey, _chain_id);
-		   return tx;
+		   tx.sign(*privkey, _chain_id);
+		   auto json_str = fc::json::to_string(tx);
+		   auto base_str = fc::to_base58(json_str.c_str(), json_str.size());
+		   return base_str;
 	   }FC_CAPTURE_AND_RETHROW((addr)(trx))
    }
 
@@ -4383,7 +4386,7 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
-   signed_transaction transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
+   string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -4412,7 +4415,10 @@ public:
 		   tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600*24 + expiration_time_offset));
 		   tx.validate();
-		   return tx;
+		   auto json_str = fc::json::to_string(tx);
+		   auto base_str = fc::to_base58(json_str.c_str(), json_str.size());
+		   return base_str;
+		   //return tx;
 
 	   } FC_CAPTURE_AND_RETHROW((from)(to)(amount)(asset_symbol)(memo))
    }
@@ -5842,9 +5848,11 @@ public_key_type wallet_api::get_pubkey_from_priv(const string& privkey)
 	FC_ASSERT(priv.valid());
 	return priv->get_public_key();
 }
-signed_transaction wallet_api::sign_multisig_trx(const address& addr, const signed_transaction& trx)
+string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 {
-	return my->sign_multisig_trx(addr,trx);
+	auto vec = fc::from_base58(trx);
+	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
 }
 
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
@@ -6080,9 +6088,16 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 	return my->transfer_to_address(from, to, amount, asset_symbol, memo, broadcast);
 }
 
-full_transaction wallet_api::combine_transaction(const vector<signed_transaction>& trxs, bool broadcast)
+full_transaction wallet_api::combine_transaction(const vector<string>& trxs, bool broadcast)
 {
-	return my->combine_transaction(trxs,broadcast);
+	vector<signed_transaction> vecs;
+	for (const auto& trx : trxs)
+	{
+		auto vec = fc::from_base58(trx);
+		auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+		vecs.emplace_back(recovered.as<signed_transaction>());
+	}
+	return my->combine_transaction(vecs,broadcast);
 }
 
 
@@ -6091,7 +6106,7 @@ string wallet_api::lightwallet_broadcast(signed_transaction trx)
     return my->lightwallet_broadcast(trx);
 }
 
-signed_transaction wallet_api::transfer_from_to_address(string from, string to, string amount,
+string wallet_api::transfer_from_to_address(string from, string to, string amount,
 	string asset_symbol, string memo)
 {
 	return my->transfer_from_to_address(from,to,amount,asset_symbol,memo);

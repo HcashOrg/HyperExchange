@@ -992,12 +992,12 @@ class wallet_api
 	  * @param from the address from the account sending the funds
 	  * @param to the address to the account receiving the funds
 	  */
-	  signed_transaction transfer_from_to_address(string from,
+	  string transfer_from_to_address(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
 		  string memo);
-	  full_transaction combine_transaction(const vector<signed_transaction>& trxs,
+	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
        /** broadcast a transaction to the chain.
@@ -2016,7 +2016,7 @@ class wallet_api
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	  public_key_type get_pubkey_from_priv(const string& privkey);
-	  signed_transaction sign_multisig_trx(const address& addr,const signed_transaction& trx);
+	  string sign_multisig_trx(const address& addr,const string& trx);
 	  variant_object  get_multisig_address(const address& addr);
 	  flat_set< miner_id_type> list_active_citizens();
       fc::signal<void(bool)> lock_changed;
