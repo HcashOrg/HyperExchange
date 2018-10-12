@@ -75,7 +75,7 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
-
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			address fid = contract_register_operation::get_first_contract_id();
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
@@ -154,7 +154,7 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count);
+			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info native_contract_register_evaluate::do_evaluate(const operation_type& o) {
@@ -163,6 +163,8 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			// check contract id unique
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
@@ -220,7 +222,7 @@ namespace graphene {
 			}
 
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_invoke_evaluate::do_evaluate(const operation_type& o) {
@@ -231,6 +233,7 @@ namespace graphene {
             }
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
 			if (d.head_block_num()>=HX_TEST_FORK_FOR_INVOKE)
@@ -248,7 +251,7 @@ namespace graphene {
 				{
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
 					auto limit = o.invoke_cost;
- 					if (!o.offline && (limit < 0 || limit == 0))
+ 					if ((limit < 0 || limit == 0))
 						FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_error);
 					gas_limit = limit;
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
@@ -257,8 +260,7 @@ namespace graphene {
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke(o.contract_api);
                     gas_count = gas_used_counts;
-					if (!o.offline)
-						FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
                     //gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
@@ -316,11 +318,9 @@ namespace graphene {
 			{
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
-			if (o.offline)
-				throw ::blockchain::contract_engine::contract_api_result_error(get_api_result());
 
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_upgrade_evaluate::do_evaluate(const operation_type& o) {
@@ -332,6 +332,7 @@ namespace graphene {
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
@@ -420,7 +421,7 @@ namespace graphene {
                 unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
             }
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_register_evaluate::do_apply(const operation_type& o) {
@@ -445,7 +446,7 @@ namespace graphene {
             }
 
             d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info native_contract_register_evaluate::do_apply(const operation_type& o) {
@@ -463,7 +464,7 @@ namespace graphene {
             }
 
             db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_invoke_evaluate::do_apply(const operation_type& o) {
@@ -480,7 +481,7 @@ namespace graphene {
                 do_apply_balance();
             }
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_upgrade_evaluate::do_apply(const operation_type& o) {
@@ -502,7 +503,7 @@ namespace graphene {
 
             }
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
 		void contract_register_evaluate::pay_fee() {
@@ -712,6 +713,7 @@ namespace graphene {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
 
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
             invoke_contract_result.invoker = o.caller_addr;
@@ -824,7 +826,7 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
         contract_operation_result_info contract_transfer_evaluate::do_apply(const operation_type & o)
@@ -844,7 +846,7 @@ namespace graphene {
             }
 
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
         void contract_transfer_evaluate::pay_fee()

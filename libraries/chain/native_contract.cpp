@@ -547,6 +547,7 @@ namespace graphene {
 			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
 			FC_ASSERT(contract_id == calculate_contract_id());
 			FC_ASSERT(native_contract_finder::has_native_contract_with_key(native_contract_key));
+			FC_ASSERT(contract_id.version == addressVersion::CONTRACT);
 		}
 		share_type      native_contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{

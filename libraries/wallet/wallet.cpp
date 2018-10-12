@@ -1710,8 +1710,7 @@ public:
 			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 
 		   contract_invoke_op.gas_price = 0;
-		   contract_invoke_op.invoke_cost = 0;
-		   contract_invoke_op.offline = true;
+		   contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   contract_invoke_op.caller_addr = acc_caller.addr;
 		   contract_invoke_op.caller_pubkey = caller_pubkey;
 		   contract_invoke_op.contract_id = address(contract_address);
@@ -1730,44 +1729,21 @@ public:
 		   tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
-
-		   bool broadcast = true;
-		   try
+		   auto signed_tx = sign_transaction(tx, false, true);
+		   auto trx_res = _remote_db->validate_transaction(signed_tx, true);
+		   share_type gas_count = 0;
+		   string res = "some error happened, not api result get";
+		   for (auto op_res : trx_res.operation_results)
 		   {
-			   auto signed_tx = sign_transaction(tx, broadcast, true);
-		   }
-		   catch (fc::exception& e)
-		   {
-			   // FIXME: 更好地获取到offline调用合约API的返回值
-			   auto detail = e.to_detail_string();
-			   auto estr = e.to_string();
-			   auto detail_c_str = detail.c_str();
-			   if (strstr(detail_c_str, "blockchain") && strstr(detail_c_str, "contract_engine") && strstr(detail_c_str, "contract_api_result_error"))
-			   {
-				   auto elog = e.get_log();
-				   std::string double_result;
-				   for (const auto elog_item : elog) {
-					   const auto& data = elog_item.get_data();
-					   for (auto it = data.begin(); it != data.end(); it++)
-					   {
-						   auto data_value = it->value();
-						   if (data_value.is_string())
-						   {
-							   double_result = data_value.as_string();
-						   }
-					   }
-				   }
-				   if (double_result.length() >= 2)
-				   {
-					   std::string offline_result = double_result.substr(0, double_result.length() / 2);
-					   if (offline_result.find_last_of(":") + 2 == offline_result.length())
-						   offline_result = offline_result.substr(0, offline_result.find_last_of(":"));
-					   return offline_result;
-				   }
+			   try {
+				   res = op_res.get<contract_operation_result_info>().api_result;
 			   }
-			   return detail;
+			   catch (...)
+			   {
+				   break;
+			   }
 		   }
-		   return "some error happened, not api result get";
+		   return res;
 	   }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
    }
 
@@ -6651,6 +6627,7 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
 		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
 	{
