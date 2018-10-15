@@ -2017,6 +2017,7 @@ class wallet_api
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	  public_key_type get_pubkey_from_priv(const string& privkey);
 	  string sign_multisig_trx(const address& addr,const string& trx);
+	  signed_transaction decode_multisig_transaction(const string& trx);
 	  variant_object  get_multisig_address(const address& addr);
 	  flat_set< miner_id_type> list_active_citizens();
       fc::signal<void(bool)> lock_changed;
@@ -2311,4 +2312,5 @@ FC_API( graphene::wallet::wallet_api,
 		(combine_transaction)
 		(get_multisig_address)
 		(list_active_citizens)
+		(decode_multisig_transaction)
       )

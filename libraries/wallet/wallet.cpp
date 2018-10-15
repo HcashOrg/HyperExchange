@@ -5824,6 +5824,14 @@ public_key_type wallet_api::get_pubkey_from_priv(const string& privkey)
 	FC_ASSERT(priv.valid());
 	return priv->get_public_key();
 }
+
+signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
+{
+	auto vec = fc::from_base58(trx);
+	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+	return recovered.as<signed_transaction>();
+}
+
 string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 {
 	auto vec = fc::from_base58(trx);
