@@ -2016,6 +2016,7 @@ class wallet_api
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	  public_key_type get_pubkey_from_priv(const string& privkey);
+	  public_key_type get_pubkey_from_account(const string& account);
 	  string sign_multisig_trx(const address& addr,const string& trx);
 	  signed_transaction decode_multisig_transaction(const string& trx);
 	  variant_object  get_multisig_address(const address& addr);
@@ -2313,4 +2314,5 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_address)
 		(list_active_citizens)
 		(decode_multisig_transaction)
+		(get_pubkey_from_account)
       )

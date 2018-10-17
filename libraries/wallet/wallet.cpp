@@ -2893,6 +2893,9 @@ public:
 		   op.required = required;
 		   std::string temp="";
 		   auto pubkey = fc::ecc::public_key();
+		   FC_ASSERT(pubs.size() > 1, "there should be more than 2 pubkeys");
+		   FC_ASSERT(pubs.size() <= 15, "more than 15 pubkeys.");
+		   FC_ASSERT(required <= pubs.size(),"required should be less than pubs size.");
 		   for (auto iter : pubs)
 		   {
 			   auto temp = iter.operator fc::ecc::public_key();
@@ -5824,6 +5827,14 @@ public_key_type wallet_api::get_pubkey_from_priv(const string& privkey)
 	FC_ASSERT(priv.valid());
 	return priv->get_public_key();
 }
+
+public_key_type wallet_api::get_pubkey_from_account(const string& acc)
+{
+	auto wif = dump_private_key(acc);
+	FC_ASSERT(wif.size() >0 , "there is no private key in this wallet.");
+	return get_pubkey_from_priv(wif.begin()->second);
+}
+
 
 signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
 {
