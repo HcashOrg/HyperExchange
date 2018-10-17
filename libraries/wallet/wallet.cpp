@@ -2895,7 +2895,7 @@ public:
 		   auto pubkey = fc::ecc::public_key();
 		   FC_ASSERT(pubs.size() > 1, "there should be more than 2 pubkeys");
 		   FC_ASSERT(pubs.size() <= 15, "more than 15 pubkeys.");
-		   FC_ASSERT(required <= pubs.size(),"required should be less than pubs size.");
+		   FC_ASSERT(required <= pubs.size() && required > 0 ,"required should be less than pubs size, but larger than 0.");
 		   for (auto iter : pubs)
 		   {
 			   auto temp = iter.operator fc::ecc::public_key();
