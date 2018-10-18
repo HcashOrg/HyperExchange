@@ -2441,10 +2441,10 @@ public:
 		   auto erc_real_address = erc_address.substr(0, precison_pos);
 		   auto erc_precision = erc_address.substr(precison_pos+1);
 		   //need a create asset op create a new asset
-		    string config = (*_crosschain_manager)->get_config();
+		    /*string config = (*_crosschain_manager)->get_config();
 			auto fd = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 			fd->initialize_config(fc::json::from_string(config).get_object());
-			fd->create_wallet(symbol, erc_address);
+			fd->create_wallet(symbol, erc_address);*/
 		   asset_eth_create_operation op;
 		   auto issuer_account = get_guard_member(issuer);
 		   op.issuer = issuer_account.guard_member_account;

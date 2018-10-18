@@ -44,39 +44,33 @@ namespace graphene {
 			std::string ret;
 			if (source.size() <= precision) {
 				ret += "0.";
-				for (size_t i = 0; i < precision - source.size(); i++) {
-					ret += '0';
+				std::string temp_precision((precision - source.size()), '0');
+				ret += temp_precision;
+				size_t amount_pos = source.find_last_not_of('0');
+				if (amount_pos != source.npos)
+				{
+					ret += source.substr(0, amount_pos+1);
 				}
-				size_t amount_pos = 0;
-				for (size_t i = source.size() - 1; i > 0; i--) {
-					if (source[i] == '0') {
-						continue;
-					}
-					amount_pos = i;
-					break;
+				else {
+					ret += source;
 				}
-				ret += source.substr(0, amount_pos + 1);
+				
 			}
 			else {
-				ret += source.substr(0, source.size() - precision + 1);
-				std::string amoutFloat = source.substr(source.size() - precision);
-				size_t amount_pos = 0;
-				for (size_t i = amoutFloat.size() - 1; i > 0; i--) {
-					if (amoutFloat[i] == 0) {
-						continue;
-					}
-					amount_pos = i;
-					break;
+				ret += source.substr(0, source.size() - precision);
+				std::string amountFloat = source.substr(source.size() - precision);
+				size_t amount_pos = amountFloat.find_last_not_of('0');
+				if (amount_pos != amountFloat.npos)
+				{
+					ret += '.';
+					ret += amountFloat.substr(0, amount_pos + 1);
 				}
-				ret += amoutFloat.substr(0, amount_pos);
+				
 			}
 			return ret;
 		}
 		std::string FillZero(std::string input, bool append_zero = true) {
-			std::string ret;
-			for (size_t i = input.size(); i < 64; ++i) {
-				ret += '0';
-			}
+			std::string ret((64-input.size()),'0');
 			if (append_zero)
 			{
 				ret = input + ret;
@@ -90,35 +84,26 @@ namespace graphene {
 			size_t i = 0;
 			if (append_zero)
 			{
-				for (int iLoop = input.size() - 1; iLoop > 0; iLoop--)
-				{
-					if (input[iLoop] != '0')
-					{
-						break;
-					}
-					++i;
+				auto temp_pos = input.find_last_not_of('0');
+				if (temp_pos != input.npos) {
+					return input.substr(0, temp_pos + 1);
 				}
-				return input.substr(0, input.size() - i);
+				else {
+					return input;
+				}
 			}
 			else {
-				for (; i < input.size(); ++i) {
-					if (input[i] != '0') {
-						break;
-					}
-				}
-				return input.substr(i);
+				auto temp_pos = input.find_first_not_of('0');
+				return input.substr(temp_pos);
 			}
 		}
 		const std::string TurnToEthAmount(const std::string& source, const int& precision) {
 			std::string ret;
 			size_t pos = source.find('.');
 			if (pos == source.npos) {
-
 				ret = source;
-				for (size_t i = 0; i < precision; ++i)
-				{
-					ret += '0';
-				}
+				std::string temp(precision, '0');
+				ret += temp;
 			}
 			else {
 				ret = source.substr(0, pos);
@@ -132,12 +117,11 @@ namespace graphene {
 					FC_ASSERT("ERC serise amount error");
 				}
 				ret += sour_float;
-
-				for (size_t i = 0; i < 18 - sour_float.size(); ++i)
-				{
-					ret += '0';
-				}
+				std::string temp((18 - sour_float.size()), '0');
+				ret += temp;
 			}
+			auto temp_pos = ret.find_first_not_of('0');
+			ret = ret.substr(temp_pos);
 			std::cout << "Test log handle amount is " << ret << std::endl;
 			return ret;
 		}
@@ -285,6 +269,7 @@ namespace graphene {
 
 		bool graphene::crosschain::crosschain_interface_eth::create_wallet(std::string wallet_name, std::string wallet_passprase)
 		{
+			/*
 			if (wallet_name.find("ERC") != wallet_name.npos){
 				std::ostringstream req_body;
 				req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -297,7 +282,7 @@ namespace graphene {
 				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 				return true;
 			}
-			
+			*/
 			return false;
 		}
 
@@ -403,7 +388,7 @@ namespace graphene {
 
 				dev::eth::TransactionSkeleton ret;
 				ret.from = dev::jsToAddress(signer.substr(2));
-				ret.gasPrice = dev::jsToU256("21000000000");
+				ret.gasPrice = dev::jsToU256("5000000000");
 				ret.gas = dev::jsToU256("4500000");
 				ret.creation = true;
 				std::vector<char> bin_input;
@@ -753,8 +738,8 @@ namespace graphene {
 		{
 			dev::eth::TransactionSkeleton ret;
 			ret.from = dev::jsToAddress(from_account);
-			ret.gasPrice = dev::jsToU256("21000000000");
-			ret.gas = dev::jsToU256("4500000");
+			ret.gasPrice = dev::jsToU256("5000000000");
+			ret.gas = dev::jsToU256("42000");
 			ret.to = dev::jsToAddress(to_account);
 			ret.value = dev::jsToU256(TurnToEthAmount(amount, 18));
 			ret.chainId = 1;
@@ -910,7 +895,7 @@ namespace graphene {
 			dev::eth::TransactionSkeleton ret;
 			ret.from = dev::jsToAddress(from_account);
 			ret.to = dev::jsToAddress(to_account);
-			ret.gasPrice = dev::jsToU256("21000000000");
+			ret.gasPrice = dev::jsToU256("5000000000");
 			ret.gas = dev::jsToU256("4500000");
 			std::vector<char> bin_input;
 			unsigned int nDeplength = 0;

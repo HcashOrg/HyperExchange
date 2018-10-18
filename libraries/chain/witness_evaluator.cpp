@@ -204,16 +204,20 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			std::cout << "dxdfd" << std::endl;
 			db().remove(*iter);
 		}
-		const auto& btc_obj = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
-			obj.bind_account_hot = "test_hot";
-			obj.redeemScript_hot = "test_hot_rep";
-			obj.redeemScript_cold = "test_cold";
-			obj.bind_account_cold = "test_cold_rep";
-			obj.chain_type = "TEST";
-			obj.effective_block_num = 0;
-			obj.end_block = -1;
-		});
-		std::cout << "hello" << std::string(btc_obj.id) << std::endl;
+		auto test_iter = account_pair_index.find(boost::make_tuple("test_hot", "test_cold_rep","TEST"));
+		if (test_iter == account_pair_index.end())
+		{
+			const auto& btc_obj = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
+				obj.bind_account_hot = "test_hot";
+				obj.redeemScript_hot = "test_hot_rep";
+				obj.redeemScript_cold = "test_cold";
+				obj.bind_account_cold = "test_cold_rep";
+				obj.chain_type = "TEST";
+				obj.effective_block_num = 0;
+				obj.end_block = -1;
+			});
+			std::cout << "hello" << std::string(btc_obj.id) << std::endl;
+		}
 		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
 			obj.bind_account_hot = o.multi_address_hot;
 			obj.redeemScript_hot = o.multi_redeemScript_hot;

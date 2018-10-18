@@ -204,6 +204,7 @@ namespace graphene {
 		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
 			auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			auto obj = db().get_asset(o.asset_symbol);
 			for (const auto& crosschain_withdraw_trx_id : o.ccw_trx_ids){
 				auto crosschain_withdraw_trx = trx_db.find(crosschain_withdraw_trx_id);
 				FC_ASSERT(crosschain_withdraw_trx != trx_db.end(), "Source Transaction doesn`t exist");
@@ -217,18 +218,32 @@ namespace graphene {
 			if (!hdl->valid_config())
 				return void_result();
 			crosschain_trx create_trxs;
-			if ((o.asset_symbol.find("ETH") != o.asset_symbol.npos) || (o.asset_symbol.find("ERC") != o.asset_symbol.npos))
+			if ((o.asset_symbol.find("ERC") != o.asset_symbol.npos))
 			{
-				create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign",o.withdraw_source_trx));
+				fc::mutable_variant_object mul_obj;
+				auto descrip = obj->options.description;
+				auto precision_pos = descrip.find('|');
+				int64_t erc_precision = 18;
+				if (precision_pos != descrip.npos)
+				{
+					erc_precision = fc::to_int64(descrip.substr(precision_pos + 1));
+				}
+				mul_obj.set("precision", erc_precision);
+				mul_obj.set("turn_without_eth_sign", o.withdraw_source_trx);
+				create_trxs = hdl->turn_trxs(fc::variant_object(mul_obj));
+			}
+			else if (o.asset_symbol.find("ETH") != o.asset_symbol.npos) {
+				create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.withdraw_source_trx));
 			}
 			else {
 				create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
 			}
 			
+			
 			auto trx_itr_relate = trx_db.find(trx_state->_trx->id());
 			FC_ASSERT(trx_itr_relate == trx_db.end(), "Crosschain transaction has been created");
 			auto asset_fee = db().get_asset(o.asset_symbol)->dynamic_data(db()).fee_pool;
-			auto obj = db().get_asset(o.asset_symbol);
+			
 			std::map<string, share_type> fees_cal;
 			std::map<std::string, asset> all_balances;
 			const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();

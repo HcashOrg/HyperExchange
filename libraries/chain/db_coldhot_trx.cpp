@@ -191,11 +191,51 @@ namespace graphene {
 			//need to check if there are crosschain trx
 			auto start = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_without_sign_trx_create);
 			auto end = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().lower_bound(withdraw_transaction_confirm);
+			auto transfer_check1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_need_sign);
+			auto transfer_check2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_sign);
 		
 			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_uncreate);
 			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_create);
 			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_sign_trx);
+			auto check_point_3 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_need_sign);
+			auto check_point_4 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_sign);
 			flat_set<string> asset_set;
+			for (auto check_point : boost::make_iterator_range(transfer_check1.first, transfer_check1.second))
+			{
+				auto op = check_point.real_transaction.operations[0];
+				if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>().value)
+				{
+					auto combineop = op.get<crosschain_withdraw_combine_sign_operation>();
+					asset_set.insert(combineop.asset_symbol);
+				}
+			}
+			for (auto check_point : boost::make_iterator_range(transfer_check2.first, transfer_check2.second))
+			{
+				auto op = check_point.real_transaction.operations[0];
+				if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>().value)
+				{
+					auto combineop = op.get<crosschain_withdraw_combine_sign_operation>();
+					asset_set.insert(combineop.asset_symbol);
+				}
+			}
+			for (const auto& check_point : boost::make_iterator_range(check_point_3.first, check_point_3.second))
+			{
+				auto op = check_point.current_trx.operations[0];
+				if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>::value)
+				{
+					const auto& coldhot_op = op.get<coldhot_transfer_combine_sign_operation>();
+					asset_set.insert(coldhot_op.asset_symbol);
+				}
+			}
+			for (const auto& check_point : boost::make_iterator_range(check_point_4.first, check_point_4.second))
+			{
+				auto op = check_point.current_trx.operations[0];
+				if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>::value)
+				{
+					const auto& coldhot_op = op.get<coldhot_transfer_combine_sign_operation>();
+					asset_set.insert(coldhot_op.asset_symbol);
+				}
+			}
 			for (const auto& check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
 			{
 				auto op = check_point.current_trx.operations[0];

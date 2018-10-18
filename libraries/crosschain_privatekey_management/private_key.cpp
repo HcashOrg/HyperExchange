@@ -1176,10 +1176,12 @@ namespace graphene { namespace privatekey_management {
 		bool b_converse = from_hex(eth_trx.data(), temp, eth_trx.size(), nDeplength);
 		FC_ASSERT(b_converse);
 		dev::bytes trx(temp.begin(), temp.end());
+		std::cout << "before sign" << std::endl;
 		dev::eth::TransactionBase trx_base(trx, dev::eth::CheckTransaction::None);
-
+		std::cout << "without sign " << std::endl;
 		dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
 		trx_base.sign(sec);
+		std::cout << "do sign end" << std::endl;
 		auto signed_trx = trx_base.rlp(dev::eth::WithSignature);
 		std::string signed_trx_str(signed_trx.begin(), signed_trx.end());
 		std::vector<char> hex_trx(signed_trx.begin(), signed_trx.end());
@@ -1202,8 +1204,30 @@ namespace graphene { namespace privatekey_management {
 		set_key(key);
 		return key;
 	}
-	
-
+	fc::variant_object  eth_privatekey::decoderawtransaction(const std::string& trx)
+	{
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(trx.data(), temp, trx.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		dev::bytes bintrx(temp.begin(), temp.end());
+		dev::eth::TransactionBase trx_base(bintrx, dev::eth::CheckTransaction::None);
+		fc::mutable_variant_object ret_obj;
+		ret_obj.set("from","0x"+trx_base.from().hex());
+		ret_obj.set("to", "0x"+trx_base.to().hex());
+		ret_obj.set("nonce", trx_base.nonce().str());
+		ret_obj.set("gasPrice", trx_base.gasPrice().str());
+		ret_obj.set("gas", trx_base.gas().str());
+		ret_obj.set("value", trx_base.value().str());
+		auto bin = trx_base.sha3();
+		std::vector<char> vectorBin(bin.begin(), bin.end());
+		auto trx_id = "0x" + BinToHex(vectorBin, false);
+		ret_obj.set("trxid", trx_id);
+		std::vector<char> temp_trx(trx_base.data().begin(), trx_base.data().end());
+		std::string hexinput = BinToHex(temp_trx, false);
+		ret_obj.set("input", hexinput);
+		return fc::variant_object(ret_obj);
+	};
 	std::string eth_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx) {
 		if (raw_trx.contains("without_sign_trx_sign"))
 		{
@@ -1265,6 +1289,8 @@ namespace graphene { namespace privatekey_management {
 		crosschain_decode.insert(std::make_pair("LTC", &graphene::privatekey_management::ltc_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("UB", &graphene::privatekey_management::ub_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("HC", &graphene::privatekey_management::hc_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("ETH", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("ERC", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 	}
 	crosschain_privatekey_base * crosschain_management::get_crosschain_prk(const std::string& name)
 	{
@@ -1307,7 +1333,12 @@ namespace graphene { namespace privatekey_management {
 	fc::variant_object crosschain_management::decoderawtransaction(const std::string& raw_trx, const std::string& symbol)
 	{
 		try {
-			auto iter = crosschain_decode.find(symbol);
+			std::string temp_symbol = symbol;
+			if (symbol.find("ERC") != symbol.npos)
+			{
+				temp_symbol = "ERC";
+			}
+			auto iter = crosschain_decode.find(temp_symbol);
 			FC_ASSERT(iter != crosschain_decode.end(), "plugin not exist.");
 			return iter->second(raw_trx);
 		}FC_CAPTURE_AND_RETHROW((raw_trx)(symbol))

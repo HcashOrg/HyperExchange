@@ -262,11 +262,32 @@ namespace graphene {
 				//need to check if multisig transaction created
 				auto start = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().lower_bound(coldhot_trx_state::coldhot_without_sign_trx_create);
 				auto end = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().lower_bound(coldhot_trx_state::coldhot_transaction_confirm);
-				
+				auto coldhot_check1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_need_sign);
+				auto coldhot_check2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_sign);
 				//need to check if can be created
 				auto check_point_1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_create);
 				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_sign_trx);
+				auto check_point_3 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_need_sign);
+				auto check_point_4 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_sign);
 				flat_set<string> asset_set;
+				for (auto check_point : boost::make_iterator_range(coldhot_check1.first, coldhot_check1.second))
+				{
+					auto op = check_point.current_trx.operations[0];
+					if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>().value)
+					{
+						auto withop = op.get<coldhot_transfer_combine_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
+				}
+				for (auto check_point : boost::make_iterator_range(coldhot_check2.first, coldhot_check2.second))
+				{
+					auto op = check_point.current_trx.operations[0];
+					if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>().value)
+					{
+						auto withop = op.get<coldhot_transfer_combine_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
+				}
 				for (auto check_point : boost::make_iterator_range(check_point_1.first, check_point_1.second))
 				{
 					auto op = check_point.real_transaction.operations[0];
@@ -286,6 +307,24 @@ namespace graphene {
 						asset_set.insert(withop.asset_symbol);
 					}
 
+				}
+				for (auto check_point : boost::make_iterator_range(check_point_3.first, check_point_3.second))
+				{
+					auto op = check_point.real_transaction.operations[0];
+					if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>().value)
+					{
+						auto combineop = op.get<crosschain_withdraw_combine_sign_operation>();
+						asset_set.insert(combineop.asset_symbol);
+					}
+				}
+				for (auto check_point : boost::make_iterator_range(check_point_4.first, check_point_4.second))
+				{
+					auto op = check_point.real_transaction.operations[0];
+					if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>().value)
+					{
+						auto combineop = op.get<crosschain_withdraw_combine_sign_operation>();
+						asset_set.insert(combineop.asset_symbol);
+					}
 				}
 				while (start != end)
 				{
@@ -398,6 +437,14 @@ namespace graphene {
 					string format = "%."+fc::variant(opt_asset->precision).as_string()+"f";
 					std::sprintf(temp_fee, format.c_str(), fee[one_asset.first]);
 					auto t_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
+					char temp_amount[1024];
+					for (auto& item : one_asset.second)
+					{
+						memset(temp_amount, 0, 1024);
+						std::sprintf(temp_amount, format.c_str(), fc::to_double(item.second));
+						item.second = temp_amount;
+					}
+					crosschain_trx hdtrxs;
 					if (asset_symbol == "ETH" || asset_symbol.find("ERC") != asset_symbol.npos)
 					{
 						auto & asset_db = get_index_type<asset_index>().indices().get<by_symbol>();
@@ -409,14 +456,14 @@ namespace graphene {
 						std::string erc_and_precision = asset_iter->options.description;
 						if ((asset_symbol.find("ERC") != asset_symbol.npos) && erc_and_precision.find('|') != erc_and_precision.npos) {
 							temp_memo += '|' + erc_and_precision;
-						}
+						}						
 						trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, temp_memo);
+						hdtrxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign",trx_op.withdraw_source_trx));
 					}
 					else {
-					trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
+						trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
+						hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
 					}
-					
-					auto hdtrxs = hdl->turn_trxs(trx_op.withdraw_source_trx);
 					memset(temp_fee,0,1024);
 					std::sprintf(temp_fee, format.c_str(), hdtrxs.fee);
 					auto cross_fee = opt_asset->amount_from_string(graphene::utilities::remove_zero_for_str_amount(temp_fee));
