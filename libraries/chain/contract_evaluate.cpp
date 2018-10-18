@@ -154,7 +154,7 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count);
+			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info native_contract_register_evaluate::do_evaluate(const operation_type& o) {
@@ -220,7 +220,7 @@ namespace graphene {
 			}
 
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_invoke_evaluate::do_evaluate(const operation_type& o) {
@@ -320,7 +320,7 @@ namespace graphene {
 				throw ::blockchain::contract_engine::contract_api_result_error(get_api_result());
 
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_upgrade_evaluate::do_evaluate(const operation_type& o) {
@@ -420,7 +420,7 @@ namespace graphene {
                 unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
             }
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_register_evaluate::do_apply(const operation_type& o) {
@@ -445,7 +445,7 @@ namespace graphene {
             }
 
             d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info native_contract_register_evaluate::do_apply(const operation_type& o) {
@@ -463,7 +463,7 @@ namespace graphene {
             }
 
             db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_invoke_evaluate::do_apply(const operation_type& o) {
@@ -480,7 +480,7 @@ namespace graphene {
                 do_apply_balance();
             }
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
         contract_operation_result_info contract_upgrade_evaluate::do_apply(const operation_type& o) {
@@ -502,7 +502,7 @@ namespace graphene {
 
             }
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
 		void contract_register_evaluate::pay_fee() {
@@ -816,7 +816,7 @@ namespace graphene {
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (e.what()));
 			}
 
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
         contract_operation_result_info contract_transfer_evaluate::do_apply(const operation_type & o)
@@ -836,7 +836,7 @@ namespace graphene {
             }
 
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
-            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count);
+            return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
         void contract_transfer_evaluate::pay_fee()
