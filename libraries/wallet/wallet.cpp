@@ -4187,7 +4187,7 @@ public:
 	   auto hdtx = crosschain_plugin->turn_trx(fc::variant_object("get_with_sign", siging));
 	   eths_coldhot_guard_sign_final_operation trx_op;
 	   trx_op.signed_crosschain_trx_id = hdtx.trx_id;
-	   account_object & account_obj = get_account(senator);
+	   account_object account_obj = get_account(senator);
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   trx_op.guard_to_sign = guard_obj->id;
 	   trx_op.chain_type = coldhot_op.asset_symbol;
@@ -4238,7 +4238,7 @@ public:
 			   FC_ASSERT(key_ptr.valid());
 			   string siging = hdl->sign_multisig_transaction(withop_without_sign.cross_chain_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 			   eths_guard_sign_final_operation trx_op;
-			   account_object & account_obj = get_account(senator);
+			   account_object account_obj = get_account(senator);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 			   trx_op.guard_to_sign = guard_obj->id;
 			   trx_op.combine_trx_id = trx.transaction_id;
@@ -4273,7 +4273,7 @@ public:
 		   auto hdtx = hdl->turn_trx(fc::variant_object("get_with_sign", siging));
 		   eths_guard_sign_final_operation trx_op;
 		   trx_op.signed_crosschain_trx_id = hdtx.trx_id;
-		   account_object & account_obj = get_account(senator);
+		   account_object account_obj = get_account(senator);
 		   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 		   trx_op.guard_to_sign = guard_obj->id;
 		   trx_op.chain_type = withop_without_sign.asset_symbol;

@@ -104,7 +104,7 @@ ELSE()
 
 ENDIF()
 
-target_include_directories(crosschain_privatekey_management_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign PRIVATE ${BOOST_ROOT}/)
+target_include_directories(crosschain_privatekey_management_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/ PRIVATE ${BOOST_ROOT}/)
 
 if (USE_PCH)
   set_target_properties(crosschain_privatekey_management PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
