@@ -125,14 +125,16 @@ namespace graphene {
 
 		void            contract_register_operation::validate()const
 		{
+
+			FC_ASSERT(contract_id.version == addressVersion::CONTRACT);
 			FC_ASSERT(init_cost > 0 && init_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
 			FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
 			FC_ASSERT(contract_id == calculate_contract_id());
             FC_ASSERT(owner_addr != address());
             FC_ASSERT(address(owner_pubkey) == owner_addr);
-            FC_ASSERT(contract_id != contract_address_type());
-            FC_ASSERT((contract_code != Code()) || (inherit_from != contract_address_type()));
+            FC_ASSERT(contract_id != address());
+            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
 		}
 		share_type      contract_register_operation::calculate_fee(const fee_parameters_type& schedule)const
 		{
@@ -144,34 +146,36 @@ namespace graphene {
 			return core_fee_required+schedule.fee;
 		}
 
-		contract_address_type contract_register_operation::get_first_contract_id()
+		address contract_register_operation::get_first_contract_id()
 		{
-			contract_address_type id;
+			address id;
 			fc::sha512::encoder enc;
 			Code co;
 			time_point_sec regtm;
 			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(co,regtm );
 			fc::raw::pack(enc, info_to_digest);
 			id.addr = fc::ripemd160::hash(enc.result());
+			id.version = addressVersion::CONTRACT;
 			return id;
 		}
-        contract_address_type contract_register_operation::calculate_contract_id() const
+        address contract_register_operation::calculate_contract_id() const
 		{ 
-            contract_address_type id;
+            address id;
 			fc::sha512::encoder enc;
-            FC_ASSERT((contract_code != Code()) || (inherit_from != contract_address_type()));
+            FC_ASSERT((contract_code != Code()) || (inherit_from != address()));
             if (contract_code != Code())
             {
                 std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(contract_code, register_time);
                 fc::raw::pack(enc, info_to_digest);
             }
-            else if(inherit_from!= contract_address_type())
+            else if(inherit_from!= address())
             {
-                std::pair<contract_address_type, fc::time_point> info_to_digest(inherit_from, register_time);
+                std::pair<address, fc::time_point> info_to_digest(inherit_from, register_time);
                 fc::raw::pack(enc, info_to_digest);
             }
 
 			id.addr = fc::ripemd160::hash(enc.result());
+			id.version = addressVersion::CONTRACT;
 			return id;
 		}
         
@@ -179,9 +183,10 @@ namespace graphene {
 		{
 			if (!offline)
 			{
+				FC_ASSERT(contract_id.version == addressVersion::CONTRACT);
                 FC_ASSERT(caller_addr != address());
                 FC_ASSERT(address(caller_pubkey) == caller_addr);
-                FC_ASSERT(contract_id != contract_address_type());
+                FC_ASSERT(contract_id != address());
 				//FC_ASSERT(contract_api_check(*this));
 				FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 				// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
@@ -221,7 +226,8 @@ namespace graphene {
 		    FC_ASSERT(contract_desc.length() <= 200);
             FC_ASSERT(caller_addr != address());
             FC_ASSERT(address(caller_pubkey) == caller_addr);
-            FC_ASSERT(contract_id != contract_address_type());
+            FC_ASSERT(contract_id != address());
+			FC_ASSERT(contract_id.version == addressVersion::CONTRACT);
 		}
 
 		share_type contract_upgrade_operation::calculate_fee(const fee_parameters_type& schedule)const
@@ -233,12 +239,14 @@ namespace graphene {
 
         void            transfer_contract_operation::validate()const
         {
+
+			FC_ASSERT(contract_id.version == addressVersion::CONTRACT);
             FC_ASSERT(invoke_cost > 0 && invoke_cost <= BLOCKLINK_MAX_GAS_LIMIT);
             // FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
             FC_ASSERT(gas_price >= BLOCKLINK_MIN_GAS_PRICE);
             FC_ASSERT(caller_addr!=address());
             FC_ASSERT(address(caller_pubkey) == caller_addr);
-            FC_ASSERT(contract_id != contract_address_type());
+            FC_ASSERT(contract_id != address());
             FC_ASSERT(amount.amount>0);
         }
         share_type transfer_contract_operation::calculate_fee(const fee_parameters_type& schedule)const

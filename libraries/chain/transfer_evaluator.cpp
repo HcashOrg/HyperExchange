@@ -40,41 +40,7 @@ void_result transfer_evaluator::do_evaluate( const transfer_operation& op )
    const asset_object&   asset_type      = op.amount.asset_id(d);
 
    try {
-	  /*
-	  
-      GRAPHENE_ASSERT(
-         is_authorized_asset( d, from_account, asset_type ),
-         transfer_from_account_not_whitelisted,
-         "'from' account ${from} is not whitelisted for asset ${asset}",
-         ("from",op.from)
-         ("asset",op.amount.asset_id)
-         );
-      GRAPHENE_ASSERT(
-         is_authorized_asset( d, to_account, asset_type ),
-         transfer_to_account_not_whitelisted,
-         "'to' account ${to} is not whitelisted for asset ${asset}",
-         ("to",op.to)
-         ("asset",op.amount.asset_id)
-         );
-
-      if( asset_type.is_transfer_restricted() )
-      {
-         GRAPHENE_ASSERT(
-            from_account.id == asset_type.issuer || to_account.id == asset_type.issuer,
-            transfer_restricted_transfer_asset,
-            "Asset {asset} has transfer_restricted flag enabled",
-            ("asset", op.amount.asset_id)
-          );
-      }
-
-      bool insufficient_balance = d.get_balance( from_account, asset_type ).amount >= op.amount.amount;
-      FC_ASSERT( insufficient_balance,
-                 "Insufficient Balance: ${balance}, unable to transfer '${total_transfer}' from account '${a}' to '${t}'", 
-                 ("a",from_account.name)("t",to_account.name)("total_transfer",d.to_pretty_string(op.amount))("balance",d.to_pretty_string(d.get_balance(from_account, asset_type))) );
-
-      return void_result();
-	  */
-	 
+	   FC_ASSERT(op.to_addr.version != addressVersion::CONTRACT,"address should not be a contract address");
 	   bool insufficient_balance =  d.get_balance(op.from_addr, asset_type.id).amount >= op.amount.amount;
 
 	   FC_ASSERT(insufficient_balance,

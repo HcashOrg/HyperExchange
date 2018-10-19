@@ -460,11 +460,13 @@ void_result account_create_multisignature_address_evaluator::do_evaluate(const a
 {
 	try {
 		const database& d = db();
-		FC_ASSERT(o.pubs.size() <= 15);
+		FC_ASSERT(o.pubs.size() <= 15 && o.pubs.size() > 1);
+		FC_ASSERT(o.required <= o.pubs.size() && o.required >0);
 		auto& bal_idx =d.get_index_type<balance_index>();
 		const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
 		auto itr = by_owner_idx.find(boost::make_tuple(o.multisignature, asset_id_type()));
-		FC_ASSERT(itr == by_owner_idx.end(),"this multisignature address has existed.");
+		if (itr != by_owner_idx.end())
+			FC_ASSERT(!itr->multisignatures.valid());
 		auto pubkey = fc::ecc::public_key();
 		for (auto iter :o.pubs)
 		{
@@ -476,7 +478,7 @@ void_result account_create_multisignature_address_evaluator::do_evaluate(const a
 			pubkey = pubkey.add(fc::sha256::hash(temp));
 		}
 		pubkey = pubkey.add(fc::sha256::hash(o.required));
-		FC_ASSERT(o.multisignature == address(pubkey));
+		FC_ASSERT(o.multisignature == address(pubkey,addressVersion::MULTISIG));
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
@@ -487,11 +489,24 @@ void_result account_create_multisignature_address_evaluator::do_apply(const acco
 		database& d = db();
 		std::map<int, fc::flat_set<public_key_type>> temp;
 		temp[o.required] = o.pubs;
+		auto& bal_idx = d.get_index_type<balance_index>();
+		auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+		auto itr = by_owner_idx.find(boost::make_tuple(o.multisignature, asset_id_type()));
+		if (itr != by_owner_idx.end())
+		{
+			d.modify(*itr, [&](balance_object& obj) {
+				obj.multisignatures = temp;
+			});
+		}
+		else
+		{
 		d.create<balance_object>([&](balance_object& obj) {
 			obj.balance = asset();
 			obj.owner = o.multisignature;
 			obj.multisignatures = temp;
 		});
+		}
+		
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }

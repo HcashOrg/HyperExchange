@@ -196,7 +196,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)),miner_acc.name);
 		uint64_t develop_team_paid = get_miner_pay_per_block(dgp.head_block_number).value *(HX_DEVELOP_TEAM_PAY_TATIO) / 100;
 		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),miner_acc.name);
-		adjust_contract_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid));
+		adjust_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid));
 		if (cache_datas.count(miner_id) > 0)
 		{
 			auto& one_data = cache_datas[miner_id];

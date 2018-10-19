@@ -214,7 +214,6 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 				obj.bind_account_cold = "test_cold_rep";
 				obj.chain_type = "TEST";
 				obj.effective_block_num = 0;
-				obj.end_block = -1;
 			});
 			std::cout << "hello" << std::string(btc_obj.id) << std::endl;
 		}
@@ -225,7 +224,6 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			obj.bind_account_cold = o.multi_address_cold;
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;
-			obj.end_block = -1;
 		});
 		std::cout << "hellox" << std::string(new_acnt_object.id) << std::endl;
 		//FC_ASSERT(new_acnt_object.id != multisig_account_pair_id_type());

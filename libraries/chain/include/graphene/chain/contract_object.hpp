@@ -20,13 +20,13 @@ namespace graphene {
             address owner_address;
             time_point_sec create_time;
             string name;
-            contract_address_type contract_address;
+            address contract_address;
 			string contract_name;
 			string contract_desc;
             contract_type type_of_contract = normal_contract;
 			string native_contract_key; // key to find native contract code
-            vector<contract_address_type> derived;
-            contract_address_type inherit_from;
+            vector<address> derived;
+            address inherit_from;
 
         };
         struct by_owner{};
@@ -36,7 +36,7 @@ namespace graphene {
             contract_object,
             indexed_by<
             ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
-            ordered_unique<tag<by_contract_id>, member<contract_object, contract_address_type, &contract_object::contract_address>>,
+            ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>,
 			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>,
             ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>,
             ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>
@@ -46,7 +46,7 @@ namespace graphene {
         public:
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_storage_change_object_type;
-            contract_address_type contract_address;
+            address contract_address;
             uint32_t block_num;
         };
 
@@ -55,7 +55,7 @@ namespace graphene {
             contract_storage_change_object,
         indexed_by< 
             ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
-            ordered_unique<tag<by_contract_id>, member<contract_storage_change_object, contract_address_type, &contract_storage_change_object::contract_address>>,
+            ordered_unique<tag<by_contract_id>, member<contract_storage_change_object, address, &contract_storage_change_object::contract_address>>,
             ordered_non_unique<tag<by_block_num>, member<contract_storage_change_object, uint32_t, &contract_storage_change_object::block_num>>
         >> contract_storage_change_object_multi_index_type;
 
@@ -65,7 +65,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = contract_storage_object_type;
 
-            contract_address_type contract_address;
+            address contract_address;
 			string storage_name;
 			std::vector<char> storage_value;
 		};
@@ -77,62 +77,12 @@ namespace graphene {
 			ordered_unique< tag<by_contract_id_storage_name>,
 			composite_key<
 			contract_storage_object,
-			member<contract_storage_object, contract_address_type, &contract_storage_object::contract_address>,
+			member<contract_storage_object, address, &contract_storage_object::contract_address>,
 			member<contract_storage_object, string, &contract_storage_object::storage_name>
 			>
 			>
 			>> contract_storage_object_multi_index_type;
 		typedef generic_index<contract_storage_object, contract_storage_object_multi_index_type> contract_storage_object_index;
-
-        class contract_balance_object : public abstract_object<contract_balance_object>
-        {
-        public:
-            static const uint8_t space_id = protocol_ids;
-            static const uint8_t type_id = contract_balance_object_type;
-
-            bool is_vesting_balance()const
-            {
-                return vesting_policy.valid();
-            }
-            asset available(fc::time_point_sec now)const
-            {
-                return is_vesting_balance() ? vesting_policy->get_allowed_withdraw({ balance, now,{} })
-                    : balance;
-            }
-            void adjust_balance(asset delta, fc::time_point_sec now)
-            {
-                balance += delta;
-                last_claim_date = now;
-            }
-            contract_address_type owner;
-            asset   balance;
-            optional<linear_vesting_policy> vesting_policy;
-            time_point_sec last_claim_date;
-            asset_id_type asset_type()const { return balance.asset_id; }
-        };
-
-        struct by_owner;
-
-        /**
-        * @ingroup object_index
-        */
-        using contract_balance_multi_index_type = multi_index_container<
-            contract_balance_object,
-            indexed_by<
-            ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-			ordered_non_unique< tag<by_contract_id>, member< contract_balance_object, contract_address_type, &contract_balance_object::owner > >,
-            ordered_non_unique< tag<by_owner>, composite_key<
-            contract_balance_object,
-            member<contract_balance_object, contract_address_type, &contract_balance_object::owner>,
-            const_mem_fun<contract_balance_object, asset_id_type, &contract_balance_object::asset_type>
-            > >
-            >
-        >;
-
-        /**
-        * @ingroup object_index
-        */
-        using contract_balance_index = generic_index<contract_balance_object, contract_balance_multi_index_type>;
 
 		class contract_event_notify_object : public abstract_object<contract_event_notify_object>
 		{
@@ -140,7 +90,7 @@ namespace graphene {
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = contract_event_notify_object_type;
 
-            contract_address_type contract_address;
+            address contract_address;
 			string event_name;
 			string event_arg;
 			transaction_id_type trx_id;
@@ -152,7 +102,7 @@ namespace graphene {
 			contract_event_notify_object,
 			indexed_by<
 			ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
-			ordered_non_unique<tag<by_contract_id>, member<contract_event_notify_object, contract_address_type, &contract_event_notify_object::contract_address>>,
+			ordered_non_unique<tag<by_contract_id>, member<contract_event_notify_object, address, &contract_event_notify_object::contract_address>>,
 			ordered_non_unique<tag<by_block_num>, member<contract_event_notify_object, uint64_t, &contract_event_notify_object::block_num>>
 			>
 		>;
@@ -160,7 +110,7 @@ namespace graphene {
 		class contract_history_object : public abstract_object<contract_history_object>
 		{
 		public:
-			contract_address_type contract_id;
+			address contract_id;
 			transaction_id_type trx_id;
 			uint64_t block_num;
 		};
@@ -171,7 +121,7 @@ namespace graphene {
 			ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
 			ordered_non_unique<tag<by_contract_id_and_block_num>,
 			composite_key<contract_history_object,
-			member<contract_history_object, contract_address_type, &contract_history_object::contract_id>,
+			member<contract_history_object, address, &contract_history_object::contract_id>,
 			member<contract_history_object, uint64_t, &contract_history_object::block_num>>>
 			>
 			>;
@@ -191,10 +141,10 @@ namespace graphene {
             address invoker;
             std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
 
-           std::map<std::pair<contract_address_type, asset_id_type>, share_type> contract_withdraw;
-           std::map<std::pair<contract_address_type, asset_id_type>, share_type> contract_balances;
+           std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
+           std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
-           std::map<std::pair<contract_address_type, asset_id_type>, share_type> deposit_contract;
+           std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
 		   std::map<asset_id_type, share_type> transfer_fees;
            
             inline bool operator<(const contract_invoke_result_object& obj) const
@@ -240,8 +190,6 @@ FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (registered_block)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
-FC_REFLECT_DERIVED(graphene::chain::contract_balance_object, (graphene::db::object),
-    (owner)(balance)(vesting_policy)(last_claim_date))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),

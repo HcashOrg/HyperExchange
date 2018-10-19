@@ -513,7 +513,12 @@ void database::process_bonus()
 			{
 				break;
 			}
+			else if (iter->owner.version == addressVersion::CONTRACT)
+			{
+				continue;
+			}
 			sum += iter->amount();
+			
 			waiting_list[iter->owner] = iter->amount();
 			iter++;
 		}

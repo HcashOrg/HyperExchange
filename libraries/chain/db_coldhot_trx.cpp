@@ -379,8 +379,8 @@ namespace graphene {
 					if (trxs.second.size() < ceil(float(coldhot_op.withdraw_account_count)*2.0 / 3.0)) {
 						continue;
 					}
-					set<string> combine_signature;
 					guard_member_id_type sign_senator;
+					set<string> combine_signature;
 					auto & tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					bool transaction_err = false;
 					for (auto & sign_trx_id : trxs.second) {

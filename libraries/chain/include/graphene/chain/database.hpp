@@ -333,40 +333,38 @@ namespace graphene { namespace chain {
 		 void adjust_deposit_to_link_trx(const hd_trx& handled_trx);
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////
-		 StorageDataType get_contract_storage(const contract_address_type& contract_id, const string& name);
-		 void set_contract_storage(const contract_address_type& contract_id, const string& name, const StorageDataType &value);
+		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
-		 void add_contract_storage_change(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& name, const StorageDataType &diff);
-		 void add_contract_event_notify(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
+		 void add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff);
+		 void add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
 		                                op_num);
-         void  store_contract_storage_change_obj(const contract_address_type& contract,uint32_t block_num);
+         void  store_contract_storage_change_obj(const address& contract,uint32_t block_num);
          vector<contract_blocknum_pair> get_contract_changed(uint32_t block_num, uint32_t duration);
-         vector<contract_event_notify_object> get_contract_event_notify(const contract_address_type& contract_id, const transaction_id_type& trx_id, const string& event_name);
+         vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
 		 void update_contract(const contract_object& contract);
-         contract_object get_contract(const contract_address_type& contract_address);
+         contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
          contract_object get_contract(const string& name_or_id);
 		 contract_object get_contract_of_name(const string& contract_name);
          vector<contract_object> get_contract_by_owner(const address& owner);
 
-         vector<contract_address_type> get_contract_address_by_owner(const address& owner);
-		 bool has_contract(const contract_address_type& contract_address, const string& method="");
+         vector<address> get_contract_address_by_owner(const address& owner);
+		 bool has_contract(const address& contract_address, const string& method="");
 		 bool has_contract_of_name(const string& contract_name);
          void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res);
-		 void store_contract_related_transaction(const transaction_id_type&,const contract_address_type& contract_id);
+		 void store_contract_related_transaction(const transaction_id_type&,const address& contract_id);
 
-		 std::vector<transaction_id_type> get_contract_related_transactions(const contract_address_type& contract_id,uint64_t start,uint64_t end);
+		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 
-         vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const contract_address_type &addr) const;
-		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const contract_address_type &addr, uint64_t start, uint64_t range) const;
+         vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
+		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
          void set_min_gas_price(const share_type min_price);
          share_type get_min_gas_price() const;
          //contract_balance//
-         asset get_contract_balance(const contract_address_type& addr,const asset_id_type& asset_id);
-         void adjust_contract_balance(const contract_address_type& addr, const asset& delta);
 		 optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
 		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;

@@ -260,7 +260,7 @@ struct wallet_data
            return false;
        }
    }
-   bool bind_script_to_event(const string& script_hash,const chain::contract_address_type& contract, const string& event_name)
+   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -286,7 +286,7 @@ struct wallet_data
        idx.insert(obj);
        return true;
    }
-   bool remove_event_handle(const string& script_hash, const chain::contract_address_type& contract, const string& event_name)
+   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -992,12 +992,12 @@ class wallet_api
 	  * @param from the address from the account sending the funds
 	  * @param to the address to the account receiving the funds
 	  */
-	  signed_transaction transfer_from_to_address(string from,
+	  string transfer_from_to_address(string from,
 		  string to,
 		  string amount,
 		  string asset_symbol,
 		  string memo);
-	  full_transaction combine_transaction(const vector<signed_transaction>& trxs,
+	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
        /** broadcast a transaction to the chain.
@@ -1851,8 +1851,8 @@ class wallet_api
        */
       full_transaction propose_parameter_change(
          const string& proposing_account,
-         fc::time_point_sec expiration_time,
          const variant_object& changed_values,
+		 const int64_t& expiration_time,
          bool broadcast = false);
 
 	  full_transaction propose_coin_destory(
@@ -1868,8 +1868,8 @@ class wallet_api
 		  bool broadcast = false);
 	  full_transaction propose_pay_back_asset_rate_change(
 		  const string& proposing_account,
-		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
+		  const int64_t& expiration_time,
 		  bool broadcast = false
 	  );
       /** Propose a fee change.
@@ -2025,8 +2025,11 @@ class wallet_api
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
-	  signed_transaction sign_multisig_trx(const address& addr,const signed_transaction& trx);
-      
+	public_key_type get_pubkey_from_account(const string& account);
+	  string sign_multisig_trx(const address& addr,const string& trx);
+	  signed_transaction decode_multisig_transaction(const string& trx);
+	variant_object  get_multisig_address(const address& addr);
+	  flat_set< miner_id_type> list_active_citizens();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
@@ -2322,4 +2325,8 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_determine_block_payment)
 		(transfer_from_to_address)
 		(combine_transaction)
+		(get_multisig_address)
+		(list_active_citizens)
+		(decode_multisig_transaction)
+		(get_pubkey_from_account)
       )

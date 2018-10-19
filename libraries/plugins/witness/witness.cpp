@@ -34,7 +34,6 @@
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
 #include <graphene/chain/transaction_object.hpp>
-//#include <graphene/chain/eth_seri_record.hpp>
 #include <iostream>
 
 using namespace graphene::miner_plugin;

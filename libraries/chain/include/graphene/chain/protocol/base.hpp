@@ -92,6 +92,7 @@ namespace graphene { namespace chain {
        {
            digest_str = info.digest_str;
            gas_count = info.gas_count;
+		   api_result = info.api_result;
        }
        contract_operation_result_info(const std::string& digest_str,const share_type& gas_count,const std::string& api_result):digest_str(digest_str),api_result(api_result),gas_count(gas_count){}
        operator string() const{ return fc::json::to_string(*this); }

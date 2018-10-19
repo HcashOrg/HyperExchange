@@ -35,7 +35,12 @@ namespace fc { namespace ecc {
 } } // fc::ecc
 
 namespace graphene { namespace chain {
-
+	enum  addressVersion
+	{
+		NORMAL =   0X35,
+		MULTISIG = 0X32,
+		CONTRACT = 0X1C
+	};
    struct public_key_type;
 
    /**
@@ -53,57 +58,34 @@ namespace graphene { namespace chain {
       public:
        address(); ///< constructs empty / null address
        explicit address(const std::string& base58str, const char *prefix_str = GRAPHENE_ADDRESS_PREFIX);   ///< converts to binary, validates checksum
-       address( const fc::ecc::public_key& pub ); ///< converts to binary
-       explicit address( const fc::ecc::public_key_data& pub ); ///< converts to binary
+       address( const fc::ecc::public_key& pub ,unsigned char version = addressVersion::NORMAL); ///< converts to binary
+       explicit address( const fc::ecc::public_key_data& pub , unsigned char version = addressVersion::NORMAL); ///< converts to binary
        address( const pts_address& pub ); ///< converts to binary
-       address( const public_key_type& pubkey );
+       address( const public_key_type& pubkey , unsigned char version = addressVersion::NORMAL);
 
        static bool is_valid( const std::string& base58str, const std::string& prefix = "");
 
        explicit operator std::string()const; ///< converts to base58 + checksum
 
 	   std::string address_to_string(const char *prefix= GRAPHENE_ADDRESS_PREFIX) const;
-
-	   std::string address_to_contract_string() const;
-
        friend size_t hash_value( const address& v ) { 
           const void* tmp = static_cast<const void*>(v.addr._hash+2);
 
           const size_t* tmp2 = reinterpret_cast<const size_t*>(tmp);
           return *tmp2;
        }
+	   unsigned char version = addressVersion::NORMAL;
        fc::ripemd160 addr;
    };
-   class contract_address_type
-   {
-   public:
-       contract_address_type();
-       explicit contract_address_type(const std::string& base58str);
-        operator std::string()const;
-       friend size_t hash_value(const contract_address_type& v) {
-           const void* tmp = static_cast<const void*>(v.addr._hash + 2);
-
-           const size_t* tmp2 = reinterpret_cast<const size_t*>(tmp);
-           return *tmp2;
-       }
-       fc::ripemd160 addr;
-   };
-   inline bool operator == ( const address& a, const address& b ) { return a.addr == b.addr; }
-   inline bool operator != ( const address& a, const address& b ) { return a.addr != b.addr; }
+   inline bool operator == ( const address& a, const address& b ) { return (a.addr == b.addr)&&(a.version == b.version); }
+   inline bool operator != ( const address& a, const address& b ) { return (a.addr != b.addr)|| (a.version != b.version); }
    inline bool operator <  ( const address& a, const address& b ) { return a.addr <  b.addr; }
-   inline bool operator == (const contract_address_type& a, const contract_address_type& b) { return a.addr == b.addr; }
-   inline bool operator != (const contract_address_type& a, const contract_address_type& b) { return a.addr != b.addr; }
-   inline bool operator <  (const contract_address_type& a
-       , const contract_address_type& b) { return a.addr <  b.addr; }
-
 } } // namespace graphene::chain
 
 namespace fc
 {
     void to_variant(const graphene::chain::address& var, fc::variant& vo);
     void from_variant(const fc::variant& var, graphene::chain::address& vo);
-    void to_variant(const graphene::chain::contract_address_type& var, fc::variant& vo);
-    void from_variant(const fc::variant& var, graphene::chain::contract_address_type& vo);
 }
 
 namespace std
@@ -117,18 +99,8 @@ namespace std
             return (uint64_t(a.addr._hash[0]) << 32) | uint64_t(a.addr._hash[0]);
         }
     };
-    template<>
-    struct hash<graphene::chain::contract_address_type>
-    {
-    public:
-        size_t operator()(const graphene::chain::contract_address_type &a) const
-        {
-            return (uint64_t(a.addr._hash[0]) << 32) | uint64_t(a.addr._hash[0]);
-        }
-    };
 }
 
 #include <fc/reflect/reflect.hpp>
-FC_REFLECT(graphene::chain::address, (addr))
-FC_REFLECT(graphene::chain::contract_address_type, (addr))
+FC_REFLECT(graphene::chain::address, (version)(addr))
 
