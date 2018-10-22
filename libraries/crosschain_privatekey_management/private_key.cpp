@@ -19,10 +19,10 @@
 #include <assert.h>
 #include <graphene/utilities/hash.hpp>
 #include <list>
-#include <libethcore/TransactionBase.h>
 #include <libdevcore/DevCoreCommonJS.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/FixedHash.h>
+#include <libethcore/TransactionBase.h>
 namespace graphene { namespace privatekey_management {
 
 

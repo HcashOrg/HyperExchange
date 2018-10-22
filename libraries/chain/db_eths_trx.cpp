@@ -72,7 +72,7 @@ namespace graphene {
 				}
 				else if (op_type == operation::tag<miner_generate_multi_asset_operation>::value) {
 					auto& multi_account_create_db = get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
-					auto& multi_account_create_range = get_index_type<eth_multi_account_trx_index>().indices().get<by_pre_trx_id>().equal_range(pre_trx_id);
+					const auto& multi_account_create_range = get_index_type<eth_multi_account_trx_index>().indices().get<by_pre_trx_id>().equal_range(pre_trx_id);
 					auto with_sign_trx_iter = multi_account_create_db.find(pre_trx_id);
 					auto without_sign_iter = multi_account_create_db.find(with_sign_trx_iter->multi_account_pre_trx_id);
 					modify(*with_sign_trx_iter, [&](eth_multi_account_trx_object& obj) {

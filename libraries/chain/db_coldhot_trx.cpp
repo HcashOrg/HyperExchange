@@ -452,7 +452,8 @@ namespace graphene {
 							fc::mutable_variant_object multi_obj;
 							multi_obj.set("signer", address_to_sign_eth_trx);
 							multi_obj.set("source_trx", coldhot_op.coldhot_trx_original_chain);
-							trx_op.coldhot_trx_original_chain = crosschain_plugin->merge_multisig_transaction(fc::variant_object(multi_obj), guard_signs);
+							auto temp_obj = fc::variant_object(multi_obj);
+							trx_op.coldhot_trx_original_chain = crosschain_plugin->merge_multisig_transaction(temp_obj, guard_signs);
 						}	FC_CAPTURE_AND_LOG((0));
 					}
 					else {

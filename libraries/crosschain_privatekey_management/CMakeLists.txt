@@ -16,7 +16,7 @@ endif()
 # build library crosschain_privatekey_management
 message(STATUS "build library crosschain_privatekey_management")
 
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign)
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/ )
 message(STATUS "HEADERS: ${HEADERS}")
 
 set(sources
@@ -75,13 +75,12 @@ target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain   
 															   )
 ELSE()
 	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
-	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign.a
-	$ENV{ETH_CROSSCHAIN_PROJECT}/cryptlib.a
+	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a
+	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a
 	)
 ENDIF()
 target_include_directories( crosschain_privatekey_management
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign 
-							PRIVATE ${BOOST_INCLUDE_DIR}/)
+                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/ PRIVATE ${BOOST_INCLUDE_DIR}/)
 	
 
 
@@ -98,9 +97,9 @@ ELSE()
  target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_privatekey_management ${Boost_LIBRARIES}
                                                             $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a
                                                             $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
-															$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign.a
-															$ENV{ETH_CROSSCHAIN_PROJECT}/cryptlib.a
-								)
+							    $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a
+							    $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a
+)
 
 ENDIF()
 
