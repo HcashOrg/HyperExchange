@@ -229,6 +229,6 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const senator_determine_block_payment_operation& o);
 	   void_result do_apply(const senator_determine_block_payment_operation& o);
    };
-
+   
 
 } } // graphene::chain

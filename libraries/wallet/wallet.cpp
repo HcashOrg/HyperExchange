@@ -1600,7 +1600,7 @@ public:
 			   auto cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
-
+		  
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
@@ -1662,7 +1662,6 @@ public:
 		   {
 			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
-
 		   }
 		   auto& abi = cont.code.abi;
 		   if (abi.find(contract_api) == abi.end())
@@ -1718,7 +1717,6 @@ public:
 		   {
 			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
-
 		   }
 		   auto& abi = cont.code.offline_abi;
 		   if (abi.find(contract_api) == abi.end())
@@ -5054,11 +5052,10 @@ public:
 	  }
 	  committee_member_update_global_parameters_operation update_op;
 	  update_op.new_parameters = new_params;
-	
+
 	  proposal_create_operation prop_op;
 	  prop_op.proposer = get_account(proposing_account).get_id();
 	  prop_op.expiration_time = expiration_time;
-
 	  prop_op.fee_paying_account = get_account(proposing_account).addr;
 	  prop_op.proposed_ops.emplace_back(update_op);
 	  current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
@@ -5125,7 +5122,7 @@ public:
       proposal_create_operation prop_op;
 	  auto guard_obj = get_guard_member(proposing_account);
 	  prop_op.proposer = get_account(proposing_account).get_id();
-      prop_op.fee_paying_account = get_account(proposing_account).addr;
+	  prop_op.fee_paying_account = get_account(proposing_account).addr;
       prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
       prop_op.proposed_ops.emplace_back( update_op );
       current_params.current_fees->set_fee( prop_op.proposed_ops.back().op );
@@ -6897,10 +6894,10 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
 	catch (fc::exception& e)
-    {
-        auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
+	{
+		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
-    }
+	}
     return my->invoke_contract_testing(caller_account_name, contract_address, contract_api, contract_arg);
 
 }
@@ -6969,7 +6966,6 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	}
 	catch (fc::exception& e)
 	{
-
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}

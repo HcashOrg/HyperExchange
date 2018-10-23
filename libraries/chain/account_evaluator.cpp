@@ -500,11 +500,11 @@ void_result account_create_multisignature_address_evaluator::do_apply(const acco
 		}
 		else
 		{
-		d.create<balance_object>([&](balance_object& obj) {
-			obj.balance = asset();
-			obj.owner = o.multisignature;
-			obj.multisignatures = temp;
-		});
+			d.create<balance_object>([&](balance_object& obj) {
+				obj.balance = asset();
+				obj.owner = o.multisignature;
+				obj.multisignatures = temp;
+			});
 		}
 		
 		return void_result();

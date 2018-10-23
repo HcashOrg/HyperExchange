@@ -172,8 +172,8 @@ struct sign_state
 					{
 						provided_signatures[item] = true;
 						has_signed++;
+					}
 				}
-			}
 			}
 			if (has_signed >= required && required != 0)
 				return true;

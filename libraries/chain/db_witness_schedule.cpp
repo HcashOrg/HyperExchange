@@ -143,8 +143,8 @@ share_type database::get_miner_pay_per_block(uint32_t block_num) {
 		if (block_num <= item.first)
 			return item.second;
 	}
-		return 0;
-	}
+	return 0;
+}
 
 asset database::get_fee_from_block(const signed_block& b)
 {

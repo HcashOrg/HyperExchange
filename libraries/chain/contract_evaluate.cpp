@@ -123,7 +123,7 @@ namespace graphene {
 				auto register_fee = count_contract_register_fee(o.contract_code);
 
 				
-                gas_count = gas_used_counts;
+                gas_count = gas_used_counts;	
 				new_contract.contract_address = origin_op.contract_id;
 				string fid_str = string(new_contract.contract_address);
 				std::cout << fid_str << "\n";
@@ -235,7 +235,7 @@ namespace graphene {
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
-				FC_ASSERT(operation_type::contract_api_check(o));
+			FC_ASSERT(operation_type::contract_api_check(o));
 			
 			const auto &contract = d.get_contract(o.contract_id);
 			this->caller_address = std::make_shared<address>(o.caller_addr);
@@ -256,7 +256,7 @@ namespace graphene {
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke(o.contract_api);
                     gas_count = gas_used_counts;
-						FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
+					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
                     //gas_fees.push_back(asset(required, asset_id_type(0)));
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
@@ -579,7 +579,7 @@ namespace graphene {
 			try {
 				auto temp = graphene::chain::address(contract_id);
 				if (temp.version != addressVersion::CONTRACT)
-				return nullptr;
+					return nullptr;
 				contract_addr = temp;
 			}
 			catch (fc::exception& e)

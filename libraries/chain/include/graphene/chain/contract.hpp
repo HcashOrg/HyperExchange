@@ -37,7 +37,7 @@ namespace graphene {
                     return false;
                 }
                 return (int64_t)x.second.instance < (int64_t)(y.second.instance);
-            }
+            }			
 		};
 
 		struct comparator_for_string {
