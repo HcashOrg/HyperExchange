@@ -327,7 +327,6 @@ namespace graphene {
 			auto tx_combine_sign_iter = tx_db_objs.find(trx_state->_trx->id());
 			FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "without sign tx exist error");
 			FC_ASSERT(tx_combine_sign_iter == tx_db_objs.end(), "combine sign tx has create");
-			FC_ASSERT(o.cross_chain_trx.size() != 0,"crosschain obj is empty");
 			for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 				auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 				FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
