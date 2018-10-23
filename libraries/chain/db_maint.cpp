@@ -515,6 +515,7 @@ void database::process_bonus()
 			}
 			else if (iter->owner.version == addressVersion::CONTRACT)
 			{
+			    iter++;
 				continue;
 			}
 			sum += iter->amount();
