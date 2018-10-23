@@ -6154,13 +6154,24 @@ bool wallet_api::import_key(string account_name_or_id, string wif_key)
 bool wallet_api::import_crosschain_key(string wif_key, string symbol)
 {
 	FC_ASSERT(!is_locked());
-	// backup wallet
-	fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
-	if (!optional_private_key)
-		FC_THROW("Invalid private key");
-	string shorthash = detail::address_to_shorthash(optional_private_key->get_public_key());
+	string shorthash;
+	if (symbol == "ETH" || symbol.find("ERC") != symbol.npos)
+	{
+		auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		FC_ASSERT(ptr != nullptr, "plugin doesnt exist.");
+		ptr->import_private_key(wif_key);
+		FC_ASSERT(ptr->get_private_key() != fc::ecc::private_key());
+		auto addr = ptr->get_address();
+		shorthash = addr;
+	}
+	else {
+		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+		if (!optional_private_key)
+			FC_THROW("Invalid private key");
+		shorthash = detail::address_to_shorthash(optional_private_key->get_public_key());
+	}
+	// backup wallet	
 	copy_wallet_file("before-import-key-" + shorthash);
-
 	if (my->import_crosschain_key(wif_key, symbol))
 	{
 		save_wallet_file();
