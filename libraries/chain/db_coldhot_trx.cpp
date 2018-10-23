@@ -196,7 +196,7 @@ namespace graphene {
 		
 			auto coldhot_uncreate_range = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_uncreate);
 			auto check_point_1 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_without_sign_trx_create);
-			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_sign_trx);
+			auto check_point_2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_combine_trx_create);
 			auto check_point_3 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_need_sign);
 			auto check_point_4 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_sign);
 			flat_set<string> asset_set;
@@ -252,6 +252,11 @@ namespace graphene {
 				if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>::value)
 				{
 					auto coldhot_op = op.get<coldhot_transfer_with_sign_operation>();
+					asset_set.insert(coldhot_op.asset_symbol);
+				}
+				else if (op.which() == operation::tag<coldhot_transfer_combine_sign_operation>::value)
+				{
+					auto coldhot_op = op.get<coldhot_transfer_combine_sign_operation>();
 					asset_set.insert(coldhot_op.asset_symbol);
 				}
 
