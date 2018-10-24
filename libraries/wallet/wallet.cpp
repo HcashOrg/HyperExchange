@@ -4368,7 +4368,14 @@ public:
 			   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
 			   auto key_ptr = prk_ptr->import_private_key(wif_key);
 			   FC_ASSERT(key_ptr.valid());
-			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   string siging;
+			   if (withop_without_sign.asset_symbol == "ETH" || withop_without_sign.asset_symbol.find("ERC") != withop_without_sign.asset_symbol.npos) {
+				   siging = hdl->sign_multisig_transaction(fc::variant_object("get_param_hash", withop_without_sign.withdraw_source_trx), prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   }
+			   else {
+				   siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   }
+			  // string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
