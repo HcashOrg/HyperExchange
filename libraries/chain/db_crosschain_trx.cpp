@@ -266,7 +266,7 @@ namespace graphene {
 				auto coldhot_check2 = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_state>().equal_range(coldhot_trx_state::coldhot_eth_guard_sign);
 				//need to check if can be created
 				auto check_point_1 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_without_sign_trx_create);
-				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_transaction_confirm);
+				auto check_point_2 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_combine_trx_create);
 				auto check_point_3 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_need_sign);
 				auto check_point_4 = get_index_type<crosschain_trx_index>().indices().get<by_transaction_stata>().equal_range(withdraw_eth_guard_sign);
 				flat_set<string> asset_set;
@@ -304,6 +304,11 @@ namespace graphene {
 					if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
 					{
 						auto withop = op.get<crosschain_withdraw_with_sign_operation>();
+						asset_set.insert(withop.asset_symbol);
+					}
+					else if (op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>().value)
+					{
+						auto withop = op.get<crosschain_withdraw_combine_sign_operation>();
 						asset_set.insert(withop.asset_symbol);
 					}
 

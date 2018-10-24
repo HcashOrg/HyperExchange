@@ -4368,7 +4368,14 @@ public:
 			   auto wif_key = _crosschain_keys[current_multi_obj->new_address_hot].wif_key;
 			   auto key_ptr = prk_ptr->import_private_key(wif_key);
 			   FC_ASSERT(key_ptr.valid());
-			   string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   string siging;
+			   if (withop_without_sign.asset_symbol == "ETH" || withop_without_sign.asset_symbol.find("ERC") != withop_without_sign.asset_symbol.npos) {
+				   siging = hdl->sign_multisig_transaction(fc::variant_object("get_param_hash", withop_without_sign.withdraw_source_trx), prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   }
+			   else {
+				   siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
+			   }
+			  // string siging = hdl->sign_multisig_transaction(withop_without_sign.withdraw_source_trx, prk_ptr, account_pair_obj->redeemScript_hot, false);
 			   crosschain_withdraw_with_sign_operation trx_op;
 			   const account_object & account_obj = get_account(guard);
 			   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
@@ -6154,13 +6161,24 @@ bool wallet_api::import_key(string account_name_or_id, string wif_key)
 bool wallet_api::import_crosschain_key(string wif_key, string symbol)
 {
 	FC_ASSERT(!is_locked());
-	// backup wallet
-	fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
-	if (!optional_private_key)
-		FC_THROW("Invalid private key");
-	string shorthash = detail::address_to_shorthash(optional_private_key->get_public_key());
+	string shorthash;
+	if (symbol == "ETH" || symbol.find("ERC") != symbol.npos)
+	{
+		auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		FC_ASSERT(ptr != nullptr, "plugin doesnt exist.");
+		ptr->import_private_key(wif_key);
+		FC_ASSERT(ptr->get_private_key() != fc::ecc::private_key());
+		auto addr = ptr->get_address();
+		shorthash = addr;
+	}
+	else {
+		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+		if (!optional_private_key)
+			FC_THROW("Invalid private key");
+		shorthash = detail::address_to_shorthash(optional_private_key->get_public_key());
+	}
+	// backup wallet	
 	copy_wallet_file("before-import-key-" + shorthash);
-
 	if (my->import_crosschain_key(wif_key, symbol))
 	{
 		save_wallet_file();
