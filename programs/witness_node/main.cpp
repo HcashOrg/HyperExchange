@@ -97,11 +97,7 @@ int main(int argc, char** argv) {
          std::cout << app_options << "\n";
          return 0;
       }
-	  bool b_testnet = false;
-	  if (options.count("testnet"))
-	  {
-		  b_testnet = true;
-	  }
+
       fc::path data_dir;
       if( options.count("data-dir") )
       {
@@ -109,10 +105,7 @@ int main(int argc, char** argv) {
          if( data_dir.is_relative() )
             data_dir = fc::current_path() / data_dir;
       }
-	  if (b_testnet)
-	  {
-		  data_dir = data_dir/"testnet";
-	  }
+
       fc::path config_ini_path = data_dir / "config.ini";
       if( fc::exists(config_ini_path) )
       {

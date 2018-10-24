@@ -420,23 +420,12 @@ namespace detail {
             else
             {
                std::string egenesis_json;
-			   if (_options->count("testnet")) 
-			   {
-				   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
-				   FC_ASSERT(egenesis_json != "");
-				   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
-				   auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
-				   genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
-				   std::cout<<"start testnet"<<std::endl;
-				   return genesis;
-			   }
-			   graphene::egenesis::compute_egenesis_json(egenesis_json);
-			   FC_ASSERT(egenesis_json != "");
-			   FC_ASSERT(graphene::egenesis::get_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
-			   auto genesis = fc::json::from_string(egenesis_json).as<genesis_state_type>();
-			   genesis.initial_chain_id = fc::sha256::hash(egenesis_json);
-			   return genesis;
-
+               graphene::egenesis::compute_egenesis_json( egenesis_json );
+               FC_ASSERT( egenesis_json != "" );
+               FC_ASSERT( graphene::egenesis::get_egenesis_json_hash() == fc::sha256::hash( egenesis_json ) );
+               auto genesis = fc::json::from_string( egenesis_json ).as<genesis_state_type>();
+               genesis.initial_chain_id = fc::sha256::hash( egenesis_json );
+               return genesis;
             }
          };
 
@@ -1059,8 +1048,7 @@ void application::set_program_options(boost::program_options::options_descriptio
           "invalid file is found, it will be replaced with an example Genesis State.")
          ("replay-blockchain", "Rebuild object graph by replaying all blocks")
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
-		 ("force-validate", "Force validation of all transactions")
-	     ("testnet", "Start for testnet")
+         ("force-validate", "Force validation of all transactions")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
          ;
    command_line_options.add(_cli_options);

@@ -48,20 +48,4 @@ void compute_egenesis_json( std::string& result );
  */
 fc::sha256 get_egenesis_json_hash();
 
-/**
- * Get the chain ID of the built-in egenesis, or chain_id_type()
- * if none was compiled in.
- */
-graphene::chain::chain_id_type get_testnet_egenesis_chain_id();
-
-/**
- * Get the egenesis JSON, or the empty string if none was compiled in.
- */
-void compute_testnet_egenesis_json(std::string& result);
-
-/**
- * The file returned by compute_egenesis_json() should have this hash.
- */
-fc::sha256 get_testnet_egenesis_json_hash();
-
 } } // graphene::egenesis
