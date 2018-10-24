@@ -28,10 +28,18 @@ static const char genesis_json_array[${genesis_json_array_height}$][${genesis_js
 {
 ${genesis_json_array}$
 };
+static const char testnet_genesis_json_array[${testnet_genesis_json_array_height}$][${testnet_genesis_json_array_width}$+1] =
+{
+${testnet_genesis_json_array}$
+};
 
 chain_id_type get_egenesis_chain_id()
 {
    return chain_id_type( "${chain_id}$" );
+}
+chain_id_type get_testnet_egenesis_chain_id()
+{
+   return chain_id_type( "${testnet_chain_id}$" );
 }
 
 void compute_egenesis_json( std::string& result )
@@ -45,10 +53,26 @@ void compute_egenesis_json( std::string& result )
    result.append( std::string( genesis_json_array[ ${genesis_json_array_height}$-1 ] ) );
    return;
 }
+void compute_testnet_egenesis_json( std::string& result )
+{
+   result.reserve( ${testnet_genesis_json_length}$ );
+   result.resize(0);
+   for( size_t i=0; i<${testnet_genesis_json_array_height}$-1; i++ )
+   {
+      result.append( testnet_genesis_json_array[i], ${testnet_genesis_json_array_width}$ );
+   }
+   result.append( std::string( testnet_genesis_json_array[ ${testnet_genesis_json_array_height}$-1 ] ) );
+   return;
+}
 
 fc::sha256 get_egenesis_json_hash()
 {
    return fc::sha256( "${genesis_json_hash}" );
+}
+
+fc::sha256 get_testnet_egenesis_json_hash()
+{
+   return fc::sha256( "${testnet_genesis_json_hash}" );
 }
 
 } }
