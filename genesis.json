@@ -608,96 +608,96 @@
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
   "initial_miner_candidates": [{
-      "owner_name": "miner0",
+      "owner_name": "citizen0",
       "block_signing_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC"
     },{
-      "owner_name": "miner1",
+      "owner_name": "citizen1",
       "block_signing_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA"
     },{
-      "owner_name": "miner2",
+      "owner_name": "citizen2",
       "block_signing_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD"
     },{
-      "owner_name": "miner3",
+      "owner_name": "citizen3",
       "block_signing_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2"
     },{
-      "owner_name": "miner4",
+      "owner_name": "citizen4",
       "block_signing_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn"
     },{
-      "owner_name": "miner5",
+      "owner_name": "citizen5",
       "block_signing_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca"
     },{
-      "owner_name": "miner6",
+      "owner_name": "citizen6",
       "block_signing_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14"
     },{
-      "owner_name": "miner7",
+      "owner_name": "citizen7",
       "block_signing_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87"
     },{
-      "owner_name": "miner8",
+      "owner_name": "citizen8",
       "block_signing_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj"
     },{
-      "owner_name": "miner9",
+      "owner_name": "citizen9",
       "block_signing_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY"
     },{
-      "owner_name": "miner10",
+      "owner_name": "citizen10",
       "block_signing_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5"
     },{
-      "owner_name": "miner11",
+      "owner_name": "citizen11",
       "block_signing_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN"
     },{
-      "owner_name": "miner12",
+      "owner_name": "citizen12",
       "block_signing_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7"
     },{
-      "owner_name": "miner13",
+      "owner_name": "citizen13",
       "block_signing_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm"
     },{
-      "owner_name": "miner14",
+      "owner_name": "citizen14",
       "block_signing_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N"
     },{
-      "owner_name": "miner15",
+      "owner_name": "citizen15",
       "block_signing_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d"
     },{
-      "owner_name": "miner16",
+      "owner_name": "citizen16",
       "block_signing_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN"
     },{
-      "owner_name": "miner17",
+      "owner_name": "citizen17",
       "block_signing_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75"
     },{
-      "owner_name": "miner18",
+      "owner_name": "citizen18",
       "block_signing_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g"
     },{
-      "owner_name": "miner19",
+      "owner_name": "citizen19",
       "block_signing_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq"
     },{
-      "owner_name": "miner20",
+      "owner_name": "citizen20",
       "block_signing_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG"
     },{
-      "owner_name": "miner21",
+      "owner_name": "citizen21",
       "block_signing_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V"
     },{
-      "owner_name": "miner22",
+      "owner_name": "citizen22",
       "block_signing_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ"
     },{
-      "owner_name": "miner23",
+      "owner_name": "citizen23",
       "block_signing_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8"
     },{
-      "owner_name": "miner24",
+      "owner_name": "citizen24",
       "block_signing_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75"
     }
   ],
   "initial_guard_candidates": [{
-      "owner_name": "guard0"
+      "owner_name": "senator0"
     },{
-      "owner_name": "guard1"
+      "owner_name": "senator1"
     },{
-      "owner_name": "guard2"
+      "owner_name": "senator2"
     },{
-      "owner_name": "guard3"
+      "owner_name": "senator3"
     },{
-      "owner_name": "guard4"
+      "owner_name": "senator4"
     },{
-      "owner_name": "guard5"
+      "owner_name": "senator5"
     },{
-      "owner_name": "guard6"
+      "owner_name": "senator6"
     }
   ],
   "initial_worker_candidates": [],
