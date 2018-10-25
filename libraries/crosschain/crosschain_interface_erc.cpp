@@ -717,10 +717,32 @@ namespace graphene {
 				FC_ASSERT((to[0] == '0'&& to[1] == 'x'));
 				msg_address += erc::FillZero(std::string(to.begin() + 2, to.end()),false);
 			}
+			double all_amount = 0.0;
 			for (auto iter = dest_info.begin(); iter != dest_info.end(); ++iter){
 				std::string amount = erc::TurnToEthAmount(iter->second, erc_real_precision);
+				all_amount += fc::to_double(iter->second);
 				FC_ASSERT(amount.size() <= 64, "erc amount length error");
 				msg_amount += erc::FillZero(erc::ConvertPre(10,16,amount),false);
+			}
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Address.GetBalance\" ,\
+				\"params\" : {\"chainId\":\""<< chain_type <<"\" ,\"addr\": \"" << contract_addr << "\"}}";
+			fc::http::connection_sync conn;
+			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+
+				FC_ASSERT(resp.contains("result"));
+				FC_ASSERT(resp["result"].get_object().contains("balance"));
+				FC_ASSERT(all_amount <= resp["result"].get_object()["balance"].as_double(), "need cold change");
+			}
+			else {
+				FC_THROW("no balance");
 			}
 			std::ostringstream response_body;
 			//fc::mutable_variant_object mobj;
