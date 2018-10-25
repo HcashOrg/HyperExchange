@@ -262,8 +262,8 @@ __pycache__/
 /CMakeCache.txt
 /run_cmake_x64.bat
 /setenv_x64.bat
-out/
-libraries/crosschain_privatekey_management/
 *.patch
 *.diff
 *.rej
+/2017bin
+/eth_test
