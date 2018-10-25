@@ -79,7 +79,8 @@ int main( int argc, char** argv )
          ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for wallet HTTP RPC to listen on")
          ("daemon,d", "Run the wallet in daemon mode" )
          ("wallet-file,w", bpo::value<string>()->implicit_value("wallet.json"), "wallet to load")
-         ("chain-id", bpo::value<string>(), "chain ID to connect to");
+		 ("chain-id", bpo::value<string>(), "chain ID to connect to")
+		 ("testnet", "Start for testnet");
 
       bpo::variables_map options;
 
@@ -91,7 +92,12 @@ int main( int argc, char** argv )
          return 0;
       }
 
+
       fc::path data_dir;
+	  if (options.count("testnet"))
+	  {
+		  data_dir /= "testnet";
+	  }
       fc::logging_config cfg;
       fc::path log_dir = data_dir / "logs";
 
@@ -131,8 +137,12 @@ int main( int argc, char** argv )
       //    designed.
       //
       wallet_data wdata;
-
-      fc::path wallet_file( options.count("wallet-file") ? options.at("wallet-file").as<string>() : "wallet.json");
+	  std::string wallet_file_name = "wallet.json";
+	  if (options.count("testnet"))
+	  {
+		  wallet_file_name = "wallet_testnet.json";
+	  }
+      fc::path wallet_file( options.count("wallet-file") ? options.at("wallet-file").as<string>() : wallet_file_name);
       if( fc::exists( wallet_file ) )
       {
          wdata = fc::json::from_file( wallet_file ).as<wallet_data>();
@@ -153,7 +163,12 @@ int main( int argc, char** argv )
             wdata.chain_id = chain_id_type(options.at("chain-id").as<std::string>());
             std::cout << "Starting a new wallet with chain ID " << wdata.chain_id.str() << " (from CLI)\n";
          }
-         else
+         else if (options.count("testnet"))
+		 {
+			 wdata.chain_id = graphene::egenesis::get_testnet_egenesis_chain_id();
+			 std::cout << "Starting a new wallet with chain ID " << wdata.chain_id.str() << " (from testnet_egenesis)\n";
+		 }
+		 else
          {
             wdata.chain_id = graphene::egenesis::get_egenesis_chain_id();
             std::cout << "Starting a new wallet with chain ID " << wdata.chain_id.str() << " (from egenesis)\n";
