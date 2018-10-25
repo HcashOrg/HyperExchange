@@ -230,6 +230,7 @@ void load_genesis(
 {
 	if (options.count("testnet-genesis-json"))
 	{
+		graphene::chain::address::testnet_mode = true;
 		fc::path genesis_json_filename = get_path(options, "testnet-genesis-json");
 		std::cerr << "embed_genesis:  Reading genesis from file " << genesis_json_filename.preferred_string() << "\n";
 		tinfo.genesis_json = std::string();
@@ -237,11 +238,15 @@ void load_genesis(
 	}
    if( options.count("genesis-json") )
    {
+
+	  graphene::chain::address::testnet_mode = false;
       fc::path genesis_json_filename = get_path( options, "genesis-json" );
       std::cerr << "embed_genesis:  Reading genesis from file " << genesis_json_filename.preferred_string() << "\n";
       info.genesis_json = std::string();
       read_file_contents( genesis_json_filename, *info.genesis_json );
    }
+
+   graphene::chain::address::testnet_mode = false;
    //else
    //   info.genesis = graphene::app::detail::create_example_genesis();
 
@@ -286,8 +291,11 @@ int main( int argc, char** argv )
    egenesis_info info,tinfo;
 
    load_genesis( options, info ,tinfo);
+   graphene::chain::address::testnet_mode = false;
    info.fillin();
+   graphene::chain::address::testnet_mode = true;
    tinfo.fillin();
+   graphene::chain::address::testnet_mode = false;
    fc::mutable_variant_object template_context = fc::mutable_variant_object()
       ( "generated_file_banner", generated_file_banner )
 	   ("chain_id", (*info.chain_id).str())
