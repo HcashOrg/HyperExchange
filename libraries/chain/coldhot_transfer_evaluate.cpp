@@ -51,6 +51,8 @@ namespace graphene {
 		void_result coldhot_transfer_without_sign_evaluate::do_evaluate(const coldhot_transfer_without_sign_operation& o) {
 			try {
 				database& d = db();
+				auto obj = db().get_asset(o.asset_symbol);
+				FC_ASSERT(obj.valid());
 				//check coldhot transfer trx whether exist
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(o.coldhot_trx_id);
@@ -67,7 +69,22 @@ namespace graphene {
 				if (!crosschain_handle->valid_config())
 					return void_result();
 				crosschain_trx created_trx;
-				if ((o.asset_symbol.find("ETH") != o.asset_symbol.npos) || (o.asset_symbol.find("ERC") != o.asset_symbol.npos))
+				if (o.asset_symbol.find("ERC") != o.asset_symbol.npos)
+				{
+
+					fc::mutable_variant_object mul_obj;
+					auto descrip = obj->options.description;
+					auto precision_pos = descrip.find('|');
+					int64_t erc_precision = 18;
+					if (precision_pos != descrip.npos)
+					{
+						erc_precision = fc::to_int64(descrip.substr(precision_pos + 1));
+					}
+					mul_obj.set("precision", erc_precision);
+					mul_obj.set("turn_without_eth_sign", o.coldhot_trx_original_chain);
+					created_trx = crosschain_handle->turn_trxs(fc::variant_object(mul_obj));
+				}
+				else if (o.asset_symbol.find("ETH") != o.asset_symbol.npos)
 				{
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
 				}
