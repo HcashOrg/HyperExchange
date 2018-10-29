@@ -79,6 +79,7 @@
 #include <graphene/chain/pay_back_object.hpp>
 #include <graphene/chain/pay_back_evaluator.hpp>
 #include <graphene/chain/referendum_evaluator.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/eth_seri_record.hpp>
 #include <graphene/chain/eth_seri_record_evaluate.hpp>
 
@@ -352,6 +353,7 @@ void database::initialize_indexes()
    add_index <primary_index<guarantee_index                               > >();
    add_index <primary_index<contract_history_object_index                               > >();
    add_index<primary_index<eth_multi_account_trx_index>>();
+   add_index<primary_index<referendum_index>>();
   
 }
 
