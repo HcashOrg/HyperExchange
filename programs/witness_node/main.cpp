@@ -101,6 +101,7 @@ int main(int argc, char** argv) {
 	  if (options.count("testnet"))
 	  {
 		  b_testnet = true;
+		  chain::address::testnet_mode = true;
 	  }
       fc::path data_dir;
       if( options.count("data-dir") )

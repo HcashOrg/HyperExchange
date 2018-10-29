@@ -437,7 +437,7 @@ vector<address> database_api::get_contract_addresses_by_owner_address(const addr
 vector<string>  database_api::get_contract_addresses_by_owner(const std::string& addr)const
 {
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -463,7 +463,7 @@ vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::s
 {
     vector<ContractEntryPrintable> res;
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -483,7 +483,7 @@ vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::s
 vector<contract_hash_entry> database_api::get_contracts_hash_entry_by_owner(const std::string& addr) const
 {
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
