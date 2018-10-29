@@ -128,8 +128,11 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto iter = guard_index.find(proposer);
    FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
 
-   for( const op_wrapper& op : o.proposed_ops )
-      _proposed_trx.operations.push_back(op.op);
+   for (const op_wrapper& op : o.proposed_ops)
+   {
+	   _proposed_trx.operations.push_back(op.op);
+	   evaluate(op.op);
+   }
    _proposed_trx.validate();
 
    return void_result();

@@ -131,6 +131,15 @@ struct get_impacted_account_visitor
          add_authority_accounts( _impacted, o );
    }
 
+   void operator()(const referendum_create_operation& op)
+   {
+	   vector<authority> other;
+	   for (const auto& proposed_op : op.proposed_ops)
+		   operation_get_required_authorities(proposed_op.op, _impacted, _impacted, other);
+	   for (auto& o : other)
+		   add_authority_accounts(_impacted, o);
+   }
+
    void operator()( const proposal_update_operation& op ) {}
    void operator()( const proposal_delete_operation& op ) {}
 

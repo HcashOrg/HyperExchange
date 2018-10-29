@@ -129,6 +129,7 @@ namespace graphene { namespace chain {
       call_order_object_type,
       custom_object_type,
       proposal_object_type,
+	  referendum_object_type,
       operation_history_object_type,
       withdraw_permission_object_type,
       vesting_balance_object_type,
@@ -197,6 +198,7 @@ namespace graphene { namespace chain {
    class call_order_object;
    class custom_object;
    class proposal_object;
+   class referendum_object;
    class operation_history_object;
    class withdraw_permission_object;
    class vesting_balance_object;
@@ -228,6 +230,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, call_order_object_type,         call_order_object>            call_order_id_type;
    typedef object_id< protocol_ids, custom_object_type,             custom_object>                custom_id_type;
    typedef object_id< protocol_ids, proposal_object_type,           proposal_object>              proposal_id_type;
+   typedef object_id<protocol_ids,  referendum_object_type,         referendum_object>            referendum_id_type;
    typedef object_id< protocol_ids, operation_history_object_type,  operation_history_object>     operation_history_id_type;
    typedef object_id< protocol_ids, withdraw_permission_object_type,withdraw_permission_object>   withdraw_permission_id_type;
    typedef object_id< protocol_ids, vesting_balance_object_type,    vesting_balance_object>       vesting_balance_id_type;
@@ -414,6 +417,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (call_order_object_type)
                  (custom_object_type)
                  (proposal_object_type)
+	             (referendum_object_type)
                  (operation_history_object_type)
                  (withdraw_permission_object_type)
                  (vesting_balance_object_type)
