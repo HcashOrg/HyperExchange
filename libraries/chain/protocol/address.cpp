@@ -93,6 +93,8 @@ namespace graphene {
 			string prefix = GRAPHENE_ADDRESS_PREFIX;
 			if (testnet_mode)
 				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+			if (*this == address())
+				return "InvalidAddress";
 			fc::array<char, 25> bin_addr;
 			memcpy((char*)&bin_addr, (char*)&version, sizeof(version));
 			memcpy((char*)&bin_addr + 1, (char*)&addr, sizeof(addr));
