@@ -2322,9 +2322,7 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
-<<<<<<< HEAD
         (lightwallet_get_refblock_info)
-=======
         (create_multisignature_address)
 		(get_first_contract_address)
 	    (get_pubkey_from_priv)
@@ -2336,5 +2334,4 @@ FC_API( graphene::wallet::wallet_api,
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
->>>>>>> 1b74bd27c63bf418eff12df93cb119a9e11bd3c5
       )
