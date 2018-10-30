@@ -990,13 +990,17 @@ class wallet_api
 		  bool broadcast = false);
 
 
-       /** broadcast a transaction to the chain.
+      /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
       * @returns the transaction id
       */
       string lightwallet_broadcast(signed_transaction trx);
 
-
+      /**
+       *  get referenced block info for light wallet 
+       *  @returns ref_block_num & ref_block_prefix
+       */
+      string lightwallet_get_refblock_info();
 
 
 	  /** Transfer an amount from one address to another.
@@ -2298,4 +2302,5 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
+        (lightwallet_get_refblock_info)
       )

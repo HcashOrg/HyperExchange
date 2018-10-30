@@ -4354,6 +4354,22 @@ public:
       
    }
 
+   string lightwallet_get_refblock_info()
+   {
+       try {
+
+         auto dyn_props = get_dynamic_global_properties();
+         transaction tmp;
+         tmp.set_reference_block(dyn_props.head_block_id);
+        
+         auto res = fc::to_string(tmp.ref_block_num);
+         res += "," + fc::to_string(tmp.ref_block_prefix);
+         return res;
+
+       }FC_CAPTURE_AND_RETHROW()
+   }
+
+
 
 
    full_transaction transfer(string from, string to, string amount,
@@ -5910,6 +5926,11 @@ full_transaction wallet_api::transfer_to_address(string from, string to, string 
 string wallet_api::lightwallet_broadcast(signed_transaction trx)
 {
     return my->lightwallet_broadcast(trx);
+}
+
+string wallet_api::lightwallet_get_refblock_info()
+{
+    return my->lightwallet_get_refblock_info();
 }
 
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
