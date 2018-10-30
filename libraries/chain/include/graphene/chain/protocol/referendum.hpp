@@ -71,13 +71,14 @@ namespace graphene { namespace chain {
        struct fee_parameters_type { 
           uint64_t fee            = 50 * GRAPHENE_HXCHAIN_PRECISION;
        };
-	   uint32_t type = vote_id_type::committee;
        asset              fee;
 	   account_id_type    proposer;
        address            fee_paying_account;
        vector<op_wrapper> proposed_ops;
+	   optional<guarantee_object_id_type> guarantee_id;
        extensions_type    extensions;
 
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
        address fee_payer()const { return fee_paying_account; }
        void            validate()const;
        share_type calculate_fee(const fee_parameters_type& k)const { return fee.amount; }
@@ -87,9 +88,32 @@ namespace graphene { namespace chain {
 	   }
    };
 
+   
+   struct referendum_update_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_HXCHAIN_PRECISION;
+	   };
+
+	   address            fee_paying_account;
+	   asset                      fee;
+	   referendum_id_type          referendum;
+	   flat_set<address>  key_approvals_to_add;
+	   flat_set<address>  key_approvals_to_remove;
+	   extensions_type            extensions;
+
+	   address fee_payer()const { return fee_paying_account; }
+	   void            validate()const;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; };
+	   void get_required_authorities(vector<authority>& a)const;
+   };
   
 }} // graphene::chain
 
 FC_REFLECT( graphene::chain::referendum_create_operation::fee_parameters_type, (fee))
-FC_REFLECT( graphene::chain::referendum_create_operation,(type)(fee)(proposer)(fee_paying_account)
-            (proposed_ops)(extensions))
+FC_REFLECT(graphene::chain::referendum_update_operation::fee_parameters_type, (fee))
+
+FC_REFLECT( graphene::chain::referendum_create_operation,(fee)(proposer)(fee_paying_account)
+            (proposed_ops)(guarantee_id)(extensions))
+FC_REFLECT(graphene::chain::referendum_update_operation, (fee)(fee_paying_account)
+	(referendum)(key_approvals_to_add)(key_approvals_to_remove)(extensions))

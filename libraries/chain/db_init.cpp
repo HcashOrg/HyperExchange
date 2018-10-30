@@ -287,6 +287,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_eth_create_evaluator>();
    register_evaluator<eths_coldhot_guard_sign_final_evaluator>();
    register_evaluator< referendum_create_evaluator > ();
+   register_evaluator<referendum_update_evaluator>();
 }
 
 void database::initialize_indexes()

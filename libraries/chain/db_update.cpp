@@ -190,6 +190,25 @@ void database::clear_expired_proposals()
       }
       remove(proposal);
    }
+   const auto& referedum_expiration_index = get_index_type<referendum_index>().indices().get<by_expiration>();
+   while (!referedum_expiration_index.empty() && referedum_expiration_index.begin()->expiration_time <= head_block_time())
+   {
+	   const referendum_object& referedum = *referedum_expiration_index.begin();
+	   processed_transaction result;
+	   try {
+		   if (referedum.is_authorized_to_execute(*this))
+		   {
+			   result = push_referendum(referedum);
+			   continue;
+		   }
+	   }
+	   catch (const fc::exception& e) {
+		   elog("Failed to apply proposed transaction on its expiration. Deleting it.\n${proposal}\n${error}",
+			   ("referedum", referedum)("error", e.to_detail_string()));
+	   }
+	   remove(referedum);
+   }
+
 }
 
 /**

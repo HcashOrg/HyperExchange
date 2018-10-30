@@ -825,9 +825,33 @@ namespace graphene {
 		{
 			try {
 				std::string signs;
-				if (trx.contains("without_sign_trx_sign")|| trx.contains("get_param_hash")) {
+				if (trx.contains("without_sign_trx_sign")) {
+					std::string sender = sign_key->get_address();
+					std::ostringstream req_body;
+					req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Address.GetBalance\" ,\
+				\"params\" : {\"chainId\":\"eth\" ,\"addr\": \"" << sender << "\"}}";
+					fc::http::connection_sync conn;
+					conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+					auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+
+					if (response.status == fc::http::reply::OK)
+					{
+						auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+
+						FC_ASSERT(resp.contains("result"));
+						FC_ASSERT(resp["result"].get_object().contains("balance"));
+						FC_ASSERT(0.025 <= resp["result"].get_object()["balance"].as_double(), "sender doesnt have enough money to send this transaction");
+					}
+					else {
+						FC_THROW("no balance");
+					}
 					signs = sign_key->mutisign_trx(redeemScript, trx);
-					
+				}
+				else if (trx.contains("get_param_hash"))
+				{
+					signs = sign_key->mutisign_trx(redeemScript, trx);
 				}
 				else {
 					//TODO add turn trx to hash

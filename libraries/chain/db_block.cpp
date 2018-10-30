@@ -29,6 +29,7 @@
 #include <graphene/chain/operation_history_object.hpp>
 
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
@@ -270,6 +271,32 @@ processed_transaction database::validate_transaction( const signed_transaction& 
    return _apply_transaction( trx,testing );
 }
 
+processed_transaction database::push_referendum(const referendum_object& referendum)
+{
+	try {
+		transaction_evaluation_state eval_state(this);
+		eval_state._is_proposed_trx = true;
+		eval_state.operation_results.reserve(referendum.proposed_transaction.operations.size());
+		processed_transaction ptrx(referendum.proposed_transaction);
+		eval_state._trx = &ptrx;
+		size_t old_applied_ops_size = _applied_ops.size();
+		try{
+			for (auto& op : referendum.proposed_transaction.operations)
+			{
+				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+			}
+			remove(referendum);
+		}
+		catch (const fc::exception& e) {
+			_applied_ops.resize(old_applied_ops_size);
+			elog("e", ("e", e.to_detail_string()));
+			throw;
+		}
+		ptrx.operation_results = std::move(eval_state.operation_results);
+		return ptrx;
+	}FC_CAPTURE_AND_RETHROW((referendum))
+	
+}
 processed_transaction database::push_proposal(const proposal_object& proposal)
 { try {
    transaction_evaluation_state eval_state(this);

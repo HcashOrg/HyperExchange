@@ -2845,6 +2845,33 @@ public:
 	   } FC_CAPTURE_AND_RETHROW((proposing_account)(formal)(expiration_time)(broadcast))
    }
 
+   full_transaction citizen_referendum_for_senator(const string& citizen, const map<account_id_type,account_id_type>& replacement,bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   citizen_referendum_senator_operation op;
+		   for (const auto& iter : replacement)
+		   {
+			  get_account(iter.first);
+			  get_account(iter.second);
+		   }
+		   op.replace_queue = replacement;
+		   signed_transaction tx;
+		   referendum_create_operation prop_op;
+		   prop_op.proposer = get_account(citizen).get_id();
+		   prop_op.fee_paying_account = get_account(citizen).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.front().op);
+		   //prop_op.review_period_seconds = 0;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+
+
+	   }FC_CAPTURE_AND_RETHROW((citizen)(replacement)(broadcast))
+   }
+
    full_transaction guard_appointed_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time,bool broadcast)
    {
 	   try {
@@ -6678,6 +6705,12 @@ full_transaction wallet_api::update_senator_formal(string proposing_account, boo
 {
 	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
 }
+
+full_transaction wallet_api::citizen_referendum_for_senator(const string& citizen, const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
+{
+	return my->citizen_referendum_for_senator(citizen,replacement,broadcast);
+}
+
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
 {
