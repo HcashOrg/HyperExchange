@@ -500,7 +500,28 @@ namespace graphene { namespace chain {
 		   a.push_back(authority(1, issuer_addr, 1));
 	   }
    };
+   struct asset_eth_create_operation :public base_operation {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
 
+	   asset fee;
+	   account_id_type issuer;
+	   string          symbol;
+	   string		   erc_address;
+	   string			erc_real_precision;
+	   address         issuer_addr;
+	   address         fee_payer()const { return issuer_addr; }
+	   uint8_t         precision = 0;
+	   share_type      max_supply;
+	   share_type      core_fee_paid;
+	   extensions_type extensions;
+	   void            validate() const;
+	   share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   void get_required_authorities(vector<authority>& a)const {
+		   a.push_back(authority(1, issuer_addr, 1));
+	   }
+   };
    struct gurantee_create_operation : public base_operation
    {
 	   struct fee_parameters_type {
@@ -598,6 +619,18 @@ namespace graphene { namespace chain {
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   address fee_payer() const { return address(); }
    };
+   struct senator_determine_block_payment_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   std::map<uint32_t, uint32_t> blocks_pairs;
+	   void    validate() const {}
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   address fee_payer() const { return address(); }
+
+   };
 
 } } // graphene::chain
 
@@ -642,6 +675,7 @@ FC_REFLECT( graphene::chain::normal_asset_publish_feed_operation::fee_parameters
 FC_REFLECT( graphene::chain::asset_issue_operation::fee_parameters_type, (fee)(price_per_kbyte) )
 FC_REFLECT( graphene::chain::asset_reserve_operation::fee_parameters_type, (fee) )
 FC_REFLECT(graphene::chain::asset_real_create_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::asset_eth_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::gurantee_create_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::gurantee_cancel_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::publisher_appointed_operation::fee_parameters_type, (fee))
@@ -649,6 +683,7 @@ FC_REFLECT(graphene::chain::publisher_canceled_operation::fee_parameters_type, (
 FC_REFLECT(graphene::chain::asset_fee_modification_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::senator_determine_withdraw_deposit_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::senator_determine_block_payment_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_create_operation,
             (fee)
             (issuer)
@@ -691,6 +726,8 @@ FC_REFLECT( graphene::chain::asset_reserve_operation,
 
 FC_REFLECT( graphene::chain::asset_fund_fee_pool_operation, (fee)(from_account)(asset_id)(amount)(extensions) );
 FC_REFLECT(graphene::chain::asset_real_create_operation, (fee)(issuer)(symbol)(issuer_addr)(precision)(max_supply)(core_fee_paid)(extensions));
+FC_REFLECT(graphene::chain::asset_eth_create_operation, (fee)(issuer)(erc_real_precision)(symbol)(erc_address)(issuer_addr)(precision)(max_supply)(core_fee_paid)(extensions));
+
 FC_REFLECT(graphene::chain::gurantee_create_operation, (fee)(owner_addr)(asset_origin)(asset_target)(symbol)(time));
 FC_REFLECT(graphene::chain::gurantee_cancel_operation, (fee)(owner_addr)(cancel_guarantee_id));
 FC_REFLECT(graphene::chain::publisher_appointed_operation, (fee)(publisher)(asset_symbol));
@@ -698,3 +735,4 @@ FC_REFLECT(graphene::chain::publisher_canceled_operation, (fee)(publisher)(asset
 FC_REFLECT(graphene::chain::asset_fee_modification_operation, (fee)(crosschain_fee)(asset_symbol));
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation, (fee)(lockbalance));
 FC_REFLECT(graphene::chain::senator_determine_withdraw_deposit_operation, (fee)(can)(symbol));
+FC_REFLECT(graphene::chain::senator_determine_block_payment_operation, (fee)(blocks_pairs));

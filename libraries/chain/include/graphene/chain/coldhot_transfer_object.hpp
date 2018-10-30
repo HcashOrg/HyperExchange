@@ -14,7 +14,9 @@ namespace graphene {
 			coldhot_sign_trx = 2,
 			coldhot_combine_trx_create = 3,
 			coldhot_transaction_confirm = 4,
-			coldhot_transaction_fail = 5
+			coldhot_transaction_fail = 5,
+			coldhot_eth_guard_need_sign = 6,
+			coldhot_eth_guard_sign =7
 		};
 		class coldhot_transfer_object;
 		class coldhot_transfer_object :public graphene::db::abstract_object<coldhot_transfer_object> {
@@ -97,7 +99,10 @@ FC_REFLECT_ENUM(graphene::chain::coldhot_trx_state,
 	(coldhot_sign_trx)
 	(coldhot_combine_trx_create)
 	(coldhot_transaction_confirm)
-	(coldhot_transaction_fail))
+	(coldhot_transaction_fail)
+	(coldhot_eth_guard_need_sign)
+	(coldhot_eth_guard_sign)
+)
 FC_REFLECT_DERIVED(graphene::chain::coldhot_transfer_object, (graphene::db::object),
 	(relate_trx_id)
 	(current_id)

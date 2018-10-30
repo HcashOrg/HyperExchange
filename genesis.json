@@ -1,16 +1,16 @@
 {
-  "initial_timestamp": "2018-07-26T10:27:15",
-  "max_core_supply": "840000000000000",
+  "initial_timestamp": "2018-10-25T09:12:15",
+  "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
       "parameters": [[
           0,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           1,{
-            "fee": 500
+            "fee": 50
           }
         ],[
           2,{
@@ -18,7 +18,7 @@
           }
         ],[
           3,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           4,{
@@ -27,13 +27,13 @@
         ],[
           5,{
             "basic_fee": 500000,
-            "premium_fee": 200000,
-            "price_per_kbyte": 100
+            "premium_fee": 20000,
+            "price_per_kbyte": 10
           }
         ],[
           6,{
             "fee": 200000000,
-            "price_per_kbyte": 100
+            "price_per_kbyte": 10
           }
         ],[
           7,{
@@ -41,81 +41,81 @@
           }
         ],[
           8,{
-            "membership_annual_fee": 200000,
-            "membership_lifetime_fee": 1000000
+            "membership_annual_fee": 20000,
+            "membership_lifetime_fee": 100000
           }
         ],[
           9,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           10,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           11,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           12,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           13,{
-            "symbol3": 50000000,
-            "symbol4": 30000000,
-            "long_symbol": 500000,
+            "symbol3": 5000000,
+            "symbol4": 3000000,
+            "long_symbol": 50000,
             "price_per_kbyte": 10
           }
         ],[
           14,{
-            "fee": 50000,
+            "fee": 5000,
             "price_per_kbyte": 10
           }
         ],[
           15,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           16,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           17,{
-            "fee": 2000,
-            "price_per_kbyte": 100
+            "fee": 200,
+            "price_per_kbyte": 10
           }
         ],[
           18,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           19,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           20,{
-            "fee": 10000
+            "fee": 1000
           }
         ],[
           21,{
-            "fee": 50000
+            "fee": 5000
           }
         ],[
           22,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           23,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           24,{
-            "fee": 400000
+            "fee": 100000000
           }
         ],[
           25,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           26,{
@@ -127,29 +127,29 @@
           }
         ],[
           28,{
-            "fee": 2000,
+            "fee": 200,
             "price_per_kbyte": 10
           }
         ],[
           29,{
-            "fee": 2000,
+            "fee": 200,
             "price_per_kbyte": 10
           }
         ],[
           30,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           31,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           32,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           33,{
-            "fee": 2000,
+            "fee": 200,
             "price_per_kbyte": 10
           }
         ],[
@@ -158,227 +158,243 @@
           }
         ],[
           35,{
-            "fee": 300000
+            "fee": 30000
           }
         ],[
           36,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           37,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           38,{
-            "fee": 350000
+            "fee": 35000
           }
         ],[
           39,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           40,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           41,{
-            "fee": 450000
+            "fee": 45000
           }
         ],[
           42,{
-            "fee": 100,
+            "fee": 10,
             "price_per_kbyte": 10
           }
         ],[
           43,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           44,{}
         ],[
           45,{
-            "fee": 2000,
+            "fee": 200,
             "price_per_kbyte": 10
           }
         ],[
           46,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           47,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           48,{
-            "fee": 500,
-            "price_per_output": 500
+            "fee": 50,
+            "price_per_output": 50
           }
         ],[
           49,{
-            "fee": 500,
-            "price_per_output": 500
+            "fee": 50,
+            "price_per_output": 50
           }
         ],[
           50,{
-            "fee": 500
+            "fee": 50
           }
         ],[
           51,{}
         ],[
           52,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           53,{}
         ],[
           54,{
-            "fee": 100
+            "fee": 10
           }
         ],[
           55,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           56,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           57,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           58,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           59,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           60,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           61,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           62,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           63,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           64,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           65,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           66,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           67,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           68,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           69,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           70,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           71,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           72,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           73,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           74,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           75,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           76,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           77,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           78,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           79,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           80,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           81,{
-            "fee": 2000,
-            "price_per_kbyte": 1000
+            "fee": 200,
+            "price_per_kbyte": 100
           }
         ],[
           82,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           83,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           84,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           85,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           86,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           87,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           88,{
-            "fee": 2000
+            "fee": 200
           }
         ],[
           89,{
-            "fee": 2000
+            "fee": 200
+          }
+        ],[
+          90,{
+            "fee": 200
+          }
+        ],[
+          91,{
+            "fee": 200
+          }
+        ],[
+          92,{
+            "fee": 5000
+          }
+        ],[
+          93,{
+            "fee": 200
           }
         ]
       ],
@@ -417,162 +433,162 @@
     "extensions": []
   },
   "initial_accounts": [{
-      "name": "miner0",
+      "name": "citizen0",
       "owner_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC",
       "active_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC",
       "is_lifetime_member": true
     },{
-      "name": "miner1",
+      "name": "citizen1",
       "owner_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA",
       "active_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA",
       "is_lifetime_member": true
     },{
-      "name": "miner2",
+      "name": "citizen2",
       "owner_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD",
       "active_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD",
       "is_lifetime_member": true
     },{
-      "name": "miner3",
+      "name": "citizen3",
       "owner_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2",
       "active_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2",
       "is_lifetime_member": true
     },{
-      "name": "miner4",
+      "name": "citizen4",
       "owner_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn",
       "active_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn",
       "is_lifetime_member": true
     },{
-      "name": "miner5",
+      "name": "citizen5",
       "owner_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca",
       "active_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca",
       "is_lifetime_member": true
     },{
-      "name": "miner6",
+      "name": "citizen6",
       "owner_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14",
       "active_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14",
       "is_lifetime_member": true
     },{
-      "name": "miner7",
+      "name": "citizen7",
       "owner_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87",
       "active_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87",
       "is_lifetime_member": true
     },{
-      "name": "miner8",
+      "name": "citizen8",
       "owner_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj",
       "active_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj",
       "is_lifetime_member": true
     },{
-      "name": "miner9",
+      "name": "citizen9",
       "owner_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY",
       "active_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY",
       "is_lifetime_member": true
     },{
-      "name": "miner10",
+      "name": "citizen10",
       "owner_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5",
       "active_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5",
       "is_lifetime_member": true
     },{
-      "name": "miner11",
+      "name": "citizen11",
       "owner_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN",
       "active_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN",
       "is_lifetime_member": true
     },{
-      "name": "miner12",
+      "name": "citizen12",
       "owner_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7",
       "active_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7",
       "is_lifetime_member": true
     },{
-      "name": "miner13",
+      "name": "citizen13",
       "owner_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm",
       "active_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm",
       "is_lifetime_member": true
     },{
-      "name": "miner14",
+      "name": "citizen14",
       "owner_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N",
       "active_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N",
       "is_lifetime_member": true
     },{
-      "name": "miner15",
+      "name": "citizen15",
       "owner_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d",
       "active_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d",
       "is_lifetime_member": true
     },{
-      "name": "miner16",
+      "name": "citizen16",
       "owner_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN",
       "active_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN",
       "is_lifetime_member": true
     },{
-      "name": "miner17",
+      "name": "citizen17",
       "owner_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75",
       "active_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75",
       "is_lifetime_member": true
     },{
-      "name": "miner18",
+      "name": "citizen18",
       "owner_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g",
       "active_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g",
       "is_lifetime_member": true
     },{
-      "name": "miner19",
+      "name": "citizen19",
       "owner_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq",
       "active_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq",
       "is_lifetime_member": true
     },{
-      "name": "miner20",
+      "name": "citizen20",
       "owner_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG",
       "active_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG",
       "is_lifetime_member": true
     },{
-      "name": "miner21",
+      "name": "citizen21",
       "owner_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V",
       "active_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V",
       "is_lifetime_member": true
     },{
-      "name": "miner22",
+      "name": "citizen22",
       "owner_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ",
       "active_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ",
       "is_lifetime_member": true
     },{
-      "name": "miner23",
+      "name": "citizen23",
       "owner_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8",
       "active_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8",
       "is_lifetime_member": true
     },{
-      "name": "miner24",
+      "name": "citizen24",
       "owner_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75",
       "active_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75",
       "is_lifetime_member": true
     },{
-      "name": "guard0",
+      "name": "senator0",
       "owner_key": "HX4tY1YqtsguE2bR79Zr73qyTFHaY3at1DGT24iMjoXZ3N3gvada",
       "active_key": "HX4tY1YqtsguE2bR79Zr73qyTFHaY3at1DGT24iMjoXZ3N3gvada",
       "is_lifetime_member": true
     },{
-      "name": "guard1",
+      "name": "senator1",
       "owner_key": "HX5ZZbBhhfm1R4Z5Tw1sTAG9wwy8ZAbEXpeFV2tnoFUmGBB28uTD",
       "active_key": "HX5ZZbBhhfm1R4Z5Tw1sTAG9wwy8ZAbEXpeFV2tnoFUmGBB28uTD",
       "is_lifetime_member": true
     },{
-      "name": "guard2",
+      "name": "senator2",
       "owner_key": "HX57k46zjxYeVB3sYMEo943UUen2gjKD3KYTLLTxEikpjT2MK4Sq",
       "active_key": "HX57k46zjxYeVB3sYMEo943UUen2gjKD3KYTLLTxEikpjT2MK4Sq",
       "is_lifetime_member": true
     },{
-      "name": "guard3",
+      "name": "senator3",
       "owner_key": "HX8D22sYugMZXbTophjGiNunNRZ7b9MTSTwiRY6Xnaa7HwzaRP8v",
       "active_key": "HX8D22sYugMZXbTophjGiNunNRZ7b9MTSTwiRY6Xnaa7HwzaRP8v",
       "is_lifetime_member": true
     },{
-      "name": "guard4",
+      "name": "senator4",
       "owner_key": "HX7EKLoNGL1b8Rr8ue24jcyyoqj5okaR2fXhKSBr7r3zLZWQB9b7",
       "active_key": "HX7EKLoNGL1b8Rr8ue24jcyyoqj5okaR2fXhKSBr7r3zLZWQB9b7",
       "is_lifetime_member": true
     },{
-      "name": "guard5",
+      "name": "senator5",
       "owner_key": "HX6RYoxn9Q4ZyeRDcm9k2UCCJcfUiexrq7D6jcitcoM7QoDBi9DF",
       "active_key": "HX6RYoxn9Q4ZyeRDcm9k2UCCJcfUiexrq7D6jcitcoM7QoDBi9DF",
       "is_lifetime_member": true
     },{
-      "name": "guard6",
+      "name": "senator6",
       "owner_key": "HX7htYSY1sy5t8oVMkq3NZrq77xZBUnK2QXGjF5wFkcgLCUE8fbx",
       "active_key": "HX7htYSY1sy5t8oVMkq3NZrq77xZBUnK2QXGjF5wFkcgLCUE8fbx",
       "is_lifetime_member": true
@@ -585,104 +601,103 @@
   ],
   "initial_assets": [],
   "initial_balances": [{
-      "owner": "HX9bJW2AhiQT4UYySwsGLns5kyPSnv5HFqp",
+      "owner": "HXNUWGgmxyLy1VpXN3F6vEVWWTL86negEi46",
       "asset_symbol": "HX",
-      "amount": "620000000000000"
-    }
-  ],
+      "amount": "100000000"
+  }],
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
   "initial_miner_candidates": [{
-      "owner_name": "miner0",
+      "owner_name": "citizen0",
       "block_signing_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC"
     },{
-      "owner_name": "miner1",
+      "owner_name": "citizen1",
       "block_signing_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA"
     },{
-      "owner_name": "miner2",
+      "owner_name": "citizen2",
       "block_signing_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD"
     },{
-      "owner_name": "miner3",
+      "owner_name": "citizen3",
       "block_signing_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2"
     },{
-      "owner_name": "miner4",
+      "owner_name": "citizen4",
       "block_signing_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn"
     },{
-      "owner_name": "miner5",
+      "owner_name": "citizen5",
       "block_signing_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca"
     },{
-      "owner_name": "miner6",
+      "owner_name": "citizen6",
       "block_signing_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14"
     },{
-      "owner_name": "miner7",
+      "owner_name": "citizen7",
       "block_signing_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87"
     },{
-      "owner_name": "miner8",
+      "owner_name": "citizen8",
       "block_signing_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj"
     },{
-      "owner_name": "miner9",
+      "owner_name": "citizen9",
       "block_signing_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY"
     },{
-      "owner_name": "miner10",
+      "owner_name": "citizen10",
       "block_signing_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5"
     },{
-      "owner_name": "miner11",
+      "owner_name": "citizen11",
       "block_signing_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN"
     },{
-      "owner_name": "miner12",
+      "owner_name": "citizen12",
       "block_signing_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7"
     },{
-      "owner_name": "miner13",
+      "owner_name": "citizen13",
       "block_signing_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm"
     },{
-      "owner_name": "miner14",
+      "owner_name": "citizen14",
       "block_signing_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N"
     },{
-      "owner_name": "miner15",
+      "owner_name": "citizen15",
       "block_signing_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d"
     },{
-      "owner_name": "miner16",
+      "owner_name": "citizen16",
       "block_signing_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN"
     },{
-      "owner_name": "miner17",
+      "owner_name": "citizen17",
       "block_signing_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75"
     },{
-      "owner_name": "miner18",
+      "owner_name": "citizen18",
       "block_signing_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g"
     },{
-      "owner_name": "miner19",
+      "owner_name": "citizen19",
       "block_signing_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq"
     },{
-      "owner_name": "miner20",
+      "owner_name": "citizen20",
       "block_signing_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG"
     },{
-      "owner_name": "miner21",
+      "owner_name": "citizen21",
       "block_signing_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V"
     },{
-      "owner_name": "miner22",
+      "owner_name": "citizen22",
       "block_signing_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ"
     },{
-      "owner_name": "miner23",
+      "owner_name": "citizen23",
       "block_signing_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8"
     },{
-      "owner_name": "miner24",
+      "owner_name": "citizen24",
       "block_signing_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75"
     }
   ],
   "initial_guard_candidates": [{
-      "owner_name": "guard0"
+      "owner_name": "senator0"
     },{
-      "owner_name": "guard1"
+      "owner_name": "senator1"
     },{
-      "owner_name": "guard2"
+      "owner_name": "senator2"
     },{
-      "owner_name": "guard3"
+      "owner_name": "senator3"
     },{
-      "owner_name": "guard4"
+      "owner_name": "senator4"
     },{
-      "owner_name": "guard5"
+      "owner_name": "senator5"
     },{
-      "owner_name": "guard6"
+      "owner_name": "senator6"
     }
   ],
   "initial_worker_candidates": [],

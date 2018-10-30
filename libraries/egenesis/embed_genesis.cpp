@@ -225,18 +225,30 @@ struct egenesis_info
 
 void load_genesis(
    const boost::program_options::variables_map& options,
-   egenesis_info& info
+   egenesis_info& info, egenesis_info& tinfo
    )
 {
+	if (options.count("testnet-genesis-json"))
+	{
+		graphene::chain::address::testnet_mode = true;
+		fc::path genesis_json_filename = get_path(options, "testnet-genesis-json");
+		std::cerr << "embed_genesis:  Reading genesis from file " << genesis_json_filename.preferred_string() << "\n";
+		tinfo.genesis_json = std::string();
+		read_file_contents(genesis_json_filename, *tinfo.genesis_json);
+	}
    if( options.count("genesis-json") )
    {
+
+	  graphene::chain::address::testnet_mode = false;
       fc::path genesis_json_filename = get_path( options, "genesis-json" );
       std::cerr << "embed_genesis:  Reading genesis from file " << genesis_json_filename.preferred_string() << "\n";
       info.genesis_json = std::string();
       read_file_contents( genesis_json_filename, *info.genesis_json );
    }
-   else
-      info.genesis = graphene::app::detail::create_example_genesis();
+
+   graphene::chain::address::testnet_mode = false;
+   //else
+   //   info.genesis = graphene::app::detail::create_example_genesis();
 
    if( options.count("chain-id") )
    {
@@ -252,7 +264,8 @@ int main( int argc, char** argv )
    int main_return = 0;
    boost::program_options::options_description cli_options("Graphene Chain Identifier");
    cli_options.add_options()
-      ("help,h", "Print this help message and exit.")
+	   ("help,h", "Print this help message and exit.")
+	   ("testnet-genesis-json", boost::program_options::value<boost::filesystem::path>(), "File to read testnet genesis state from")
       ("genesis-json,g", boost::program_options::value<boost::filesystem::path>(), "File to read genesis state from")
       ("tmplsub,t", boost::program_options::value<std::vector< std::string > >()->composing(),
        "Given argument of form src.cpp.tmpl---dest.cpp, write dest.cpp expanding template invocations in src")
@@ -275,14 +288,18 @@ int main( int argc, char** argv )
       return 0;
    }
 
-   egenesis_info info;
+   egenesis_info info,tinfo;
 
-   load_genesis( options, info );
+   load_genesis( options, info ,tinfo);
+   graphene::chain::address::testnet_mode = false;
    info.fillin();
-
+   graphene::chain::address::testnet_mode = true;
+   tinfo.fillin();
+   graphene::chain::address::testnet_mode = false;
    fc::mutable_variant_object template_context = fc::mutable_variant_object()
       ( "generated_file_banner", generated_file_banner )
-      ( "chain_id", (*info.chain_id).str() )
+	   ("chain_id", (*info.chain_id).str())
+	   ("testnet_chain_id", (*tinfo.chain_id).str())
       ;
    if( info.genesis_json.valid() )
    {
@@ -291,6 +308,14 @@ int main( int argc, char** argv )
       template_context["genesis_json_hash"] = (*info.genesis_json_hash).str();
       template_context["genesis_json_array_width"] = info.genesis_json_array_width;
       template_context["genesis_json_array_height"] = info.genesis_json_array_height;
+	  //===================================================================================
+	  // testnet
+	  //===================================================================================
+	  template_context["testnet_genesis_json_length"] = tinfo.genesis_json->length();
+	  template_context["testnet_genesis_json_array"] = (*tinfo.genesis_json_array);
+	  template_context["testnet_genesis_json_hash"] = (*tinfo.genesis_json_hash).str();
+	  template_context["testnet_genesis_json_array_width"] = tinfo.genesis_json_array_width;
+	  template_context["testnet_genesis_json_array_height"] = tinfo.genesis_json_array_height;
    }
 
    for( const std::string& src_dest : options["tmplsub"].as< std::vector< std::string > >() )

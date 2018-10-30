@@ -129,6 +129,7 @@ namespace graphene { namespace chain {
       call_order_object_type,
       custom_object_type,
       proposal_object_type,
+	  referendum_object_type,
       operation_history_object_type,
       withdraw_permission_object_type,
       vesting_balance_object_type,
@@ -154,6 +155,7 @@ namespace graphene { namespace chain {
 	  bonus_object_type,
       contract_storage_change_object_type,
 	  contract_history_object_type,
+	  eth_multi_account_trx_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -196,6 +198,7 @@ namespace graphene { namespace chain {
    class call_order_object;
    class custom_object;
    class proposal_object;
+   class referendum_object;
    class operation_history_object;
    class withdraw_permission_object;
    class vesting_balance_object;
@@ -217,6 +220,7 @@ namespace graphene { namespace chain {
    class pay_back_object;
    class bonus_object;
    class contract_history_object;
+   class eth_multi_account_trx_object;
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
    typedef object_id< protocol_ids, force_settlement_object_type,   force_settlement_object>      force_settlement_id_type;
@@ -226,6 +230,7 @@ namespace graphene { namespace chain {
    typedef object_id< protocol_ids, call_order_object_type,         call_order_object>            call_order_id_type;
    typedef object_id< protocol_ids, custom_object_type,             custom_object>                custom_id_type;
    typedef object_id< protocol_ids, proposal_object_type,           proposal_object>              proposal_id_type;
+   typedef object_id<protocol_ids,  referendum_object_type,         referendum_object>            referendum_id_type;
    typedef object_id< protocol_ids, operation_history_object_type,  operation_history_object>     operation_history_id_type;
    typedef object_id< protocol_ids, withdraw_permission_object_type,withdraw_permission_object>   withdraw_permission_id_type;
    typedef object_id< protocol_ids, vesting_balance_object_type,    vesting_balance_object>       vesting_balance_id_type;
@@ -246,6 +251,7 @@ namespace graphene { namespace chain {
    typedef object_id<protocol_ids, pay_back_object_type, pay_back_object> pay_back_object_id_type;
    typedef object_id<protocol_ids, bonus_object_type, bonus_object> bonus_object_id_type;
    typedef object_id<protocol_ids, contract_history_object_type, contract_history_object> contract_history_object_id_type;
+   typedef object_id<protocol_ids, eth_multi_account_trx_object_type, eth_multi_account_trx_object> eth_multi_account_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;
@@ -411,6 +417,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
                  (call_order_object_type)
                  (custom_object_type)
                  (proposal_object_type)
+	             (referendum_object_type)
                  (operation_history_object_type)
                  (withdraw_permission_object_type)
                  (vesting_balance_object_type)
@@ -433,6 +440,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (pay_back_object_type)
 	             (bonus_object_type)
 				 (contract_history_object_type)
+				(eth_multi_account_trx_object_type)
                  (OBJECT_TYPE_COUNT)
                )
 FC_REFLECT_ENUM( graphene::chain::impl_object_type,
@@ -502,6 +510,7 @@ FC_REFLECT_TYPENAME(graphene::chain::contract_storage_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::transaction_contract_storage_diff_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_event_notify_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_history_object_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::eth_multi_account_id_type)
 
 FC_REFLECT( graphene::chain::void_t, )
 

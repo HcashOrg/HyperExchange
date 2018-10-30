@@ -136,15 +136,14 @@ void database::modify_current_collected_fee(asset changed_fee)
 }
 
 share_type database::get_miner_pay_per_block(uint32_t block_num) {
-	std::vector<share_type> reward_list = { 2558000,1811000,1357000,1357000,1357000 };
-	uint32_t block_interval = 25228800;//4 * 365* 24* 720
-	uint32_t cur_int = block_num / block_interval;
-	if (cur_int > 4) {
-		return 0;
+
+	auto order_blocks = get_global_properties().unorder_blocks_match;
+	for (const auto& item : order_blocks)
+	{
+		if (block_num <= item.first)
+			return item.second;
 	}
-	else {
-		return reward_list[cur_int];
-	}
+	return 0;
 }
 
 asset database::get_fee_from_block(const signed_block& b)
@@ -195,7 +194,9 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		}
 		auto committe_obj = get(get_guard_members().at(committee_count-1).guard_member_account);
 		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)),miner_acc.name);
-
+		uint64_t develop_team_paid = get_miner_pay_per_block(dgp.head_block_number).value *(HX_DEVELOP_TEAM_PAY_TATIO) / 100;
+		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),miner_acc.name);
+		adjust_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid));
 		if (cache_datas.count(miner_id) > 0)
 		{
 			auto& one_data = cache_datas[miner_id];
@@ -204,8 +205,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 			all_pledge +=boost::multiprecision::uint128_t(miner_obj.pledge_weight.lo);
 			uint64_t all_paid = get_miner_pay_per_block(dgp.head_block_number).value *(GRAPHENE_ALL_MINER_PAY_RATIO)/100 + trxfee.amount.value;
 			auto miner_account_obj = get(miner_obj.miner_account);
-
-			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / GRAPHENE_ALL_MINER_PAY_RATIO;
+			uint64_t pledge_pay_amount = all_paid * (GRAPHENE_MINER_PLEDGE_PAY_RATIO - miner_account_obj.options.miner_pledge_pay_back) / 100;
 			uint64_t all_pledge_paid = 0;
 			boost::multiprecision::uint256_t cal_cur_pledge = 0;
 			for (auto one_pledge : one_data)

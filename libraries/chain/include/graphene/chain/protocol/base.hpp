@@ -84,6 +84,7 @@ namespace graphene { namespace chain {
    struct contract_operation_result_info 
    {
        std::string digest_str;
+	   std::string api_result;
        share_type gas_count=0;
        contract_operation_result_info()
        {}
@@ -91,8 +92,9 @@ namespace graphene { namespace chain {
        {
            digest_str = info.digest_str;
            gas_count = info.gas_count;
+		   api_result = info.api_result;
        }
-       contract_operation_result_info(const std::string& digest_str,const share_type& gas_count):digest_str(digest_str),gas_count(gas_count){}
+       contract_operation_result_info(const std::string& digest_str,const share_type& gas_count,const std::string& api_result):digest_str(digest_str),api_result(api_result),gas_count(gas_count){}
        operator string() const{ return fc::json::to_string(*this); }
    };
    typedef fc::static_variant<void_result,object_id_type,asset, std::string,contract_operation_result_info> operation_result;
@@ -140,5 +142,6 @@ FC_REFLECT_TYPENAME( graphene::chain::future_extensions )
 FC_REFLECT( graphene::chain::void_result, )
 FC_REFLECT(graphene::chain::contract_operation_result_info, 
     (digest_str)
+	(api_result)
     (gas_count)
 )

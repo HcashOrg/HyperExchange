@@ -150,6 +150,10 @@ namespace graphene { namespace chain {
          const std::function<const authority*(account_id_type)>& get_owner,
          uint32_t max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH )const;
 
+	  void verify_authority(
+		  const chain_id_type& chain_id,
+		  const std::function<std::tuple<address,int,fc::flat_set<public_key_type>>(address)>& get_addresses,
+		  uint32_t max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH)const;
       /**
        * This is a slower replacement for get_required_signatures()
        * which returns a minimal set in all cases, including
@@ -179,6 +183,11 @@ namespace graphene { namespace chain {
        optional<string> contract_id;
 	   full_transaction(const signed_transaction& trx=signed_transaction()):signed_transaction(trx) { trxid = trx.id(); }
    };
+
+   void verify_authority(const vector<operation>& ops, const flat_set<public_key_type>& sigs,
+	   const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	   uint32_t max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH,
+	   bool allow_committe = false);
 
    void verify_authority( const vector<operation>& ops, const flat_set<public_key_type>& sigs,
                           const std::function<const authority*(account_id_type)>& get_active,

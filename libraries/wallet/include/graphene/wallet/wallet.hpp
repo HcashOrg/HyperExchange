@@ -260,7 +260,7 @@ struct wallet_data
            return false;
        }
    }
-   bool bind_script_to_event(const string& script_hash,const chain::contract_address_type& contract, const string& event_name)
+   bool bind_script_to_event(const string& script_hash,const chain::address& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -286,7 +286,7 @@ struct wallet_data
        idx.insert(obj);
        return true;
    }
-   bool remove_event_handle(const string& script_hash, const chain::contract_address_type& contract, const string& event_name)
+   bool remove_event_handle(const string& script_hash, const chain::address& contract, const string& event_name)
    {
 
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -988,9 +988,19 @@ class wallet_api
 		  string asset_symbol,
 		  string memo,
 		  bool broadcast = false);
-
-
-      /** broadcast a transaction to the chain.
+	  /** this is only for the multisignature of HX or 
+	  * @param from the address from the account sending the funds
+	  * @param to the address to the account receiving the funds
+	  */
+	  string transfer_from_to_address(string from,
+		  string to,
+		  string amount,
+		  string asset_symbol,
+		  string memo);
+	  full_transaction combine_transaction(const vector<string>& trxs,
+		  bool broadcast = false
+	  ); 
+       /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
       * @returns the transaction id
       */
@@ -1186,7 +1196,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction selling the funds
        */
-      full_transaction sell_asset(string seller_account,
+     /* full_transaction sell_asset(string seller_account,
                                     string amount_to_sell,
                                     string   symbol_to_sell,
                                     string min_to_receive,
@@ -1194,7 +1204,7 @@ class wallet_api
                                     uint32_t timeout_sec = 0,
                                     bool     fill_or_kill = false,
                                     bool     broadcast = false);
-                                    
+                                    */
       /** Place a limit order attempting to sell one asset for another.
        * 
        * This API call abstracts away some of the details of the sell_asset call to be more
@@ -1233,13 +1243,13 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network.
        * @param The signed transaction selling the funds.
        */
-      full_transaction buy( string buyer_account,
+      /*full_transaction buy( string buyer_account,
                               string base,
                               string quote,
                               double rate,
                               double amount,
                               bool broadcast );
-
+*/
       /** Borrow an asset or update the debt/collateral ratio for the loan.
        *
        * This is the first step in shorting an asset.  Call \c sell_asset() to complete the short.
@@ -1323,7 +1333,13 @@ class wallet_api
 		  share_type max_supply,
 		  share_type core_fee_paid,
 		  bool broadcast = false);
-
+	  full_transaction wallet_create_erc_asset(string issuer,
+		  string symbol,
+		  uint8_t precision,
+		  share_type max_supply,
+		  share_type core_fee_paid,
+		  std::string erc_address,
+		  bool broadcast = false);
       /** Issue new shares of an asset.
        *
        * @param to_account the name or id of the account to receive the new shares
@@ -1795,6 +1811,9 @@ class wallet_api
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
 	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
+	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1836,8 +1855,8 @@ class wallet_api
        */
       full_transaction propose_parameter_change(
          const string& proposing_account,
-         fc::time_point_sec expiration_time,
          const variant_object& changed_values,
+		 const int64_t& expiration_time,
          bool broadcast = false);
 
 	  full_transaction propose_coin_destory(
@@ -1853,8 +1872,8 @@ class wallet_api
 		  bool broadcast = false);
 	  full_transaction propose_pay_back_asset_rate_change(
 		  const string& proposing_account,
-		  fc::time_point_sec expiration_time,
 		  const variant_object& changed_values,
+		  const int64_t& expiration_time,
 		  bool broadcast = false
 	  );
       /** Propose a fee change.
@@ -1894,9 +1913,9 @@ class wallet_api
 	  vector<proposal_object>  get_proposal(const string& proposer) ;
 	  vector<proposal_object>  get_proposal_for_voter(const string& voter);
       order_book get_order_book( const string& base, const string& quote, unsigned limit = 50);
-
+	  /*
       void dbg_make_uia(string creator, string symbol);
-      void dbg_make_mia(string creator, string symbol);
+      void dbg_make_mia(string creator, string symbol);*/
       void dbg_push_blocks( std::string src_filename, uint32_t count );
       void dbg_generate_blocks( std::string debug_wif_key, uint32_t count );
       void dbg_stream_json_objects( const std::string& filename );
@@ -2006,11 +2025,20 @@ class wallet_api
 	  full_transaction citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
+	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+	public_key_type get_pubkey_from_priv(const string& privkey);
+	public_key_type get_pubkey_from_account(const string& account);
+	  string sign_multisig_trx(const address& addr,const string& trx);
+	  signed_transaction decode_multisig_transaction(const string& trx);
+	variant_object  get_multisig_address(const address& addr);
+	  flat_set< miner_id_type> list_active_citizens();
+	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
-
+	  fc::string get_first_contract_address();
       //citizen
       void start_citizen(bool);
 
@@ -2113,9 +2141,9 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_account)
         (create_account_with_brain_key)
 	    (wallet_create_account)
-        (sell_asset)
+        
         (sell)
-        (buy)
+        (get_eth_multi_account_trx)
         (borrow_asset)
         (cancel_order)
         (transfer)
@@ -2170,10 +2198,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_object)
         (get_private_key)
         (load_wallet_file)
-        (normalize_brain_key)
-        (get_limit_orders)
-        (get_call_orders)
-        (get_settle_orders)
         (save_wallet_file)
         (serialize_transaction)
         (sign_transaction)
@@ -2184,17 +2208,9 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
-        (dbg_make_uia)
-        (dbg_make_mia)
-        (dbg_push_blocks)
-        (dbg_generate_blocks)
-        (dbg_stream_json_objects)
-        (dbg_update_object)
         (flood_network)
         (network_add_nodes)
         (network_get_connected_peers)
-        (set_key_label)
-        (get_key_label)
         (get_public_key)
         (get_blind_accounts)
         (get_my_blind_accounts)
@@ -2236,6 +2252,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_crosschain_transaction)
 		(get_multi_address_obj)
 		(wallet_create_asset)
+		(wallet_create_erc_asset)
 		(create_crosschain_symbol)
 		(bind_tunnel_account)
 		(unbind_tunnel_account)
@@ -2244,6 +2261,9 @@ FC_API( graphene::wallet::wallet_api,
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)
 		(senator_sign_coldhot_transaction)
+		(senator_sign_eths_multi_account_create_trx)
+		(senator_sign_eths_final_trx)
+		(senator_sign_eths_coldhot_final_trx)
 		(account_change_for_crosschain)
 		(get_current_multi_address_obj)
 		(get_current_multi_address)
@@ -2302,5 +2322,19 @@ FC_API( graphene::wallet::wallet_api,
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
+<<<<<<< HEAD
         (lightwallet_get_refblock_info)
+=======
+        (create_multisignature_address)
+		(get_first_contract_address)
+	    (get_pubkey_from_priv)
+		(sign_multisig_trx)
+		(senator_determine_block_payment)
+		(transfer_from_to_address)
+		(combine_transaction)
+		(get_multisig_address)
+		(list_active_citizens)
+		(decode_multisig_transaction)
+		(get_pubkey_from_account)
+>>>>>>> 1b74bd27c63bf418eff12df93cb119a9e11bd3c5
       )

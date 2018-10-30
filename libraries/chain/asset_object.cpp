@@ -158,7 +158,6 @@ asset asset_object::amount_from_string(string amount_string) const
          decimal_found = true;
          continue;
       }
-
       FC_THROW( (amount_string) );
    }
 
@@ -185,7 +184,6 @@ asset asset_object::amount_from_string(string amount_string) const
       if( !rhs.empty() )
          satoshis += std::stoll( rhs );
    }
-
    FC_ASSERT( satoshis <= options.max_supply);   // need to confirm the real supply
 
    if( negative_found )

@@ -42,5 +42,19 @@ fc::sha256 get_egenesis_json_hash()
 {
    return fc::sha256::hash( "" );
 }
+chain_id_type get_testnet_egenesis_chain_id()
+{
+	return chain_id_type();
+}
+
+void compute_testnet_egenesis_json(std::string& result)
+{
+	result = "";
+}
+
+fc::sha256 get_testnet_egenesis_json_hash()
+{
+	return fc::sha256::hash("");
+}
 
 } }

@@ -491,9 +491,6 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case contract_object_type:  
         return create_obj_unique_ptr<contract_object>(var);
         break;
-    case contract_balance_object_type:
-        return create_obj_unique_ptr<contract_balance_object>(var);
-        break;
     case contract_storage_object_type:  
         return create_obj_unique_ptr<contract_storage_object>(var);
         break;
@@ -511,6 +508,9 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
         break;
 	case bonus_object_type:
 		return create_obj_unique_ptr<pay_back_object>(var);
+		break;
+	case eth_multi_account_trx_object_type:
+		return create_obj_unique_ptr<eth_multi_account_trx_object>(var);
 		break;
     case contract_storage_change_object_type:
         return create_obj_unique_ptr<contract_storage_change_object>(var);

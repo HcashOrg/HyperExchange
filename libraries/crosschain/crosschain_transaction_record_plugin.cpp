@@ -63,7 +63,15 @@ namespace graphene {
 
 
 					for (const auto & trx : pending_trx) {
-						auto handle_trx = hdl->turn_trx(trx);
+						hd_trx handle_trx;
+						if (asset_symbol == "ETH" || asset_symbol.find("ERC")!= asset_symbol.npos)
+						{
+							handle_trx = hdl->turn_trx(fc::variant_object("plugin_get_trx", trx));
+						}
+						else {
+							handle_trx = hdl->turn_trx(trx);
+						}
+						
 						fc::scoped_lock<std::mutex> _lock(db.db_lock);
 						auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
 						auto trx_iter = trx_iters.find(handle_trx.trx_id);

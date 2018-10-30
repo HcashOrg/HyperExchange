@@ -1,5 +1,6 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
+#include <graphene/chain/balance_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_entry.hpp>
@@ -10,7 +11,7 @@
 
 namespace graphene {
 	namespace chain {
-		StorageDataType database::get_contract_storage(const contract_address_type& contract_id, const string& name)
+		StorageDataType database::get_contract_storage(const address& contract_id, const string& name)
 		{
 			try {
 				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
@@ -30,7 +31,7 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
-		void database::set_contract_storage(const contract_address_type& contract_id, const string& name, const StorageDataType &value)
+		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
 				/*auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
@@ -61,7 +62,7 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract.contract_address)(name)(value));
 		}
 
-		void database::add_contract_storage_change(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& name, const StorageDataType &diff)
+		void database::add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff)
 		{
 			try {
 				transaction_contract_storage_diff_object obj;
@@ -77,7 +78,7 @@ namespace graphene {
 				});
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
 		}
-        void  database::store_contract_storage_change_obj(const contract_address_type& contract, uint32_t block_num)
+        void  database::store_contract_storage_change_obj(const address& contract, uint32_t block_num)
 		{
             try {
                 auto& conn_db = get_index_type<contract_storage_change_index>().indices().get<by_contract_id>();
@@ -119,7 +120,7 @@ namespace graphene {
                 return res;
             }FC_CAPTURE_AND_RETHROW((block_num)(duration));
 		}
-		void database::add_contract_event_notify(const transaction_id_type& trx_id, const contract_address_type& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
+		void database::add_contract_event_notify(const transaction_id_type& trx_id, const address& contract_id, const string& event_name, const string& event_arg, uint64_t block_num, uint64_t
 		                                         op_num)
 		{
 			try {
@@ -146,7 +147,7 @@ namespace graphene {
         {
             return obj1.id < obj2.id;
         }
-        vector<contract_event_notify_object> database::get_contract_event_notify(const contract_address_type & contract_id, const transaction_id_type & trx_id, const string& event_name)
+        vector<contract_event_notify_object> database::get_contract_event_notify(const address & contract_id, const transaction_id_type & trx_id, const string& event_name)
         {
             try {
                 bool trx_id_check = true;
@@ -194,7 +195,7 @@ namespace graphene {
                 return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
-		void graphene::chain::database::store_contract_related_transaction(const transaction_id_type& tid, const contract_address_type& contract_id)
+		void graphene::chain::database::store_contract_related_transaction(const transaction_id_type& tid, const address& contract_id)
 		{
 			auto block_num = head_block_num()+1;
 			create<contract_history_object>([tid, contract_id, block_num](contract_history_object& obj) {
@@ -204,7 +205,7 @@ namespace graphene {
 			});
 		}
 
-		std::vector<graphene::chain::transaction_id_type> database::get_contract_related_transactions(const contract_address_type& contract_id, uint64_t start, uint64_t end)
+		std::vector<graphene::chain::transaction_id_type> database::get_contract_related_transactions(const address& contract_id, uint64_t start, uint64_t end)
 		{
 			std::vector<graphene::chain::transaction_id_type> res;
 			if (end < start)
@@ -294,7 +295,7 @@ namespace graphene {
                 return false;
             }
         };
-        vector<contract_event_notify_object> database::get_contract_events_by_contract_ordered(const contract_address_type &addr) const
+        vector<contract_event_notify_object> database::get_contract_events_by_contract_ordered(const address &addr) const
 		{
             vector<contract_event_notify_object> res;
             auto& con_db = get_index_type<contract_event_notify_index>().indices().get<by_contract_id>();
@@ -310,7 +311,7 @@ namespace graphene {
             sort(res.begin(),res.end(), cmp);
             return res;
 		}
-		vector<contract_event_notify_object> database::get_contract_events_by_block_and_addr_ordered(const contract_address_type &addr, uint64_t start, uint64_t range) const
+		vector<contract_event_notify_object> database::get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const
 		{
 			vector<contract_event_notify_object> res;
 			auto& con_db = get_index_type<contract_event_notify_index>().indices().get<by_block_num>();
@@ -402,14 +403,14 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((contract))
 		}
 
-        contract_object database::get_contract(const contract_address_type & contract_address)
+        contract_object database::get_contract(const address & contract_address)
         {
             contract_object res;
             auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
             auto itr = index.find(contract_address);
             FC_ASSERT(itr != index.end());
             res =*itr;
-            if(res.inherit_from!= contract_address_type())
+            if(res.inherit_from!= address())
             {
                 res.code = get_contract(res.inherit_from).code;
             }
@@ -424,13 +425,13 @@ namespace graphene {
             {
                 contract_object res;
                 res = *itr;
-                if (res.inherit_from != contract_address_type())
+                if (res.inherit_from != address())
                 {
                     res.code = get_contract(res.inherit_from).code;
                 }
                 return res;
             }
-            return get_contract(contract_address_type(name_or_id));
+            return get_contract(address(name_or_id));
         }
         contract_object database::get_contract(const contract_id_type & id)
         {
@@ -460,9 +461,9 @@ namespace graphene {
             }
             return res;
 		}
-        vector<contract_address_type> database::get_contract_address_by_owner(const address& owner)
+        vector<address> database::get_contract_address_by_owner(const address& owner)
 		{
-            vector<contract_address_type> res;
+            vector<address> res;
             auto& index = get_index_type<contract_object_index>().indices().get<by_owner>();
             auto itr = index.lower_bound(owner);
             auto itr_end = index.upper_bound(owner);
@@ -473,7 +474,7 @@ namespace graphene {
             }
             return res;
 		}
-		bool database::has_contract(const contract_address_type& contract_address, const string& method/*=""*/)
+		bool database::has_contract(const address& contract_address, const string& method/*=""*/)
 		{
 			auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 			auto itr = index.find(contract_address);
@@ -499,62 +500,6 @@ namespace graphene {
 			return itr != index.end();
 		}
 
-        asset database::get_contract_balance(const contract_address_type & addr, const asset_id_type & asset_id)
-        {
-            try {
-                auto contract_idx = get_contract(addr);
-            }
-            catch (...)
-            {
-                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_not_exsited, (addr));
-            }
-
-            auto& bal_idx = get_index_type<contract_balance_index>();
-            const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
-            //subscribe_to_item(addr);
-            auto itr = by_owner_idx.find(boost::make_tuple(addr, asset_id));
-            asset result(0, asset_id);
-            if (itr != by_owner_idx.end() && itr->owner == addr)
-            {
-                result += (*itr).balance;
-            }
-            return result;
-        }
-
-
-        void database::adjust_contract_balance(const contract_address_type & addr, const asset & delta)
-        {
-            try {
-                if (delta.amount == 0)
-                    return;
-                auto& by_owner_idx = get_index_type<contract_balance_index>().indices().get<by_owner>();
-                auto itr = by_owner_idx.find(boost::make_tuple(addr, delta.asset_id));
-                fc::time_point_sec now = head_block_time();
-                if (itr == by_owner_idx.end())
-                {
-                    FC_ASSERT(delta.amount > 0, "Insufficient Balance: ${a}'s balance of ${b} is less than required ${r}",
-                        ("a", addr)
-                        ("b", to_pretty_string(asset(0, delta.asset_id)))
-                        ("r", to_pretty_string(-delta)));
-                    create<contract_balance_object>([addr, delta, now](contract_balance_object& b) {
-                        b.owner = addr;
-                        b.balance = delta;
-                        b.last_claim_date = now;
-                    });
-                }
-                else
-                {
-                    if (delta.amount < 0)
-                        FC_ASSERT(itr->balance >= -delta, "Insufficient Balance: ${a}'s balance of ${b} is less than required ${r}", ("a", addr)("b", to_pretty_string(itr->balance))("r", to_pretty_string(-delta)));
-                    modify(*itr, [delta, now](contract_balance_object& b) {
-                        b.adjust_balance(delta, now);
-                    });
-
-                }
-
-
-            }FC_CAPTURE_AND_RETHROW((addr)(delta))
-        }
         address database::get_account_address(const string& name)
         {
             auto& db = get_index_type<account_index>().indices().get<by_name>();

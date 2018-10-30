@@ -53,6 +53,8 @@ namespace graphene { namespace chain {
          vector<guard_member_id_type>   active_committee_members; // updated once per maintenance interval
          flat_set<miner_id_type>          active_witnesses; // updated once per maintenance interval
 		 vector<guard_member_id_type> pledge_insufficient_committee_members; // updated once per maintenance interval 
+		 std::map<uint32_t, uint32_t> unorder_blocks_match;
+
          // n.b. witness scheduling is done by witness_schedule object
    };
 
@@ -161,4 +163,5 @@ FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::obje
                     (next_available_vote_id)
                     (active_committee_members)
                     (active_witnesses)
+	                (unorder_blocks_match)
                   )

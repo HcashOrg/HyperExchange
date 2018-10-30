@@ -107,6 +107,45 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		FC_ASSERT(acct->addr == o.miner_address);
 		const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 		FC_ASSERT(assets.find(o.chain_type) != assets.end());
+		std::string symbol = o.chain_type;
+		if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)){
+			const auto&  mul_acc_db = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
+			FC_ASSERT(o.multi_redeemScript_cold == o.multi_redeemScript_hot);
+			auto multi_withsign_trx = mul_acc_db.find(transaction_id_type(o.multi_redeemScript_cold));
+			FC_ASSERT(multi_withsign_trx != mul_acc_db.end());
+			FC_ASSERT(multi_withsign_trx->state == sol_create_guard_signed);
+			FC_ASSERT(multi_withsign_trx->cold_trx_success && multi_withsign_trx->hot_trx_success);
+			FC_ASSERT(multi_withsign_trx->symbol == o.chain_type);
+
+			auto without_sign_iter = mul_acc_db.find(multi_withsign_trx->multi_account_pre_trx_id);
+			FC_ASSERT(without_sign_iter != mul_acc_db.end());
+			std::vector<std::string> import_contract_address;
+			std::vector<std::string> hot_trx_id;
+			hot_trx_id.push_back(multi_withsign_trx->hot_sol_trx_id);
+			std::vector<std::string> cold_trx_id;
+			cold_trx_id.push_back(multi_withsign_trx->cold_sol_trx_id);
+			auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+			std::string hot_contract_addr = o.multi_address_hot;
+			std::string cold_contract_addr = o.multi_address_cold;
+			import_contract_address.push_back(hot_contract_addr);
+			import_contract_address.push_back(cold_contract_addr);
+			if (!instance.contain_crosschain_handles(o.chain_type))
+				return void_result();
+			auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
+			if (!crosschain_interface->valid_config())
+				return void_result();
+			auto hot_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", hot_trx_id, 0);
+			auto cold_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", cold_trx_id, 0);
+			FC_ASSERT(o.multi_address_hot != "");
+			FC_ASSERT(o.multi_address_cold != "");
+			FC_ASSERT(hot_contract_address["contract_address"] == o.multi_address_hot);
+			FC_ASSERT(cold_contract_address["contract_address"] == o.multi_address_cold);
+			crosschain_interface->create_multi_sig_account("import_contract_addr", import_contract_address, 0);
+		}
+		else {
+			//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
+		//need to check the status of miner...
+			
 		//if the multi-addr correct or not.
 		vector<string> symbol_addrs_cold;
 		vector<string> symbol_addrs_hot;
@@ -148,7 +187,8 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 		FC_ASSERT(o.multi_address_hot == multi_addr_hot["address"]);
 		FC_ASSERT(o.multi_redeemScript_hot == multi_addr_hot["redeemScript"]);
 
-
+		}
+		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
@@ -161,7 +201,21 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		auto iter = account_pair_index.find(boost::make_tuple(o.multi_address_hot,o.multi_address_cold,o.chain_type));
 		if (iter != account_pair_index.end())
 		{
+			std::cout << "dxdfd" << std::endl;
 			db().remove(*iter);
+		}
+		auto test_iter = account_pair_index.find(boost::make_tuple("test_hot", "test_cold_rep","TEST"));
+		if (test_iter == account_pair_index.end())
+		{
+			const auto& btc_obj = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
+				obj.bind_account_hot = "test_hot";
+				obj.redeemScript_hot = "test_hot_rep";
+				obj.redeemScript_cold = "test_cold";
+				obj.bind_account_cold = "test_cold_rep";
+				obj.chain_type = "TEST";
+				obj.effective_block_num = 0;
+			});
+			std::cout << "hello" << std::string(btc_obj.id) << std::endl;
 		}
 		const auto& new_acnt_object = db().create<multisig_account_pair_object>([&](multisig_account_pair_object& obj) {
 			obj.bind_account_hot = o.multi_address_hot;
@@ -171,17 +225,23 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			obj.chain_type = o.chain_type;
 			obj.effective_block_num = 0;
 		});
+		std::cout << "hellox" << std::string(new_acnt_object.id) << std::endl;
+		//FC_ASSERT(new_acnt_object.id != multisig_account_pair_id_type());
 		//we need change the status of the multisig_address_object
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)
 		{
-			if (itr.chain_type != o.chain_type || itr.multisig_account_pair_object_id != multisig_account_pair_id_type())
+			if (itr.chain_type != o.chain_type || itr.multisig_account_pair_object_id != multisig_account_pair_id_type()) {
+				//FC_ASSERT(false, "Add for test");
 				continue;
+			}
 			db().modify(itr, [&](multisig_address_object& obj) {
 				obj.multisig_account_pair_object_id = new_acnt_object.id;
 			});
 		}
-
+		if ((o.chain_type == "ETH") || (o.chain_type.find("ERC") != o.chain_type.npos)) {
+			db().adjust_eths_multi_account_record(transaction_id_type(o.multi_redeemScript_hot), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<miner_generate_multi_asset_operation>::value));
+		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 

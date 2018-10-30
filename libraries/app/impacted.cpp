@@ -83,7 +83,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.new_owner );
    }
-
+   void operator() (const senator_determine_block_payment_operation& op) {}
    void operator()(const account_bind_operation& op) {}
    void operator()(const account_unbind_operation& op) {}
    void operator()(const account_multisig_create_operation& op) {}
@@ -105,6 +105,7 @@ struct get_impacted_account_visitor
 
    void operator()( const asset_reserve_operation& op ) {}
    void operator()(const asset_real_create_operation& op) {}
+   void operator()(const asset_eth_create_operation& op) {}
    void operator()( const asset_fund_fee_pool_operation& op ) {}
    void operator()( const asset_settle_operation& op ) {}
    void operator()( const asset_global_settle_operation& op ) {}
@@ -128,6 +129,15 @@ struct get_impacted_account_visitor
          operation_get_required_authorities( proposed_op.op, _impacted, _impacted, other );
       for( auto& o : other )
          add_authority_accounts( _impacted, o );
+   }
+
+   void operator()(const referendum_create_operation& op)
+   {
+	   vector<authority> other;
+	   for (const auto& proposed_op : op.proposed_ops)
+		   operation_get_required_authorities(proposed_op.op, _impacted, _impacted, other);
+	   for (auto& o : other)
+		   add_authority_accounts(_impacted, o);
    }
 
    void operator()( const proposal_update_operation& op ) {}
@@ -206,6 +216,7 @@ struct get_impacted_account_visitor
    void operator() (const gurantee_cancel_operation& op) {}
    void operator() (const asset_fee_modification_operation& op) {}
    void operator() (const senator_determine_withdraw_deposit_operation& op) {}
+   void operator() (const account_create_multisignature_address_operation& op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );
@@ -256,6 +267,12 @@ struct get_impacted_account_visitor
    void operator()(const transfer_contract_operation& op) {}
    void operator()(const contract_transfer_fee_proposal_operation& op) {}
 
+   void operator()(const eth_seri_guard_sign_operation & op){}
+   void operator()(const eths_guard_sign_final_operation & op) {}
+   void operator()(const eths_coldhot_guard_sign_final_operation & op) {}
+   void operator()(const eth_series_multi_sol_create_operation & op) {}
+   void operator()(const eths_multi_sol_guard_sign_operation & op) {}
+   void operator()(const eth_multi_account_create_record_operation & op) {}
 };
 
 void operation_get_impacted_accounts( const operation& op, flat_set<account_id_type>& result )

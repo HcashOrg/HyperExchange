@@ -28,7 +28,7 @@ add_executable( performance_test ${PERFORMANCE_TESTS} ${COMMON_SOURCES} )
 IF(WIN32)
 target_link_libraries( performance_test graphene_chain graphene_app graphene_account_history graphene_egenesis_none fc  ${PLATFORM_SPECIFIC_LIBS} )
 ELSE()
-target_link_libraries( performance_test graphene_chain graphene_witness graphene_app graphene_witness graphene_account_history graphene_egenesis_none fc  crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${PLATFORM_SPECIFIC_LIBS} )
+target_link_libraries( performance_test graphene_chain graphene_app graphene_witness graphene_account_history graphene_egenesis_none fc  crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${PLATFORM_SPECIFIC_LIBS} )
 ENDIF()
 
 file(GLOB BENCH_MARKS "benchmarks/*.cpp")
@@ -36,7 +36,7 @@ add_executable( chain_bench ${BENCH_MARKS} ${COMMON_SOURCES} )
 IF(WIN32)
 target_link_libraries( chain_bench graphene_chain graphene_app graphene_account_history graphene_egenesis_none fc  ${PLATFORM_SPECIFIC_LIBS} )
 ELSE()
-target_link_libraries( chain_bench graphene_chain graphene_witness graphene_app graphene_account_history graphene_egenesis_none fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a  ${PLATFORM_SPECIFIC_LIBS} )
+target_link_libraries( chain_bench graphene_chain graphene_app graphene_witness  graphene_account_history graphene_egenesis_none fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a  ${PLATFORM_SPECIFIC_LIBS} )
 ENDIF()
 
 

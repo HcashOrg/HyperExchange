@@ -17,6 +17,7 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
 	db_crosschain_trx.cpp
 	db_coldhot_trx.cpp
 	db_pay_back.cpp
+	db_eths_trx.cpp
       )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
@@ -45,6 +46,7 @@ add_library( graphene_chain
              protocol/witness.cpp
              protocol/market.cpp
              protocol/proposal.cpp
+			 protocol/referendum.cpp
              protocol/withdraw_permission.cpp
              protocol/asset_ops.cpp
              protocol/memo.cpp
@@ -56,7 +58,8 @@ add_library( graphene_chain
              protocol/fee_schedule.cpp
              protocol/confidential.cpp
              protocol/vote.cpp
-
+			eth_seri_record_evaluate.cpp
+			eth_seri_record.cpp
              genesis_state.cpp
              get_config.cpp
 	     pts_address.cpp
@@ -74,6 +77,7 @@ add_library( graphene_chain
              asset_evaluator.cpp
              transfer_evaluator.cpp
              proposal_evaluator.cpp
+			 referendum_evaluator.cpp
              market_evaluator.cpp
              coldhot_transfer_evaluate.cpp
              vesting_balance_evaluator.cpp
@@ -89,6 +93,7 @@ add_library( graphene_chain
              asset_object.cpp
              fba_object.cpp
              proposal_object.cpp
+			 referendum_object.cpp
              vesting_balance_object.cpp
              block_database.cpp
 

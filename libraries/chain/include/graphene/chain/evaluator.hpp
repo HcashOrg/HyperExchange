@@ -170,7 +170,7 @@ namespace graphene {
 					GRAPHENE_ASSERT(core_fees_paid.amount >= required_fee,
 						insufficient_fee,
 						"Insufficient Fee Paid",
-						("core_fee_paid", core_fee_paid)("required", required_fee));
+						("core_fee_paid", core_fees_paid)("required", required_fee));
 				}
 				return eval->do_evaluate(op);
 			}

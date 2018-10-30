@@ -22,13 +22,13 @@ namespace graphene {
 			contract_common_evaluate* _evaluate;
 			contract_invoke_result _contract_invoke_result;
 		public:
-            contract_address_type contract_id;
-			abstract_native_contract(contract_common_evaluate* evaluate, const contract_address_type& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
+            address contract_id;
+			abstract_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
 			// unique key to identify native contract
 			virtual std::string contract_key() const = 0;
-			virtual contract_address_type contract_address() const = 0;
+			virtual address contract_address() const = 0;
 			virtual std::set<std::string> apis() const = 0;
 			virtual std::set<std::string> offline_apis() const = 0;
 			virtual std::set<std::string> events() const = 0;
@@ -41,9 +41,9 @@ namespace graphene {
 			}
 			bool has_api(const string& api_name);
 
-			void set_contract_storage(const contract_address_type& contract_address, const string& storage_name, const StorageDataType& value);
-			StorageDataType get_contract_storage(const contract_address_type& contract_address, const string& storage_name);
-			void emit_event(const contract_address_type& contract_address, const string& event_name, const string& event_arg);
+			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
+			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
+			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
 		};
 
 		// FIXME: remove the demo native contract
@@ -52,10 +52,10 @@ namespace graphene {
 		public:
 			static std::string native_contract_key() { return "demo"; }
 
-			demo_native_contract(contract_common_evaluate* evaluate, const contract_address_type& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
+			demo_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
 			virtual ~demo_native_contract() {}
 			virtual std::string contract_key() const;
-			virtual contract_address_type contract_address() const;
+			virtual address contract_address() const;
 			virtual std::set<std::string> apis() const;
 			virtual std::set<std::string> offline_apis() const;
 			virtual std::set<std::string> events() const;
@@ -71,11 +71,11 @@ namespace graphene {
 		public:
 			static std::string native_contract_key() { return "token"; }
 
-			token_native_contract(contract_common_evaluate* evaluate, const contract_address_type& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
+			token_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
 			virtual ~token_native_contract() {}
 
 			virtual std::string contract_key() const;
-			virtual contract_address_type contract_address() const;
+			virtual address contract_address() const;
 			virtual std::set<std::string> apis() const;
 			virtual std::set<std::string> offline_apis() const;
 			virtual std::set<std::string> events() const;
@@ -116,7 +116,7 @@ namespace graphene {
 		{
 		public:
 			static bool has_native_contract_with_key(const std::string& key);
-			static shared_ptr<abstract_native_contract> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const contract_address_type& contract_address);
+			static shared_ptr<abstract_native_contract> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
 
 		};
 
@@ -134,7 +134,7 @@ namespace graphene {
 			address owner_addr;
 			fc::ecc::public_key owner_pubkey;
 			fc::time_point_sec     register_time;
-            contract_address_type contract_id;
+            address contract_id;
 			string  native_contract_key;
 
 			extensions_type   extensions;
@@ -148,7 +148,7 @@ namespace graphene {
 			{
 				a.push_back(authority(1, owner_addr, 1));
 			}
-            contract_address_type calculate_contract_id() const;
+            address calculate_contract_id() const;
 		};
 	}
 }

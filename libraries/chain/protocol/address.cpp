@@ -28,115 +28,111 @@
 #include <algorithm>
 
 namespace graphene {
-  namespace chain {
-   address::address(){}
+	namespace chain {
 
-   address::address( const std::string& base58str, const char *prefix_str)
-   {
-      std::string prefix(prefix_str);
-      FC_ASSERT( is_valid( base58str, prefix ), "${str}", ("str",base58str + " -- " + prefix) );
+		bool address::testnet_mode =false;
+		address::address() {}
 
-      std::vector<char> v = fc::from_base58( base58str.substr( prefix.size() ) );
-      memcpy( (char*)addr._hash, v.data(), std::min<size_t>( v.size()-4, sizeof( addr ) ) );
-   }
+		address::address(const std::string& base58str, const char *prefix_str)
+		{
+			std::string prefix(prefix_str);
+			if (testnet_mode)
+				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+			FC_ASSERT(is_valid(base58str, prefix), "${str}", ("str", base58str + " -- " + prefix));
 
-   bool address::is_valid( const std::string& base58str, const std::string& prefix )
-   {
-	   if (prefix.empty())
-		   return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX) || is_valid(base58str, GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-      const size_t prefix_len = prefix.size();
-      if( base58str.size() <= prefix_len )
-          return false;
-      if( base58str.substr( 0, prefix_len ) != prefix )
-          return false;
-      std::vector<char> v;
-      try
-      {
-		     v = fc::from_base58( base58str.substr( prefix_len ) );
-      }
-      catch( const fc::parse_error_exception& e )
-      {
-        return false;
-      }
+			std::vector<char> v = fc::from_base58(base58str.substr(prefix.size()));
+			version = *(unsigned char *)v.data();
+			memcpy((char*)addr._hash, v.data() + 1, std::min<size_t>(v.size() - 5, sizeof(addr)));
+		}
 
-      if( v.size() != sizeof( fc::ripemd160 ) + 4 )
-          return false;
+		bool address::is_valid(const std::string& base58str, const std::string& prefix)
+		{
+			if (prefix.empty())
+			{
+				if (testnet_mode)
+					return is_valid(base58str, std::string(GRAPHENE_ADDRESS_PREFIX)+ GRAPHENE_ADDRESS_TESTNET_PREFIX);
+				else
+					return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX);
+			}
+				
+			const size_t prefix_len = prefix.size();
+			if (base58str.size() <= prefix_len)
+				return false;
+			if (base58str.substr(0, prefix_len) != prefix)
+				return false;
+			std::vector<char> v;
+			try
+			{
+				v = fc::from_base58(base58str.substr(prefix_len));
+			}
+			catch (const fc::parse_error_exception& e)
+			{
+				return false;
+			}
+			if (v[0] != addressVersion::CONTRACT && v[0] != addressVersion::MULTISIG && v[0] != addressVersion::NORMAL)
+				return false;
+			if (v.size() != sizeof(fc::ripemd160) + 5)
+				return false;
 
-      const fc::ripemd160 checksum = fc::ripemd160::hash( v.data(), v.size() - 4 );
-      if( memcmp( v.data() + 20, (char*)checksum._hash, 4 ) != 0 )
-          return false;
+			const fc::ripemd160 checksum = fc::ripemd160::hash(v.data(), v.size() - 4);
+			if (memcmp(v.data() + 21, (char*)checksum._hash, 4) != 0)
+				return false;
 
-      return true;
-   }
+			return true;
+		}
 
-   address::address( const fc::ecc::public_key& pub )
-   {
-       auto dat = pub.serialize();
-       addr = fc::ripemd160::hash( fc::sha512::hash( dat.data, sizeof( dat ) ) );
-   }
+		address::address(const fc::ecc::public_key& pub, unsigned char version)
+		{
+			auto dat = pub.serialize();
+			addr = fc::ripemd160::hash(fc::sha512::hash(dat.data, sizeof(dat)));
+			this->version = version;
+		}
 
-   std::string address::address_to_string(const char *prefix) const
-   {
-	   fc::array<char, 24> bin_addr;
-	   memcpy((char*)&bin_addr, (char*)&addr, sizeof(addr));
-	   auto checksum = fc::ripemd160::hash((char*)&addr, sizeof(addr));
-	   memcpy(((char*)&bin_addr) + 20, (char*)&checksum._hash[0], 4);
-	   return prefix + fc::to_base58(bin_addr.data, sizeof(bin_addr));
-   }
+		std::string address::address_to_string() const
+		{
+			string prefix = GRAPHENE_ADDRESS_PREFIX;
+			if (testnet_mode)
+				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+			if (*this == address())
+				return "InvalidAddress";
+			fc::array<char, 25> bin_addr;
+			memcpy((char*)&bin_addr, (char*)&version, sizeof(version));
+			memcpy((char*)&bin_addr + 1, (char*)&addr, sizeof(addr));
+			auto checksum = fc::ripemd160::hash((char*)&bin_addr, bin_addr.size() - 4);
+			memcpy(((char*)&bin_addr) + 21, (char*)&checksum._hash[0], 4);
+			return prefix + fc::to_base58(bin_addr.data, sizeof(bin_addr));
+		}
+		address::address(const pts_address& ptsaddr)
+		{
+			addr = fc::ripemd160::hash((char*)&ptsaddr, sizeof(ptsaddr));
+		}
 
-   std::string address::address_to_contract_string() const
-   {
-	   return address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-   }
+		address::address(const fc::ecc::public_key_data& pub, unsigned char version)
+		{
+			addr = fc::ripemd160::hash(fc::sha512::hash(pub.data, sizeof(pub)));
+			this->version = version;
+		}
 
-   address::address( const pts_address& ptsaddr )
-   {
-       addr = fc::ripemd160::hash( (char*)&ptsaddr, sizeof( ptsaddr ) );
-   }
+		address::address(const graphene::chain::public_key_type& pub, unsigned char version)
+		{
+			addr = fc::ripemd160::hash(fc::sha512::hash(pub.key_data.data, sizeof(pub.key_data)));
+			this->version = version;
+		}
 
-   address::address( const fc::ecc::public_key_data& pub )
-   {
-       addr = fc::ripemd160::hash( fc::sha512::hash( pub.data, sizeof( pub ) ) );
-   }
-
-   address::address( const graphene::chain::public_key_type& pub )
-   {
-       addr = fc::ripemd160::hash( fc::sha512::hash( pub.key_data.data, sizeof( pub.key_data ) ) );
-   }
-
-   address::operator std::string()const
-   {
-	   return address_to_string(GRAPHENE_ADDRESS_PREFIX);
-   }
-   contract_address_type::contract_address_type() {}
-   contract_address_type::contract_address_type(const std::string& base58str)
-   {
-       addr = address(base58str, GRAPHENE_CONTRACT_ADDRESS_PREFIX).addr;
-   }
-   contract_address_type::operator std::string()const
-   {
-       address tmp_addr;
-       tmp_addr.addr = addr;
-       return tmp_addr.address_to_string(GRAPHENE_CONTRACT_ADDRESS_PREFIX);
-   }
-} } // namespace graphene::chain
-
+		address::operator std::string()const
+		{
+			return address_to_string();
+		}
+	}
+}
 namespace fc
 {
     void to_variant( const graphene::chain::address& var,  variant& vo )
     {
         vo = std::string(var);
     }
-    void from_variant( const variant& var,  graphene::chain::address& vo )
-    {
-        vo = graphene::chain::address( var.as_string() );
-    }
-    void to_variant(const graphene::chain::contract_address_type& var, variant& vo)
-    {
-        vo = std::string(var);
-    }
-    void from_variant(const variant& var, graphene::chain::contract_address_type& vo)
-    {
-        vo = graphene::chain::contract_address_type(var.as_string());
-    }
+	void from_variant(const variant& var, graphene::chain::address& vo)
+	{
+		vo = graphene::chain::address(var.as_string());
+	}
 }

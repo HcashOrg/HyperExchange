@@ -35,6 +35,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include<graphene/chain/witness_schedule_object.hpp>
 #include <cctype>
 
 #include <cfenv>
@@ -170,20 +171,22 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       //contract 
       contract_object get_contract_object(const string& contract_address)const ;
 	  contract_object get_contract_object_by_name(const string& contract_name) const;
-      vector<asset> get_contract_balance(const contract_address_type & contract_address) const;
+      vector<asset> get_contract_balance(const address & contract_address) const;
 	  vector<optional<guarantee_object>> list_guarantee_object(const string& chain_type,bool all) const;
 	  optional<guarantee_object> get_gurantee_object(const guarantee_object_id_type id) const;
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
       vector<contract_invoke_result_object> get_contract_invoke_object(const transaction_id_type& trx_id)const;
-      vector<contract_address_type> get_contract_addresses_by_owner(const address&)const;
+      vector<address> get_contract_addresses_by_owner(const address&)const;
       vector<contract_object> get_contracts_by_owner(const address&addr )const ;
-      vector<contract_event_notify_object> get_contract_events(const contract_address_type&)const;
-	  vector<contract_event_notify_object> get_contract_events(const contract_address_type &addr, uint64_t start, uint64_t range) const;
+      vector<contract_event_notify_object> get_contract_events(const address&)const;
+	  vector<contract_event_notify_object> get_contract_events(const address &addr, uint64_t start, uint64_t range) const;
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
+	  vector<miner_id_type> list_scheduled_citizens() const;
+	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 
    //private:
       template<typename T>
@@ -385,10 +388,10 @@ contract_object database_api_impl::get_contract_object_by_name(const string& con
 		return res;
 	}FC_CAPTURE_AND_RETHROW((contract_name))
 }
-vector<asset> database_api_impl::get_contract_balance(const contract_address_type & contract_address) const
+vector<asset> database_api_impl::get_contract_balance(const address & contract_address) const
 {
     vector<asset> res;
-    auto& db=_db.get_index_type<contract_balance_index>().indices().get<by_owner>();
+    auto& db=_db.get_index_type<balance_index>().indices().get<by_owner>();
     for (auto it : db)
     {
         if (it.owner == contract_address)
@@ -422,11 +425,11 @@ void database_api::cancel_all_subscriptions()
 {
    my->cancel_all_subscriptions();
 }
-vector<asset> database_api::get_contract_balance(const contract_address_type & contract_address) const
+vector<asset> database_api::get_contract_balance(const address & contract_address) const
 {
     return my->get_contract_balance(contract_address);
 }
-vector<contract_address_type> database_api::get_contract_addresses_by_owner_address(const address&addr)const
+vector<address> database_api::get_contract_addresses_by_owner_address(const address&addr)const
 {
     return my->get_contract_addresses_by_owner(addr);
 }
@@ -434,7 +437,7 @@ vector<contract_address_type> database_api::get_contract_addresses_by_owner_addr
 vector<string>  database_api::get_contract_addresses_by_owner(const std::string& addr)const
 {
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -447,7 +450,7 @@ vector<string>  database_api::get_contract_addresses_by_owner(const std::string&
     vector<string> res;
     for (auto& out : addr_res)
     {
-        res.push_back(out);
+        res.push_back(string(out));
     }
     return res;
 }
@@ -460,7 +463,7 @@ vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::s
 {
     vector<ContractEntryPrintable> res;
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -480,7 +483,7 @@ vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::s
 vector<contract_hash_entry> database_api::get_contracts_hash_entry_by_owner(const std::string& addr) const
 {
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -1915,6 +1918,18 @@ map<string, miner_id_type> database_api_impl::lookup_miner_accounts(const string
    return miners_by_account_name;
 }
 
+vector<miner_id_type> database_api::list_scheduled_citizens() const 
+{
+	return my->list_scheduled_citizens();
+}
+
+vector<miner_id_type> database_api_impl::list_scheduled_citizens() const
+{
+	const witness_schedule_object& wso = witness_schedule_id_type()(_db);
+	return wso.current_shuffled_miners;
+
+}
+
 uint64_t database_api::get_miner_count()const
 {
    return my->get_miner_count();
@@ -2071,7 +2086,7 @@ optional<contract_event_notify_object> database_api_impl::get_contract_event_not
 
 }
 
-vector<contract_address_type> database_api_impl::get_contract_addresses_by_owner(const address& addr)const
+vector<address> database_api_impl::get_contract_addresses_by_owner(const address& addr)const
 {
     return _db.get_contract_address_by_owner(addr);
 }
@@ -2079,11 +2094,11 @@ vector<contract_object> database_api_impl::get_contracts_by_owner(const address&
 {
     return _db.get_contract_by_owner(addr);
 }
-vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr) const
+vector<contract_event_notify_object> database_api_impl::get_contract_events(const address &addr) const
 {
     return _db.get_contract_events_by_contract_ordered(addr);
 }
-vector<contract_event_notify_object> database_api_impl::get_contract_events(const contract_address_type &addr,uint64_t start,uint64_t range) const
+vector<contract_event_notify_object> database_api_impl::get_contract_events(const address &addr,uint64_t start,uint64_t range) const
 {
 	return _db.get_contract_events_by_block_and_addr_ordered(addr,start,range);
 }
@@ -2099,6 +2114,23 @@ vector<contract_blocknum_pair> database_api_impl::get_contract_storage_changed(c
 vector<contract_blocknum_pair> database_api::get_contract_storage_changed(const uint32_t block_num) const
 {
     return my->get_contract_storage_changed(block_num,0);
+}
+vector<fc::optional<eth_multi_account_trx_object>> database_api::get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const {
+	return my->get_eths_multi_create_account_trx(trx_state, trx_id);
+}
+vector<fc::optional<eth_multi_account_trx_object>> database_api_impl::get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id) const {
+	vector<fc::optional<eth_multi_account_trx_object>> ret;
+	auto range = _db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_mulacc_tx_state>().equal_range(trx_state);
+	for (auto iter : boost::make_iterator_range(range.first, range.second)) {
+		if (trx_id == transaction_id_type()) {
+			ret.push_back(iter);
+		}
+		else if (iter.multi_account_create_trx_id == trx_id) {
+			ret.push_back(iter);
+			break;
+		}
+	}
+	return ret;
 }
 vector<contract_blocknum_pair> database_api::get_contract_registered(const uint32_t block_num) const
 {
@@ -2704,14 +2736,14 @@ vector<contract_invoke_result_object> database_api::get_contract_invoke_object(c
 
 graphene::chain::vector<graphene::chain::transaction_id_type> database_api::get_contract_history(const string& contract_id, uint64_t start, uint64_t end)
 {
-	return my->_db.get_contract_related_transactions(contract_address_type(contract_id), start, end);
+	return my->_db.get_contract_related_transactions(address(contract_id), start, end);
 }
 
-vector<contract_event_notify_object> database_api::get_contract_events(const contract_address_type&addr)const
+vector<contract_event_notify_object> database_api::get_contract_events(const address&addr)const
 {
     return my->get_contract_events(addr);
 }
-vector<contract_event_notify_object> database_api::get_contract_events_in_range(const contract_address_type &addr, uint64_t start, uint64_t range) const
+vector<contract_event_notify_object> database_api::get_contract_events_in_range(const address &addr, uint64_t start, uint64_t range) const
 {
 	return my->get_contract_events(addr,start,range);
 }
@@ -2719,7 +2751,7 @@ optional<contract_event_notify_object> database_api::get_contract_event_notify_b
 {
     return my->get_contract_event_notify_by_id(id);
 }
-vector<contract_event_notify_object> database_api::get_contract_event_notify(const contract_address_type& contract_id, const transaction_id_type& trx_id, const string& event_name) const
+vector<contract_event_notify_object> database_api::get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const
 {
     return my->_db.get_contract_event_notify(contract_id,trx_id, event_name);
 }

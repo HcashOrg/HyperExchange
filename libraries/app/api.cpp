@@ -159,10 +159,12 @@ namespace graphene { namespace app {
     }
     void miner_api::start_miner(bool start)
     {
+
         auto plu = _app.get_plugin("miner");
         FC_ASSERT(plu.get()!=NULL);
         miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
         pl->set_block_production(start);
+
     }
     // block_api
     block_api::block_api(graphene::chain::database& db) : _db(db) { }

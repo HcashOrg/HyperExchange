@@ -66,27 +66,9 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
    void generic_evaluator::prepare_fee(account_id_type account_id, asset fee)
    {
       const database& d = db();
-      fee_from_account = fee;
-      FC_ASSERT( fee.amount >= 0 );
-      fee_paying_account = &account_id(d);
-      fee_paying_account_statistics = &fee_paying_account->statistics(d);
-
-      fee_asset = &fee.asset_id(d);
-      fee_asset_dyn_data = &fee_asset->dynamic_asset_data_id(d);
-
-	  FC_ASSERT(is_authorized_asset(d, *fee_paying_account, *fee_asset), "Account ${acct} '${name}' attempted to pay fee by using asset ${a} '${sym}', which is unauthorized due to whitelist / blacklist",
-		  ("acct", fee_paying_account->id)("name", fee_paying_account->name)("a", fee_asset->id)("sym", fee_asset->symbol));
-
-      if( fee_from_account.asset_id == asset_id_type() )
-         core_fee_paid = fee_from_account.amount;
-      else
-      {
-         asset fee_from_pool = fee_from_account * fee_asset->options.core_exchange_rate;
-         FC_ASSERT( fee_from_pool.asset_id == asset_id_type() );
-         core_fee_paid = fee_from_pool.amount;
-         FC_ASSERT( core_fee_paid <= fee_asset_dyn_data->fee_pool, "Fee pool balance of '${b}' is less than the ${r} required to convert ${c}",
-                    ("r", db().to_pretty_string( fee_from_pool))("b",db().to_pretty_string(fee_asset_dyn_data->fee_pool))("c",db().to_pretty_string(fee)) );
-      }
+	  const auto& acc = d.get(account_id);
+	  const auto addr = acc.addr;
+	  prepare_fee(addr, fee);
    }
 
    void generic_evaluator::convert_fee()

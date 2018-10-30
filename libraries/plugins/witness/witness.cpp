@@ -100,6 +100,8 @@ void miner_plugin::plugin_set_program_options(
    chain_type.push_back("LTC");
    chain_type.push_back("UB");
    chain_type.push_back("HC");
+   chain_type.push_back("ETH");
+   chain_type.push_back("ERCBCC");
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
@@ -256,7 +258,63 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
    schedule_production_loop();
    return result;
 }
+void miner_plugin::check_eths_generate_multi_addr(miner_id_type miner, fc::ecc::private_key pk) {
 
+	try {
+		chain::database& db = database();
+		std::map<std::string, int> multi_account_state;
+		auto op_type = operation::tag<eth_multi_account_create_record_operation>::value;
+		auto multi_acc_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_mulacc_tx_state>().equal_range(sol_multi_account_ethchain_create);
+		for (auto item : boost::make_iterator_range(multi_acc_range.first, multi_acc_range.second)){
+			if (item.op_type == op_type)
+			{
+				if (multi_account_state.count(std::string(item.multi_account_pre_trx_id)) == 0) {
+					multi_account_state[std::string(item.multi_account_pre_trx_id)] = 1;
+				}
+				else {
+					multi_account_state[std::string(item.multi_account_pre_trx_id)] += 1;
+				}
+			}
+		}
+		auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		const auto& miners = db.get_index_type<miner_index>().indices().get<by_id>();
+		auto iter = miners.find(miner);
+		auto accid = iter->miner_account;
+		const auto& accounts = db.get_index_type<account_index>().indices().get<by_id>();
+		auto miner_addr = accounts.find(accid)->addr;
+		for (auto mul_acc : multi_account_state){
+			if (mul_acc.second == 2){
+				const auto&  mul_acc_db = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
+				auto multi_withsign_trx = mul_acc_db.find(transaction_id_type(mul_acc.first));
+				FC_ASSERT(multi_withsign_trx != mul_acc_db.end());
+				auto crosschain_interface = instance.get_crosschain_handle(multi_withsign_trx->symbol);
+				std::vector<std::string> hot_trx_id;
+				hot_trx_id.push_back(multi_withsign_trx->hot_sol_trx_id);
+				std::vector<std::string> cold_trx_id;
+				cold_trx_id.push_back(multi_withsign_trx->cold_sol_trx_id);
+				auto hot_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", hot_trx_id,0);
+				auto cold_contract_address = crosschain_interface->create_multi_sig_account("get_contract_address", cold_trx_id, 0);
+				miner_generate_multi_asset_operation op;
+				uint32_t expiration_time_offset = 0;
+				auto dyn_props = db.get_dynamic_global_properties();
+				op.miner = miner;
+				op.miner_address = miner_addr;
+				op.multi_address_cold = cold_contract_address["contract_address"];
+				op.multi_redeemScript_cold = mul_acc.first;
+				op.multi_address_hot = hot_contract_address["contract_address"];
+				op.multi_redeemScript_hot = mul_acc.first;
+				op.chain_type = multi_withsign_trx->symbol;
+				signed_transaction trx;
+				trx.operations.emplace_back(op);
+				set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+				trx.set_reference_block(dyn_props.head_block_id);
+				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+				trx.sign(pk, db.get_chain_id());
+				db.push_transaction(trx);
+			}
+		}
+	}FC_CAPTURE_AND_LOG((0));
+}
 fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc::private_key pk)
 {
 	chain::database& db = database();
@@ -287,28 +345,84 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
+			vector<account_id_type> eth_guard_account_ids;
 			if (!instance.contain_crosschain_handles(iter.symbol))
 				continue;
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
 			auto addr_range=addr.equal_range(boost::make_tuple(iter.symbol));
 			std::for_each(
-				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot,&func](const multisig_address_object& obj) {
+				addr_range.first, addr_range.second, [&symbol_addrs_cold,&symbol_addrs_hot, &func,&eth_guard_account_ids](const multisig_address_object& obj) {
 				if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
 				{
 					if (func(obj.guard_account))
 					{
 						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
+						eth_guard_account_ids.push_back(obj.guard_account);
 					}
 				}
 			}
 			);
-			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size())
+			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size() && (eth_guard_account_ids.size() == guard_ids.size()))
 			{
 				
 				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size()*2.0/3.0));
 				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2.0 / 3.0));
 				signed_transaction trx;
+				try {
+					if ((iter.symbol.find("ETH") != iter.symbol.npos) || (iter.symbol.find("ERC") != iter.symbol.npos)) {
+						auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(iter.symbol);
+						std::string temp_address_cold;
+						std::string temp_address_hot;
+						for (auto public_cold : symbol_addrs_cold)
+						{
+							temp_address_cold += ptr->get_address_by_pubkey(public_cold);
+						}
+						for (auto public_hot : symbol_addrs_hot)
+						{
+							temp_address_hot += ptr->get_address_by_pubkey(public_hot);
+						}
+						std::string temp_cold = ptr->get_address_by_pubkey(*symbol_addrs_cold.begin());
+						std::string temp_hot = ptr->get_address_by_pubkey(*symbol_addrs_hot.begin());
+						std::string cold_without_sign = multi_addr_cold_obj[temp_cold];
+						std::string hot_without_sign = multi_addr_hot_obj[temp_hot];
+						auto hot_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(temp_address_hot);
+						auto cold_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(temp_address_cold);
+						if (hot_range.first != hot_range.second || cold_range.first != cold_range.second)
+						{
+							continue;
+						}
+						eth_series_multi_sol_create_operation op;
+						uint32_t expiration_time_offset = 0;
+						auto dyn_props = db.get_dynamic_global_properties();
+						op.miner_broadcast = miner;
+						op.chain_type = iter.symbol;
+						op.miner_broadcast_addrss = miner_addr;
+						op.multi_cold_address = temp_address_cold;
+						op.multi_hot_address = temp_address_hot;
+						op.multi_account_tx_without_sign_cold = cold_without_sign;
+						op.multi_account_tx_without_sign_hot = hot_without_sign;
+						op.cold_nonce = multi_addr_cold_obj["nonce"];
+						op.hot_nonce = multi_addr_hot_obj["nonce"];
+						op.guard_sign_cold_address = temp_cold;
+						op.guard_sign_hot_address = temp_hot;
+						const auto& guard_dbs = db.get_index_type<guard_member_index>().indices().get<by_account>();
+						auto guard_iter = guard_dbs.find(*eth_guard_account_ids.begin());
+						FC_ASSERT(guard_iter != guard_dbs.end());
+						op.guard_to_sign = guard_iter->id;
+						op.chain_type = iter.symbol;
+						trx.operations.emplace_back(op);
+						set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+						trx.set_reference_block(dyn_props.head_block_id);
+						trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
+						trx.sign(pk, db.get_chain_id());
+						db.push_transaction(trx);
+						continue;
+					}
+				}catch(...){
+					continue;
+				}
+				
 				miner_generate_multi_asset_operation op;
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = db.get_dynamic_global_properties();
@@ -432,6 +546,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    }
    //through this to generate new multi-addr
    auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
+   check_eths_generate_multi_addr(scheduled_miner, private_key_itr->second);
    db.create_result_transaction(scheduled_miner, private_key_itr->second);
    db.create_coldhot_transfer_trx(scheduled_miner, private_key_itr->second);
    db.combine_coldhot_sign_transaction(scheduled_miner, private_key_itr->second);

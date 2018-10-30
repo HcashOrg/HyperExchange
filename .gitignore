@@ -269,3 +269,10 @@ dep.7z
 setenv_x64.bat
 bin64/
 third_libs
+
+*.patch
+*.diff
+*.rej
+/2017bin
+/eth_test
+
