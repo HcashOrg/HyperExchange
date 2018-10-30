@@ -2022,6 +2022,7 @@ class wallet_api
 	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
+	  full_transaction citizen_referendum_for_senator(const string& citizen, const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
@@ -2108,12 +2109,6 @@ FC_API( graphene::wallet::wallet_api,
         (about)
         (begin_builder_transaction)
         (add_operation_to_builder_transaction)
-        (replace_operation_in_builder_transaction)
-        (set_fees_on_builder_transaction)
-        (preview_builder_transaction)
-        (sign_builder_transaction)
-        (propose_builder_transaction)
-        (propose_builder_transaction2)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
 	    (obtain_bonus_balance)
@@ -2140,10 +2135,6 @@ FC_API( graphene::wallet::wallet_api,
         
         (sell)
         (get_eth_multi_account_trx)
-        (borrow_asset)
-        (cancel_order)
-        (transfer)
-        (transfer2)
         (get_transaction_id)
         (create_asset)
 	    (get_acquire_transaction)
@@ -2155,12 +2146,6 @@ FC_API( graphene::wallet::wallet_api,
         (issue_asset)
         (get_asset)
 	    (get_asset_imp)
-        (get_bitasset_data)
-        (fund_asset_fee_pool)
-        (reserve_asset)
-        (global_settle_asset)
-        (settle_asset)
-        (whitelist_account)
         (create_senator_member)
         (resign_senator_member)
         (get_citizen)
@@ -2329,4 +2314,5 @@ FC_API( graphene::wallet::wallet_api,
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
+		(citizen_referendum_for_senator)
       )

@@ -57,5 +57,11 @@ void chain::guard_member_resign_operation::validate() const
     FC_ASSERT(fee.amount >= 0);
 }
 
+void citizen_referendum_senator_operation::validate()const
+{
+	FC_ASSERT(fee.amount >=0);
+	FC_ASSERT(replace_queue.size() >0 && replace_queue.size() <=3);
+}
+
 } } // graphene::chain
 

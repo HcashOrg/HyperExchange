@@ -128,6 +128,7 @@ struct get_impacted_account_visitor
    void operator()(const senator_determine_withdraw_deposit_operation& op) {}
    void operator()(const account_create_multisignature_address_operation& op) {}
    void operator()(const senator_determine_block_payment_operation& op) {}
+   void operator()(const citizen_referendum_senator_operation& op) {}
    void operator()( const miner_create_operation& op )
    {
       _impacted.insert( op.miner_account );
@@ -153,7 +154,7 @@ struct get_impacted_account_visitor
 	   for (auto& o : other)
 		   add_authority_accounts(_impacted, o);
    }
-
+   void operator() (const referendum_update_operation& op) {}
    void operator()( const proposal_update_operation& op ) {}
    void operator()( const proposal_delete_operation& op ) {}
 
