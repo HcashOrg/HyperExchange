@@ -36,6 +36,7 @@
 #include <graphene/chain/protocol/fba.hpp>
 #include <graphene/chain/protocol/market.hpp>
 #include <graphene/chain/protocol/proposal.hpp>
+#include <graphene/chain/protocol/referendum.hpp>
 #include <graphene/chain/protocol/transfer.hpp>
 #include <graphene/chain/protocol/vesting.hpp>
 #include <graphene/chain/protocol/withdraw_permission.hpp>
@@ -152,12 +153,13 @@ namespace graphene { namespace chain {
 	        account_create_multisignature_address_operation,
 			senator_determine_block_payment_operation,
 			graphene::chain::eth_seri_guard_sign_operation,
-	   graphene::chain::eth_series_multi_sol_create_operation,
-	   graphene::chain::eth_multi_account_create_record_operation,
-	   graphene::chain::eths_multi_sol_guard_sign_operation,
-	   graphene::chain::eths_guard_sign_final_operation,
-	   graphene::chain::asset_eth_create_operation,
-	   eths_coldhot_guard_sign_final_operation
+	        eth_series_multi_sol_create_operation,
+	        eth_multi_account_create_record_operation,
+	        eths_multi_sol_guard_sign_operation,
+	        eths_guard_sign_final_operation,
+	        asset_eth_create_operation,
+	        eths_coldhot_guard_sign_final_operation,
+			referendum_create_operation
          > operation;
 
    /// @} // operations group

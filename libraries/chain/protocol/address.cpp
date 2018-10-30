@@ -29,11 +29,15 @@
 
 namespace graphene {
 	namespace chain {
+
+		bool address::testnet_mode =false;
 		address::address() {}
 
 		address::address(const std::string& base58str, const char *prefix_str)
 		{
 			std::string prefix(prefix_str);
+			if (testnet_mode)
+				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
 			FC_ASSERT(is_valid(base58str, prefix), "${str}", ("str", base58str + " -- " + prefix));
 
 			std::vector<char> v = fc::from_base58(base58str.substr(prefix.size()));
@@ -44,7 +48,13 @@ namespace graphene {
 		bool address::is_valid(const std::string& base58str, const std::string& prefix)
 		{
 			if (prefix.empty())
-				return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX);
+			{
+				if (testnet_mode)
+					return is_valid(base58str, std::string(GRAPHENE_ADDRESS_PREFIX)+ GRAPHENE_ADDRESS_TESTNET_PREFIX);
+				else
+					return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX);
+			}
+				
 			const size_t prefix_len = prefix.size();
 			if (base58str.size() <= prefix_len)
 				return false;
@@ -78,8 +88,13 @@ namespace graphene {
 			this->version = version;
 		}
 
-		std::string address::address_to_string(const char *prefix) const
+		std::string address::address_to_string() const
 		{
+			string prefix = GRAPHENE_ADDRESS_PREFIX;
+			if (testnet_mode)
+				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+			if (*this == address())
+				return "InvalidAddress";
 			fc::array<char, 25> bin_addr;
 			memcpy((char*)&bin_addr, (char*)&version, sizeof(version));
 			memcpy((char*)&bin_addr + 1, (char*)&addr, sizeof(addr));
@@ -106,7 +121,7 @@ namespace graphene {
 
 		address::operator std::string()const
 		{
-			return address_to_string(GRAPHENE_ADDRESS_PREFIX);
+			return address_to_string();
 		}
 	}
 }

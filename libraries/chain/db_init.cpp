@@ -78,6 +78,8 @@
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/pay_back_object.hpp>
 #include <graphene/chain/pay_back_evaluator.hpp>
+#include <graphene/chain/referendum_evaluator.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/eth_seri_record.hpp>
 #include <graphene/chain/eth_seri_record_evaluate.hpp>
 
@@ -284,6 +286,7 @@ void database::initialize_evaluators()
    register_evaluator<eths_guard_sign_final_evaluator>();
    register_evaluator<asset_eth_create_evaluator>();
    register_evaluator<eths_coldhot_guard_sign_final_evaluator>();
+   register_evaluator< referendum_create_evaluator > ();
 }
 
 void database::initialize_indexes()
@@ -350,6 +353,7 @@ void database::initialize_indexes()
    add_index <primary_index<guarantee_index                               > >();
    add_index <primary_index<contract_history_object_index                               > >();
    add_index<primary_index<eth_multi_account_trx_index>>();
+   add_index<primary_index<referendum_index>>();
   
 }
 

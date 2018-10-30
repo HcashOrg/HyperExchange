@@ -46,6 +46,7 @@ add_library( graphene_chain
              protocol/witness.cpp
              protocol/market.cpp
              protocol/proposal.cpp
+			 protocol/referendum.cpp
              protocol/withdraw_permission.cpp
              protocol/asset_ops.cpp
              protocol/memo.cpp
@@ -76,6 +77,7 @@ add_library( graphene_chain
              asset_evaluator.cpp
              transfer_evaluator.cpp
              proposal_evaluator.cpp
+			 referendum_evaluator.cpp
              market_evaluator.cpp
              coldhot_transfer_evaluate.cpp
              vesting_balance_evaluator.cpp
@@ -91,6 +93,7 @@ add_library( graphene_chain
              asset_object.cpp
              fba_object.cpp
              proposal_object.cpp
+			 referendum_object.cpp
              vesting_balance_object.cpp
              block_database.cpp
 

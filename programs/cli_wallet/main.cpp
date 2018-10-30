@@ -96,6 +96,7 @@ int main( int argc, char** argv )
       fc::path data_dir;
 	  if (options.count("testnet"))
 	  {
+
 		  data_dir /= "testnet";
 	  }
       fc::logging_config cfg;
@@ -140,6 +141,7 @@ int main( int argc, char** argv )
 	  std::string wallet_file_name = "wallet.json";
 	  if (options.count("testnet"))
 	  {
+		  address::testnet_mode = true;
 		  wallet_file_name = "wallet_testnet.json";
 	  }
       fc::path wallet_file( options.count("wallet-file") ? options.at("wallet-file").as<string>() : wallet_file_name);

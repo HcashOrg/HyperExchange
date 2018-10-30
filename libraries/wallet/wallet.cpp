@@ -7070,7 +7070,7 @@ vector<asset> wallet_api::get_contract_balance(const string & contract_address) 
 vector<string> wallet_api::get_contract_addresses_by_owner(const std::string& addr)
 {
     address owner_addr;
-    if(address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if(address::is_valid(addr))
     {
         owner_addr = address(addr);
     }else
@@ -7090,7 +7090,7 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
 {
     vector<ContractEntryPrintable> res;
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
@@ -7110,7 +7110,7 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
 vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const std::string& addr)
 {
     address owner_addr;
-    if (address::is_valid(addr, GRAPHENE_ADDRESS_PREFIX))
+    if (address::is_valid(addr))
     {
         owner_addr = address(addr);
     }
