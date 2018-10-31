@@ -746,6 +746,19 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
+unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
+{
+	int i_which = op.which();
+	uint64_t u_which = uint64_t(i_which);
+	if (i_which < 0)
+		assert("Negative operation tag" && false);
+	if (u_which >= _operation_evaluators.size())
+		assert("No registered evaluator for this operation" && false);
+	unique_ptr<op_evaluator>& eval = _operation_evaluators[u_which];
+	if (!eval)
+		assert("No registered evaluator for this operation" && false);
+	return eval;
+}
 const miner_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );

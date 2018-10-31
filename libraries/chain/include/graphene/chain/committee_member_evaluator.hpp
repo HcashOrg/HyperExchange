@@ -72,4 +72,14 @@ namespace graphene { namespace chain {
 	   void_result do_apply(const committee_member_execute_coin_destory_operation& o);
    };
 
+   class citizen_referendum_senator_evaluator :public evaluator<citizen_referendum_senator_evaluator>
+   {
+   public:
+	   typedef citizen_referendum_senator_operation operation_type;
+
+	   void_result do_evaluate(const citizen_referendum_senator_operation& o);
+	   void_result do_apply(const citizen_referendum_senator_operation& o);
+   };
+
+
 } } // graphene::chain
