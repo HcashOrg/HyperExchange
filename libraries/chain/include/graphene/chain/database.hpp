@@ -447,7 +447,7 @@ namespace graphene { namespace chain {
          void deposit_cashback(const account_object& acct, share_type amount, bool require_vesting = true);
          // helper to handle witness pay
          void deposit_miner_pay(const miner_object& wit, share_type amount);
-
+		 unique_ptr<op_evaluator>& get_evaluator(const operation& op);
          //////////////////// db_debug.cpp ////////////////////
 
          void debug_dump();

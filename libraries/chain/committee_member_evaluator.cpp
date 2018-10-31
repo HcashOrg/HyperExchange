@@ -287,5 +287,63 @@ namespace graphene {
             } FC_CAPTURE_AND_RETHROW((o))
         }
 
+		void_result citizen_referendum_senator_evaluator::do_evaluate(const citizen_referendum_senator_operation& o)
+		{
+			try {
+				const auto& _db = db();
+				const auto& all_guard_ic = _db.get_index_type<guard_member_index>().indices().get<by_account>();
+				const auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
+				FC_ASSERT(o.replace_queue.size() > 0 && o.replace_queue.size() <=3 );
+				for (const auto& iter : o.replace_queue)
+				{
+					auto itr_first_senator = all_guard_ic.find(iter.first);
+					auto itr_first_citizen = all_miner_ic.find(iter.first);
+					auto itr_second_senator = all_guard_ic.find(iter.second);
+					FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true);
+					FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator == all_guard_ic.end() || (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true)));
+				}
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		void_result citizen_referendum_senator_evaluator::do_apply(const citizen_referendum_senator_operation& o)
+		{
+			try {
+				auto& _db = db();
+				auto& all_guard_ic = _db.get_index_type<guard_member_index>().indices().get<by_account>();
+				auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
+				for (const auto& iter : o.replace_queue)
+				{
+					auto itr_first_senator = all_guard_ic.find(iter.first);
+					auto itr_first_citizen = all_miner_ic.find(iter.first);
+					auto itr_second_senator = all_guard_ic.find(iter.second);
+					//FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true);
+					//FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator == all_guard_ic.end() || (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true)));
+					_db.modify(*itr_second_senator, [](guard_member_object& obj) {
+						obj.formal = false;
+					});
+					if (itr_first_senator == all_guard_ic.end())
+					{
+						vote_id_type vote_id;
+						db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
+							vote_id = get_next_vote_id(p, vote_id_type::committee);
+						});
+						_db.create<guard_member_object>([&] (guard_member_object& obj){
+							obj.guard_member_account = iter.first;
+							obj.vote_id = vote_id;
+							obj.url = "";
+							obj.formal = true;
+						});
+					}
+					else
+					{
+						_db.modify(*itr_first_senator, [&] (guard_member_object& obj){
+							obj.formal = true;
+						});
+					}
+				}
+				return void_result();
+
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+
     }
 } // graphene::chain
