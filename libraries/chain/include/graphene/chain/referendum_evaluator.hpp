@@ -40,4 +40,18 @@ namespace graphene { namespace chain {
 
          transaction _proposed_trx;
    };
+
+   class referendum_update_evaluator :public evaluator<referendum_update_evaluator>
+   {
+   public:
+	   typedef referendum_update_operation operation_type;
+
+	   void_result do_evaluate(const referendum_update_operation& o);
+	   void_result do_apply(const referendum_update_operation& o);
+	   const referendum_object* _referendum = nullptr;
+	   processed_transaction _processed_transaction;
+	   bool _executed_referendum = false;
+	   bool _referendum_failed = false;
+   };
+
 } } // graphene::chain

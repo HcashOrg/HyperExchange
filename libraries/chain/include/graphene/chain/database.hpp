@@ -145,7 +145,7 @@ namespace graphene { namespace chain {
 
          ///@throws fc::exception if the proposed transaction fails to apply.
          processed_transaction push_proposal( const proposal_object& proposal );
-
+		 processed_transaction push_referendum(const referendum_object& referendum);
          signed_block generate_block(
             const fc::time_point_sec when,
             miner_id_type miner_id,
@@ -447,7 +447,7 @@ namespace graphene { namespace chain {
          void deposit_cashback(const account_object& acct, share_type amount, bool require_vesting = true);
          // helper to handle witness pay
          void deposit_miner_pay(const miner_object& wit, share_type amount);
-
+		 unique_ptr<op_evaluator>& get_evaluator(const operation& op);
          //////////////////// db_debug.cpp ////////////////////
 
          void debug_dump();

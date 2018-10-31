@@ -139,7 +139,7 @@ struct get_impacted_account_visitor
 	   for (auto& o : other)
 		   add_authority_accounts(_impacted, o);
    }
-
+   void operator()(const referendum_update_operation& op) {}
    void operator()( const proposal_update_operation& op ) {}
    void operator()( const proposal_delete_operation& op ) {}
 
@@ -266,6 +266,7 @@ struct get_impacted_account_visitor
    void operator()(const storage_operation& op) {}
    void operator()(const transfer_contract_operation& op) {}
    void operator()(const contract_transfer_fee_proposal_operation& op) {}
+   void operator()(const citizen_referendum_senator_operation& op) {}
 
    void operator()(const eth_seri_guard_sign_operation & op){}
    void operator()(const eths_guard_sign_final_operation & op) {}

@@ -71,6 +71,24 @@ namespace graphene { namespace chain {
    };
 
    /**
+   * @brief Update a committee_member object.
+   * @ingroup operations
+   *
+   * Currently the only field which can be updated is the `url`
+   * field.
+   */
+   struct citizen_referendum_senator_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_HXCHAIN_PRECISION; };
+
+	   asset                                 fee;
+	   map<account_id_type, account_id_type> replace_queue;
+	   share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   address fee_payer()const { return address(); }
+	   void            validate()const;
+   };
+
+   /**
     * @brief Used by guard_members to update the global parameters of the blockchain.
     * @ingroup operations
     *
@@ -126,9 +144,9 @@ FC_REFLECT( graphene::chain::guard_member_create_operation::fee_parameters_type,
 FC_REFLECT( graphene::chain::guard_member_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::guard_member_resign_operation::fee_parameters_type, (fee) )
-
+FC_REFLECT(graphene::chain::citizen_referendum_senator_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
-
+FC_REFLECT(graphene::chain::citizen_referendum_senator_operation,(fee)(replace_queue))
 FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_account)(url) )
 FC_REFLECT( graphene::chain::guard_member_update_operation, (fee)(guard_member_account)(owner_addr)(new_url)(formal) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );

@@ -45,8 +45,18 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
-	   evaluate(op.op);
+
    }
+   transaction_evaluation_state eval_state(&db());
+   eval_state.operation_results.reserve(_proposed_trx.operations.size());
+   eval_state._trx = &processed_transaction(_proposed_trx);
+
+   for (const auto& op : _proposed_trx.operations)
+   {
+	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
+	   eval->evaluate(eval_state, op, false);
+   }
+
    _proposed_trx.validate();
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -67,9 +77,68 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
    });
-
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result referendum_update_evaluator::do_evaluate(const referendum_update_operation& o)
+{
+	try
+	{
+		database& d = db();
+		_referendum = &o.referendum(d);
+		FC_ASSERT(_referendum->review_period_time && d.head_block_time() >= *_referendum->review_period_time,"the referendum vote is in its packing period.");
+		return void_result();
+	}
+	FC_CAPTURE_AND_RETHROW((o))
+}
+void_result referendum_update_evaluator::do_apply(const referendum_update_operation& o)
+{
+	try {
+		database& d = db();
+		d.modify(*_referendum, [&o, &d](referendum_object& p) {
+			//FC_ASSERT(p.required_account_approvals(););
+
+			auto is_miner_or_guard = [&](const address& addr)->bool {
+				return p.required_account_approvals.find(addr) != p.required_account_approvals.end();
+			};
+
+			for (const auto& addr : o.key_approvals_to_add)
+			{
+				if (!is_miner_or_guard(addr))
+					continue;
+				p.approved_key_approvals.insert(addr);
+				p.disapproved_key_approvals.erase(addr);
+			}
+
+			for (const auto& addr : o.key_approvals_to_remove)
+			{
+				if (!is_miner_or_guard(addr))
+					continue;
+				p.disapproved_key_approvals.insert(addr);
+				p.approved_key_approvals.erase(addr);
+			}
+
+		});
+
+		if (_referendum->review_period_time)
+			return void_result();
+
+		if (_referendum->is_authorized_to_execute(d))
+		{
+			// All required approvals are satisfied. Execute!
+			_executed_referendum = true;
+			try {
+				_processed_transaction = d.push_referendum(*_referendum);
+			}
+			catch (fc::exception& e) {
+				wlog("Proposed transaction ${id} failed to apply once approved with exception:\n----\n${reason}\n----\nWill try again when it expires.",
+					("id", o.referendum)("reason", e.to_detail_string()));
+				_referendum_failed = true;
+			}
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 
 } } // graphene::chain

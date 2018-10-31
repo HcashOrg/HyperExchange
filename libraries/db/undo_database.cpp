@@ -55,6 +55,7 @@
 #include <graphene/chain/special_authority_object.hpp>
 #include <graphene/chain/buyback_object.hpp>
 #include <graphene/chain/fba_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <iostream>
 namespace graphene { namespace db {
     using namespace graphene::chain;
@@ -449,9 +450,12 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     case custom_object_type:   
         //return create_obj_unique_ptr<custom_object>(var);
         break;
-    case proposal_object_type:     
-        return create_obj_unique_ptr<proposal_object>(var);
-        break;
+	case proposal_object_type:
+		return create_obj_unique_ptr<proposal_object>(var);
+		break;
+	case referendum_object_type:
+		return create_obj_unique_ptr<referendum_object>(var);
+		break;
     case operation_history_object_type:   
         return create_obj_unique_ptr<operation_history_object>(var);
         break;

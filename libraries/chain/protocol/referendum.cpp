@@ -35,4 +35,20 @@ void referendum_create_operation::validate() const
    for( const auto& op : proposed_ops ) operation_validate( op.op );
 }
 
+void referendum_update_operation::validate()const
+{
+	FC_ASSERT(fee.amount >= 0);
+}
+void referendum_update_operation::get_required_authorities(vector<authority>& a) const
+{
+	authority auth;
+	for (const auto& k : key_approvals_to_add)
+		auth.address_auths[k] = 1;
+	for (const auto& k : key_approvals_to_remove)
+		auth.address_auths[k] = 1;
+	auth.weight_threshold = auth.address_auths.size();
+
+	a.emplace_back(std::move(auth));
+}
+
 } } // graphene::chain
