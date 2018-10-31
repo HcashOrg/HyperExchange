@@ -11,6 +11,11 @@ namespace graphene {
 				auto asset_itr = asset_idx.find(o.asset_id);
 				FC_ASSERT(asset_itr != asset_idx.end());
 				FC_ASSERT(asset_itr->symbol == o.asset_symbol);
+				auto float_pos = o.amount.find(".");
+				if (float_pos != o.amount.npos)
+				{
+					FC_ASSERT(o.amount.substr(float_pos + 1).size() <= asset_itr->precision, "amount precision error");
+				}
 				auto coldhot_range = d.get_index_type<multisig_account_pair_index>().indices().get<by_chain_type>().equal_range(o.asset_symbol);
 				bool withdraw_multi = false;
 				bool deposit_multi = false;

@@ -1275,7 +1275,7 @@ namespace graphene { namespace privatekey_management {
 		
 	}
 	bool eth_privatekey::validate_address(const std::string& addr) {
-		FC_ASSERT(addr.size() >= 2 && addr[0] == '0' && addr[1] == 'x');
+		FC_ASSERT(addr.size() == 42 && addr[0] == '0' && addr[1] == 'x');
 		auto addr_str = addr.substr(2, addr.size());
 		for (auto i = addr_str.begin(); i != addr_str.end(); ++i)
 		{

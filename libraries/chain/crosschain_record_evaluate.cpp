@@ -114,6 +114,11 @@ namespace graphene {
 			auto asset_itr = asset_idx.find(o.asset_id);
 			FC_ASSERT(asset_itr != asset_idx.end());
 			FC_ASSERT(asset_itr->allow_withdraw_deposit,"this asset does not allow to withdraw and deposit.");
+			auto float_pos = o.amount.find(".");
+			if (float_pos != o.amount.npos)
+			{
+				FC_ASSERT(o.amount.substr(float_pos + 1).size() <= asset_itr->precision, "amount precision error");
+			}
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			if (!manager.contain_crosschain_handles(o.asset_symbol))
 				return void_result();
