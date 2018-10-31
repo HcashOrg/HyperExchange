@@ -1891,6 +1891,7 @@ class wallet_api
 	  std::vector<guard_lock_balance_object> get_senator_lock_balance(const string& citizen)const;
 	  std::vector<lockbalance_object> get_citizen_lock_balance(const string& citizen)const;
 	  std::vector<acquired_crosschain_trx_object> get_acquire_transaction(const int & type, const string & trxid);
+	  guard_member_object get_eth_signer(const string& symbol, const string& address);
       /** Approve or disapprove a proposal.
        *
        * @param fee_paying_account The account paying the fee for the op.
@@ -2140,7 +2141,6 @@ FC_API( graphene::wallet::wallet_api,
         
         (sell)
         (get_eth_multi_account_trx)
-        (borrow_asset)
         (cancel_order)
         (transfer)
         (transfer2)
@@ -2329,4 +2329,5 @@ FC_API( graphene::wallet::wallet_api,
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
+			(get_eth_signer)
       )

@@ -4288,6 +4288,34 @@ public:
 
 	  
    }
+   guard_member_id_type get_eth_signer(const string & symbol, const string & address) {
+	   FC_ASSERT(!is_locked());
+	   guard_member_id_type guardId;
+	   auto multi_accounts =  get_multisig_account_pair(symbol);
+	   for (auto multiAccount : multi_accounts) {
+		   auto senators = get_multi_account_guard(multiAccount->bind_account_hot,symbol);
+		   bool bFinder = false;
+		   for (auto multiSenator : senators)
+		   {
+			   if (multiSenator->new_address_hot == address || multiSenator->new_address_cold == address)
+			   {
+				   guardId = multiSenator->id;
+				   bFinder = true;
+				   break;
+			   }
+			   if (multiSenator->new_pubkey_hot == address || multiSenator->new_pubkey_cold == address)
+			   {
+				   guardId = multiSenator->id;
+				   bFinder = true;
+				   break;
+			   }
+		   }
+		   if (bFinder){
+			   break;
+		   }
+	   }
+	   return guardId;
+   }
    void senator_sign_eths_final_trx(const string& trx_id, const string & senator) {
 	   FC_ASSERT(!is_locked());
 	   auto guard_obj = get_guard_member(senator);
@@ -5873,6 +5901,23 @@ variant_object wallet_api::get_multisig_address(const address& addr)
 	ret.erase(string("last_claim_date"));
 	ret = ret.set("multisignatures", fc::variant(t_map));
 	return ret;
+}
+guard_member_object wallet_api::get_eth_signer(const string& symbol, const string& address) {
+	auto guardId = my->get_eth_signer(symbol, address);
+
+	std::vector<guard_member_id_type> temp;
+	temp.push_back(guardId);
+	auto guard_member_objects = my->_remote_db->get_guard_members(temp);
+	if (guard_member_objects.front())
+		return *guard_member_objects.front();
+	/*
+	
+	FC_ASSERT(guard_member_objects.size() != 0, "don`t find guard");
+	
+	auto guard_member = *(guard_member_objects.begin());
+	FC_ASSERT(guard_member.valid(), "don`t find guard");
+	return *guard_member;
+	*/
 }
 vector<asset> wallet_api::get_account_balances(const string& account)
 {
