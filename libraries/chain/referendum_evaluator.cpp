@@ -42,6 +42,9 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    auto iter = guard_index.find(proposer);
    FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
 
+   const auto& dynamic_obj = d.get_dynamic_global_properties();
+   if (!(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && d.head_block_time() < dynamic_obj.next_vote_time)))
+	   return void_result();
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);

@@ -160,6 +160,115 @@ void database::update_last_irreversible_block()
    }
 }
 
+vector<multisig_address_object> database::get_multi_account_senator(const string & multi_address, const string& symbol) const
+{
+	vector<multisig_address_object> result;
+	auto& hot_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
+	auto& cold_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
+	auto hot_iter = hot_db.find(boost::make_tuple(multi_address, symbol));
+	auto cold_iter = cold_db.find(boost::make_tuple(multi_address, symbol));
+	multisig_account_pair_id_type multi_id;
+	if (hot_iter != hot_db.end()) {
+		multi_id = hot_iter->id;
+	}
+	if (cold_iter != cold_db.end()) {
+		FC_ASSERT(multi_id == multisig_account_pair_id_type(), "this address exist in both cold and hot address");
+		multi_id = cold_iter->id;
+	}
+	FC_ASSERT(multi_id != multisig_account_pair_id_type(), "Can`t find coldhot multiaddress");
+	auto guard_range = get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(multi_id);
+	for (auto guard : boost::make_iterator_range(guard_range.first, guard_range.second))
+	{
+		result.push_back(guard);
+	}
+	return result;
+}
+
+void database::determine_referendum_detailes()
+{
+	try {
+		/* when there are first referendum come up
+		*  the referendum packing period will begin
+		*  during referendum packing period, citizen can create new referendum
+		*  but they cannot vote
+		*  in other words,during vote period, a new referendum cannot be created
+		*/
+		const auto& dynamic_obj = get_dynamic_global_properties();
+		if (dynamic_obj.referendum_flag)
+		{
+			auto& referendum_pleges = get_index_type<referendum_index>().indices().get<by_pledge>();
+			if (referendum_pleges.size() > 1 && head_block_time() >= dynamic_obj.next_vote_time)
+			{
+				//TO DO we need remove all the
+				while (!(referendum_pleges.size() == 1))
+				{
+					const auto& referendum = *referendum_pleges.begin();
+					remove(referendum);
+				}
+			}
+			//TODO just like to modify the referendum flag to false
+			// need to do some validations , for now only one need to be confirmed
+			// have created new multisignatures
+			auto senator_multisigs = [this] (const string symbol,account_id_type senator){
+				vector<multisig_address_object> result;
+				const auto& multisig_addr_by_guard = get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+				const auto iter_range = multisig_addr_by_guard.equal_range(boost::make_tuple(symbol, senator));
+				std::for_each(iter_range.first, iter_range.second, [&](multisig_address_object obj) {
+					result.emplace_back(obj);
+				});
+				return result;
+			};
+			auto all_senators_in = [this](vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
+				if (senator_multisignatures.size() < senators.size())
+					return false;
+				while (senators.size() != 0)
+				{
+					auto senator = senators.back();
+					senators.pop_back();
+					bool found = false;
+					for (auto multisig_address_obj : senator_multisignatures)
+					{
+						if (multisig_address_obj.guard_account == senator.guard_member_account)
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						return false;
+				}
+				return true;
+			};
+			auto senators = get_guard_members();
+			const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_symbol>();
+			for (const auto& itr : assets_by_symbol)
+			{
+				if (itr.get_id() == asset_id_type())
+					continue;
+				auto multisig_account_pair = get_current_multisig_account(itr.symbol);
+				if (!multisig_account_pair.valid())
+				{
+					continue;
+				}
+				auto ret = all_senators_in(get_multi_account_senator(multisig_account_pair->bind_account_hot,itr.symbol),senators);
+				if (!ret)
+					return;
+			}
+			modify(get(dynamic_global_property_id_type()), [&](dynamic_global_property_object& obj) {
+				obj.referendum_flag = false;
+			});
+			return;
+		}
+		const auto& referendum_pleges = get_index_type<referendum_index>().indices().get<by_pledge>();
+		if (referendum_pleges.size() > 0)
+		{
+			modify(get(dynamic_global_property_id_type()), [&]( dynamic_global_property_object& obj) {
+				obj.referendum_flag = true;
+				obj.next_vote_time = head_block_time() + fc::days(7);
+			});
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
 void database::clear_expired_transactions()
 { try {
    //Look for expired transactions in the deduplication list, and remove them.
