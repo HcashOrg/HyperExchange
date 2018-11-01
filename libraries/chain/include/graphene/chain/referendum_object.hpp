@@ -45,7 +45,7 @@ class referendum_object : public abstract_object<referendum_object>
       time_point_sec                expiration_time;
       optional<time_point_sec>      review_period_time;
       transaction                   proposed_transaction;
-	  share_type                    pledge;
+	  share_type                    pledge=0;
 	  flat_set<address>     approved_key_approvals;
 	  flat_set<address>     disapproved_key_approvals;
 	  flat_set<address>     required_account_approvals;

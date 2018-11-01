@@ -37,7 +37,7 @@ namespace graphene { namespace chain {
 
          void_result do_evaluate( const referendum_create_operation& o );
          object_id_type do_apply( const referendum_create_operation& o );
-
+		 void pay_fee() override;
          transaction _proposed_trx;
    };
 

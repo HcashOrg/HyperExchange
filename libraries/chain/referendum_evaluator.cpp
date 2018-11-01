@@ -68,7 +68,7 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 { try {
    database& d = db();
    const auto& ref_obj= d.create<referendum_object>([&](referendum_object& referendum) {
-	   //_proposed_trx.expiration = o.expiration_time;
+	   _proposed_trx.expiration = d.head_block_time()+fc::days(10);
 	   referendum.proposed_transaction = _proposed_trx;
        //referendum.expiration_time = o.expiration_time;
        referendum.proposer = o.proposer;
@@ -79,9 +79,19 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   {
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
+	   referendum.pledge = o.fee.amount;
    });
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void referendum_create_evaluator::pay_fee()
+{
+	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
+		d.current_supply -= this->core_fees_paid.amount;
+	});
+}
+
 
 void_result referendum_update_evaluator::do_evaluate(const referendum_update_operation& o)
 {
@@ -89,7 +99,8 @@ void_result referendum_update_evaluator::do_evaluate(const referendum_update_ope
 	{
 		database& d = db();
 		_referendum = &o.referendum(d);
-		FC_ASSERT(_referendum->review_period_time && d.head_block_time() >= *_referendum->review_period_time,"the referendum vote is in its packing period.");
+		auto next_vote_time = d.get_dynamic_global_properties().next_vote_time;
+		FC_ASSERT(d.head_block_time() >= next_vote_time,"the referendum vote is in its packing period.");
 		return void_result();
 	}
 	FC_CAPTURE_AND_RETHROW((o))

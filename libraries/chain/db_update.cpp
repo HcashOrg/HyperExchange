@@ -206,7 +206,11 @@ void database::determine_referendum_detailes()
 					remove(referendum);
 				}
 			}
-			//TODO just like to modify the referendum flag to false
+			else if (referendum_pleges.size() == 1 )
+			{
+				return;
+			}
+			//just like to modify the referendum flag to false
 			// need to do some validations , for now only one need to be confirmed
 			// have created new multisignatures
 			auto senator_multisigs = [this] (const string symbol,account_id_type senator){
@@ -264,7 +268,7 @@ void database::determine_referendum_detailes()
 		{
 			modify(get(dynamic_global_property_id_type()), [&]( dynamic_global_property_object& obj) {
 				obj.referendum_flag = true;
-				obj.next_vote_time = head_block_time() + fc::days(7);
+				obj.next_vote_time = head_block_time() + fc::days(2);
 			});
 		}
 	}FC_CAPTURE_AND_RETHROW()
