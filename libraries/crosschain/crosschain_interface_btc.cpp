@@ -186,7 +186,6 @@ namespace graphene {
 						hdtx.amount = graphene::utilities::remove_zero_for_str_amount(temp);
 						total_vout += amount;
 						hdtxs.trxs[hdtx.to_account] = hdtx;
-
 					}
 
 				}
