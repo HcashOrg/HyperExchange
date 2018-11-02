@@ -1166,6 +1166,19 @@ namespace graphene { namespace privatekey_management {
 			signs[signs.size() - 2] = '1';
 			signs[signs.size() - 1] = 'c';
 		}
+		/*
+		//formal eth sign v
+		if (signs.substr(signs.size() - 2) == "00")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '5';
+		}
+		else if (signs.substr(signs.size() - 2) == "01")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '6';
+		}
+		*/
 		return signs;
 	}
 	std::string  eth_privatekey::sign_trx(const std::string& raw_trx, int index) {
@@ -1211,7 +1224,7 @@ namespace graphene { namespace privatekey_management {
 		bool b_converse = from_hex(trx.data(), temp, trx.size(), nDeplength);
 		FC_ASSERT(b_converse);
 		dev::bytes bintrx(temp.begin(), temp.end());
-		dev::eth::TransactionBase trx_base(bintrx, dev::eth::CheckTransaction::None);
+		dev::eth::TransactionBase trx_base(bintrx, dev::eth::CheckTransaction::Everything);
 		fc::mutable_variant_object ret_obj;
 		ret_obj.set("from","0x"+trx_base.from().hex());
 		ret_obj.set("to", "0x"+trx_base.to().hex());
