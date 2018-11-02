@@ -222,7 +222,7 @@ void database::determine_referendum_detailes()
 				});
 				return result;
 			};
-			auto all_senators_in = [this](vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
+			auto all_senators_in = [this](const vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
 				if (senator_multisignatures.size() < senators.size())
 					return false;
 				while (senators.size() != 0)
