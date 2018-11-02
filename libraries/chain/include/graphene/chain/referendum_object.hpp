@@ -45,6 +45,7 @@ class referendum_object : public abstract_object<referendum_object>
       time_point_sec                expiration_time;
       optional<time_point_sec>      review_period_time;
       transaction                   proposed_transaction;
+	  share_type                    pledge=0;
 	  flat_set<address>     approved_key_approvals;
 	  flat_set<address>     disapproved_key_approvals;
 	  flat_set<address>     required_account_approvals;
@@ -52,11 +53,16 @@ class referendum_object : public abstract_object<referendum_object>
 };
 
 struct by_expiration;
+struct by_pledge;
 typedef boost::multi_index_container<
    referendum_object,
    indexed_by<
       ordered_unique< tag< by_id >, member< object, object_id_type, &object::id > >,
-      ordered_non_unique< tag< by_expiration >, member< referendum_object, time_point_sec, &referendum_object::expiration_time > >
+      ordered_non_unique< tag< by_expiration >, member< referendum_object, time_point_sec, &referendum_object::expiration_time > >,
+	ordered_non_unique < tag<by_pledge>,composite_key<referendum_object,
+	                                 member<referendum_object, share_type, &referendum_object::pledge>,
+	                                 member<object, object_id_type, &object::id>>,
+	                                 composite_key_compare<std::greater<share_type>,std::greater<object_id_type>>>
    >
 > referendum_multi_index_container;
 typedef generic_index<referendum_object, referendum_multi_index_container> referendum_index;
@@ -64,4 +70,4 @@ typedef generic_index<referendum_object, referendum_multi_index_container> refer
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object),(proposer)
-                    (expiration_time)(review_period_time)(proposed_transaction)(approved_key_approvals)(disapproved_key_approvals))
+                    (expiration_time)(review_period_time)(proposed_transaction)(pledge)(approved_key_approvals)(disapproved_key_approvals))

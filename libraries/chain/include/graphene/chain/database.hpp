@@ -144,6 +144,7 @@ namespace graphene { namespace chain {
          processed_transaction _push_transaction( const signed_transaction& trx );
 
          ///@throws fc::exception if the proposed transaction fails to apply.
+		 void determine_referendum_detailes();
          processed_transaction push_proposal( const proposal_object& proposal );
 		 processed_transaction push_referendum(const referendum_object& referendum);
          signed_block generate_block(
@@ -366,6 +367,7 @@ namespace graphene { namespace chain {
          share_type get_min_gas_price() const;
          //contract_balance//
 		 optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
+		 vector<multisig_address_object>      get_multi_account_senator(const string & multi_address, const string& symbol) const;
 		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
          //get account address by account name
