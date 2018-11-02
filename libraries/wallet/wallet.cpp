@@ -2849,6 +2849,7 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
+		   get_miner(citizen);
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   citizen_referendum_senator_operation op;
 		   for (const auto& iter : replacement)
@@ -2867,8 +2868,6 @@ public:
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
-
-
 	   }FC_CAPTURE_AND_RETHROW((citizen)(replacement)(broadcast))
    }
 

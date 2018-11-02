@@ -23,6 +23,7 @@
  */
 #include <graphene/chain/referendum_evaluator.hpp>
 #include <graphene/chain/referendum_object.hpp>
+#include <graphene/chain/proposal_object.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/exceptions.hpp>
@@ -38,13 +39,24 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    const auto& global_parameters = d.get_global_properties().parameters;
    //proposer has to be a formal guard
    auto  proposer = o.proposer;
-   auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
-   auto iter = guard_index.find(proposer);
-   FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
+   auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+   auto iter = citizen_idx.find(proposer);
+   FC_ASSERT(iter != citizen_idx.end(), "referendum proposer must be a citizen.");
 
    const auto& dynamic_obj = d.get_dynamic_global_properties();
-   if (!(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && d.head_block_time() < dynamic_obj.next_vote_time)))
-	   return void_result();
+   FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && d.head_block_time() < dynamic_obj.next_vote_time));
+   const auto& proposal_idx = d.get_index_type<proposal_index>().indices().get<by_id>();
+   for (const auto& proposal : proposal_idx)
+   {
+	   for (const auto& op :proposal.proposed_transaction.operations)
+	   {
+		   FC_ASSERT(op.which() != operation::tag<guard_member_create_operation>::value, "there is other proposal for senator election.");
+	   }
+   }
+   for (const auto& op : o.proposed_ops)
+   {
+	   GRAPHENE_ASSERT(op.op.which() == operation::tag<citizen_referendum_senator_operation>::value, proposal_create_invalid_proposals,"invalid referendum");
+   }
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
@@ -72,7 +84,7 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
    const auto& ref_obj= d.create<referendum_object>([&](referendum_object& referendum) {
 	   _proposed_trx.expiration = d.head_block_time()+fc::days(10);
 	   referendum.proposed_transaction = _proposed_trx;
-       //referendum.expiration_time = o.expiration_time;
+       referendum.expiration_time = d.head_block_time() + fc::days(10);
        referendum.proposer = o.proposer;
        //proposal should only be approved by guard or miners
 	   const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
@@ -93,8 +105,6 @@ void referendum_create_evaluator::pay_fee()
 		d.current_supply -= this->core_fees_paid.amount;
 	});
 }
-
-
 void_result referendum_update_evaluator::do_evaluate(const referendum_update_operation& o)
 {
 	try

@@ -302,6 +302,7 @@ namespace graphene {
 					FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true);
 					FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator == all_guard_ic.end() || (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true)));
 				}
+				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		void_result citizen_referendum_senator_evaluator::do_apply(const citizen_referendum_senator_operation& o)

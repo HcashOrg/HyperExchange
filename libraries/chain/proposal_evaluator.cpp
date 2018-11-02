@@ -30,6 +30,7 @@
 #include <graphene/chain/witness_object.hpp>
 #include <fc/smart_ref_impl.hpp>
 
+
 namespace graphene { namespace chain {
 
 void_result proposal_create_evaluator::do_evaluate(const proposal_create_operation& o)
@@ -38,70 +39,73 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    const auto& global_parameters = d.get_global_properties().parameters;
 
    FC_ASSERT( o.expiration_time > d.head_block_time(), "Proposal has already expired on creation." );
-   FC_ASSERT( o.expiration_time <= d.head_block_time() + global_parameters.maximum_proposal_lifetime,
-              "Proposal expiration time is too far in the future.");
-   FC_ASSERT( !o.review_period_seconds || fc::seconds(*o.review_period_seconds) < (o.expiration_time - d.head_block_time()),
-              "Proposal review period must be less than its overall lifetime." );
-
+   FC_ASSERT(o.expiration_time <= d.head_block_time() + global_parameters.maximum_proposal_lifetime,
+	   "Proposal expiration time is too far in the future.");
+   FC_ASSERT(!o.review_period_seconds || fc::seconds(*o.review_period_seconds) < (o.expiration_time - d.head_block_time()),
+	   "Proposal review period must be less than its overall lifetime.");
+   // If we're dealing with the committee authority, make sure this transaction has a sufficient review period.
+   flat_set<account_id_type> auths;
+   vector<authority> other;
+   for (auto& op : o.proposed_ops)
    {
-      // If we're dealing with the committee authority, make sure this transaction has a sufficient review period.
-      flat_set<account_id_type> auths;
-      vector<authority> other;
-      for( auto& op : o.proposed_ops )
-      {
-         operation_get_required_authorities(op.op, auths, auths, other);
-		 if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value){
-			 FC_ASSERT(o.type == vote_id_type::cancel_commit,"vote Type error");
-		 }
-		 else if (op.op.which() == operation::tag<transfer_contract_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee,"Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<guard_member_create_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee,"Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<asset_fee_modification_operation>::value)
-		 {
-			 FC_ASSERT(o.type  == vote_id_type::witness, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<set_guard_lockbalance_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<coldhot_cancel_transafer_transaction_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-         else if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<coldhot_cancel_uncombined_trx_operaion>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<coldhot_transfer_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<guard_update_multi_account_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-		 else if (op.op.which() == operation::tag<committee_member_update_global_parameters_operation>::value)
-		 {
-			 FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-		 }
-      }
+	   operation_get_required_authorities(op.op, auths, auths, other);
+	   if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
+	   else if (op.op.which() == operation::tag<transfer_contract_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<guard_member_create_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<asset_fee_modification_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<set_guard_lockbalance_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<coldhot_cancel_transafer_transaction_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<coldhot_cancel_uncombined_trx_operaion>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<coldhot_transfer_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<guard_update_multi_account_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<committee_member_update_global_parameters_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else
+	   {
+		   FC_CAPTURE_AND_THROW(proposal_create_invalid_proposals, (""));
+
+	   }
+
 
       //FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
 
