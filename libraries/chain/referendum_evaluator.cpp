@@ -52,7 +52,9 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    }
    transaction_evaluation_state eval_state(&db());
    eval_state.operation_results.reserve(_proposed_trx.operations.size());
-   eval_state._trx = &processed_transaction(_proposed_trx);
+
+   auto ptrx = processed_transaction(_proposed_trx);
+   eval_state._trx = &ptrx;
 
    for (const auto& op : _proposed_trx.operations)
    {
