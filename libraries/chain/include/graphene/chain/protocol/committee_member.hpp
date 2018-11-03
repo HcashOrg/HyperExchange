@@ -36,15 +36,23 @@ namespace graphene { namespace chain {
     */
    struct guard_member_create_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 3000 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 10000 * GRAPHENE_HXCHAIN_PRECISION; };
 
       asset                                 fee;
       /// The account which owns the committee_member. This account pays the fee for this operation.
       account_id_type                       guard_member_account;
+	  address                               fee_pay_address;
       string                                url;
-	  share_type      calculate_fee(const fee_parameters_type& k)const { return 0; }
+	  optional<guarantee_object_id_type> guarantee_id;
+	  optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
+	  share_type      calculate_fee(const fee_parameters_type& k)const { return k.fee; }
       account_id_type fee_payer()const { return guard_member_account; }
       void            validate()const;
+	  void get_required_authorities(vector<authority>& a)const
+	  {
+		  // registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure
+		  a.push_back(authority(1, fee_pay_address, 1));
+	  }
    };
 
    /**
@@ -147,7 +155,7 @@ FC_REFLECT( graphene::chain::guard_member_resign_operation::fee_parameters_type,
 FC_REFLECT(graphene::chain::citizen_referendum_senator_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation::fee_parameters_type,(fee))
 FC_REFLECT(graphene::chain::citizen_referendum_senator_operation,(fee)(replace_queue))
-FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_account)(url) )
+FC_REFLECT( graphene::chain::guard_member_create_operation, (fee)(guard_member_account)(fee_pay_address)(url)(guarantee_id) )
 FC_REFLECT( graphene::chain::guard_member_update_operation, (fee)(guard_member_account)(owner_addr)(new_url)(formal) )
 FC_REFLECT( graphene::chain::committee_member_update_global_parameters_operation, (fee)(new_parameters) );
 FC_REFLECT(graphene::chain::committee_member_execute_coin_destory_operation, (fee)(loss_asset)(commitee_member_handle_percent));

@@ -47,17 +47,8 @@ namespace graphene {
                 //FC_ASSERT(db().get(op.guard_member_account).is_lifetime_member());
                  // account cannot be a miner
                 auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
-                FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");
-
-                auto guards = db().get_index_type<guard_member_index>().indices();
-                auto num = 0;
-                std::for_each(guards.begin(), guards.end(), [&num](const guard_member_object &g) {
-                    if (g.formal) {
-                        ++num;
-                    }
-                });
-				
-                //FC_ASSERT(num <= db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
+                FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");       
+				FC_ASSERT(db().get(op.guard_member_account).addr == op.fee_pay_address);
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -122,21 +113,6 @@ namespace graphene {
 					if (op.formal.valid())
 						com.formal = *op.formal;
                 });
-				auto& guard_obj = *_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account);
-				_db.modify(_db.get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& a)
-				{
-					if (guard_obj.formal)
-					{
-						a.active.account_auths[guard_obj.id] = 100;
-					}
-					else
-					{
-						a.active.account_auths.erase(guard_obj.id);
-					}
-				});
-				_db.modify(_db.get(GRAPHENE_RELAXED_COMMITTEE_ACCOUNT), [&](account_object& a) {
-					a.active = _db.get(GRAPHENE_GUARD_ACCOUNT).active;
-				});
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }

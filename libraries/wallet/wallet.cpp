@@ -2754,34 +2754,25 @@ public:
    }
 
 
-   full_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
-                                      bool broadcast /* = false */)
+   full_transaction create_guard_member(string account,string url, bool broadcast /* = false */)
    { try {
 	  //account should be register in the blockchian
 	  FC_ASSERT(!is_locked());
       guard_member_create_operation guard_member_create_op;
-	  auto guard_member_account = get_account_id(account);
-	  FC_ASSERT(account_object().get_id() != guard_member_account,"account is not registered to the chain.");
-	  guard_member_create_op.guard_member_account = guard_member_account;
+	  auto guard_member_account = get_account(account);
+	  FC_ASSERT(account_object().get_id() != guard_member_account.get_id(),"account is not registered to the chain.");
+	  guard_member_create_op.guard_member_account = guard_member_account.get_id();
       guard_member_create_op.url = url;
-	  const chain_parameters& current_params = get_global_properties().parameters;
-      if (_remote_db->get_guard_member_by_account(guard_member_create_op.guard_member_account))
-         FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
-	  auto guard_create_op = operation(guard_member_create_op);
-	  current_params.current_fees->set_fee(guard_create_op);
+	  guard_member_create_op.fee_pay_address = guard_member_account.addr;
+	  guard_member_create_op.guarantee_id = get_guarantee_id();
 
-      signed_transaction tx;
-	  proposal_create_operation prop_op;
-	  prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time) ;
-	  prop_op.proposer = get_account(proposing_account).get_id();
-	  prop_op.fee_paying_account = get_account(proposing_account).addr;
-	  prop_op.proposed_ops.emplace_back(guard_create_op);
-	  tx.operations.push_back(prop_op);
-      set_operation_fees( tx, current_params.current_fees);
+	  signed_transaction tx;
+	  tx.operations.push_back(guard_member_create_op);
+      set_operation_fees( tx, get_global_properties().parameters.current_fees);
       tx.validate();
 
       return sign_transaction( tx, broadcast );
-   } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
+   } FC_CAPTURE_AND_RETHROW( (account)(url)(broadcast) ) }
 
    full_transaction resign_guard_member(string proposing_account, string account, int64_t expiration_time, bool broadcast)
    {
@@ -6712,11 +6703,9 @@ full_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-full_transaction wallet_api::create_senator_member(string proposing_account, string account,string url,
-	                                               int64_t expiration_time,
-                                                   bool broadcast /* = false */)
+full_transaction wallet_api::create_senator_member(string account, string url, bool broadcast /* = false */)
 {
-   return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
+   return my->create_guard_member( account,url, broadcast);
 }
 
 

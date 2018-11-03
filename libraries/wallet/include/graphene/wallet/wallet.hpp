@@ -1541,9 +1541,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a senator_member
        */
-      full_transaction create_senator_member(string proposing_account, string account, string url,
-		                                     int64_t expiration_time,
-                                             bool broadcast = false);
+      full_transaction create_senator_member(string account, string url,bool broadcast = false);
 
 	  /** Creates a committee_member object owned by the given account.
 	  *
