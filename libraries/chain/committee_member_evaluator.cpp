@@ -63,7 +63,6 @@ namespace graphene {
                 const auto& new_del_object = db().create<guard_member_object>([&](guard_member_object& obj) {
                     obj.guard_member_account = op.guard_member_account;
                     obj.vote_id = vote_id;
-                    obj.url = op.url;
 					obj.formal = false;
                 });
                 return new_del_object.id;
@@ -73,27 +72,14 @@ namespace graphene {
         void_result guard_member_update_evaluator::do_evaluate(const guard_member_update_operation& op)
         {
             try {
+				auto replace_queue = op.replace_queue;
 				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
-				auto guard_iter = guard_idx.find(op.guard_member_account);
-                FC_ASSERT(guard_iter != guard_idx.end());
-				FC_ASSERT(db().get(op.guard_member_account).addr == op.owner_addr);
-				share_type nCount = 0;
-				for (auto acc : guard_idx)
+				for (const auto& itr : replace_queue)
 				{
-					if (acc.formal == true)
-						nCount++;
-				}
-				FC_ASSERT(nCount < GRAPHENE_DEFAULT_MAX_GUARDS);
-				if (op.formal.valid()&& *op.formal == true)
-				{
-					const auto& guard_lock_balances = db().get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
-					const auto& global_prop = db().get_global_properties();
-					for (auto& one_asset_iter : global_prop.parameters.minimum_guard_pledge_line)
-					{
-						auto guard_balance_iter = guard_lock_balances.find(boost::make_tuple(guard_iter->id, one_asset_iter.second.asset_id));
-						FC_ASSERT(guard_balance_iter != guard_lock_balances.end());
-						FC_ASSERT(guard_balance_iter->lock_asset_amount >= one_asset_iter.second.amount);
-					}
+					auto itr_first = guard_idx.find(itr.first);
+					FC_ASSERT(itr_first != guard_idx.end() && itr_first->formal != true);
+					auto itr_second = guard_idx.find(itr.second);
+					FC_ASSERT(itr_second != guard_idx.end() && itr_second->formal == true && itr_second->senator_type== PERMANENT);
 				}
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
@@ -103,16 +89,25 @@ namespace graphene {
         {
             try {
                 database& _db = db();
-				_db.modify(
-					*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account),
-                    //_db.get(op.guard_member_account),
-                    [&](guard_member_object& com)
-                {
-                    if (op.new_url.valid())
-                        com.url = *op.new_url;
-					if (op.formal.valid())
-						com.formal = *op.formal;
-                });
+				for (const auto& itr : op.replace_queue)
+				{
+					_db.modify(
+						*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(itr.first),
+						[&](guard_member_object& com)
+					{
+						com.senator_type = PERMANENT;
+						com.formal = true;
+					});
+
+					_db.modify(
+						*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(itr.second),
+						[&](guard_member_object& com)
+					{
+						com.senator_type = PERMANENT;
+						com.formal = false;
+					});
+					
+				}
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -309,12 +304,14 @@ namespace graphene {
 							obj.vote_id = vote_id;
 							obj.url = "";
 							obj.formal = true;
+							obj.senator_type = EXTERNAL;
 						});
 					}
 					else
 					{
 						_db.modify(*itr_first_senator, [&] (guard_member_object& obj){
 							obj.formal = true;
+							obj.senator_type = EXTERNAL;
 						});
 					}
 				}

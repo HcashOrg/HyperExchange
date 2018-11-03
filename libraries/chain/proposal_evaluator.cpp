@@ -72,13 +72,9 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
-	   else if (op.op.which() == operation::tag<guard_member_create_operation>::value)
-	   {
-		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-	   }
 	   else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
 	   {

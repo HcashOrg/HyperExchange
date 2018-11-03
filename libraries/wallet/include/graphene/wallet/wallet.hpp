@@ -1541,7 +1541,7 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering a senator_member
        */
-      full_transaction create_senator_member(string account, string url,bool broadcast = false);
+      full_transaction create_senator_member(string account,bool broadcast = false);
 
 	  /** Creates a committee_member object owned by the given account.
 	  *
@@ -1551,7 +1551,7 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction registering a committee_member
 	  */
-	  full_transaction update_senator_formal(string proposing_account, bool formal,
+	  full_transaction update_senator_formal(string proposing_account, map<account_id_type, account_id_type> replace_queue,
 		  int64_t expiration_time,
 		  bool broadcast = false);
 
@@ -2022,6 +2022,7 @@ class wallet_api
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_referendum_for_senator(const string& citizen, const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
+	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
