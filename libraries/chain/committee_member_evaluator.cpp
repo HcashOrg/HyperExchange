@@ -276,6 +276,7 @@ namespace graphene {
 					auto itr_first_citizen = all_miner_ic.find(iter.first);
 					auto itr_second_senator = all_guard_ic.find(iter.second);
 					FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true);
+					
 					FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true));
 				}
 				return void_result();
