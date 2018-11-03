@@ -491,13 +491,18 @@ public:
 
    void schedule_loop()
    {
+	   static uint32_t block_num = 0;
 	   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
 	   fc::time_point now = fc::time_point::now();
 	   fc::time_point next_wakeup(now + fc::seconds(block_interval));
-	   fc::schedule([this] {resync(); schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+	   auto height = _remote_db->get_dynamic_global_properties().head_block_number;
+	   if (height != block_num)
+	   {
+		   block_num = height;
+		   resync();
+	   }
+	   fc::schedule([this] {; schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
    }
-
-
    void encrypt_keys()
    {
       if( !is_locked() )
