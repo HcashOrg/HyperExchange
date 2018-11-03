@@ -501,7 +501,7 @@ public:
 		   block_num = height;
 		   resync();
 	   }
-	   fc::schedule([this] {; schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+	   fc::schedule([this] {schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
    }
    void encrypt_keys()
    {
