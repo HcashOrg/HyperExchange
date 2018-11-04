@@ -2840,7 +2840,9 @@ public:
    full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast = true)
    {
 	   try {
-		   
+		   FC_ASSERT(!is_locked());
+		   referendum_accelerate_pledge_operation op;
+
 
 		   return signed_transaction();
 	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
@@ -5401,6 +5403,12 @@ public:
 
 	   return _remote_db->get_proposer_transactions(acc.get_id());
    }
+   vector<referendum_object> get_referendum_for_voter(const string& voter)
+   {
+	   auto acc = get_account(voter);
+	   FC_ASSERT(acc.get_id() != account_object().get_id(), "the propser doesnt exist in the chain.");
+	   return _remote_db->get_referendum_transactions_waiting(acc.addr);
+   }
 
    vector<proposal_object>  get_proposal_for_voter(const string& voter )
    {
@@ -7288,6 +7296,10 @@ vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 vector<proposal_object>  wallet_api::get_proposal_for_voter(const string& voter)
 {
 	return my->get_proposal_for_voter(voter);
+}
+vector<referendum_object> wallet_api::get_referendum_for_voter(const string& voter)
+{
+	return my->get_referendum_for_voter(voter);
 }
 
 global_property_object wallet_api::get_global_properties() const

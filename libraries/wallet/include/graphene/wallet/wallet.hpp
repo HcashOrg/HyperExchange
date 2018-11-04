@@ -1907,6 +1907,7 @@ class wallet_api
 	  //get current proposal proposed by proposer
 	  vector<proposal_object>  get_proposal(const string& proposer) ;
 	  vector<proposal_object>  get_proposal_for_voter(const string& voter);
+	  vector<referendum_object> get_referendum_for_voter(const string& voter);
       order_book get_order_book( const string& base, const string& quote, unsigned limit = 50);
 	  /*
       void dbg_make_uia(string creator, string symbol);
@@ -2314,6 +2315,7 @@ FC_API( graphene::wallet::wallet_api,
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
-			(get_eth_signer)
+		(get_eth_signer)
 		(citizen_referendum_for_senator)
+		(get_referendum_for_voter)
       )

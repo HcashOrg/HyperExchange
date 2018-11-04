@@ -28,12 +28,6 @@
 
 namespace graphene { namespace chain {
    using namespace graphene::db;
-   typedef enum senatorType
-   {
-	   EXTERNAL,
-	   PERMANENT
-   };
-
    class account_object;
 
    /**
@@ -83,7 +77,6 @@ namespace graphene { namespace chain {
    >;
    using guard_member_index = generic_index<guard_member_object, guard_member_multi_index_type>;
 } } // graphene::chain
-FC_REFLECT_ENUM(graphene::chain::senatorType, (EXTERNAL)(PERMANENT))
 FC_REFLECT_DERIVED( graphene::chain::guard_member_object, (graphene::db::object),
                     (guard_member_account)(vote_id)(total_votes)(url)(guard_lock_balance)(formal)(senator_type) )
 	

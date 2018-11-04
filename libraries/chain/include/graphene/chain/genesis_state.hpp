@@ -93,6 +93,7 @@ struct genesis_state_type {
    struct initial_committee_member_type {
       /// Must correspond to one of the initial accounts
       string owner_name;
+	  senatorType type = EXTERNAL;
    };
    struct initial_worker_type {
       /// Must correspond to one of the initial accounts
@@ -144,7 +145,7 @@ FC_REFLECT(graphene::chain::genesis_state_type::initial_vesting_balance_type,
 
 FC_REFLECT(graphene::chain::genesis_state_type::initial_miner_type, (owner_name)(block_signing_key))
 
-FC_REFLECT(graphene::chain::genesis_state_type::initial_committee_member_type, (owner_name))
+FC_REFLECT(graphene::chain::genesis_state_type::initial_committee_member_type, (owner_name)(type))
 
 FC_REFLECT(graphene::chain::genesis_state_type::initial_worker_type, (owner_name)(daily_pay))
 

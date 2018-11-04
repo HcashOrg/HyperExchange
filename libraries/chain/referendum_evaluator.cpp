@@ -165,6 +165,31 @@ void_result referendum_update_evaluator::do_apply(const referendum_update_operat
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+void_result referendum_accelerate_pledge_evaluator::do_evaluate(const referendum_accelerate_pledge_operation& o)
+{
+	try {
+		const auto& referendum = db().get(o.referendum_id);
+		FC_ASSERT(db().get(referendum.proposer).addr == o.fee_paying_account,"the referendum was not created by this account.");
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
+void_result referendum_accelerate_pledge_evaluator::do_apply(const referendum_accelerate_pledge_operation& o)
+{
+	try
+	{
+		auto & referendum = db().get(o.referendum_id);
+		db().modify(referendum, [&](referendum_object& obj) {
+			obj.pledge += o.fee.amount;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void referendum_accelerate_pledge_evaluator::pay_fee()
+{
+	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
+		d.current_supply -= this->core_fees_paid.amount;
+	});
+}
 
 } } // graphene::chain
