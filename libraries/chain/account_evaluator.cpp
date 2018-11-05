@@ -78,6 +78,7 @@ void verify_account_votes( const database& db, const account_options& options )
       has_worker_votes |= (id.type() == vote_id_type::worker);
    }
 
+   FC_ASSERT(options.miner_pledge_pay_back >= 0 && options.miner_pledge_pay_back <= 20, "miner_pledge_pay_back must between 0 20");
    const auto& against_worker_idx = db.get_index_type<worker_index>().indices().get<by_vote_against>();
    for (auto id : options.votes)
    {

@@ -320,7 +320,6 @@ void database::update_miner_schedule()
 					}
 				});
 			}
-			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
 				_wso.current_shuffled_miners.clear();
