@@ -1904,6 +1904,12 @@ class wallet_api
          const approval_delta& delta,
          bool broadcast /* = false */
          );
+	  full_transaction approve_referendum(
+		  const string& fee_paying_account,
+		  const string& referendum_id,
+		  const approval_delta& delta,
+		  bool broadcast /* = false */
+	  );
 	  //get current proposal proposed by proposer
 	  vector<proposal_object>  get_proposal(const string& proposer) ;
 	  vector<proposal_object>  get_proposal_for_voter(const string& voter);
@@ -2319,4 +2325,5 @@ FC_API( graphene::wallet::wallet_api,
 		(citizen_referendum_for_senator)
 		(get_referendum_for_voter)
 		(referendum_accelerate_pledge)
+		(approve_referendum)
       )

@@ -318,8 +318,8 @@ void database::clear_expired_proposals()
 	   catch (const fc::exception& e) {
 		   elog("Failed to apply proposed transaction on its expiration. Deleting it.\n${proposal}\n${error}",
 			   ("referedum", referedum)("error", e.to_detail_string()));
+		   remove(referedum);
 	   }
-	   remove(referedum);
    }
 
 }

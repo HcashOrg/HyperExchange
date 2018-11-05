@@ -5409,6 +5409,29 @@ public:
       return sign_transaction(tx, broadcast);
    }
 
+   full_transaction approve_referendum(const string& fee_paying_account,
+	   const string& referendum_id,
+	   const approval_delta& delta,
+	   bool broadcast = false)
+   {
+	   referendum_update_operation update_op;
+
+	   update_op.fee_paying_account = get_account(fee_paying_account).addr;
+	   update_op.referendum = fc::variant(referendum_id).as<referendum_id_type>();
+	   // make sure the proposal exists
+	   get_object(update_op.referendum);
+	   for (const std::string& k : delta.key_approvals_to_add)
+		   update_op.key_approvals_to_add.insert(address(k));
+	   for (const std::string& k : delta.key_approvals_to_remove)
+		   update_op.key_approvals_to_remove.insert(address(k));
+
+	   signed_transaction tx;
+	   tx.operations.push_back(update_op);
+	   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+	   tx.validate();
+	   return sign_transaction(tx, broadcast);
+   }
+
    vector<proposal_object>  get_proposal(const string& proposer)
    {
 	   auto acc = get_account(proposer);
@@ -7004,6 +7027,12 @@ full_transaction wallet_api::approve_proposal(
 {
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
+
+full_transaction wallet_api::approve_referendum(const string& fee_paying_account, const string& referendum_id, const approval_delta& delta, bool broadcast)
+{
+	return my->approve_referendum(fee_paying_account, referendum_id, delta, broadcast);
+}
+
 
 full_transaction wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
