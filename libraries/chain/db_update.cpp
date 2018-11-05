@@ -262,7 +262,7 @@ void database::determine_referendum_detailes()
 			modify(get(dynamic_global_property_id_type()), [&](dynamic_global_property_object& obj) {
 				obj.referendum_flag = false;
 			});
-			while (referendum_pleges.size() == 0)
+			while (!(referendum_pleges.size() == 0))
 			{
 				auto& referendum = *referendum_pleges.begin();
 				remove(referendum);
