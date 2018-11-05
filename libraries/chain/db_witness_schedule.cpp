@@ -287,6 +287,7 @@ void database::update_miner_schedule()
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
 
+			fc::uint128_t total=0;
 			// modify account pledge_weight
 			for (auto& w : gpo.active_witnesses)
 			{
@@ -314,8 +315,17 @@ void database::update_miner_schedule()
 							boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.base.amount.value);
 							fc::uint128_t tran_end = fc::uint128_t(boost::multiprecision::uint128_t(cal_end).str());
 							miner_obj.pledge_weight += tran_end;
+							total += miner_obj.pledge_weight;
 						}
 					}
+				});
+			}
+			for (auto& w : gpo.active_witnesses)
+			{
+
+				modify(get(w), [&](miner_object& miner_obj)
+				{
+					miner_obj.pledge_rate = (miner_obj.pledge_weight * 100 / total).to_uint64();
 				});
 			}
 			//
