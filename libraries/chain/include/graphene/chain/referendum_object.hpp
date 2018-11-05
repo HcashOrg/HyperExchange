@@ -70,4 +70,4 @@ typedef generic_index<referendum_object, referendum_multi_index_container> refer
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object),(proposer)
-                    (expiration_time)(review_period_time)(proposed_transaction)(pledge)(approved_key_approvals)(disapproved_key_approvals))
+                    (expiration_time)(review_period_time)(proposed_transaction)(pledge)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals))

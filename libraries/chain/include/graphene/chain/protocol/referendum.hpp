@@ -116,6 +116,8 @@ namespace graphene { namespace chain {
 	   address          fee_paying_account;
 	   asset            fee;
 	   referendum_id_type  referendum_id;
+	   optional<guarantee_object_id_type> guarantee_id;
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 	   address    fee_payer()const { return fee_paying_account; }
 	   void            validate()const;
 	   share_type calculate_fee(const fee_parameters_type& k)const { return fee.amount; };
@@ -135,4 +137,4 @@ FC_REFLECT( graphene::chain::referendum_create_operation,(fee)(proposer)(fee_pay
             (proposed_ops)(guarantee_id)(extensions))
 FC_REFLECT(graphene::chain::referendum_update_operation, (fee)(fee_paying_account)
 	(referendum)(key_approvals_to_add)(key_approvals_to_remove)(extensions))
-FC_REFLECT(graphene::chain::referendum_accelerate_pledge_operation,(fee)(fee_paying_account)(referendum_id))
+FC_REFLECT(graphene::chain::referendum_accelerate_pledge_operation,(fee)(fee_paying_account)(guarantee_id)(referendum_id))

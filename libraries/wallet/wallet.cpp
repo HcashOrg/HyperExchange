@@ -2842,13 +2842,22 @@ public:
 	   try {
 		   FC_ASSERT(!is_locked());
 		   referendum_accelerate_pledge_operation op;
+		   auto obj = _remote_db->get_referendum_object(referendum_id);
+		   FC_ASSERT(obj.valid(),"there is no this referendum.");
+		   auto acc_obj = get_account(obj->proposer);
+		   op.fee_paying_account = acc_obj.addr;
+		   op.fee = get_asset(asset_id_type()).amount_from_string(amount);
+		   op.referendum_id = referendum_id;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   tx.validate();
 
-
-		   return signed_transaction();
+		   return sign_transaction(tx,broadcast);
 	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
    }
 
-   full_transaction citizen_referendum_for_senator(const string& citizen, const map<account_id_type,account_id_type>& replacement,bool broadcast)
+   full_transaction citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2860,6 +2869,7 @@ public:
 			  get_account(iter.first);
 			  get_account(iter.second);
 		   }
+	
 		   op.replace_queue = replacement;
 		   signed_transaction tx;
 		   referendum_create_operation prop_op;
@@ -2868,9 +2878,12 @@ public:
 		   prop_op.proposed_ops.emplace_back(op);
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.front().op);
 		   //prop_op.review_period_seconds = 0;
+		   prop_op.fee = get_asset(asset_id_type()).amount_from_string(amount);
+		   prop_op.guarantee_id = get_guarantee_id();
 		   tx.operations.push_back(prop_op);
-		   set_operation_fees(tx, current_params.current_fees);
+		   //set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
+		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((citizen)(replacement)(broadcast))
    }
 
@@ -3166,7 +3179,7 @@ public:
 	  miner_create_op.miner_address = miner_account.addr;
 	  miner_create_op.block_signing_key = miner_public_key;
 	  miner_create_op.url = url;
-
+	  miner_create_op.guarantee_id = get_guarantee_id();
       if (_remote_db->get_miner_by_account(miner_create_op.miner_account))
          FC_THROW("Account ${owner_account} is already a miner", ("owner_account", owner_account));
 
@@ -6733,9 +6746,9 @@ full_transaction wallet_api::update_senator_formal(string proposing_account, map
 	return my->update_guard_formal(proposing_account, replace_queue, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::citizen_referendum_for_senator(const string& citizen, const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
+full_transaction wallet_api::citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
 {
-	return my->citizen_referendum_for_senator(citizen,replacement,broadcast);
+	return my->citizen_referendum_for_senator(citizen,amount,replacement,broadcast);
 }
 
 full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast /* = true */)

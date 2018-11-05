@@ -288,6 +288,8 @@ void database::initialize_evaluators()
    register_evaluator<eths_coldhot_guard_sign_final_evaluator>();
    register_evaluator< referendum_create_evaluator > ();
    register_evaluator<referendum_update_evaluator>();
+   register_evaluator<citizen_referendum_senator_evaluator>();
+   register_evaluator<referendum_accelerate_pledge_evaluator>();
 }
 
 void database::initialize_indexes()
