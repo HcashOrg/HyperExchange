@@ -54,6 +54,7 @@ namespace graphene { namespace chain {
 		 map<string, asset> guard_lock_balance;
 		 bool             formal = false;
 		 senatorType      senator_type=EXTERNAL;
+		 optional<string> which_id;        //EXTERNAL is proposal id , PERMANT is referendum id
    };
 
    struct by_account;
@@ -78,5 +79,5 @@ namespace graphene { namespace chain {
    using guard_member_index = generic_index<guard_member_object, guard_member_multi_index_type>;
 } } // graphene::chain
 FC_REFLECT_DERIVED( graphene::chain::guard_member_object, (graphene::db::object),
-                    (guard_member_account)(vote_id)(total_votes)(url)(guard_lock_balance)(formal)(senator_type) )
+                    (guard_member_account)(vote_id)(total_votes)(url)(guard_lock_balance)(formal)(senator_type)(which_id))
 	

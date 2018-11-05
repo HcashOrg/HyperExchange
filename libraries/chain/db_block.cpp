@@ -285,6 +285,9 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
+			modify(referendum, [](referendum_object& obj) {
+				obj.finished = true;
+			});
 		}
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);

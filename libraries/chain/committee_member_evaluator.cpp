@@ -274,6 +274,10 @@ namespace graphene {
 				const auto& _db = db();
 				const auto& all_guard_ic = _db.get_index_type<guard_member_index>().indices().get<by_account>();
 				const auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
+				const auto& referendum_idx = db().get_index_type<referendum_index>().indices().get<by_pledge>();
+				auto itr = referendum_idx.rbegin();
+				if (itr != referendum_idx.rend())
+					_id = itr->id;
 				FC_ASSERT(o.replace_queue.size() > 0 && o.replace_queue.size() <=3 );
 				for (const auto& iter : o.replace_queue)
 				{
@@ -315,6 +319,7 @@ namespace graphene {
 							obj.url = "";
 							obj.formal = true;
 							obj.senator_type = EXTERNAL;
+							obj.which_id = fc::variant(_id).as_string();
 						});
 					}
 					else
@@ -322,6 +327,7 @@ namespace graphene {
 						_db.modify(*itr_first_senator, [&] (guard_member_object& obj){
 							obj.formal = true;
 							obj.senator_type = EXTERNAL;
+							obj.which_id = fc::variant(_id).as_string();
 						});
 					}
 				}

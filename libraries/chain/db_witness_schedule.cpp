@@ -320,14 +320,6 @@ void database::update_miner_schedule()
 					}
 				});
 			}
-			for (auto& w : gpo.active_witnesses)
-			{
-
-				modify(get(w), [&](miner_object& miner_obj)
-				{
-					miner_obj.pledge_rate = (miner_obj.pledge_weight * 100 / total).to_uint64();
-				});
-			}
 			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{

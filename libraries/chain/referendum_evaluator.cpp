@@ -82,9 +82,9 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 { try {
    database& d = db();
    const auto& ref_obj= d.create<referendum_object>([&](referendum_object& referendum) {
-	   _proposed_trx.expiration = d.head_block_time()+fc::days(10);
+	   _proposed_trx.expiration = d.head_block_time()+ fc::seconds(HX_REFERENDUM_PACKING_PERIOD + HX_REFERENDUM_VOTING_PERIOD);
 	   referendum.proposed_transaction = _proposed_trx;
-       referendum.expiration_time = d.head_block_time() + fc::days(10);
+	   referendum.expiration_time = d.head_block_time() + fc::seconds(HX_REFERENDUM_PACKING_PERIOD + HX_REFERENDUM_VOTING_PERIOD);
        referendum.proposer = o.proposer;
        //proposal should only be approved by guard or miners
 	   const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
