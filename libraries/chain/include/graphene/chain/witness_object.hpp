@@ -52,6 +52,7 @@ namespace graphene { namespace chain {
 		 //std::map<string, vector<asset>> lockbalance;
 		 std::map<string,asset> lockbalance_total;
 		 fc::uint128_t       pledge_weight =  100;
+		 uint8_t          pledge_rate=0;
 		 uint8_t		  participation_rate = 100;
 		 
 
@@ -94,6 +95,7 @@ FC_REFLECT_DERIVED( graphene::chain::miner_object, (graphene::db::object),
 					(total_produced)
                     (last_confirmed_block_num)
 					(pledge_weight)
+					(pledge_rate)
 					(participation_rate)
 					(next_secret_hash)
                   )
