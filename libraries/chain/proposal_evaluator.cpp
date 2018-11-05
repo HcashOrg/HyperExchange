@@ -45,21 +45,6 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    FC_ASSERT(!o.review_period_seconds || fc::seconds(*o.review_period_seconds) < (o.expiration_time - d.head_block_time()),
 	   "Proposal review period must be less than its overall lifetime.");
    // If we're dealing with the committee authority, make sure this transaction has a sufficient review period.
-   for (const auto& op_p : o.proposed_ops)
-   {
-	   if (op_p.op.which() == operation::tag<guard_member_create_operation>::value)
-	   {
-		   auto& referendum_idx = d.get_index_type<referendum_index>().indices().get<by_id>();
-		   for (const auto& referendum : referendum_idx)
-		   {
-			   for (const auto& op : referendum.proposed_transaction.operations)
-			   {
-
-				   FC_ASSERT(op.which() != operation::tag<citizen_referendum_senator_operation>::value, "there is other referendum for senator election.");
-			   }
-		   }
-	   }
-   }
    flat_set<account_id_type> auths;
    vector<authority> other;
    for (auto& op : o.proposed_ops)

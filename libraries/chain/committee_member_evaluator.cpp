@@ -30,6 +30,7 @@
 #include <graphene/chain/protocol/vote.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
@@ -73,6 +74,15 @@ namespace graphene {
         {
             try {
 				auto replace_queue = op.replace_queue;
+				const auto& referendum_idx = db().get_index_type<referendum_index>().indices().get<by_id>();
+				for (const auto& referendum : referendum_idx)
+				{
+					for (const auto& op : referendum.proposed_transaction.operations)
+					{
+
+						FC_ASSERT(op.which() != operation::tag<citizen_referendum_senator_operation>::value, "there is other referendum for senator election.");
+					}
+				}
 				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
 				for (const auto& itr : replace_queue)
 				{

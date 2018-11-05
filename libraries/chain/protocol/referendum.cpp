@@ -31,7 +31,7 @@ namespace graphene { namespace chain {
 void referendum_create_operation::validate() const
 {
    FC_ASSERT( !proposed_ops.empty() );
-   FC_ASSERT(fee > asset(1000* GRAPHENE_HXCHAIN_PRECISION));
+   FC_ASSERT(fee >= asset(1000* GRAPHENE_HXCHAIN_PRECISION));
    for( const auto& op : proposed_ops ) operation_validate( op.op );
 }
 

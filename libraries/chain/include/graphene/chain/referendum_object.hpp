@@ -62,7 +62,7 @@ typedef boost::multi_index_container<
 	ordered_non_unique < tag<by_pledge>,composite_key<referendum_object,
 	                                 member<referendum_object, share_type, &referendum_object::pledge>,
 	                                 member<object, object_id_type, &object::id>>,
-	                                 composite_key_compare<std::greater<share_type>,std::greater<object_id_type>>>
+	                                 composite_key_compare<std::less<share_type>,std::less<object_id_type>>>
    >
 > referendum_multi_index_container;
 typedef generic_index<referendum_object, referendum_multi_index_container> referendum_index;

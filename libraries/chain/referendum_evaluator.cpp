@@ -44,13 +44,13 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    FC_ASSERT(iter != citizen_idx.end(), "referendum proposer must be a citizen.");
 
    const auto& dynamic_obj = d.get_dynamic_global_properties();
-   FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && d.head_block_time() < dynamic_obj.next_vote_time));
+   FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && (d.head_block_time() < dynamic_obj.next_vote_time)));
    const auto& proposal_idx = d.get_index_type<proposal_index>().indices().get<by_id>();
    for (const auto& proposal : proposal_idx)
    {
 	   for (const auto& op :proposal.proposed_transaction.operations)
 	   {
-		   FC_ASSERT(op.which() != operation::tag<guard_member_create_operation>::value, "there is other proposal for senator election.");
+		   FC_ASSERT(op.which() != operation::tag<guard_member_update_operation>::value, "there is other proposal for senator election.");
 	   }
    }
    for (const auto& op : o.proposed_ops)

@@ -206,7 +206,7 @@ void database::determine_referendum_detailes()
 					remove(referendum);
 				}
 			}
-			else if (referendum_pleges.size() == 1 )
+			else if (referendum_pleges.size() >= 1 )
 			{
 				return;
 			}
