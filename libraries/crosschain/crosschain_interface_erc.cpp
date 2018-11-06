@@ -1091,7 +1091,74 @@ namespace graphene {
 
 		bool crosschain_interface_erc::validate_link_trx(const hd_trx &trx)
 		{
-			return false;
+			std::vector<std::string> sep_vec;
+			erc::split(trx.to_account, sep_vec, "|");
+			std::string trx_to_account, trx_input;
+			std::string trx_index = "";
+			FC_ASSERT(sep_vec.size() == 3);
+			trx_to_account = sep_vec[0];
+			trx_input = sep_vec[1];
+			trx_index = sep_vec[2];
+			
+			std::vector<std::string> sep_symbol_vec;
+			erc::split(trx.asset_symbol, sep_symbol_vec, "|");
+			FC_ASSERT(sep_symbol_vec.size() == 3);
+			auto erc_real_precision = fc::to_int64(sep_symbol_vec[2]);
+			auto erc_address = sep_symbol_vec[1];
+			auto tx = transaction_query(trx.trx_id);
+			FC_ASSERT(tx.contains("respit_trx"));
+			FC_ASSERT(tx.contains("source_trx"));
+			auto source_trx = tx["source_trx"].get_object();
+			auto respit_trx = tx["respit_trx"].get_object();
+			auto receipt_logs = respit_trx["logs"].get_array();
+			bool ret = false;
+			for (auto receipt_log : receipt_logs) {
+				FC_ASSERT(receipt_log.get_object().contains("topics"));
+				auto topics = receipt_log.get_object()["topics"].get_array();
+				auto source_index = fc::to_uint64(erc::ConvertPre(16, 10, receipt_log["logIndex"].as_string().substr(2)));
+				auto trx_index_num = fc::to_uint64(erc::ConvertPre(16, 10, trx_index));
+				if (topics.size() == 1 &&(trx_index_num + 1 == source_index)){
+					std::string success_topic = "0x0169d72b4638e9bc0f81e32c7cf97acd164b6d70e57234bc29346a946ae6ce1b";
+					FC_ASSERT(topics[0].as_string() == success_topic);
+					FC_ASSERT(receipt_log.get_object().contains("data"));
+					std::string data = receipt_log.get_object()["data"].as_string();
+					std::string logindex = receipt_log.get_object()["logIndex"].as_string();
+					
+					std::vector<std::string> datas;
+					for (int i = 0; i < (data.size() - 2) / 64; ++i) {
+						std::string temp_data = data.substr(2 + (i * 64), 64);
+						datas.push_back(temp_data);
+					}
+					FC_ASSERT(datas.size() == 5);
+					FC_ASSERT(datas[3] == erc_address);
+					auto source_to_account = "0x" + datas[1].substr(24);
+					auto temp_amount = erc::ConvertPre(16, 10, erc::UnFillZero(datas[2], false));
+					auto source_amount =  erc::TurnFromEthAmount(temp_amount, erc_real_precision);
+					auto source_from_account = source_trx["to"].as_string();
+					FC_ASSERT(source_to_account == trx_to_account);
+					FC_ASSERT(source_from_account == trx.from_account);
+					FC_ASSERT(source_amount == trx.amount);
+					ret = true;
+					break;
+				}
+				else if (topics.size() > 2 && trx_index_num == source_index) {
+					if (topics[0].as_string() != "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"){
+						continue;
+					}
+					auto source_from_account = "0x" + topics[1].as_string().substr(26);
+					auto source_to_account = "0x" + topics[2].as_string().substr(26);
+					std::string data = receipt_log.get_object()["data"].as_string().substr(2);
+					auto temp_amount = erc::ConvertPre(16, 10, erc::UnFillZero(data.substr(2), false));
+					auto source_amount = erc::TurnFromEthAmount(temp_amount, erc_real_precision);
+					//auto source_amount = erc::TurnFromEthAmount(data, erc_real_precision);
+					FC_ASSERT(source_to_account == trx_to_account);
+					FC_ASSERT(source_from_account == trx.from_account);
+					FC_ASSERT(source_amount == trx.amount);
+					ret = true;
+					break;
+				}
+			}
+			return ret;
 		}
 
 		bool crosschain_interface_erc::validate_link_trx(const std::vector<hd_trx> &trx)
@@ -1243,9 +1310,9 @@ namespace graphene {
 					hdtx.block_num = real_trx.get_object()["blockNum"].as_int64();
 					auto input = real_trx.get_object()["input"].as_string();
 					hdtx.to_account = real_trx.get_object()["to_account"].as_string();
-					if (input != "0x0"){
-						hdtx.to_account += '|'+real_trx.get_object()["input"].as_string();
-					}
+					//if (input != "0x0"){
+					hdtx.to_account += '|'+real_trx.get_object()["input"].as_string();
+					//}
 					if (real_trx.get_object().contains("index")){
 						hdtx.to_account += '|' + real_trx.get_object()["index"].as_string();
 					}

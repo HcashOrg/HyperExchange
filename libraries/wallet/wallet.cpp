@@ -3543,10 +3543,19 @@ public:
 		   
 		   coldhot_transfer_op.multi_account_withdraw = from_account;
 		   coldhot_transfer_op.multi_account_deposit = to_account;
-		   fc::variant amount_fc = amount;
+		   auto asset_obj = get_asset(asset_symbol);
+		   
+		   auto float_pos = amount.find('.');
+		   string temp_amount = amount;
+		   if (float_pos != amount.npos) {
+			   auto float_temp = amount.substr(float_pos + 1, asset_obj.precision);
+			   temp_amount = amount.substr(0, float_pos + 1) + float_temp;
+		   }
+		   fc::variant amount_fc = temp_amount;
 		   char temp[1024];
 		   std::sprintf(temp, "%.8f", amount_fc.as_double());
 		   coldhot_transfer_op.amount = graphene::utilities::remove_zero_for_str_amount(temp);
+		   
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
 		   auto guard_obj = get_guard_member(proposer);
@@ -3554,7 +3563,7 @@ public:
 		   auto guard_account_obj = get_account(guard_id);
 		   coldhot_transfer_op.guard = guard_account_obj.addr;
 		   coldhot_transfer_op.guard_id = guard_obj.id;
-		   auto asset_obj = get_asset(asset_symbol);
+		  
 		   coldhot_transfer_op.asset_id = asset_obj.id;
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(coldhot_transfer_op);

@@ -1044,7 +1044,97 @@ namespace graphene {
 
 		bool crosschain_interface_eth::validate_link_trx(const hd_trx &trx)
 		{
-			return false;
+			/*
+			auto real_trx = trx["plugin_get_trx"];
+			hdtx.trx_id = real_trx.get_object()["txid"].as_string();
+			hdtx.from_account = real_trx.get_object()["from_account"].as_string();
+			hdtx.asset_symbol = chain_type;
+			hdtx.amount = real_trx.get_object()["amount"].as_string();
+			hdtx.block_num = real_trx.get_object()["blockNum"].as_int64();
+			auto input = real_trx.get_object()["input"].as_string();
+			hdtx.to_account = real_trx.get_object()["to_account"].as_string();
+			//if (input != "0x0") {
+				hdtx.to_account += '|' + real_trx.get_object()["input"].as_string();
+			//}
+			if (real_trx.get_object().contains("index")) {
+				hdtx.to_account += '|' + real_trx.get_object()["index"].as_string();
+			}
+			*/
+			std::vector<std::string> sep_vec;
+			split(trx.to_account, sep_vec, "|");
+			std::string trx_to_account, trx_input;
+			std::string trx_index = "";
+			if (sep_vec.size() == 2){
+				trx_to_account = sep_vec[0];
+				trx_input = sep_vec[1];
+			}
+			else if(sep_vec.size() == 3){
+				trx_to_account = sep_vec[0];
+				trx_input = sep_vec[1];
+				trx_index = sep_vec[2];
+			}
+			else {
+				FC_THROW("to account size error");
+			}
+
+			auto tx = transaction_query(trx.trx_id);
+			FC_ASSERT(tx.contains("respit_trx"));
+			FC_ASSERT(tx.contains("source_trx"));
+			auto source_trx = tx["source_trx"].get_object();
+			auto respit_trx = tx["respit_trx"].get_object();
+			FC_ASSERT(source_trx.contains("input"));
+			auto source_trx_input = source_trx["input"].as_string();
+			if (trx_input == "0x"){
+				//eth deposit
+				auto temp_amount = ConvertPre(16, 10, source_trx["value"].as_string().substr(2));
+				auto source_amount = TurnFromEthAmount(temp_amount,18);
+				auto source_to_account = source_trx["to"].as_string();
+				auto source_from_account = source_trx["from"].as_string();
+				FC_ASSERT(source_to_account == trx_to_account);
+				FC_ASSERT(source_from_account == trx.from_account);
+				FC_ASSERT(source_amount == trx.amount);
+				FC_ASSERT(trx_input == source_trx_input);
+			}
+			else {
+				FC_ASSERT(trx_input == source_trx_input);
+				//eth withdraw
+				FC_ASSERT(respit_trx.contains("logs"));
+				auto receipt_logs = respit_trx["logs"].get_array();
+				for (auto receipt_log : receipt_logs){
+					FC_ASSERT(receipt_log.get_object().contains("topics"));
+					auto topics = receipt_log.get_object()["topics"];
+					bool ethTopic = false;
+					if (topics.get_array().size() != 1){
+						continue;
+					}
+					std::string success_topic = "0x0169d72b4638e9bc0f81e32c7cf97acd164b6d70e57234bc29346a946ae6ce1b";
+					FC_ASSERT(topics.get_array()[0].as_string() == success_topic);
+					FC_ASSERT(receipt_log.get_object().contains("data"));
+					std::string data = receipt_log.get_object()["data"].as_string();
+					std::string logindex = receipt_log.get_object()["logIndex"].as_string();
+					std::string eth_address = "0000000000000000000000000000000000000000000000000000000000000000";
+					std::vector<std::string> datas;
+					for (int i = 0; i < (data.size() - 2) / 64;++i) {
+						std::string temp_data = data.substr(2 + (i * 64), 64);
+						datas.push_back(temp_data);
+					}
+					FC_ASSERT(datas.size() == 5);
+					FC_ASSERT(datas[3] == eth_address);
+					std::string source_to_account = "0x" + datas[1].substr(24);
+					std::cout << datas[2] << std::endl;
+					std::string temp_amount = ConvertPre(16, 10, UnFillZero(datas[2],false));
+					std::cout << temp_amount << std::endl;
+					std::string source_amount = TurnFromEthAmount(temp_amount, 18);
+					std::cout << source_amount << std::endl;
+					std::string source_from_account = source_trx["to"].as_string();
+					//TODO check index
+					//auto source_index = datas[4]
+					FC_ASSERT(source_to_account == trx_to_account);
+					FC_ASSERT(source_from_account == trx.from_account);
+					FC_ASSERT(source_amount == trx.amount);
+				}
+			}
+			return true;
 		}
 
 		bool crosschain_interface_eth::validate_link_trx(const std::vector<hd_trx> &trx)
@@ -1196,9 +1286,9 @@ namespace graphene {
 					hdtx.block_num = real_trx.get_object()["blockNum"].as_int64();
 					auto input = real_trx.get_object()["input"].as_string();
 					hdtx.to_account = real_trx.get_object()["to_account"].as_string();
-					if (input != "0x0"){
-						hdtx.to_account += '|'+real_trx.get_object()["input"].as_string();
-					}
+					//if (input != "0x0"){
+					hdtx.to_account += '|'+real_trx.get_object()["input"].as_string();
+					//}
 					if (real_trx.get_object().contains("index")){
 						hdtx.to_account += '|' + real_trx.get_object()["index"].as_string();
 					}
@@ -1217,9 +1307,9 @@ namespace graphene {
 					std::vector<char> vector_input(input_temp.begin(), input_temp.end());
 					auto hex_temp = to_hex(vector_input.data(), vector_input.size());
 					std::string input = "0x" + hex_temp;
-					if (input != "0x0") {
-						hdtx.to_account += '|' + input;
-					}
+					//if (input != "0x0") {
+					hdtx.to_account += '|' + input;
+					//}
 					//auto without_sign_tx = trx_base.rlp(dev::eth::WithoutSignature);
 					//std::string input_trx(without_sign_tx.begin(), without_sign_tx.end());
 					//hdtx.to_account = to_hex(input_trx.data(), input_trx.size());
