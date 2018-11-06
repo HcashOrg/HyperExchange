@@ -366,8 +366,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size() && (eth_guard_account_ids.size() == guard_ids.size()))
 			{
 				
-				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold, std::ceil(symbol_addrs_cold.size()*2.0/3.0));
-				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2.0 / 3.0));
+				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold,(symbol_addrs_cold.size()*2/3 + 1));
+				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, (symbol_addrs_hot.size() * 2/3 + 1));
 				signed_transaction trx;
 				try {
 					if ((iter.symbol.find("ETH") != iter.symbol.npos) || (iter.symbol.find("ERC") != iter.symbol.npos)) {
@@ -461,7 +461,7 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 		
 		for (auto transfer : transfers)
 		{
-			if (transfer.signatures.size() >= std::ceil(guard_ids.size() * 2.0 / 3.0))
+			if (transfer.signatures.size() >= (guard_ids.size() * 2 / 3 + 1))
 			{
 				miner_merge_signatures_operation op;
 				op.miner = miner;

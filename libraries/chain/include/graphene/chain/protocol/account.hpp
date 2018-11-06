@@ -305,7 +305,7 @@ namespace graphene { namespace chain {
    */
    struct account_unbind_operation : public base_operation
    {
-	   struct fee_parameters_type { uint64_t fee = 500 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+	   struct fee_parameters_type { uint64_t fee = 0.002 * GRAPHENE_HXCHAIN_PRECISION; };
 
 	   asset           fee;
 	   std::string crosschain_type;
@@ -317,7 +317,7 @@ namespace graphene { namespace chain {
 	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
 	   address fee_payer()const { return addr; }
 	   void        validate()const;
-	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return k.fee; }
 	   void get_required_authorities(vector<authority>& a)const
 	   {
 		   // registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure

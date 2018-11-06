@@ -121,7 +121,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.witness_account );
    }
-
+   void operator() (const referendum_accelerate_pledge_operation& op) {}
    void operator()( const proposal_create_operation& op )
    {
       vector<authority> other;
@@ -167,10 +167,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.guard_member_account );
    }
-   void operator()( const guard_member_update_operation& op )
-   {
-      _impacted.insert( op.guard_member_account );
-   }
+   void operator()( const guard_member_update_operation& op ){ }
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
    void operator()(const committee_member_execute_coin_destory_operation& op) {}
    void operator()(const guard_member_resign_operation& op)

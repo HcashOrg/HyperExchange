@@ -6,7 +6,7 @@
 #include <graphene/chain/uvm_chain_api.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
-
+#include <iostream>
 #include <fc/array.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
@@ -52,7 +52,7 @@ namespace graphene {
 			if (contract_transfer_evaluator) {
 				return contract_transfer_evaluator;
 			}
-			return nullptr; // FIXME: 不直接报错，因为在ljsonlib.cpp中现在会用到
+			return nullptr; // FIXME: 锟斤拷直锟接憋拷锟斤拷锟斤拷为锟斤拷ljsonlib.cpp锟斤拷锟斤拷锟节伙拷锟矫碉拷
 		}
 
 	    share_type count_gas_fee(gas_price_type gas_price, gas_count_type gas_count) {
@@ -873,6 +873,7 @@ namespace graphene {
          StorageDataType contract_common_evaluate::get_storage(const string & contract_id, const string & storage_name) const
         {
             database& d = get_db();
+            std::cout<<contract_id<<"___"<<storage_name<<std::endl;
             auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
             return storage_data;
         }

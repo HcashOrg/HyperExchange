@@ -3,6 +3,7 @@
 #include <deque>
 #include <map>
 #include <vector>
+#include <functional>
 
 #include <fc/string.hpp>
 #include <fc/optional.hpp>
@@ -15,7 +16,7 @@ namespace fc {
   class exception;
   namespace ip { class address; }
 
-  template<typename T> class get_typename{};
+  template<typename T> struct get_typename {};
   template<> struct get_typename<int32_t>  { static const char* name()  { return "int32_t";  } };
   template<> struct get_typename<int64_t>  { static const char* name()  { return "int64_t";  } };
   template<> struct get_typename<int16_t>  { static const char* name()  { return "int16_t";  } };
@@ -69,15 +70,6 @@ namespace fc {
          return n.c_str();  
      } 
   };
-  template<typename T> struct get_typename<std::function<T>>
-  {
-	  static const char* name() {
-		  static std::string n = std::string("function<>");
-		  return n.c_str();
-	  }
-  };
-
-
   struct signed_int;
   struct unsigned_int;
   template<> struct get_typename<signed_int>   { static const char* name()   { return "signed_int";   } };

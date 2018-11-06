@@ -285,11 +285,15 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
-			remove(referendum);
+			modify(referendum, [this](referendum_object& obj) {
+				obj.finished = true;
+				obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+			});
 		}
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);
 			elog("e", ("e", e.to_detail_string()));
+			remove(referendum);
 			throw;
 		}
 		ptrx.operation_results = std::move(eval_state.operation_results);
@@ -309,16 +313,33 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
    try {
       //auto session = _undo_db.start_undo_session(true);
-      for( auto& op : proposal.proposed_transaction.operations )
-         eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
-      remove(proposal);
+	   bool del = true;
+	   for (auto& op : proposal.proposed_transaction.operations)
+	   {
+		   eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+		   if (op.which() == operation::tag<guard_member_update_operation>().value)
+		   {
+			   del = false;
+		   }
+	   }
+	   if (!del)
+	   {
+		   modify(proposal, [this](proposal_object& obj) {
+			   obj.finished = true;
+			   obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+		   });
+	   }
+	   else
+		   remove(proposal);
+      
       //session.merge();
-   } catch ( const fc::exception& e ) {
-	  _applied_ops.resize(old_applied_ops_size);
-      elog( "e", ("e",e.to_detail_string() ) );
-      throw;
    }
-
+   catch (const fc::exception& e) {
+	   _applied_ops.resize(old_applied_ops_size);
+	   elog("e", ("e", e.to_detail_string()));
+	   remove(proposal);
+	   throw;
+   }
    ptrx.operation_results = std::move(eval_state.operation_results);
    return ptrx;
 } FC_CAPTURE_AND_RETHROW( (proposal) ) }

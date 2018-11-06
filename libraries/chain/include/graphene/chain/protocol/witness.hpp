@@ -43,7 +43,8 @@ namespace graphene { namespace chain {
       account_id_type   miner_account;
       string            url;
       public_key_type   block_signing_key;
-
+	  optional<guarantee_object_id_type> guarantee_id;
+	  optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
       address fee_payer()const { return miner_address; }
       void            validate()const;
 	  void get_required_authorities(vector<authority>& a)const {
@@ -123,7 +124,7 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT( graphene::chain::miner_create_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::miner_create_operation, (fee)(miner_address)(miner_account)(url)(block_signing_key) )
+FC_REFLECT( graphene::chain::miner_create_operation, (fee)(miner_address)(miner_account)(url)(guarantee_id)(block_signing_key) )
 
 FC_REFLECT( graphene::chain::witness_update_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::witness_update_operation, (fee)(witness)(witness_account)(new_url)(new_signing_key) )
