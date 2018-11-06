@@ -42,7 +42,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
    auto iter = citizen_idx.find(proposer);
    FC_ASSERT(iter != citizen_idx.end(), "referendum proposer must be a citizen.");
-
+   _pledge = iter->pledge_weight;
    const auto& dynamic_obj = d.get_dynamic_global_properties();
    FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && (d.head_block_time() < dynamic_obj.next_vote_time)));
    const auto& proposal_idx = d.get_index_type<proposal_index>().indices().get<by_id>();
@@ -92,7 +92,8 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   {
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
-	   referendum.pledge = o.fee.amount;
+	   _pledge += fc::uint128_t(o.fee.amount.value);
+	   referendum.pledge = _pledge ;
    });
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -179,7 +180,7 @@ void_result referendum_accelerate_pledge_evaluator::do_apply(const referendum_ac
 	{
 		auto & referendum = db().get(o.referendum_id);
 		db().modify(referendum, [&](referendum_object& obj) {
-			obj.pledge += o.fee.amount;
+			obj.pledge += fc::uint128_t(o.fee.amount.value);
 		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }

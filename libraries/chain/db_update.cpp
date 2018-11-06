@@ -290,6 +290,85 @@ void database::clear_expired_transactions()
       transaction_idx.remove(*dedupe_index.begin());
 } FC_CAPTURE_AND_RETHROW() }
 
+void database::_rollback_votes(const proposal_object& proposal)
+{
+	try {
+		if (!proposal.finished)
+			return;
+		bool need_return = true;
+		guard_member_update_operation upop;
+		for (auto op : proposal.proposed_transaction.operations)
+		{
+			if (op.which() == operation::tag<guard_member_update_operation>().value)
+			{
+				upop = op.get<guard_member_update_operation>();
+				need_return = false;
+				break;
+			}
+				
+		}
+		if (need_return)
+			return;
+		auto senator_multisigs = [this](const string symbol, account_id_type senator) {
+			vector<multisig_address_object> result;
+			const auto& multisig_addr_by_guard = get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+			const auto iter_range = multisig_addr_by_guard.equal_range(boost::make_tuple(symbol, senator));
+			std::for_each(iter_range.first, iter_range.second, [&](multisig_address_object obj) {
+				result.emplace_back(obj);
+			});
+			return result;
+		};
+		auto all_senators_in = [this](const vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
+			if (senator_multisignatures.size() < senators.size())
+				return false;
+			while (senators.size() != 0)
+			{
+				auto senator = senators.back();
+				senators.pop_back();
+				bool found = false;
+				for (auto multisig_address_obj : senator_multisignatures)
+				{
+					if (multisig_address_obj.guard_account == senator.guard_member_account)
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					return false;
+			}
+			return true;
+		};
+		auto senators = get_guard_members();
+		const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_symbol>();
+		for (const auto& itr : assets_by_symbol)
+		{
+			if (itr.get_id() == asset_id_type())
+				continue;
+			auto multisig_account_pair = get_current_multisig_account(itr.symbol);
+			if (!multisig_account_pair.valid())
+			{
+				continue;
+			}
+			auto ret = all_senators_in(get_multi_account_senator(multisig_account_pair->bind_account_hot, itr.symbol), senators);
+			if (!ret)
+			{
+				auto& senator_idx = get_index_type<guard_member_index>().indices().get<by_account>();
+				for (auto itr : upop.replace_queue)
+				{
+					modify(*senator_idx.find(itr.first), [](guard_member_object& obj) {
+						obj.formal = false;
+					});
+					modify(*senator_idx.find(itr.second), [](guard_member_object& obj) {
+						obj.formal = true;
+					});
+				}
+			}
+		}
+
+	} FC_CAPTURE_AND_RETHROW()
+}
+
 void database::clear_expired_proposals()
 {
    const auto& proposal_expiration_index = get_index_type<proposal_index>().indices().get<by_expiration>();
@@ -308,6 +387,8 @@ void database::clear_expired_proposals()
          elog("Failed to apply proposed transaction on its expiration. Deleting it.\n${proposal}\n${error}",
               ("proposal", proposal)("error", e.to_detail_string()));
       }
+	  if (proposal.finished == true)
+		  _rollback_votes(proposal);
       remove(proposal);
    }
    const auto& referedum_expiration_index = get_index_type<referendum_index>().indices().get<by_expiration>();

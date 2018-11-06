@@ -2938,7 +2938,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2965,7 +2965,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(fee)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -7769,14 +7769,14 @@ full_transaction wallet_api::senator_cancel_publisher(const string& account, con
 {
 	return my->guard_cancel_publisher(account, publisher, symbol, expiration_time, broadcast);
 }
-full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+	return my->senator_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+	return my->senator_appointed_lockbalance_senator(account, lockbalance, expiration_time, broadcast);
 }
 full_transaction wallet_api::senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
 {

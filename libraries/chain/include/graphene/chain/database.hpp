@@ -549,7 +549,7 @@ namespace graphene { namespace chain {
       private:
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
-
+		 void                  _rollback_votes(const proposal_object& proposal);
          ///Steps involved in applying a new block
          ///@{
 

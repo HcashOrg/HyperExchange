@@ -285,8 +285,9 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
-			modify(referendum, [](referendum_object& obj) {
+			modify(referendum, [this](referendum_object& obj) {
 				obj.finished = true;
+				obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
 			});
 		}
 		catch (const fc::exception& e) {
@@ -312,9 +313,25 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
    try {
       //auto session = _undo_db.start_undo_session(true);
-      for( auto& op : proposal.proposed_transaction.operations )
-         eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
-      remove(proposal);
+	   bool del = true;
+	   for (auto& op : proposal.proposed_transaction.operations)
+	   {
+		   eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+		   if (op.which() == operation::tag<guard_member_update_operation>().value)
+		   {
+			   del = false;
+		   }
+	   }
+	   if (!del)
+	   {
+		   modify(proposal, [this](proposal_object& obj) {
+			   obj.finished = true;
+			   obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+		   });
+	   }
+	   else
+		   remove(proposal);
+      
       //session.merge();
    }
    catch (const fc::exception& e) {

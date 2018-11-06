@@ -45,6 +45,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    FC_ASSERT(!o.review_period_seconds || fc::seconds(*o.review_period_seconds) < (o.expiration_time - d.head_block_time()),
 	   "Proposal review period must be less than its overall lifetime.");
    // If we're dealing with the committee authority, make sure this transaction has a sufficient review period.
+   const auto& proposal_idx = db().get_index_type<proposal_index>().indices().get<by_id>();
    flat_set<account_id_type> auths;
    vector<authority> other;
    for (auto& op : o.proposed_ops)
@@ -205,7 +206,7 @@ void_result proposal_update_evaluator::do_evaluate(const proposal_update_operati
    database& d = db();
 
    _proposal = &o.proposal(d);
-
+   FC_ASSERT(_proposal->finished == false,"the proposal has not finished.");
    if( _proposal->review_period_time && d.head_block_time() >= *_proposal->review_period_time )
       FC_ASSERT( o.active_approvals_to_add.empty() && o.owner_approvals_to_add.empty(),
                  "This proposal is in its review period. No new approvals may be added." );

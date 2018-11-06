@@ -54,6 +54,7 @@ class proposal_object : public abstract_object<proposal_object>
 	  flat_set<address>     disapproved_key_approvals;
 	  flat_set<address>     required_account_approvals;
 	  vote_id_type::vote_type       type;
+	  bool                        finished = false;
       bool is_authorized_to_execute(database& db)const;
 };
 
@@ -96,4 +97,4 @@ typedef generic_index<proposal_object, proposal_multi_index_container> proposal_
 FC_REFLECT_DERIVED( graphene::chain::proposal_object, (graphene::chain::object),(proposer)
                     (expiration_time)(review_period_time)(proposed_transaction)(required_active_approvals)
                     (available_active_approvals)(required_owner_approvals)(available_owner_approvals)
-                    (available_key_approvals)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(type) )
+                    (available_key_approvals)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(type)(finished) )
