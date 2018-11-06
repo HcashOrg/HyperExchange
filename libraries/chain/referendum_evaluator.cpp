@@ -92,8 +92,8 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   {
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
-	   _pledge += fc::uint128_t(o.fee.amount.value);
-	   referendum.pledge = _pledge ;
+	   referendum.citizen_pledge = _pledge;
+	   referendum.pledge = o.fee.amount ;
    });
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -180,7 +180,7 @@ void_result referendum_accelerate_pledge_evaluator::do_apply(const referendum_ac
 	{
 		auto & referendum = db().get(o.referendum_id);
 		db().modify(referendum, [&](referendum_object& obj) {
-			obj.pledge += fc::uint128_t(o.fee.amount.value);
+			obj.pledge += o.fee.amount;
 		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
