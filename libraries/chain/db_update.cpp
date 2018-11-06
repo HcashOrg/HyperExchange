@@ -197,17 +197,18 @@ void database::determine_referendum_detailes()
 		if (dynamic_obj.referendum_flag)
 		{
 			auto& referendum_pleges = get_index_type<referendum_index>().indices().get<by_pledge>();
-			if (referendum_pleges.size() > 1 && head_block_time() >= dynamic_obj.next_vote_time)
+			if (referendum_pleges.size() > 0)
 			{
-				while (!(referendum_pleges.size() == 1))
+				if (head_block_time() >= dynamic_obj.next_vote_time)
 				{
-					auto& referendum = *referendum_pleges.begin();
-					remove(referendum);
+					while (!(referendum_pleges.size() == 1))
+					{
+						auto& referendum = *referendum_pleges.begin();
+						remove(referendum);
+					}
 				}
-			}
-			else if (referendum_pleges.size() >= 1 && referendum_pleges.rbegin()->finished == false)
-			{
-				return;
+				if (referendum_pleges.rbegin()->finished == false)
+					return;
 			}
 			//just like to modify the referendum flag to false
 			// need to do some validations , for now only one need to be confirmed

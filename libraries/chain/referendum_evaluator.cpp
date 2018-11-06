@@ -113,6 +113,7 @@ void_result referendum_update_evaluator::do_evaluate(const referendum_update_ope
 		_referendum = &o.referendum(d);
 		auto next_vote_time = d.get_dynamic_global_properties().next_vote_time;
 		FC_ASSERT(d.head_block_time() >= next_vote_time,"the referendum vote is in its packing period.");
+		FC_ASSERT(_referendum->finished == false, "the referendum has been finished.");
 		return void_result();
 	}
 	FC_CAPTURE_AND_RETHROW((o))
