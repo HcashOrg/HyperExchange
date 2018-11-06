@@ -125,12 +125,13 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto  proposer = o.proposer;
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
-   FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
+   FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be a formal guard.");
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
 	  
    }
+   _proposed_trx.validate();
    transaction_evaluation_state eval_state(&db());
    //eval_state.operation_results.reserve(_proposed_trx.operations.size());
    //eval_state._trx = &processed_transaction(_proposed_trx);
@@ -140,9 +141,6 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
 	   eval->evaluate(eval_state, op, false);
    }
-   
-   _proposed_trx.validate();
-
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 

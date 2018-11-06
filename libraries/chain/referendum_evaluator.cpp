@@ -62,6 +62,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
 	   _proposed_trx.operations.push_back(op.op);
 
    }
+   _proposed_trx.validate();
    transaction_evaluation_state eval_state(&db());
    eval_state.operation_results.reserve(_proposed_trx.operations.size());
 
@@ -73,8 +74,6 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
 	   eval->evaluate(eval_state, op, false);
    }
-
-   _proposed_trx.validate();
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
