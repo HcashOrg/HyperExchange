@@ -33,6 +33,8 @@ bool referendum_object::is_authorized_to_execute(database& db) const
    transaction_evaluation_state dry_run_eval(&db);
 
    try {
+	   if (finished == true)
+		   return false;
 	   auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
 	   auto& account_idx = db.get_index_type<account_index>().indices().get<by_address>();
 	   boost::multiprecision::uint256_t total_weights = 0;

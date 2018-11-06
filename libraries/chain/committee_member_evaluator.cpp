@@ -30,6 +30,7 @@
 #include <graphene/chain/protocol/vote.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
@@ -47,17 +48,8 @@ namespace graphene {
                 //FC_ASSERT(db().get(op.guard_member_account).is_lifetime_member());
                  // account cannot be a miner
                 auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
-                FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");
-
-                auto guards = db().get_index_type<guard_member_index>().indices();
-                auto num = 0;
-                std::for_each(guards.begin(), guards.end(), [&num](const guard_member_object &g) {
-                    if (g.formal) {
-                        ++num;
-                    }
-                });
-				
-                //FC_ASSERT(num <= db().get_global_properties().parameters.maximum_guard_count, "No more than 15 guards can be created.");
+                FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");       
+				FC_ASSERT(db().get(op.guard_member_account).addr == op.fee_pay_address);
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -72,7 +64,6 @@ namespace graphene {
                 const auto& new_del_object = db().create<guard_member_object>([&](guard_member_object& obj) {
                     obj.guard_member_account = op.guard_member_account;
                     obj.vote_id = vote_id;
-                    obj.url = op.url;
 					obj.formal = false;
                 });
                 return new_del_object.id;
@@ -82,27 +73,33 @@ namespace graphene {
         void_result guard_member_update_evaluator::do_evaluate(const guard_member_update_operation& op)
         {
             try {
-				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
-				auto guard_iter = guard_idx.find(op.guard_member_account);
-                FC_ASSERT(guard_iter != guard_idx.end());
-				FC_ASSERT(db().get(op.guard_member_account).addr == op.owner_addr);
-				share_type nCount = 0;
-				for (auto acc : guard_idx)
+				auto replace_queue = op.replace_queue;
+				const auto& referendum_idx = db().get_index_type<referendum_index>().indices().get<by_id>();
+				for (const auto& referendum : referendum_idx)
 				{
-					if (acc.formal == true)
-						nCount++;
-				}
-				FC_ASSERT(nCount < GRAPHENE_DEFAULT_MAX_GUARDS);
-				if (op.formal.valid()&& *op.formal == true)
-				{
-					const auto& guard_lock_balances = db().get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
-					const auto& global_prop = db().get_global_properties();
-					for (auto& one_asset_iter : global_prop.parameters.minimum_guard_pledge_line)
+					for (const auto& op_r : referendum.proposed_transaction.operations)
 					{
-						auto guard_balance_iter = guard_lock_balances.find(boost::make_tuple(guard_iter->id, one_asset_iter.second.asset_id));
-						FC_ASSERT(guard_balance_iter != guard_lock_balances.end());
-						FC_ASSERT(guard_balance_iter->lock_asset_amount >= one_asset_iter.second.amount);
+
+						FC_ASSERT(op_r.which() != operation::tag<citizen_referendum_senator_operation>::value, "there is other referendum for senator election.");
 					}
+				}
+				const auto& proposal_idx = db().get_index_type<proposal_index>().indices().get<by_id>();
+				for (const auto& proposal : proposal_idx)
+				{
+					for (const auto& op_p : proposal.proposed_transaction.operations)
+					{
+
+						FC_ASSERT(op_p.which() != operation::tag<guard_member_update_operation>::value, "there is other same operation for senator election.");
+					}
+				}
+
+				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
+				for (const auto& itr : replace_queue)
+				{
+					auto itr_first = guard_idx.find(itr.first);
+					FC_ASSERT(itr_first != guard_idx.end() && itr_first->formal != true);
+					auto itr_second = guard_idx.find(itr.second);
+					FC_ASSERT(itr_second != guard_idx.end() && itr_second->formal == true && itr_second->senator_type== PERMANENT);
 				}
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
@@ -112,31 +109,25 @@ namespace graphene {
         {
             try {
                 database& _db = db();
-				_db.modify(
-					*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account),
-                    //_db.get(op.guard_member_account),
-                    [&](guard_member_object& com)
-                {
-                    if (op.new_url.valid())
-                        com.url = *op.new_url;
-					if (op.formal.valid())
-						com.formal = *op.formal;
-                });
-				auto& guard_obj = *_db.get_index_type<guard_member_index>().indices().get<by_account>().find(op.guard_member_account);
-				_db.modify(_db.get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& a)
+				for (const auto& itr : op.replace_queue)
 				{
-					if (guard_obj.formal)
+					_db.modify(
+						*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(itr.first),
+						[&](guard_member_object& com)
 					{
-						a.active.account_auths[guard_obj.id] = 100;
-					}
-					else
+						com.senator_type = PERMANENT;
+						com.formal = true;
+					});
+
+					_db.modify(
+						*_db.get_index_type<guard_member_index>().indices().get<by_account>().find(itr.second),
+						[&](guard_member_object& com)
 					{
-						a.active.account_auths.erase(guard_obj.id);
-					}
-				});
-				_db.modify(_db.get(GRAPHENE_RELAXED_COMMITTEE_ACCOUNT), [&](account_object& a) {
-					a.active = _db.get(GRAPHENE_GUARD_ACCOUNT).active;
-				});
+						com.senator_type = PERMANENT;
+						com.formal = false;
+					});
+					
+				}
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -286,6 +277,74 @@ namespace graphene {
                 return object_id_type(o.guard_member_account.space_id, o.guard_member_account.type_id, o.guard_member_account.instance.value);
             } FC_CAPTURE_AND_RETHROW((o))
         }
+
+		void_result citizen_referendum_senator_evaluator::do_evaluate(const citizen_referendum_senator_operation& o)
+		{
+			try {
+				const auto& _db = db();
+				const auto& all_guard_ic = _db.get_index_type<guard_member_index>().indices().get<by_account>();
+				const auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
+				const auto& referendum_idx = db().get_index_type<referendum_index>().indices().get<by_pledge>();
+				auto itr = referendum_idx.rbegin();
+				if (itr != referendum_idx.rend())
+					_id = itr->id;
+				FC_ASSERT(o.replace_queue.size() > 0 && o.replace_queue.size() <=3 );
+				for (const auto& iter : o.replace_queue)
+				{
+					auto itr_first_senator = all_guard_ic.find(iter.first);
+					auto itr_first_citizen = all_miner_ic.find(iter.first);
+					auto itr_second_senator = all_guard_ic.find(iter.second);
+					FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true && itr_second_senator->senator_type != PERMANENT);
+					
+					FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true));
+				}
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		void_result citizen_referendum_senator_evaluator::do_apply(const citizen_referendum_senator_operation& o)
+		{
+			try {
+				auto& _db = db();
+				auto& all_guard_ic = _db.get_index_type<guard_member_index>().indices().get<by_account>();
+				auto& all_miner_ic = _db.get_index_type<miner_index>().indices().get<by_account>();
+				for (const auto& iter : o.replace_queue)
+				{
+					auto itr_first_senator = all_guard_ic.find(iter.first);
+					auto itr_first_citizen = all_miner_ic.find(iter.first);
+					auto itr_second_senator = all_guard_ic.find(iter.second);
+					//FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true);
+					//FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator == all_guard_ic.end() || (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true)));
+					_db.modify(*itr_second_senator, [](guard_member_object& obj) {
+						obj.formal = false;
+					});
+					if (itr_first_senator == all_guard_ic.end())
+					{
+						vote_id_type vote_id;
+						db().modify(db().get_global_properties(), [&vote_id](global_property_object& p) {
+							vote_id = get_next_vote_id(p, vote_id_type::committee);
+						});
+						_db.create<guard_member_object>([&] (guard_member_object& obj){
+							obj.guard_member_account = iter.first;
+							obj.vote_id = vote_id;
+							obj.url = "";
+							obj.formal = true;
+							obj.senator_type = EXTERNAL;
+							obj.which_id = fc::variant(_id).as_string();
+						});
+					}
+					else
+					{
+						_db.modify(*itr_first_senator, [&] (guard_member_object& obj){
+							obj.formal = true;
+							obj.senator_type = EXTERNAL;
+							obj.which_id = fc::variant(_id).as_string();
+						});
+					}
+				}
+				return void_result();
+
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
 
     }
 } // graphene::chain

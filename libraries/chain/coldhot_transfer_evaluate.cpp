@@ -11,6 +11,11 @@ namespace graphene {
 				auto asset_itr = asset_idx.find(o.asset_id);
 				FC_ASSERT(asset_itr != asset_idx.end());
 				FC_ASSERT(asset_itr->symbol == o.asset_symbol);
+				auto float_pos = o.amount.find(".");
+				if (float_pos != o.amount.npos)
+				{
+					FC_ASSERT(o.amount.substr(float_pos + 1).size() <= asset_itr->precision, "amount precision error");
+				}
 				auto coldhot_range = d.get_index_type<multisig_account_pair_index>().indices().get<by_chain_type>().equal_range(o.asset_symbol);
 				bool withdraw_multi = false;
 				bool deposit_multi = false;
@@ -26,7 +31,7 @@ namespace graphene {
 					}
 				}
 				FC_ASSERT((withdraw_multi &&deposit_multi), "Cant Transfer account which is not multi account");
-				FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
+				//FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				auto current_trx_id = trx_state->_trx->id();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
@@ -272,7 +277,20 @@ namespace graphene {
 				if (crosschain_plugin->valid_config()) {
 					return void_result();
 				}
-				crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
+				auto obj = db().get_asset(o.coldhot_trx_original_chain.asset_symbol);
+				FC_ASSERT(obj.valid());
+				auto descrip = obj->options.description;
+				bool bCheckTransactionValid = false;
+				if (o.coldhot_trx_original_chain.asset_symbol.find("ERC") != o.coldhot_trx_original_chain.asset_symbol.npos) {
+					auto temp_hdtx = o.coldhot_trx_original_chain;
+					temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
+					bCheckTransactionValid = crosschain_plugin->validate_link_trx(temp_hdtx);
+				}
+				else {
+					bCheckTransactionValid = crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
+				}
+				FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
+				//crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
 				return void_result();
 
 			}FC_CAPTURE_AND_RETHROW((o))

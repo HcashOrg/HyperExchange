@@ -56,16 +56,16 @@ namespace graphene {
 				return "";
 			ptr->generate();
 
-			std::ostringstream req_body;
-			req_body << "{ \"jsonrpc\": \"2.0\", \
-                \"id\" : \"45\", \
-				\"method\" : \"Zchain.Addr.importAddr\" ,\
-				\"params\" : {\"chainId\":\"hc\" ,\"addr\": \"" << ptr->get_public_key() << "\"}}";
-			std::cout << req_body.str() << std::endl;
-			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
-			//std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+			//std::ostringstream req_body;
+			//req_body << "{ \"jsonrpc\": \"2.0\", \
+            //    \"id\" : \"45\", \
+			//	\"method\" : \"Zchain.Addr.importAddr\" ,\
+			//	\"params\" : {\"chainId\":\"hc\" ,\"addr\": \"" << ptr->get_public_key() << "\"}}";
+			//std::cout << req_body.str() << std::endl;
+			//fc::http::connection_sync conn;
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			//auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			////std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 			return ptr->get_wif_key();
 		}
 
@@ -321,7 +321,66 @@ namespace graphene {
 
 		bool crosschain_interface_hc::validate_link_trx(const hd_trx &trx)
 		{
-			return false;
+			auto tx = transaction_query(trx.trx_id);
+			FC_ASSERT(tx.contains("txid"));
+			FC_ASSERT(tx.contains("vin"));
+			FC_ASSERT(tx.contains("vout"));
+			FC_ASSERT(trx.trx_id == tx["txid"].as_string());
+			//get vin
+			bool checkfrom = false;
+			auto vins = tx["vin"].get_array();
+			for (auto vin : vins)
+			{
+				FC_ASSERT(vin.get_object().contains("txid"));
+				auto vin_tx = transaction_query(vin.get_object()["txid"].as_string());
+				FC_ASSERT(vin_tx.contains("vout"));
+				auto vouts = vin_tx["vout"].get_array();
+				for (auto vout : vouts)
+				{
+					FC_ASSERT(vout.get_object().contains("scriptPubKey"));
+					FC_ASSERT(vout.get_object().contains("value"));
+					auto scriptPubKey = vout.get_object()["scriptPubKey"].get_object();
+					FC_ASSERT(scriptPubKey.contains("addresses"));
+
+					auto vout_address = scriptPubKey["addresses"].get_array();
+					if (vout_address.size() != 1) {
+						continue;
+					}
+					if (vout_address[0].as_string() == trx.from_account) {
+						checkfrom = true;
+					}
+				}
+			}
+			//check vout
+			bool checkto = false;
+			auto vouts = tx["vout"].get_array();
+			for (auto vout : vouts)
+			{
+				FC_ASSERT(vout.get_object().contains("scriptPubKey"));
+				FC_ASSERT(vout.get_object().contains("value"));
+				auto scriptPubKey = vout.get_object()["scriptPubKey"].get_object();
+				FC_ASSERT(scriptPubKey.contains("addresses"));
+				
+				auto vout_address = scriptPubKey["addresses"].get_array();
+				if (vout_address.size() != 1){
+					continue;
+				}
+				if (vout_address[0].as_string() == trx.to_account){
+					char temp[1024];
+					std::sprintf(temp, "%.8f", vout.get_object()["value"].as_double());
+					std::string source_amount = graphene::utilities::remove_zero_for_str_amount(temp);
+					FC_ASSERT(source_amount == trx.amount);
+					checkto = true;
+				}
+			}
+			
+			/*
+			FC_ASSERT(trx->from_account == );
+			FC_ASSERT(trx->to_account == );
+			FC_ASSERT(trx->amount == );
+			FC_ASSERT(trx->block_num == );
+			*/
+			return (checkfrom && checkto);
 		}
 
 		bool crosschain_interface_hc::validate_link_trx(const std::vector<hd_trx> &trx)

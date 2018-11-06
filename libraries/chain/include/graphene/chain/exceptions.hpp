@@ -136,7 +136,7 @@ namespace graphene { namespace chain {
    GRAPHENE_DECLARE_OP_BASE_EXCEPTIONS( proposal_create );
    GRAPHENE_DECLARE_OP_EVALUATE_EXCEPTION( review_period_required, proposal_create, 1, "review_period required" )
    GRAPHENE_DECLARE_OP_EVALUATE_EXCEPTION( review_period_insufficient, proposal_create, 2, "review_period insufficient" )
-
+   GRAPHENE_DECLARE_OP_EVALUATE_EXCEPTION( invalid_proposals, proposal_create, 3, "invalid proposal")
    //GRAPHENE_DECLARE_OP_BASE_EXCEPTIONS( proposal_update );
    //GRAPHENE_DECLARE_OP_BASE_EXCEPTIONS( proposal_delete );
    //GRAPHENE_DECLARE_OP_BASE_EXCEPTIONS( withdraw_permission_create );

@@ -287,6 +287,7 @@ void database::update_miner_schedule()
 		if (block_num % GRAPHENE_PRODUCT_PER_ROUND == 0)
 		{
 
+			fc::uint128_t total=0;
 			// modify account pledge_weight
 			for (auto& w : gpo.active_witnesses)
 			{
@@ -314,11 +315,11 @@ void database::update_miner_schedule()
 							boost::multiprecision::uint256_t cal_end = cal_middle / boost::multiprecision::uint256_t(asset_obj.current_feed.settlement_price.base.amount.value);
 							fc::uint128_t tran_end = fc::uint128_t(boost::multiprecision::uint128_t(cal_end).str());
 							miner_obj.pledge_weight += tran_end;
+							total += miner_obj.pledge_weight;
 						}
 					}
 				});
 			}
-			//
 			modify(wso, [&](witness_schedule_object& _wso)
 			{
 				_wso.current_shuffled_miners.clear();

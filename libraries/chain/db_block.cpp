@@ -285,11 +285,15 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
-			remove(referendum);
+			modify(referendum, [this](referendum_object& obj) {
+				obj.finished = true;
+				obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+			});
 		}
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);
 			elog("e", ("e", e.to_detail_string()));
+			remove(referendum);
 			throw;
 		}
 		ptrx.operation_results = std::move(eval_state.operation_results);
@@ -309,16 +313,33 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
    try {
       //auto session = _undo_db.start_undo_session(true);
-      for( auto& op : proposal.proposed_transaction.operations )
-         eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
-      remove(proposal);
+	   bool del = true;
+	   for (auto& op : proposal.proposed_transaction.operations)
+	   {
+		   eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+		   if (op.which() == operation::tag<guard_member_update_operation>().value)
+		   {
+			   del = false;
+		   }
+	   }
+	   if (!del)
+	   {
+		   modify(proposal, [this](proposal_object& obj) {
+			   obj.finished = true;
+			   obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+		   });
+	   }
+	   else
+		   remove(proposal);
+      
       //session.merge();
-   } catch ( const fc::exception& e ) {
-	  _applied_ops.resize(old_applied_ops_size);
-      elog( "e", ("e",e.to_detail_string() ) );
-      throw;
    }
-
+   catch (const fc::exception& e) {
+	   _applied_ops.resize(old_applied_ops_size);
+	   elog("e", ("e", e.to_detail_string()));
+	   remove(proposal);
+	   throw;
+   }
    ptrx.operation_results = std::move(eval_state.operation_results);
    return ptrx;
 } FC_CAPTURE_AND_RETHROW( (proposal) ) }
@@ -609,6 +630,7 @@ void database::_apply_block( const signed_block& next_block )
    clear_expired_transactions();
    clear_expired_proposals();
    clear_expired_orders();
+   determine_referendum_detailes();
    update_expired_feeds();
    update_withdraw_permissions();
 
@@ -746,6 +768,19 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
+unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
+{
+	int i_which = op.which();
+	uint64_t u_which = uint64_t(i_which);
+	if (i_which < 0)
+		assert("Negative operation tag" && false);
+	if (u_which >= _operation_evaluators.size())
+		assert("No registered evaluator for this operation" && false);
+	unique_ptr<op_evaluator>& eval = _operation_evaluators[u_which];
+	if (!eval)
+		assert("No registered evaluator for this operation" && false);
+	return eval;
+}
 const miner_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const
 {
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );

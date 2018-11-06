@@ -68,8 +68,8 @@ namespace graphene {
 				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 				if (!crosschain_interface->valid_config())
 					return void_result();
-				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold|"+o.cold_nonce, symbol_addrs_cold, std::ceil(symbol_addrs_cold.size() * 2.0 / 3.0));
-				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot|" + o.hot_nonce, symbol_addrs_hot, std::ceil(symbol_addrs_hot.size() * 2.0 / 3.0));
+				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold|"+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot|" + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				FC_ASSERT(o.multi_account_tx_without_sign_cold != "","eth multi acocunt cold trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_hot != "", "eth multi acocunt ,hot trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_cold == multi_addr_cold[temp_cold]);

@@ -1166,6 +1166,19 @@ namespace graphene { namespace privatekey_management {
 			signs[signs.size() - 2] = '1';
 			signs[signs.size() - 1] = 'c';
 		}
+		/*
+		//formal eth sign v
+		if (signs.substr(signs.size() - 2) == "00")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '5';
+		}
+		else if (signs.substr(signs.size() - 2) == "01")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '6';
+		}
+		*/
 		return signs;
 	}
 	std::string  eth_privatekey::sign_trx(const std::string& raw_trx, int index) {
@@ -1176,12 +1189,9 @@ namespace graphene { namespace privatekey_management {
 		bool b_converse = from_hex(eth_trx.data(), temp, eth_trx.size(), nDeplength);
 		FC_ASSERT(b_converse);
 		dev::bytes trx(temp.begin(), temp.end());
-		std::cout << "before sign" << std::endl;
 		dev::eth::TransactionBase trx_base(trx, dev::eth::CheckTransaction::None);
-		std::cout << "without sign " << std::endl;
 		dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
 		trx_base.sign(sec);
-		std::cout << "do sign end" << std::endl;
 		auto signed_trx = trx_base.rlp(dev::eth::WithSignature);
 		std::string signed_trx_str(signed_trx.begin(), signed_trx.end());
 		std::vector<char> hex_trx(signed_trx.begin(), signed_trx.end());
@@ -1211,7 +1221,7 @@ namespace graphene { namespace privatekey_management {
 		bool b_converse = from_hex(trx.data(), temp, trx.size(), nDeplength);
 		FC_ASSERT(b_converse);
 		dev::bytes bintrx(temp.begin(), temp.end());
-		dev::eth::TransactionBase trx_base(bintrx, dev::eth::CheckTransaction::None);
+		dev::eth::TransactionBase trx_base(bintrx, dev::eth::CheckTransaction::Everything);
 		fc::mutable_variant_object ret_obj;
 		ret_obj.set("from","0x"+trx_base.from().hex());
 		ret_obj.set("to", "0x"+trx_base.to().hex());
@@ -1275,7 +1285,7 @@ namespace graphene { namespace privatekey_management {
 		
 	}
 	bool eth_privatekey::validate_address(const std::string& addr) {
-		FC_ASSERT(addr.size() >= 2 && addr[0] == '0' && addr[1] == 'x');
+		FC_ASSERT(addr.size() == 42 && addr[0] == '0' && addr[1] == 'x');
 		auto addr_str = addr.substr(2, addr.size());
 		for (auto i = addr_str.begin(); i != addr_str.end(); ++i)
 		{

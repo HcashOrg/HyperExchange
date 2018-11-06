@@ -491,13 +491,18 @@ public:
 
    void schedule_loop()
    {
+	   static uint32_t block_num = 0;
 	   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
 	   fc::time_point now = fc::time_point::now();
 	   fc::time_point next_wakeup(now + fc::seconds(block_interval));
-	   fc::schedule([this] {resync(); schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+	   auto height = _remote_db->get_dynamic_global_properties().head_block_number;
+	   if (height != block_num)
+	   {
+		   block_num = height;
+		   resync();
+	   }
+	   fc::schedule([this] {schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
    }
-
-
    void encrypt_keys()
    {
       if( !is_locked() )
@@ -2747,41 +2752,29 @@ public:
    vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol)const 
    {
 	   try {
-		   auto acct = get_account(account);
-		   FC_ASSERT(acct.addr != address());
-		   return _remote_db->get_binding_account(string(acct.addr), symbol);
+		   return _remote_db->get_binding_account(account, symbol);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol))
    }
 
 
-   full_transaction create_guard_member(string proposing_account, string account,string url, int64_t expiration_time,
-                                      bool broadcast /* = false */)
+   full_transaction create_guard_member(string account, bool broadcast /* = false */)
    { try {
 	  //account should be register in the blockchian
 	  FC_ASSERT(!is_locked());
       guard_member_create_operation guard_member_create_op;
-	  auto guard_member_account = get_account_id(account);
-	  FC_ASSERT(account_object().get_id() != guard_member_account,"account is not registered to the chain.");
-	  guard_member_create_op.guard_member_account = guard_member_account;
-      guard_member_create_op.url = url;
-	  const chain_parameters& current_params = get_global_properties().parameters;
-      if (_remote_db->get_guard_member_by_account(guard_member_create_op.guard_member_account))
-         FC_THROW("Account ${owner_account} is already a guard member", ("owner_account", account));
-	  auto guard_create_op = operation(guard_member_create_op);
-	  current_params.current_fees->set_fee(guard_create_op);
+	  auto guard_member_account = get_account(account);
+	  FC_ASSERT(account_object().get_id() != guard_member_account.get_id(),"account is not registered to the chain.");
+	  guard_member_create_op.guard_member_account = guard_member_account.get_id();
+	  guard_member_create_op.fee_pay_address = guard_member_account.addr;
+	  guard_member_create_op.guarantee_id = get_guarantee_id();
 
-      signed_transaction tx;
-	  proposal_create_operation prop_op;
-	  prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time) ;
-	  prop_op.proposer = get_account(proposing_account).get_id();
-	  prop_op.fee_paying_account = get_account(proposing_account).addr;
-	  prop_op.proposed_ops.emplace_back(guard_create_op);
-	  tx.operations.push_back(prop_op);
-      set_operation_fees( tx, current_params.current_fees);
+	  signed_transaction tx;
+	  tx.operations.push_back(guard_member_create_op);
+      set_operation_fees( tx, get_global_properties().parameters.current_fees);
       tx.validate();
 
       return sign_transaction( tx, broadcast );
-   } FC_CAPTURE_AND_RETHROW( (proposing_account)(account)(url)(expiration_time)(broadcast) ) }
+   } FC_CAPTURE_AND_RETHROW( (account)(broadcast) ) }
 
    full_transaction resign_guard_member(string proposing_account, string account, int64_t expiration_time, bool broadcast)
    {
@@ -2812,7 +2805,7 @@ public:
        } FC_CAPTURE_AND_RETHROW((proposing_account)(account)(expiration_time)(broadcast))
    }
 
-   full_transaction update_guard_formal(string proposing_account, bool formal ,int64_t expiration_time,
+   full_transaction update_guard_formal(string proposing_account, map<account_id_type, account_id_type> replace_queue, int64_t expiration_time,
 	   bool broadcast /* = false */)
    {
 	   try {
@@ -2820,10 +2813,7 @@ public:
 		   guard_member_update_operation op;
 		   auto guard_member_account = get_guard_member(proposing_account);
 		   const chain_parameters& current_params = get_global_properties().parameters;
-		   FC_ASSERT(guard_member_account.formal != formal,"this guard no need to change.");
-		   op.guard_member_account = guard_member_account.guard_member_account;
-		   op.owner_addr = get_account_addr(proposing_account);
-		   op.formal = formal;
+		   op.replace_queue = replace_queue;
 		   auto guard_update_op = operation(op);
 		   current_params.current_fees->set_fee(guard_update_op);
 
@@ -2833,7 +2823,7 @@ public:
 		   prop_op.proposer = get_account(proposing_account).get_id();
 		   prop_op.fee_paying_account = get_account(proposing_account).addr;
 		   prop_op.proposed_ops.emplace_back(guard_update_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::committee;
 		   //prop_op.review_period_seconds = 0;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -2842,13 +2832,34 @@ public:
 		   return sign_transaction(tx, broadcast);
 		   
 
-	   } FC_CAPTURE_AND_RETHROW((proposing_account)(formal)(expiration_time)(broadcast))
+	   } FC_CAPTURE_AND_RETHROW((proposing_account)(expiration_time)(broadcast))
    }
 
-   full_transaction citizen_referendum_for_senator(const string& citizen, const map<account_id_type,account_id_type>& replacement,bool broadcast)
+   full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast = true)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
+		   referendum_accelerate_pledge_operation op;
+		   auto obj = _remote_db->get_referendum_object(referendum_id);
+		   FC_ASSERT(obj.valid(),"there is no this referendum.");
+		   auto acc_obj = get_account(obj->proposer);
+		   op.fee_paying_account = acc_obj.addr;
+		   op.fee = get_asset(asset_id_type()).amount_from_string(amount);
+		   op.referendum_id = referendum_id;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   tx.validate();
+
+		   return sign_transaction(tx,broadcast);
+	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
+   }
+
+   full_transaction citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   get_miner(citizen);
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   citizen_referendum_senator_operation op;
 		   for (const auto& iter : replacement)
@@ -2856,6 +2867,7 @@ public:
 			  get_account(iter.first);
 			  get_account(iter.second);
 		   }
+	
 		   op.replace_queue = replacement;
 		   signed_transaction tx;
 		   referendum_create_operation prop_op;
@@ -2864,11 +2876,12 @@ public:
 		   prop_op.proposed_ops.emplace_back(op);
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.front().op);
 		   //prop_op.review_period_seconds = 0;
+		   prop_op.fee = get_asset(asset_id_type()).amount_from_string(amount);
+		   prop_op.guarantee_id = get_guarantee_id();
 		   tx.operations.push_back(prop_op);
-		   set_operation_fees(tx, current_params.current_fees);
+		   //set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
-
-
+		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((citizen)(replacement)(broadcast))
    }
 
@@ -2925,7 +2938,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2944,7 +2957,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -2952,7 +2965,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(fee)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2970,7 +2983,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -3019,7 +3032,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -3164,7 +3177,7 @@ public:
 	  miner_create_op.miner_address = miner_account.addr;
 	  miner_create_op.block_signing_key = miner_public_key;
 	  miner_create_op.url = url;
-
+	  miner_create_op.guarantee_id = get_guarantee_id();
       if (_remote_db->get_miner_by_account(miner_create_op.miner_account))
          FC_THROW("Account ${owner_account} is already a miner", ("owner_account", owner_account));
 
@@ -3530,10 +3543,19 @@ public:
 		   
 		   coldhot_transfer_op.multi_account_withdraw = from_account;
 		   coldhot_transfer_op.multi_account_deposit = to_account;
-		   fc::variant amount_fc = amount;
+		   auto asset_obj = get_asset(asset_symbol);
+		   
+		   auto float_pos = amount.find('.');
+		   string temp_amount = amount;
+		   if (float_pos != amount.npos) {
+			   auto float_temp = amount.substr(float_pos + 1, asset_obj.precision);
+			   temp_amount = amount.substr(0, float_pos + 1) + float_temp;
+		   }
+		   fc::variant amount_fc = temp_amount;
 		   char temp[1024];
 		   std::sprintf(temp, "%.8f", amount_fc.as_double());
 		   coldhot_transfer_op.amount = graphene::utilities::remove_zero_for_str_amount(temp);
+		   
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
 		   auto guard_obj = get_guard_member(proposer);
@@ -3541,7 +3563,7 @@ public:
 		   auto guard_account_obj = get_account(guard_id);
 		   coldhot_transfer_op.guard = guard_account_obj.addr;
 		   coldhot_transfer_op.guard_id = guard_obj.id;
-		   auto asset_obj = get_asset(asset_symbol);
+		  
 		   coldhot_transfer_op.asset_id = asset_obj.id;
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(coldhot_transfer_op);
@@ -4314,6 +4336,34 @@ public:
 	   sign_transaction(transaction, true);
 
 	  
+   }
+   guard_member_id_type get_eth_signer(const string & symbol, const string & address) {
+	   FC_ASSERT(!is_locked());
+	   guard_member_id_type guardId;
+	   auto multi_accounts =  get_multisig_account_pair(symbol);
+	   for (auto multiAccount : multi_accounts) {
+		   auto senators = get_multi_account_guard(multiAccount->bind_account_hot,symbol);
+		   bool bFinder = false;
+		   for (auto multiSenator : senators)
+		   {
+			   if (multiSenator->new_address_hot == address || multiSenator->new_address_cold == address)
+			   {
+				   guardId = multiSenator->id;
+				   bFinder = true;
+				   break;
+			   }
+			   if (multiSenator->new_pubkey_hot == address || multiSenator->new_pubkey_cold == address)
+			   {
+				   guardId = multiSenator->id;
+				   bFinder = true;
+				   break;
+			   }
+		   }
+		   if (bFinder){
+			   break;
+		   }
+	   }
+	   return guardId;
    }
    void senator_sign_eths_final_trx(const string& trx_id, const string & senator) {
 	   FC_ASSERT(!is_locked());
@@ -5382,12 +5432,41 @@ public:
       return sign_transaction(tx, broadcast);
    }
 
+   full_transaction approve_referendum(const string& fee_paying_account,
+	   const string& referendum_id,
+	   const approval_delta& delta,
+	   bool broadcast = false)
+   {
+	   referendum_update_operation update_op;
+
+	   update_op.fee_paying_account = get_account(fee_paying_account).addr;
+	   update_op.referendum = fc::variant(referendum_id).as<referendum_id_type>();
+	   // make sure the proposal exists
+	   get_object(update_op.referendum);
+	   for (const std::string& k : delta.key_approvals_to_add)
+		   update_op.key_approvals_to_add.insert(address(k));
+	   for (const std::string& k : delta.key_approvals_to_remove)
+		   update_op.key_approvals_to_remove.insert(address(k));
+
+	   signed_transaction tx;
+	   tx.operations.push_back(update_op);
+	   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+	   tx.validate();
+	   return sign_transaction(tx, broadcast);
+   }
+
    vector<proposal_object>  get_proposal(const string& proposer)
    {
 	   auto acc = get_account(proposer);
 	   FC_ASSERT(acc.get_id() != account_object().get_id(),"the propser doesnt exist in the chain.");
 
 	   return _remote_db->get_proposer_transactions(acc.get_id());
+   }
+   vector<referendum_object> get_referendum_for_voter(const string& voter)
+   {
+	   auto acc = get_account(voter);
+	   FC_ASSERT(acc.get_id() != account_object().get_id(), "the propser doesnt exist in the chain.");
+	   return _remote_db->get_referendum_transactions_waiting(acc.addr);
    }
 
    vector<proposal_object>  get_proposal_for_voter(const string& voter )
@@ -5916,6 +5995,23 @@ variant_object wallet_api::get_multisig_address(const address& addr)
 	ret.erase(string("last_claim_date"));
 	ret = ret.set("multisignatures", fc::variant(t_map));
 	return ret;
+}
+guard_member_object wallet_api::get_eth_signer(const string& symbol, const string& address) {
+	auto guardId = my->get_eth_signer(symbol, address);
+
+	std::vector<guard_member_id_type> temp;
+	temp.push_back(guardId);
+	auto guard_member_objects = my->_remote_db->get_guard_members(temp);
+	if (guard_member_objects.front())
+		return *guard_member_objects.front();
+	/*
+	
+	FC_ASSERT(guard_member_objects.size() != 0, "don`t find guard");
+	
+	auto guard_member = *(guard_member_objects.begin());
+	FC_ASSERT(guard_member.valid(), "don`t find guard");
+	return *guard_member;
+	*/
 }
 vector<asset> wallet_api::get_account_balances(const string& account)
 {
@@ -6691,24 +6787,26 @@ full_transaction wallet_api::whitelist_account(string authorizing_account,
    return my->whitelist_account(authorizing_account, account_to_list, new_listing_status, broadcast);
 }
 
-full_transaction wallet_api::create_senator_member(string proposing_account, string account,string url,
-	                                               int64_t expiration_time,
-                                                   bool broadcast /* = false */)
+full_transaction wallet_api::create_senator_member(string account, bool broadcast /* = false */)
 {
-   return my->create_guard_member(proposing_account, account,url,expiration_time, broadcast);
+   return my->create_guard_member( account, broadcast);
 }
 
 
-full_transaction wallet_api::update_senator_formal(string proposing_account, bool formal,
-	int64_t expiration_time,
+full_transaction wallet_api::update_senator_formal(string proposing_account, map<account_id_type, account_id_type> replace_queue,int64_t expiration_time,
 	bool broadcast /* = false */)
 {
-	return my->update_guard_formal(proposing_account, formal,expiration_time, broadcast);
+	return my->update_guard_formal(proposing_account, replace_queue, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::citizen_referendum_for_senator(const string& citizen, const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
+full_transaction wallet_api::citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type, account_id_type>& replacement,bool broadcast /* = true */)
 {
-	return my->citizen_referendum_for_senator(citizen,replacement,broadcast);
+	return my->citizen_referendum_for_senator(citizen,amount,replacement,broadcast);
+}
+
+full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast /* = true */)
+{
+	return my->referendum_accelerate_pledge(referendum_id,amount,broadcast);
 }
 
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
@@ -6960,6 +7058,12 @@ full_transaction wallet_api::approve_proposal(
    return my->approve_proposal( fee_paying_account, proposal_id, delta, broadcast );
 }
 
+full_transaction wallet_api::approve_referendum(const string& fee_paying_account, const string& referendum_id, const approval_delta& delta, bool broadcast)
+{
+	return my->approve_referendum(fee_paying_account, referendum_id, delta, broadcast);
+}
+
+
 full_transaction wallet_api::register_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_filepath)
 {
 	return my->register_contract(caller_account_name, gas_price, gas_limit, contract_filepath);
@@ -7098,6 +7202,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
 		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+        contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
 	{
@@ -7264,6 +7369,10 @@ vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 vector<proposal_object>  wallet_api::get_proposal_for_voter(const string& voter)
 {
 	return my->get_proposal_for_voter(voter);
+}
+vector<referendum_object> wallet_api::get_referendum_for_voter(const string& voter)
+{
+	return my->get_referendum_for_voter(voter);
 }
 
 global_property_object wallet_api::get_global_properties() const
@@ -7692,14 +7801,14 @@ full_transaction wallet_api::senator_cancel_publisher(const string& account, con
 {
 	return my->guard_cancel_publisher(account, publisher, symbol, expiration_time, broadcast);
 }
-full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+	return my->senator_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+	return my->senator_appointed_lockbalance_senator(account, lockbalance, expiration_time, broadcast);
 }
 full_transaction wallet_api::senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
 {

@@ -161,7 +161,8 @@ namespace graphene { namespace chain {
 	        eths_coldhot_guard_sign_final_operation,
 			referendum_create_operation,
 		    citizen_referendum_senator_operation,
-			referendum_update_operation
+			referendum_update_operation,
+			referendum_accelerate_pledge_operation
          > operation;
 
    /// @} // operations group

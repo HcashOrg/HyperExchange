@@ -35,6 +35,8 @@ namespace graphene {
 
 		address::address(const std::string& base58str, const char *prefix_str)
 		{
+			if (base58str == ADDRESS_NOT_INITED)
+				return;
 			std::string prefix(prefix_str);
 			if (testnet_mode)
 				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
@@ -94,7 +96,7 @@ namespace graphene {
 			if (testnet_mode)
 				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
 			if (*this == address())
-				return "InvalidAddress";
+				return ADDRESS_NOT_INITED;
 			fc::array<char, 25> bin_addr;
 			memcpy((char*)&bin_addr, (char*)&version, sizeof(version));
 			memcpy((char*)&bin_addr + 1, (char*)&addr, sizeof(addr));

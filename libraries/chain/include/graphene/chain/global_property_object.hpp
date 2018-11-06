@@ -118,6 +118,8 @@ namespace graphene { namespace chain {
 
          uint32_t last_irreversible_block_num = 0;
 		 share_type  bonus_distribute_limit = GRAPHENE_BONUS_DISTRIBUTE_LIMIT;
+		 bool referendum_flag = false;
+		 time_point_sec next_vote_time;
 
          enum dynamic_flag_bits
          {
@@ -155,6 +157,8 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
 	                (round_produced_miners)
 	                (bonus_distribute_limit)
 					(contract_transfer_fee_rate)
+ 	                (referendum_flag)
+	                (next_vote_time)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::object),
