@@ -19,7 +19,19 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
-			hdl->validate_link_trx(o.cross_chain_trx);
+			auto obj = db().get_asset(o.cross_chain_trx.asset_symbol);
+			FC_ASSERT(obj.valid());
+			auto descrip = obj->options.description;
+			bool bCheckTransactionValid = false;
+			if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
+				auto temp_hdtx = o.cross_chain_trx;
+				temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
+				bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
+			}
+			else {
+				bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
+			}
+			FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
 			auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 			FC_ASSERT(tunnel_itr != tunnel_idx.end());
@@ -30,7 +42,7 @@ namespace graphene {
 			FC_ASSERT(asset_itr->symbol == o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(asset_itr->allow_withdraw_deposit==true);
 			std::string to_account;
-			if ((o.cross_chain_trx.asset_symbol.find("ETH") != o.cross_chain_trx.asset_symbol.npos) || (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)) {
+			if (("ETH" == o.cross_chain_trx.asset_symbol) || (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)) {
 				auto pos = o.cross_chain_trx.to_account.find("|");
 				if (pos != o.cross_chain_trx.to_account.npos) {
 					to_account = o.cross_chain_trx.to_account.substr(0, pos);
@@ -180,7 +192,20 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
-			hdl->validate_link_trx(o.cross_chain_trx);
+			auto obj = db().get_asset(o.cross_chain_trx.asset_symbol);
+			FC_ASSERT(obj.valid());
+			auto descrip = obj->options.description;
+			bool bCheckTransactionValid = false;
+			if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
+				auto temp_hdtx = o.cross_chain_trx;
+				temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
+				bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
+			}
+			else {
+				bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
+			}
+			FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
+			//hdl->validate_link_trx(o.cross_chain_trx);
 			//auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 			//auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.to_account, o.cross_chain_trx.asset_symbol));
 // 			auto& originaldb = db().get_index_type<crosschain_trx_index>().indices().get<by_original_id_optype>();

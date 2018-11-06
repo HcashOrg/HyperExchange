@@ -1189,12 +1189,9 @@ namespace graphene { namespace privatekey_management {
 		bool b_converse = from_hex(eth_trx.data(), temp, eth_trx.size(), nDeplength);
 		FC_ASSERT(b_converse);
 		dev::bytes trx(temp.begin(), temp.end());
-		std::cout << "before sign" << std::endl;
 		dev::eth::TransactionBase trx_base(trx, dev::eth::CheckTransaction::None);
-		std::cout << "without sign " << std::endl;
 		dev::Secret sec(dev::jsToBytes(get_private_key().get_secret()));
 		trx_base.sign(sec);
-		std::cout << "do sign end" << std::endl;
 		auto signed_trx = trx_base.rlp(dev::eth::WithSignature);
 		std::string signed_trx_str(signed_trx.begin(), signed_trx.end());
 		std::vector<char> hex_trx(signed_trx.begin(), signed_trx.end());
