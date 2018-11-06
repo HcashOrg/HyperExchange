@@ -363,6 +363,7 @@ void database::_rollback_votes(const proposal_object& proposal)
 						obj.formal = true;
 					});
 				}
+				return;
 			}
 		}
 

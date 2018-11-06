@@ -106,6 +106,7 @@ void database::adjust_balance(address addr, asset delta, bool freeze )
 	try {
 		if (delta.amount == 0)
 			return;
+		FC_ASSERT(addr != address(),"invalid address.");
 		auto& by_owner_idx = get_index_type<balance_index>().indices().get<by_owner>();
 		auto itr = by_owner_idx.find(boost::make_tuple(addr, delta.asset_id));
 		fc::time_point_sec now = head_block_time();
@@ -139,6 +140,7 @@ void database::adjust_balance(address addr, asset delta, bool freeze )
 void database::adjust_frozen(address addr, asset delta)
 {
 	try {
+		FC_ASSERT(addr != address(),"invalid address.");
 		if (delta.amount == 0)
 			return;
 		auto& by_owner_idx = get_index_type<balance_index>().indices().get<by_owner>();
@@ -155,6 +157,7 @@ void database::adjust_frozen(address addr, asset delta)
 void database::cancel_frozen(address addr, asset delta)
 {
 	try {
+		FC_ASSERT(addr != address(), "invalid address.");
 		auto& by_owner_idx = get_index_type<balance_index>().indices().get<by_owner>();
 		auto itr = by_owner_idx.find(boost::make_tuple(addr, delta.asset_id));
 		FC_ASSERT(itr != by_owner_idx.end(), "address has no this asset.");
