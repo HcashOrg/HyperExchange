@@ -50,6 +50,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    for (auto& op : o.proposed_ops)
    {
 	   operation_get_required_authorities(op.op, auths, auths, other);
+	   
 	   if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
@@ -67,11 +68,11 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   }
 	   else if (op.op.which() == operation::tag<asset_fee_modification_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<set_guard_lockbalance_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<coldhot_cancel_transafer_transaction_operation>::value)
 	   {
