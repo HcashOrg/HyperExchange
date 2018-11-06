@@ -7119,6 +7119,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
 		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+        contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
 	{
