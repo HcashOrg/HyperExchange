@@ -48,6 +48,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    const auto& proposal_idx = db().get_index_type<proposal_index>().indices().get<by_id>();
    flat_set<account_id_type> auths;
    vector<authority> other;
+   bool senator_type_validate = false;
    for (auto& op : o.proposed_ops)
    {
 	   operation_get_required_authorities(op.op, auths, auths, other);
@@ -62,6 +63,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		   senator_type_validate = true;
 	   }
 	   else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
 	   {
@@ -128,6 +130,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
    FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be a formal guard.");
+   FC_ASSERT(iter->senator_type == PERMANENT,"only permanent senator can propse this.");
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
