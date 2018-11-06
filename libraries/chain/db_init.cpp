@@ -288,6 +288,8 @@ void database::initialize_evaluators()
    register_evaluator<eths_coldhot_guard_sign_final_evaluator>();
    register_evaluator< referendum_create_evaluator > ();
    register_evaluator<referendum_update_evaluator>();
+   register_evaluator<citizen_referendum_senator_evaluator>();
+   register_evaluator<referendum_accelerate_pledge_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -595,6 +597,15 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 		   ("acct", name));
 	   return itr->addr;
    };
+   const auto& senator_by_accs = get_index_type<guard_member_index>().indices().get<by_account>();
+   auto get_senator = [&senator_by_accs,&get_account_id](const string& name) {
+	   auto acc_id = get_account_id(name);
+	   auto itr = senator_by_accs.find(acc_id);
+	   FC_ASSERT(itr != senator_by_accs.end(),
+		   "Unable to find senator '${acct}'. Did you forget to add a record for it to initial_accounts?",
+		   ("acct", name));
+	   return itr;
+   };
 
    // Helper function to get asset ID by symbol
    const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_symbol>();
@@ -787,14 +798,16 @@ void database::init_genesis(const genesis_state_type& genesis_state)
    // Create initial guard members
    std::for_each(genesis_state.initial_guard_candidates.begin(), genesis_state.initial_guard_candidates.end(),
                  [&](const genesis_state_type::initial_committee_member_type& member) {
-      guard_member_create_operation op;
-      op.guard_member_account = get_account_id(member.owner_name);
-      apply_operation(genesis_eval_state, op);
-	  guard_member_update_operation uop;
-	  uop.guard_member_account = op.guard_member_account;
-	  uop.owner_addr = get_account_address(member.owner_name);
-	  uop.formal = true;
-	  apply_operation(genesis_eval_state, uop);
+	   guard_member_create_operation op;
+	   op.guard_member_account = get_account_id(member.owner_name);
+	   op.fee_pay_address = get_account_address(member.owner_name);
+	   apply_operation(genesis_eval_state, op);
+	   modify(*get_senator(member.owner_name), [&](guard_member_object& obj) {
+		   obj.formal = true;
+		   obj.senator_type = member.type;
+	   });
+
+
 	  modify(get(GRAPHENE_GUARD_ACCOUNT), [&](account_object& n) {
 		  n.active.account_auths[get_account_id(member.owner_name)] = 100;
 	  

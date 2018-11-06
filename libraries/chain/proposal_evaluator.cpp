@@ -23,6 +23,7 @@
  */
 #include <graphene/chain/proposal_evaluator.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/exceptions.hpp>
@@ -56,13 +57,9 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
-	   else if (op.op.which() == operation::tag<guard_member_create_operation>::value)
-	   {
-		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
-	   }
 	   else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
 	   {
@@ -105,8 +102,6 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 		   FC_CAPTURE_AND_THROW(proposal_create_invalid_proposals, (""));
 
 	   }
-
-
       //FC_ASSERT( other.size() == 0 ); // TODO: what about other??? 
 
       if( auths.find(GRAPHENE_GUARD_ACCOUNT) != auths.end() )
@@ -130,12 +125,13 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto  proposer = o.proposer;
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
-   FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
+   FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be a formal guard.");
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
 	  
    }
+   _proposed_trx.validate();
    transaction_evaluation_state eval_state(&db());
    //eval_state.operation_results.reserve(_proposed_trx.operations.size());
    //eval_state._trx = &processed_transaction(_proposed_trx);
@@ -145,9 +141,6 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
 	   eval->evaluate(eval_state, op, false);
    }
-   
-   _proposed_trx.validate();
-
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 

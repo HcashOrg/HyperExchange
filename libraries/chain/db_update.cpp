@@ -197,18 +197,18 @@ void database::determine_referendum_detailes()
 		if (dynamic_obj.referendum_flag)
 		{
 			auto& referendum_pleges = get_index_type<referendum_index>().indices().get<by_pledge>();
-			if (referendum_pleges.size() > 1 && head_block_time() >= dynamic_obj.next_vote_time)
+			if (referendum_pleges.size() > 0)
 			{
-				//TO DO we need remove all the
-				while (!(referendum_pleges.size() == 1))
+				if (head_block_time() >= dynamic_obj.next_vote_time)
 				{
-					const auto& referendum = *referendum_pleges.begin();
-					remove(referendum);
+					while (!(referendum_pleges.size() == 1))
+					{
+						auto& referendum = *referendum_pleges.begin();
+						remove(referendum);
+					}
 				}
-			}
-			else if (referendum_pleges.size() == 1 )
-			{
-				return;
+				if (referendum_pleges.rbegin()->finished == false)
+					return;
 			}
 			//just like to modify the referendum flag to false
 			// need to do some validations , for now only one need to be confirmed
@@ -222,7 +222,7 @@ void database::determine_referendum_detailes()
 				});
 				return result;
 			};
-			auto all_senators_in = [this](vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
+			auto all_senators_in = [this](const vector<multisig_address_object>& senator_multisignatures, vector<guard_member_object> senators) {
 				if (senator_multisignatures.size() < senators.size())
 					return false;
 				while (senators.size() != 0)
@@ -256,11 +256,18 @@ void database::determine_referendum_detailes()
 				}
 				auto ret = all_senators_in(get_multi_account_senator(multisig_account_pair->bind_account_hot,itr.symbol),senators);
 				if (!ret)
+				{
 					return;
+				}
 			}
 			modify(get(dynamic_global_property_id_type()), [&](dynamic_global_property_object& obj) {
 				obj.referendum_flag = false;
 			});
+			while (!(referendum_pleges.size() == 0))
+			{
+				auto& referendum = *referendum_pleges.begin();
+				remove(referendum);
+			}
 			return;
 		}
 		const auto& referendum_pleges = get_index_type<referendum_index>().indices().get<by_pledge>();
@@ -268,7 +275,7 @@ void database::determine_referendum_detailes()
 		{
 			modify(get(dynamic_global_property_id_type()), [&]( dynamic_global_property_object& obj) {
 				obj.referendum_flag = true;
-				obj.next_vote_time = head_block_time() + fc::days(2);
+				obj.next_vote_time = head_block_time() + fc::seconds(HX_REFERENDUM_PACKING_PERIOD);
 			});
 		}
 	}FC_CAPTURE_AND_RETHROW()
@@ -313,6 +320,29 @@ void database::clear_expired_proposals()
 		   {
 			   result = push_referendum(referedum);
 			   continue;
+		   }
+		   else
+		   {
+			   if (referedum.finished == true)
+			   {
+				   for (const auto & op : referedum.proposed_transaction.operations)
+				   {
+					   if (op.which() == operation::tag<citizen_referendum_senator_operation>::value)
+					   {
+						   auto senator_op = op.get<citizen_referendum_senator_operation>();
+						   auto& senator_idx = get_index_type<guard_member_index>().indices().get<by_account>();
+						   for (auto itr : senator_op.replace_queue)
+						   {
+							   modify(*senator_idx.find(itr.first), [](guard_member_object& obj) {
+								   obj.formal = false;
+							   });
+							   modify(*senator_idx.find(itr.second), [](guard_member_object& obj) {
+								   obj.formal = true;
+							   });
+						   }
+					   }
+				   }
+			   }
 		   }
 	   }
 	   catch (const fc::exception& e) {

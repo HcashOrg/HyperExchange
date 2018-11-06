@@ -285,11 +285,14 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
-			remove(referendum);
+			modify(referendum, [](referendum_object& obj) {
+				obj.finished = true;
+			});
 		}
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);
 			elog("e", ("e", e.to_detail_string()));
+			remove(referendum);
 			throw;
 		}
 		ptrx.operation_results = std::move(eval_state.operation_results);
@@ -313,12 +316,13 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
          eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
       remove(proposal);
       //session.merge();
-   } catch ( const fc::exception& e ) {
-	  _applied_ops.resize(old_applied_ops_size);
-      elog( "e", ("e",e.to_detail_string() ) );
-      throw;
    }
-
+   catch (const fc::exception& e) {
+	   _applied_ops.resize(old_applied_ops_size);
+	   elog("e", ("e", e.to_detail_string()));
+	   remove(proposal);
+	   throw;
+   }
    ptrx.operation_results = std::move(eval_state.operation_results);
    return ptrx;
 } FC_CAPTURE_AND_RETHROW( (proposal) ) }

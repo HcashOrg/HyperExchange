@@ -38,6 +38,7 @@
 #include <graphene/chain/market_object.hpp>
 #include <graphene/chain/operation_history_object.hpp>
 #include <graphene/chain/proposal_object.hpp>
+#include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
@@ -603,8 +604,10 @@ class database_api
       vector<proposal_object> get_proposed_transactions( account_id_type id )const;
 	  vector<proposal_object> get_proposer_transactions(account_id_type id)const;
 	  vector<proposal_object> get_voter_transactions_waiting(address add)const;  //waiting to be voted
+	  vector<referendum_object> get_referendum_transactions_waiting(address add)const;  //waiting to be voted
       vector<proposal_object>  get_proposal(const string& proposer)const;
       vector<proposal_object>  get_proposal_for_voter(const string& voter) const;
+	  optional<referendum_object>   get_referendum_object(const referendum_id_type& id) const;
       //////////////////////
       // Blinded balances //
       //////////////////////
@@ -830,5 +833,7 @@ FC_API(graphene::app::database_api,
 	(get_current_multisig_account)
 	(get_citizen_lockbalance_info)
 	(list_scheduled_citizens)
-		(get_eths_multi_create_account_trx)
+	(get_referendum_object)
+	(get_eths_multi_create_account_trx)
+	(get_referendum_transactions_waiting)
 );

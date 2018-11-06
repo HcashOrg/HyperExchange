@@ -53,5 +53,12 @@ namespace graphene { namespace chain {
 	   bool _executed_referendum = false;
 	   bool _referendum_failed = false;
    };
-
+   class referendum_accelerate_pledge_evaluator : public evaluator<referendum_accelerate_pledge_evaluator>
+   {
+   public:
+	   typedef referendum_accelerate_pledge_operation operation_type;
+	   void_result do_evaluate(const referendum_accelerate_pledge_operation& o);
+	   void_result do_apply(const referendum_accelerate_pledge_operation& o);
+	   void pay_fee() override;
+   };
 } } // graphene::chain

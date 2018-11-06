@@ -84,6 +84,11 @@ namespace graphene { namespace chain {
    typedef fc::ecc::private_key        private_key_type;
    typedef fc::sha256 chain_id_type;
 
+   typedef enum senatorType
+   {
+	   EXTERNAL,
+	   PERMANENT
+   };
    enum asset_issuer_permission_flags
    {
       charge_market_fee    = 0x01, /**< an issuer-specified percentage of all market trades in this asset is paid to the issuer */
@@ -525,3 +530,4 @@ FC_REFLECT_ENUM( graphene::chain::asset_issuer_permission_flags,
    (witness_fed_asset)
    (committee_fed_asset)
    )
+FC_REFLECT_ENUM(graphene::chain::senatorType, (EXTERNAL)(PERMANENT))

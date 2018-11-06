@@ -121,6 +121,7 @@ struct get_impacted_account_visitor
    void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()(const guard_refund_crosschain_trx_operation& op) {}
+   void operator() (const referendum_accelerate_pledge_operation& op) {}
    void operator()(const asset_real_create_operation& op) {}
    void operator()(const asset_eth_create_operation&op){}
    void operator()(const gurantee_create_operation& op) {}
@@ -182,10 +183,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.guard_member_account );
    }
-   void operator()( const guard_member_update_operation& op )
-   {
-      _impacted.insert( op.guard_member_account );
-   }
+   void operator()( const guard_member_update_operation& op ){}
    void operator()( const committee_member_update_global_parameters_operation& op ) {}
    void operator()(const guard_member_resign_operation& op)
    {
