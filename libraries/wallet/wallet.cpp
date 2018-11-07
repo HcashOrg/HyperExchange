@@ -1184,6 +1184,7 @@ public:
 
       return total_fee;
    }
+   
    transaction preview_builder_transaction(transaction_handle_type handle)
    {
       FC_ASSERT(_builder_transactions.count(handle));
@@ -2856,7 +2857,28 @@ public:
 		   return sign_transaction(tx,broadcast);
 	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
    }
+   full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate,bool broadcast)
+   {
+	   try {
 
+		   FC_ASSERT(!is_locked());
+		   FC_ASSERT(pledge_pay_back_rate >= 0 && pledge_pay_back_rate <= 20, "pledge_pay_back_rate must between 0 20");
+		   auto ctz = get_miner(citizen);
+		   auto acct=get_account(citizen);
+		   FC_ASSERT(acct.id == ctz.miner_account, "Invalid citizen:" + citizen);
+		   acct.options.miner_pledge_pay_back = pledge_pay_back_rate;
+		   account_update_operation op;
+		   op.account = ctz.miner_account;
+		   op.new_options = acct.options;
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((citizen)(pledge_pay_back_rate))
+   }
    full_transaction citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
    {
 	   try {
@@ -3091,6 +3113,7 @@ public:
    {
       try
       {
+		 miner_object obj;
          fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
          if (miner_id)
          {
@@ -3098,8 +3121,12 @@ public:
             ids_to_get.push_back(*miner_id);
             std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(ids_to_get);
             if (miner_objects.front())
-               return *miner_objects.front();
-            FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
+				obj= *miner_objects.front();
+			else
+			{
+				FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
+			}
+            
          }
          else
          {
@@ -3109,7 +3136,7 @@ public:
                account_id_type owner_account_id = get_account_id(owner_account);
                fc::optional<miner_object> witness = _remote_db->get_miner_by_account(owner_account_id);
                if (witness)
-                  return *witness;
+				   obj= *witness;
                else
                   FC_THROW("No witness is registered for account ${account}", ("account", owner_account));
             }
@@ -3118,6 +3145,16 @@ public:
                FC_THROW("No account or witness named ${account}", ("account", owner_account));
             }
          }
+		 fc::uint128_t total = 0;
+		 auto ctzs = list_active_citizens();
+		 for (auto& ctz =ctzs.begin();ctz!=ctzs.end();ctz++)
+		 {
+			 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
+			 if (miner_objects.front())
+				 total += miner_objects.front()->pledge_weight;
+		 }
+		 if (total!=fc::uint128_t())
+			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
@@ -4208,6 +4245,112 @@ public:
 		set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
 		transaction.validate();
 		sign_transaction(transaction, true);
+   }
+   class AutoFile
+   {
+   public:
+	   FILE* pFile=NULL;
+	   AutoFile(const char* filename, const char* mode)
+	   {
+		   pFile = fopen(filename, mode);
+	   }
+	   bool valid()
+	   {
+		   return pFile != NULL;
+	   }
+	   void close()
+	   {
+		   if (pFile)
+			   fclose(pFile);
+		   pFile = NULL;
+	   }
+	   ~AutoFile()
+	   {
+		   if(pFile)
+			fclose(pFile);
+	   }
+   };
+   class AutoDelBuf
+   {
+   public:
+	   char* pbuf = NULL;
+
+	   AutoDelBuf(void* buf)
+	   {
+		   pbuf = (char*)buf;
+	   }
+	   bool valid()
+	   {
+		   return pbuf != NULL;
+	   }
+	   void del()
+	   {
+		   if (pbuf)
+			   ::free(pbuf);
+		   pbuf = NULL;
+	   }
+	   ~AutoDelBuf()
+	   {
+		   if (pbuf)
+			   ::free(pbuf);
+	   }
+	   operator char*()
+	   {
+		   return pbuf;
+	   }
+
+   };
+   std::string dump_crosschain_key(const string& name, const string& symbol, const string& key,const fc::path& file )
+   {
+
+	   AutoFile tmpf(file.generic_string().c_str(), "r");
+	   FC_ASSERT(!tmpf.valid(), "out file exsited!");
+	   AutoFile outfile(file.generic_string().c_str(), "wb");
+	   FC_ASSERT(tmpf.valid(), "Create output file failed!");
+	   fc::sha256 aes_key(key.c_str());
+	   fc::aes_encoder enc;
+	   enc.init(aes_key, 0);
+	   auto multi_objs = _remote_db->get_multisig_account_pair(symbol);
+	   auto account_obj = get_account(name);
+	   auto objs=_remote_db->get_multisig_address_obj(symbol,account_obj.get_id());
+
+	   map<string, crosschain_prkeys> _to_encode;
+	   vector<string> addrs;
+	   for (auto obj : objs)
+	   {
+		   if (obj.valid())
+		   {
+			   addrs.push_back(obj->new_address_cold);
+		   }
+	   }
+	   for (auto& addr : addrs)
+	   {
+		   _to_encode[addr] = _crosschain_keys[addr];
+		   //_crosschain_keys.erase(addr);
+	   }
+	   string str_to_encode = fc::json::to_string(_to_encode);
+	   int length = str_to_encode.length() + 1;
+	   AutoDelBuf buf = (char*)malloc(length);
+	   FC_ASSERT(length==enc.encode(str_to_encode.c_str(), length, buf),"encode uncomplished!");
+	   FC_ASSERT(length == fwrite(buf, 1, length, outfile.pFile),"write uncomplished!");
+	   outfile.close();
+	   //check
+	   AutoFile chk(file.generic_string().c_str(), "r");
+	   FC_ASSERT(!tmpf.valid(), "CHECK:open output file failed!");
+	   memset(buf,0,length);
+	   FC_ASSERT(length == fread(buf, 1, length, outfile.pFile), "read output file uncomplished!");
+
+	   AutoDelBuf chkbuf = (char*)malloc(length);
+	   fc::aes_decoder dec;
+	   dec.init(aes_key, 0);
+	   FC_ASSERT(length == dec.decode(buf, length, chkbuf), "decode uncomplished!");
+	   FC_ASSERT(memcmp(str_to_encode.c_str(), chkbuf, length) == 0, "check uncomplished!");
+	   //delete key from cross_keys;
+	   for (auto& addr : addrs)
+	   {
+		   _crosschain_keys.erase(addr);
+	   }
+	   return file.generic_string();
    }
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
 	   FC_ASSERT(!is_locked());
@@ -5832,6 +5975,7 @@ std::string operation_result_printer::operator()(const string& a)
 }}}
 
 namespace graphene { namespace wallet {
+
    vector<brain_key_info> utility::derive_owner_keys_from_brain_key(string brain_key, int number_of_desired_keys)
    {
       // Safety-check
@@ -6520,7 +6664,10 @@ address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
 }
-
+full_transaction wallet_api::set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast)
+{
+	return my->set_citizen_pledge_pay_back_rate(citizen, pledge_pay_back_rate, broadcast);
+}
 full_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
                                            string memo, bool broadcast)
 {

@@ -2037,6 +2037,7 @@ class wallet_api
 	  string sign_multisig_trx(const address& addr,const string& trx);
 	  signed_transaction decode_multisig_transaction(const string& trx);
 	variant_object  get_multisig_address(const address& addr);
+	full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast=true);
 	  flat_set< miner_id_type> list_active_citizens();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
@@ -2318,6 +2319,7 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_from_to_address)
 		(combine_transaction)
 		(get_multisig_address)
+			(set_citizen_pledge_pay_back_rate)
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
