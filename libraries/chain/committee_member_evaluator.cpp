@@ -83,16 +83,6 @@ namespace graphene {
 						FC_ASSERT(op_r.which() != operation::tag<citizen_referendum_senator_operation>::value, "there is other referendum for senator election.");
 					}
 				}
-				const auto& proposal_idx = db().get_index_type<proposal_index>().indices().get<by_id>();
-				for (const auto& proposal : proposal_idx)
-				{
-					for (const auto& op_p : proposal.proposed_transaction.operations)
-					{
-
-						FC_ASSERT(op_p.which() != operation::tag<guard_member_update_operation>::value, "there is other same operation for senator election.");
-					}
-				}
-
 				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
 				for (const auto& itr : replace_queue)
 				{

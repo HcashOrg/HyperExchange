@@ -130,7 +130,19 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
    FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be a formal guard.");
-   FC_ASSERT(iter->senator_type == PERMANENT,"only permanent senator can propse this.");
+   if (senator_type_validate)
+   {
+	   FC_ASSERT(iter->senator_type == PERMANENT ,"only permanent senator can propose.");
+	   for (const auto& proposal : proposal_idx)
+	   {
+		   for (const auto& op_p : proposal.proposed_transaction.operations)
+		   {
+
+			   FC_ASSERT(op_p.which() != operation::tag<guard_member_update_operation>::value, "there is other same operation for senator election.");
+		   }
+	   }
+   }
+   
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
