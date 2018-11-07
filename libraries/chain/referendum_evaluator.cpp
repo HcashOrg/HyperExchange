@@ -42,7 +42,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
    auto iter = citizen_idx.find(proposer);
    FC_ASSERT(iter != citizen_idx.end(), "referendum proposer must be a citizen.");
-
+   _pledge = iter->pledge_weight;
    const auto& dynamic_obj = d.get_dynamic_global_properties();
    FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && (d.head_block_time() < dynamic_obj.next_vote_time)));
    const auto& proposal_idx = d.get_index_type<proposal_index>().indices().get<by_id>();
@@ -62,6 +62,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
 	   _proposed_trx.operations.push_back(op.op);
 
    }
+   _proposed_trx.validate();
    transaction_evaluation_state eval_state(&db());
    eval_state.operation_results.reserve(_proposed_trx.operations.size());
 
@@ -73,8 +74,6 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
 	   eval->evaluate(eval_state, op, false);
    }
-
-   _proposed_trx.validate();
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
@@ -82,9 +81,9 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 { try {
    database& d = db();
    const auto& ref_obj= d.create<referendum_object>([&](referendum_object& referendum) {
-	   _proposed_trx.expiration = d.head_block_time()+fc::days(10);
+	   _proposed_trx.expiration = d.head_block_time()+ fc::seconds(HX_REFERENDUM_PACKING_PERIOD + HX_REFERENDUM_VOTING_PERIOD);
 	   referendum.proposed_transaction = _proposed_trx;
-       referendum.expiration_time = d.head_block_time() + fc::days(10);
+	   referendum.expiration_time = d.head_block_time() + fc::seconds(HX_REFERENDUM_PACKING_PERIOD + HX_REFERENDUM_VOTING_PERIOD);
        referendum.proposer = o.proposer;
        //proposal should only be approved by guard or miners
 	   const auto& acc = d.get_index_type<account_index>().indices().get<by_id>();
@@ -93,7 +92,8 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   {
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
-	   referendum.pledge = o.fee.amount;
+	   referendum.citizen_pledge = _pledge;
+	   referendum.pledge = o.fee.amount ;
    });
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -113,6 +113,7 @@ void_result referendum_update_evaluator::do_evaluate(const referendum_update_ope
 		_referendum = &o.referendum(d);
 		auto next_vote_time = d.get_dynamic_global_properties().next_vote_time;
 		FC_ASSERT(d.head_block_time() >= next_vote_time,"the referendum vote is in its packing period.");
+		FC_ASSERT(_referendum->finished == false, "the referendum has been finished.");
 		return void_result();
 	}
 	FC_CAPTURE_AND_RETHROW((o))

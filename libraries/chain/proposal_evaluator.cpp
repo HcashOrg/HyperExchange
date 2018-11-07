@@ -45,11 +45,14 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    FC_ASSERT(!o.review_period_seconds || fc::seconds(*o.review_period_seconds) < (o.expiration_time - d.head_block_time()),
 	   "Proposal review period must be less than its overall lifetime.");
    // If we're dealing with the committee authority, make sure this transaction has a sufficient review period.
+   const auto& proposal_idx = db().get_index_type<proposal_index>().indices().get<by_id>();
    flat_set<account_id_type> auths;
    vector<authority> other;
+   bool senator_type_validate = false;
    for (auto& op : o.proposed_ops)
    {
 	   operation_get_required_authorities(op.op, auths, auths, other);
+	   
 	   if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
@@ -60,6 +63,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   else if (op.op.which() == operation::tag<guard_member_update_operation>::value)
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+		   senator_type_validate = true;
 	   }
 	   else if (op.op.which() == operation::tag<publisher_appointed_operation>::value)
 	   {
@@ -67,11 +71,11 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   }
 	   else if (op.op.which() == operation::tag<asset_fee_modification_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<set_guard_lockbalance_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::witness, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<coldhot_cancel_transafer_transaction_operation>::value)
 	   {
@@ -125,12 +129,14 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    auto  proposer = o.proposer;
    auto& guard_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
    auto iter = guard_index.find(proposer);
-   FC_ASSERT(iter != guard_index.end(), "propser has to be a guard.");
+   FC_ASSERT(iter != guard_index.end() && iter->formal == true, "propser has to be a formal guard.");
+   FC_ASSERT(iter->senator_type == PERMANENT,"only permanent senator can propse this.");
    for (const op_wrapper& op : o.proposed_ops)
    {
 	   _proposed_trx.operations.push_back(op.op);
 	  
    }
+   _proposed_trx.validate();
    transaction_evaluation_state eval_state(&db());
    //eval_state.operation_results.reserve(_proposed_trx.operations.size());
    //eval_state._trx = &processed_transaction(_proposed_trx);
@@ -140,9 +146,6 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
 	   eval->evaluate(eval_state, op, false);
    }
-   
-   _proposed_trx.validate();
-
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
@@ -206,7 +209,7 @@ void_result proposal_update_evaluator::do_evaluate(const proposal_update_operati
    database& d = db();
 
    _proposal = &o.proposal(d);
-
+   FC_ASSERT(_proposal->finished == false,"the proposal has not finished.");
    if( _proposal->review_period_time && d.head_block_time() >= *_proposal->review_period_time )
       FC_ASSERT( o.active_approvals_to_add.empty() && o.owner_approvals_to_add.empty(),
                  "This proposal is in its review period. No new approvals may be added." );

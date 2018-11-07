@@ -2753,9 +2753,7 @@ public:
    vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol)const 
    {
 	   try {
-		   auto acct = get_account(account);
-		   FC_ASSERT(acct.addr != address());
-		   return _remote_db->get_binding_account(string(acct.addr), symbol);
+		   return _remote_db->get_binding_account(account, symbol);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol))
    }
 
@@ -2826,7 +2824,7 @@ public:
 		   prop_op.proposer = get_account(proposing_account).get_id();
 		   prop_op.fee_paying_account = get_account(proposing_account).addr;
 		   prop_op.proposed_ops.emplace_back(guard_update_op);
-		   prop_op.type = vote_id_type::committee;
+		   //prop_op.type = vote_id_type::committee;
 		   //prop_op.review_period_seconds = 0;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -2962,7 +2960,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -2981,7 +2979,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -2989,7 +2987,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(fee)(symbol)(expiration_time)(broadcast))
    }
 
-   full_transaction miner_appointed_lockbalance_guard(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+   full_transaction senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -3007,7 +3005,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -3056,7 +3054,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
-		   prop_op.type = vote_id_type::witness;
+		   //prop_op.type = vote_id_type::witness;
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
@@ -3582,10 +3580,19 @@ public:
 		   
 		   coldhot_transfer_op.multi_account_withdraw = from_account;
 		   coldhot_transfer_op.multi_account_deposit = to_account;
-		   fc::variant amount_fc = amount;
+		   auto asset_obj = get_asset(asset_symbol);
+		   
+		   auto float_pos = amount.find('.');
+		   string temp_amount = amount;
+		   if (float_pos != amount.npos) {
+			   auto float_temp = amount.substr(float_pos + 1, asset_obj.precision);
+			   temp_amount = amount.substr(0, float_pos + 1) + float_temp;
+		   }
+		   fc::variant amount_fc = temp_amount;
 		   char temp[1024];
 		   std::sprintf(temp, "%.8f", amount_fc.as_double());
 		   coldhot_transfer_op.amount = graphene::utilities::remove_zero_for_str_amount(temp);
+		   
 		   coldhot_transfer_op.asset_symbol = asset_symbol;
 		   coldhot_transfer_op.memo = memo;
 		   auto guard_obj = get_guard_member(proposer);
@@ -3593,7 +3600,7 @@ public:
 		   auto guard_account_obj = get_account(guard_id);
 		   coldhot_transfer_op.guard = guard_account_obj.addr;
 		   coldhot_transfer_op.guard_id = guard_obj.id;
-		   auto asset_obj = get_asset(asset_symbol);
+		  
 		   coldhot_transfer_op.asset_id = asset_obj.id;
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   prop_op.proposed_ops.emplace_back(coldhot_transfer_op);
@@ -5014,6 +5021,22 @@ public:
       
       
    }
+
+   string lightwallet_get_refblock_info()
+   {
+       try {
+
+         auto dyn_props = get_dynamic_global_properties();
+         transaction tmp;
+         tmp.set_reference_block(dyn_props.head_block_id);
+        
+         auto res = fc::to_string(tmp.ref_block_num);
+         res += "," + fc::to_string(tmp.ref_block_prefix);
+         return res;
+
+       }FC_CAPTURE_AND_RETHROW()
+   }
+
 
 
 
@@ -6704,10 +6727,17 @@ string wallet_api::lightwallet_broadcast(signed_transaction trx)
     return my->lightwallet_broadcast(trx);
 }
 
+
+string wallet_api::lightwallet_get_refblock_info()
+{
+    return my->lightwallet_get_refblock_info();
+}
+
 string wallet_api::transfer_from_to_address(string from, string to, string amount,
 	string asset_symbol, string memo)
 {
 	return my->transfer_from_to_address(from,to,amount,asset_symbol,memo);
+
 }
 
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
@@ -7319,6 +7349,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
 		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+        contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
 	{
@@ -7917,14 +7948,14 @@ full_transaction wallet_api::senator_cancel_publisher(const string& account, con
 {
 	return my->guard_cancel_publisher(account, publisher, symbol, expiration_time, broadcast);
 }
-full_transaction wallet_api::citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+	return my->senator_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
 }
 
-full_transaction wallet_api::citizen_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
+full_transaction wallet_api::senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)
 {
-	return my->miner_appointed_lockbalance_guard(account, lockbalance, expiration_time, broadcast);
+	return my->senator_appointed_lockbalance_senator(account, lockbalance, expiration_time, broadcast);
 }
 full_transaction wallet_api::senator_determine_block_payment(const string& account, const std::map<uint32_t, uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast)
 {

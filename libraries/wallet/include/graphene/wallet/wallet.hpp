@@ -1006,7 +1006,11 @@ class wallet_api
       */
       string lightwallet_broadcast(signed_transaction trx);
 
-
+      /**
+       *  get referenced block info for light wallet 
+       *  @returns ref_block_num & ref_block_prefix
+       */
+      string lightwallet_get_refblock_info();
 
 
 	  /** Transfer an amount from one address to another.
@@ -2024,8 +2028,8 @@ class wallet_api
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction senator_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_referendum_for_senator(const string& citizen, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
@@ -2299,18 +2303,19 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_invoke_object)
 		(get_guarantee_order)
 		(senator_appointed_publisher)
-		(citizen_appointed_crosschain_fee)
+		(senator_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
         (start_citizen)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
 		(get_bonus_balance)
-		(citizen_appointed_lockbalance_senator)
+		(senator_appointed_lockbalance_senator)
 		(get_citizen_lockbalance_info)
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
+        (lightwallet_get_refblock_info)
         (create_multisignature_address)
 		(get_first_contract_address)
 	    (get_pubkey_from_priv)

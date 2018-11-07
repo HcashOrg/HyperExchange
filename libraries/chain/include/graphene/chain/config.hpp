@@ -169,7 +169,8 @@
 #define GRAPHENE_GUARD_PAY_RATIO							 30
 #define GRAPHENE_ALL_MINER_PAY_RATIO						 50
 #define HX_DEVELOP_TEAM_PAY_TATIO                            20
-
+#define HX_REFERENDUM_PACKING_PERIOD                         60//2*24*3600
+#define HX_REFERENDUM_VOTING_PERIOD                          300//7*24*3600
 /**
  *  Reserved Account IDs with special meaning
  */

@@ -262,6 +262,14 @@ __pycache__/
 /CMakeCache.txt
 /run_cmake_x64.bat
 /setenv_x64.bat
+
+
+
+dep.7z
+setenv_x64.bat
+bin64/
+third_libs
+
 *.patch
 *.diff
 *.rej
