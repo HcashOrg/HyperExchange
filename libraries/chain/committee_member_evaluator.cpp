@@ -84,6 +84,7 @@ namespace graphene {
 					}
 				}
 				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
+				FC_ASSERT(op.replace_queue.size() >0 && op.replace_queue.size() <= 3);
 				for (const auto& itr : replace_queue)
 				{
 					auto itr_first = guard_idx.find(itr.first);
