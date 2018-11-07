@@ -290,25 +290,10 @@ void database::clear_expired_transactions()
       transaction_idx.remove(*dedupe_index.begin());
 } FC_CAPTURE_AND_RETHROW() }
 
-void database::_rollback_votes(const proposal_object& proposal)
+bool database::_need_rollback(const proposal_object& proposal)
 {
 	try {
-		if (!proposal.finished)
-			return;
-		bool need_return = true;
-		guard_member_update_operation upop;
-		for (auto op : proposal.proposed_transaction.operations)
-		{
-			if (op.which() == operation::tag<guard_member_update_operation>().value)
-			{
-				upop = op.get<guard_member_update_operation>();
-				need_return = false;
-				break;
-			}
-				
-		}
-		if (need_return)
-			return;
+		FC_ASSERT(proposal.finished == true);
 		auto senator_multisigs = [this](const string symbol, account_id_type senator) {
 			vector<multisig_address_object> result;
 			const auto& multisig_addr_by_guard = get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
@@ -353,20 +338,48 @@ void database::_rollback_votes(const proposal_object& proposal)
 			auto ret = all_senators_in(get_multi_account_senator(multisig_account_pair->bind_account_hot, itr.symbol), senators);
 			if (!ret)
 			{
-				auto& senator_idx = get_index_type<guard_member_index>().indices().get<by_account>();
-				for (auto itr : upop.replace_queue)
-				{
-					modify(*senator_idx.find(itr.first), [](guard_member_object& obj) {
-						obj.formal = false;
-					});
-					modify(*senator_idx.find(itr.second), [](guard_member_object& obj) {
-						obj.formal = true;
-					});
-				}
-				return;
+				return true;
 			}
 		}
+		return false;
 
+	} FC_CAPTURE_AND_RETHROW()
+}
+
+
+void database::_rollback_votes(const proposal_object& proposal)
+{
+	try {
+		if (!proposal.finished)
+			return;
+		bool need_return = true;
+		guard_member_update_operation upop;
+		for (auto op : proposal.proposed_transaction.operations)
+		{
+			if (op.which() == operation::tag<guard_member_update_operation>().value)
+			{
+				upop = op.get<guard_member_update_operation>();
+				need_return = false;
+				break;
+			}
+				
+		}
+		if (need_return)
+			return;
+		auto ret = _need_rollback(proposal);
+		if (ret)
+		{
+			auto& senator_idx = get_index_type<guard_member_index>().indices().get<by_account>();
+			for (auto itr : upop.replace_queue)
+			{
+				modify(*senator_idx.find(itr.first), [](guard_member_object& obj) {
+					obj.formal = false;
+				});
+				modify(*senator_idx.find(itr.second), [](guard_member_object& obj) {
+					obj.formal = true;
+				});
+			}
+		}
 	} FC_CAPTURE_AND_RETHROW()
 }
 
@@ -394,9 +407,28 @@ void database::clear_expired_proposals()
    }
    const auto& proposal_finished_index = get_index_type<proposal_index>().indices().get<by_finished>();
    auto range_finish = proposal_finished_index.equal_range(true);
-   for (auto itr : boost::make_iterator_range(range_finish.first, range_finish.second))
+   bool remove_finished_proposal = false;
+   for (const auto& itr : boost::make_iterator_range(range_finish.first, range_finish.second))
    {
-
+	   if (itr.finished == false)
+		   continue;
+	   for (auto op : itr.proposed_transaction.operations)
+	   {
+		   if (op.which() == operation::tag<guard_member_update_operation>().value)
+		   {
+			   if (!_need_rollback(itr))
+			   {
+				   remove_finished_proposal = true;
+				   break;
+			   }
+				   
+		   }
+	   }
+	   if (remove_finished_proposal)
+	   {
+		   remove(itr);
+		   break;
+	   }
    }
    const auto& referedum_expiration_index = get_index_type<referendum_index>().indices().get<by_expiration>();
    while (!referedum_expiration_index.empty() && referedum_expiration_index.begin()->expiration_time <= head_block_time())
