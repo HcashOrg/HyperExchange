@@ -300,6 +300,7 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
       } catch(fc::exception& e) {
          wlog("Proposed transaction ${id} failed to apply once approved with exception:\n----\n${reason}\n----\nWill try again when it expires.",
               ("id", o.proposal)("reason", e.to_detail_string()));
+		 db().remove(*_proposal);
          _proposal_failed = true;
       }
    }

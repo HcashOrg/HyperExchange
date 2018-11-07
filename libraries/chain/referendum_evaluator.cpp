@@ -160,6 +160,7 @@ void_result referendum_update_evaluator::do_apply(const referendum_update_operat
 			catch (fc::exception& e) {
 				wlog("Proposed transaction ${id} failed to apply once approved with exception:\n----\n${reason}\n----\nWill try again when it expires.",
 					("id", o.referendum)("reason", e.to_detail_string()));
+				db().remove(*_referendum);
 				_referendum_failed = true;
 			}
 		}
