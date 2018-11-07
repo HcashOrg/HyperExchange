@@ -80,8 +80,8 @@ namespace bpo = boost::program_options;
 namespace detail {
 
    genesis_state_type create_example_genesis() {
-      auto nathan_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("nathan")));
-      dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(nathan_key)));
+      auto hyper_exchange_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("hyper-exchange")));
+      dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(hyper_exchange_key)));
       genesis_state_type initial_state;
       initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
       initial_state.initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
@@ -101,7 +101,7 @@ namespace detail {
          initial_state.initial_miner_candidates.push_back({name, name_key.get_public_key()});
       }
 
-	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARDS; i++)
+	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
 	  {
 		  auto name = "guard" + fc::to_string(i);
 		  auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
@@ -110,12 +110,19 @@ namespace detail {
 			                                          name_key.get_public_key(),
 			                                          name_key.get_public_key(),
 			                                          true);
-		  initial_state.initial_guard_candidates.push_back({ name });
+		  if (i < 5)
+		  {
+			  initial_state.initial_guard_candidates.push_back({ name,PERMANENT });
+		  }
+		  else {
+			  initial_state.initial_guard_candidates.push_back({ name,EXTERNAL });
+		  }
+		  
 
 	  }
 
-      initial_state.initial_accounts.emplace_back("nathan", nathan_key.get_public_key());
-      initial_state.initial_balances.push_back({nathan_key.get_public_key(),
+      initial_state.initial_accounts.emplace_back("hyper-exchange", hyper_exchange_key.get_public_key());
+      initial_state.initial_balances.push_back({ hyper_exchange_key.get_public_key(),
                                                 GRAPHENE_SYMBOL,
 		                                        GRAPHENE_INITIAL_SHARE_SUPPLY });
       initial_state.initial_chain_id = fc::sha256::hash( "BOGUS" );
