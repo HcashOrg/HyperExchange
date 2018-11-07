@@ -535,14 +535,14 @@ void database::process_bonus()
 			if (balance_obj->amount() >= dpo.bonus_distribute_limit)
 			{
 				sum += obj.lock_asset_amount;
-				waiting_list[iter->owner] += obj.lock_asset_amount;
+				waiting_list[acc.addr] += obj.lock_asset_amount;
 			}
 			else
 			{
 				if (balance_obj->amount() + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
 				{
 					sum += (balance_obj->amount() + obj.lock_asset_amount);
-					waiting_list[iter->owner] += (balance_obj->amount() + obj.lock_asset_amount);
+					waiting_list[acc.addr] += (balance_obj->amount() + obj.lock_asset_amount);
 				}
 			}
 		}
