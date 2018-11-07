@@ -89,7 +89,7 @@ namespace graphene {
 					mul_obj.set("turn_without_eth_sign", o.coldhot_trx_original_chain);
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object(mul_obj));
 				}
-				else if (o.asset_symbol.find("ETH") != o.asset_symbol.npos)
+				else if (o.asset_symbol == "ETH")
 				{
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
 				}

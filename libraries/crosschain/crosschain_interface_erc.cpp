@@ -428,16 +428,13 @@ namespace graphene {
 				{
 					std::string temp = ptr->get_address_by_pubkey(addr);
 					FC_ASSERT(temp.find("0x") != temp.npos, "ERC address type error");
-					if (signer == "") {
-						signer = temp;
-					}
 					temp = temp.substr(2);
 					hex_address += erc::FillZero(temp, false);
 				}
 				std::string to_data = multi_contract_sol_code + address_offset + hex_required + hex_realaddr_size + hex_address;
 
 				dev::eth::TransactionSkeleton ret;
-				ret.from = dev::jsToAddress(signer.substr(2));
+				
 				ret.gasPrice = dev::jsToU256("5000000000");
 				ret.gas = dev::jsToU256("4500000");
 				ret.creation = true;
@@ -454,6 +451,7 @@ namespace graphene {
 				auto sep = account_name.find('|');
 				std::string real_nonce;
 				if (sep == account_name.npos) {
+					signer = account_name;
 					std::string temp_nonce;
 					std::ostringstream req_body;
 					req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -491,9 +489,11 @@ namespace graphene {
 					}*/
 				}
 				else {
+					signer = account_name.substr(0, sep);
 					real_nonce = account_name.substr(sep);
 				}
 				ret.nonce = dev::jsToU256(real_nonce);
+				ret.from = dev::jsToAddress(signer.substr(2));
 				dev::eth::TransactionBase trx_base(ret);
 				std::map<std::string, std::string> mapa;
 				//std::cout << "trx base size is "<<trx_base.rlp(dev::eth::WithoutSignature).size() << std::endl;

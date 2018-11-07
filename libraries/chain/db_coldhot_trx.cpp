@@ -375,16 +375,17 @@ namespace graphene {
 			for (auto & trxs : uncombine_trxs) {
 				try {
 					auto & tx_relate_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trxidstate>();
+					const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
 					auto relate_tx_iter = tx_relate_db.find(boost::make_tuple(trxs.first, coldhot_without_sign_trx_create));
 					if (relate_tx_iter == tx_relate_db.end() || relate_tx_iter->current_trx.operations.size() < 1) {
 						continue;
 					}
 					auto op = relate_tx_iter->current_trx.operations[0];
 					auto coldhot_op = op.get<coldhot_transfer_without_sign_operation>();
-					if (trxs.second.size() < ceil(float(coldhot_op.withdraw_account_count)*2.0 / 3.0)) {
+					if (trxs.second.size() < (coldhot_op.withdraw_account_count*2/3 + 1)) {
 						continue;
 					}
-					guard_member_id_type sign_senator;
+					account_id_type sign_senator;
 					set<string> combine_signature;
 					auto & tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					bool transaction_err = false;
@@ -401,8 +402,12 @@ namespace graphene {
 						}
 						auto coldhot_sign_op = op.get<coldhot_transfer_with_sign_operation>();
 						combine_signature.insert(coldhot_sign_op.coldhot_transfer_sign);
-						if (sign_senator == guard_member_id_type()) {
-							sign_senator = coldhot_sign_op.sign_guard;
+						if (sign_senator == account_id_type()) {
+							auto guard_iter = guard_db.find(coldhot_sign_op.sign_guard);
+							FC_ASSERT(guard_iter != guard_db.end());
+							if (guard_iter->senator_type == PERMANENT) {
+								sign_senator = guard_iter->guard_member_account;
+							}
 						}
 					}
 					if (transaction_err) {
@@ -418,10 +423,7 @@ namespace graphene {
 					if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos)
 					{
 						try {
-							const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
-							auto guard_iter = guard_db.find(sign_senator);
-							FC_ASSERT(guard_iter != guard_db.end());
-							auto guard_account_id = guard_iter->guard_member_account;
+							auto guard_account_id = sign_senator;
 							multisig_address_object senator_multi_obj;
 							const auto& multisig_addr_by_guard = get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 							const auto iter_range = multisig_addr_by_guard.equal_range(boost::make_tuple(coldhot_op.asset_symbol, guard_account_id));
