@@ -263,7 +263,7 @@ namespace graphene {
 				mul_obj.set("turn_without_eth_sign", o.withdraw_source_trx);
 				create_trxs = hdl->turn_trxs(fc::variant_object(mul_obj));
 			}
-			else if (o.asset_symbol.find("ETH") != o.asset_symbol.npos) {
+			else if (o.asset_symbol== "ETH" ) {
 				create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.withdraw_source_trx));
 			}
 			else {

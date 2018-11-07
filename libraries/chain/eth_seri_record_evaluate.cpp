@@ -21,7 +21,7 @@ namespace graphene {
 				//if the multi-addr correct or not.
 				vector<string> symbol_addrs_cold;
 				vector<string> symbol_addrs_hot;
-				vector<account_id_type> eth_guard_account_ids;
+				vector<pair<account_id_type, pair<string, string>>> eth_guard_account_ids;
 				const auto& addr = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 				auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
 				std::for_each(
@@ -30,7 +30,8 @@ namespace graphene {
 					{
 						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
-						eth_guard_account_ids.push_back(obj.guard_account);
+						auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
+						eth_guard_account_ids.push_back(account_pair);
 					}
 				}
 				);
@@ -51,25 +52,34 @@ namespace graphene {
 				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
 				FC_ASSERT(hot_range.first == hot_range.second);
 				FC_ASSERT(cold_range.first == cold_range.second);
-				
-				std::string temp_cold = ptr->get_address_by_pubkey(*symbol_addrs_cold.begin());
-				std::string temp_hot = ptr->get_address_by_pubkey(*symbol_addrs_hot.begin());
+
+				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_id>();
+				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
+				FC_ASSERT(sign_guard_iter != guard_dbs.end());
+				FC_ASSERT(sign_guard_iter->senator_type == PERMANENT);
+				std::string temp_cold, temp_hot;
+				for (auto guard_account_id : eth_guard_account_ids) {
+					if (guard_account_id.first == sign_guard_iter->guard_member_account){
+						temp_hot = ptr->get_address_by_pubkey(guard_account_id.second.first);
+						temp_cold = ptr->get_address_by_pubkey(guard_account_id.second.second);
+						break;
+					}
+				}
+				FC_ASSERT(temp_hot != "", "guard donst has hot address");
+				FC_ASSERT(temp_cold != "", "guard donst has cold address");
 				FC_ASSERT(o.guard_sign_hot_address == temp_hot);
 				FC_ASSERT(o.guard_sign_cold_address == temp_cold);
-				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_account>();
-				auto guard_iter = guard_dbs.find(*eth_guard_account_ids.begin());
-				FC_ASSERT(guard_iter != guard_dbs.end());
-				FC_ASSERT(o.guard_to_sign == guard_iter->id);
+
 				const auto& guard_ids = db().get_global_properties().active_committee_members;
-				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size());
+				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
 				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 				if (!instance.contain_crosschain_handles(o.chain_type))
 					return void_result();
 				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
 				if (!crosschain_interface->valid_config())
 					return void_result();
-				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold|"+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
-				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot|" + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold+'|'+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot +'|' + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				FC_ASSERT(o.multi_account_tx_without_sign_cold != "","eth multi acocunt cold trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_hot != "", "eth multi acocunt ,hot trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_cold == multi_addr_cold[temp_cold]);

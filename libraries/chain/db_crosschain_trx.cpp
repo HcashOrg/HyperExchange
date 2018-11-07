@@ -108,7 +108,7 @@ namespace graphene {
 					auto combine_op = op.get<crosschain_withdraw_combine_sign_operation>();
 					transaction_stata trx_st;
 					std::string asset_symbol = combine_op.asset_symbol;
-					if ((asset_symbol.find("ETH") != asset_symbol.npos)|| (asset_symbol.find("ERC") != asset_symbol.npos))
+					if ((asset_symbol=="ETH")|| (asset_symbol.find("ERC") != asset_symbol.npos))
 					{
 						trx_st = withdraw_eth_guard_need_sign;
 					}
@@ -850,12 +850,13 @@ namespace graphene {
 				});
 				for (auto & trxs : uncombine_trxs_counts) {
 					//TODO : Use macro instead this magic number
-					if (trxs.second.size() < ceil(float(get_guard_members().size())*2.0/3.0)) {
+					if (trxs.second.size() < (get_guard_members().size()*2/3+1)) {
 						continue;
 					}
 					set<string> combine_signature;
-					guard_member_id_type sign_senator;
+					account_id_type sign_senator;
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
 					bool transaction_err = false;
 					for (auto & sign_trx_id : trxs.second) {
 						auto trx_itr = trx_db.find(sign_trx_id);
@@ -871,8 +872,13 @@ namespace graphene {
 						}
 						auto with_sign_op = op.get<crosschain_withdraw_with_sign_evaluate::operation_type>();
 						combine_signature.insert(with_sign_op.ccw_trx_signature);
-						if (sign_senator == guard_member_id_type()) {
-							sign_senator = with_sign_op.sign_guard;
+						if (sign_senator == account_id_type()) {
+							auto guard_iter = guard_db.find(with_sign_op.sign_guard);
+							FC_ASSERT(guard_iter != guard_db.end());
+							if (guard_iter->senator_type == PERMANENT) {
+								sign_senator = guard_iter->guard_member_account;
+							}
+							
 						}
 					}
 					if (transaction_err) {
@@ -892,10 +898,7 @@ namespace graphene {
 					if (with_sign_op.asset_symbol == "ETH" || with_sign_op.asset_symbol.find("ERC") != with_sign_op.asset_symbol.npos)
 					{
 						try {
-							const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
-							auto guard_iter = guard_db.find(sign_senator);
-							FC_ASSERT(guard_iter != guard_db.end());
-							auto guard_account_id = guard_iter->guard_member_account;
+							auto guard_account_id =sign_senator;
 							multisig_address_object senator_multi_obj;
 							const auto& multisig_addr_by_guard = get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 							const auto iter_range = multisig_addr_by_guard.equal_range(boost::make_tuple(with_sign_op.asset_symbol, guard_account_id));
