@@ -392,6 +392,12 @@ void database::clear_expired_proposals()
 		  _rollback_votes(proposal);
       remove(proposal);
    }
+   const auto& proposal_finished_index = get_index_type<proposal_index>().indices().get<by_finished>();
+   auto range_finish = proposal_finished_index.equal_range(true);
+   for (auto itr : boost::make_iterator_range(range_finish.first, range_finish.second))
+   {
+
+   }
    const auto& referedum_expiration_index = get_index_type<referendum_index>().indices().get<by_expiration>();
    while (!referedum_expiration_index.empty() && referedum_expiration_index.begin()->expiration_time <= head_block_time())
    {

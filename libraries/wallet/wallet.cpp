@@ -2752,7 +2752,14 @@ public:
    vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol)const 
    {
 	   try {
-		   return _remote_db->get_binding_account(account, symbol);
+
+		   if (address::is_valid(account))
+		   {
+			   return _remote_db->get_binding_account(account, symbol);
+		   }
+		   auto acct = get_account(account);
+		   FC_ASSERT(acct.addr != address());
+		   return _remote_db->get_binding_account(acct.addr.address_to_string(), symbol);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol))
    }
 
