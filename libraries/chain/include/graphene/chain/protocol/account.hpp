@@ -305,7 +305,7 @@ namespace graphene { namespace chain {
    */
    struct account_unbind_operation : public base_operation
    {
-	   struct fee_parameters_type { uint64_t fee = 0.002 * GRAPHENE_HXCHAIN_PRECISION; };
+	   struct fee_parameters_type { uint64_t fee =0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
 	   asset           fee;
 	   std::string crosschain_type;

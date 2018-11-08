@@ -82,7 +82,7 @@ namespace graphene { namespace chain {
    */
    struct citizen_referendum_senator_operation : public base_operation
    {
-	   struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_HXCHAIN_PRECISION; };
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
 	   asset                                 fee;
 	   map<account_id_type, account_id_type> replace_queue;
