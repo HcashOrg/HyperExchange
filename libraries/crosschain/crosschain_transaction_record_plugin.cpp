@@ -52,6 +52,7 @@ namespace graphene {
 							obj.local_count = 0;
 						});
 						start_num = 0;
+						continue;
 					}
 
 					auto pending_trx = hdl->transaction_history(asset_symbol, multi_sign_account, start_num, -1, return_block_num);

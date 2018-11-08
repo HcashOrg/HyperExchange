@@ -5421,7 +5421,7 @@ public:
 
    full_transaction propose_fee_change(
       const string& proposing_account,
-      fc::time_point_sec expiration_time,
+      int64_t expiration_time,
       const variant_object& changed_fees,
       bool broadcast = false)
    {
@@ -5486,8 +5486,7 @@ public:
 
       proposal_create_operation prop_op;
 
-      prop_op.expiration_time = expiration_time;
-      prop_op.review_period_seconds = current_params.committee_proposal_review_period;
+      prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
       prop_op.fee_paying_account = get_account(proposing_account).addr;
 
       prop_op.proposed_ops.emplace_back( update_op );
@@ -7146,8 +7145,8 @@ full_transaction wallet_api::propose_pay_back_asset_rate_change(
 
 full_transaction wallet_api::propose_fee_change(
    const string& proposing_account,
-   fc::time_point_sec expiration_time,
    const variant_object& changed_fees,
+   int64_t expiration_time,
    bool broadcast /* = false */
    )
 {
