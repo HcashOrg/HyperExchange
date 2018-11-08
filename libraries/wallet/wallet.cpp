@@ -802,7 +802,7 @@ public:
 	   return id;
    }
 
-   crosschain_prkeys create_crosschain_symbol(const string& symbol)
+   crosschain_prkeys create_crosschain_symbol(const string& symbol, bool cold=false)
    {
 	   try {
 		   auto pos = symbol.find("|etguard");
@@ -837,8 +837,11 @@ public:
 		   keys.addr = addr;
 		   keys.pubkey = pubkey;
 		   keys.wif_key = wif_key;
-		   _crosschain_keys[addr] = keys;
-		   save_wallet_file();
+		   if (!cold)
+		   {
+			   _crosschain_keys[addr] = keys;
+			   save_wallet_file();
+		   }
 		   return keys;
 	   }FC_CAPTURE_AND_RETHROW((symbol))
 
@@ -3532,7 +3535,7 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
-   full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+   full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -3542,8 +3545,25 @@ public:
 		   auto asset_id = get_asset_id(symbol);
 		   auto  hot_keys =create_crosschain_symbol(symbol+"|etguard");
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
-		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard");
+		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard",true);
 
+		   auto plain_txt = fc::raw::pack(cold_keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+
+		   fc::ofstream outfile{ fc::path(out_key_file) };
+		   outfile.write(encrypted.data(), encrypted.size());
+		   outfile.flush();
+		   outfile.close();
+		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
+		   FC_ASSERT(in.is_open());
+		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
+		   
+		   auto keys_chk = fc::raw::unpack<crosschain_prkeys>(plain_text);
+		   std::cout << "s:\n" << fc::json::to_pretty_string(cold_keys) << std::endl;
+		   std::cout << "s:\n" << fc::json::to_pretty_string(keys_chk) << std::endl;
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
@@ -4253,113 +4273,8 @@ public:
 		transaction.validate();
 		sign_transaction(transaction, true);
    }
-   class AutoFile
-   {
-   public:
-	   FILE* pFile=NULL;
-	   AutoFile(const char* filename, const char* mode)
-	   {
-		   pFile = fopen(filename, mode);
-	   }
-	   bool valid()
-	   {
-		   return pFile != NULL;
-	   }
-	   void close()
-	   {
-		   if (pFile)
-			   fclose(pFile);
-		   pFile = NULL;
-	   }
-	   ~AutoFile()
-	   {
-		   if(pFile)
-			fclose(pFile);
-	   }
-   };
-   class AutoDelBuf
-   {
-   public:
-	   char* pbuf = NULL;
 
-	   AutoDelBuf(void* buf)
-	   {
-		   pbuf = (char*)buf;
-	   }
-	   bool valid()
-	   {
-		   return pbuf != NULL;
-	   }
-	   void del()
-	   {
-		   if (pbuf)
-			   ::free(pbuf);
-		   pbuf = NULL;
-	   }
-	   ~AutoDelBuf()
-	   {
-		   if (pbuf)
-			   ::free(pbuf);
-	   }
-	   operator char*()
-	   {
-		   return pbuf;
-	   }
-
-   };
-   std::string dump_crosschain_key(const string& name, const string& symbol, const string& key,const fc::path& file )
-   {
-
-	   AutoFile tmpf(file.generic_string().c_str(), "r");
-	   FC_ASSERT(!tmpf.valid(), "out file exsited!");
-	   AutoFile outfile(file.generic_string().c_str(), "wb");
-	   FC_ASSERT(tmpf.valid(), "Create output file failed!");
-	   fc::sha256 aes_key(key.c_str());
-	   fc::aes_encoder enc;
-	   enc.init(aes_key, 0);
-	   auto multi_objs = _remote_db->get_multisig_account_pair(symbol);
-	   auto account_obj = get_account(name);
-	   auto objs=_remote_db->get_multisig_address_obj(symbol,account_obj.get_id());
-
-	   map<string, crosschain_prkeys> _to_encode;
-	   vector<string> addrs;
-	   for (auto obj : objs)
-	   {
-		   if (obj.valid())
-		   {
-			   addrs.push_back(obj->new_address_cold);
-		   }
-	   }
-	   for (auto& addr : addrs)
-	   {
-		   _to_encode[addr] = _crosschain_keys[addr];
-		   //_crosschain_keys.erase(addr);
-	   }
-	   string str_to_encode = fc::json::to_string(_to_encode);
-	   int length = str_to_encode.length() + 1;
-	   AutoDelBuf buf = (char*)malloc(length);
-	   FC_ASSERT(length==enc.encode(str_to_encode.c_str(), length, buf),"encode uncomplished!");
-	   FC_ASSERT(length == fwrite(buf, 1, length, outfile.pFile),"write uncomplished!");
-	   outfile.close();
-	   //check
-	   AutoFile chk(file.generic_string().c_str(), "r");
-	   FC_ASSERT(!tmpf.valid(), "CHECK:open output file failed!");
-	   memset(buf,0,length);
-	   FC_ASSERT(length == fread(buf, 1, length, outfile.pFile), "read output file uncomplished!");
-
-	   AutoDelBuf chkbuf = (char*)malloc(length);
-	   fc::aes_decoder dec;
-	   dec.init(aes_key, 0);
-	   FC_ASSERT(length == dec.decode(buf, length, chkbuf), "decode uncomplished!");
-	   FC_ASSERT(memcmp(str_to_encode.c_str(), chkbuf, length) == 0, "check uncomplished!");
-	   //delete key from cross_keys;
-	   for (auto& addr : addrs)
-	   {
-		   _crosschain_keys.erase(addr);
-	   }
-	   return file.generic_string();
-   }
-   void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
+   void guard_sign_coldhot_transaction(const string& tx_id, const string& guard,const string& keyfile,const string& decryptkey) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
 	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
@@ -4413,7 +4328,17 @@ public:
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
 	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
 	   auto wif_key = _crosschain_keys[guard_address].wif_key;
-	   auto key_ptr = prk_ptr->import_private_key(wif_key);
+
+	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+	   FC_ASSERT(in.is_open());
+	   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+		   (std::istreambuf_iterator<char>()));
+	   in.close();
+	   const auto plain_text= fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+	   auto keys=fc::raw::unpack<crosschain_prkeys>(plain_text);
+	   //auto key_ptr = prk_ptr->import_private_key(wif_key);
+
+	   auto key_ptr = prk_ptr->import_private_key(keys.wif_key);
 	   FC_ASSERT(key_ptr.valid());
 	   prk_ptr->set_key(*key_ptr);
 	   string siging;
@@ -6760,8 +6685,8 @@ std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_cross
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
-void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& guard) {
-	return my->guard_sign_coldhot_transaction(tx_id, guard);
+void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey) {
+	return my->guard_sign_coldhot_transaction(tx_id, senator, keyfile,decryptkey);
 }
 
 void wallet_api::senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
@@ -7694,9 +7619,9 @@ full_transaction wallet_api::cancel_coldhot_uncombined_transaction(const string 
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
 }
-full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+graphene::chain::full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast/*=true*/)
 {
-	return my->update_asset_private_keys(from_account,symbol,broadcast);
+	return my->update_asset_private_keys(from_account,symbol,out_key_file,encrypt_key,broadcast);
 }
 
 

@@ -1808,7 +1808,7 @@ class wallet_api
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
-	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
+	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
 	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
 	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
 	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator);
@@ -2001,7 +2001,7 @@ class wallet_api
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
-	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
+	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol, const string& out_key_file, const string& encrypt_key,bool broadcast=true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);

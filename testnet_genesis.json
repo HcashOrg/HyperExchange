@@ -714,19 +714,26 @@
     }
   ],
   "initial_guard_candidates": [{
-      "owner_name": "guard0"
+      "owner_name": "guard0",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard1"
+      "owner_name": "guard1",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard2"
+      "owner_name": "guard2",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard3"
+      "owner_name": "guard3",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard4"
+      "owner_name": "guard4",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard5"
+      "owner_name": "guard5",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "guard6"
+      "owner_name": "guard6",
+	  "type":"PERMANENT"
     }
   ],
   "initial_worker_candidates": [],

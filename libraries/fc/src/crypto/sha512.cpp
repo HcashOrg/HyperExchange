@@ -14,7 +14,15 @@ namespace fc {
       fc::from_hex( hex_str, (char*)_hash, sizeof(_hash) );  
     }
 
-    string sha512::str()const {
+	sha512::sha512(const char *data, size_t size)
+	{
+		memset(_hash, 0, sizeof(_hash));
+		if (size > sizeof(_hash))
+			FC_THROW_EXCEPTION(exception, "sha512: size mismatch");
+		memcpy(_hash, data, size);
+	}
+
+	string sha512::str()const {
       return fc::to_hex( (char*)_hash, sizeof(_hash) );
     }
     sha512::operator string()const { return  str(); }
