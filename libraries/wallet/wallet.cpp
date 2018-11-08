@@ -2876,6 +2876,7 @@ public:
 		   FC_ASSERT(acct.id == ctz.miner_account, "Invalid citizen:" + citizen);
 		   acct.options.miner_pledge_pay_back = pledge_pay_back_rate;
 		   account_update_operation op;
+		   op.addr = acct.addr;
 		   op.account = acct.id;
 		   op.new_options = acct.options;
 		   signed_transaction tx;
@@ -3555,23 +3556,35 @@ public:
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
 		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard",true);
 
-		   auto plain_txt = fc::raw::pack(cold_keys);
-		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   //auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   //
+		   //fc::ofstream outfile{ fc::path(out_key_file) };
+		   //outfile.write(encrypted.data(), encrypted.size());
+		   //outfile.flush();
+		   //outfile.close();
 
-		   fc::ofstream outfile{ fc::path(out_key_file) };
-		   outfile.write(encrypted.data(), encrypted.size());
-		   outfile.flush();
-		   outfile.close();
+		   map<string, crosschain_prkeys> keys;
 		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
-		   FC_ASSERT(in.is_open());
-		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-			   (std::istreambuf_iterator<char>()));
-		   in.close();
-		   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
-		   
-		   auto keys_chk = fc::raw::unpack<crosschain_prkeys>(plain_text);
-		   std::cout << "s:\n" << fc::json::to_pretty_string(cold_keys) << std::endl;
-		   std::cout << "s:\n" << fc::json::to_pretty_string(keys_chk) << std::endl;
+		   if (in.is_open())
+		   {
+
+			   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+			   if (key_file_data.size() > 0)
+			   {
+				   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
+				   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+			   }
+		   }
+		   keys[cold_keys.addr] = cold_keys;
+
+		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary|std::ios::trunc);
+		   auto plain_txt = fc::raw::pack(keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   out.write(encrypted.data(), encrypted.size());
+		   out.flush();
+		   out.close();
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
@@ -4349,15 +4362,17 @@ public:
 	   else
 	   {
 		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-		   FC_ASSERT(in.is_open());
 		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
 			   (std::istreambuf_iterator<char>()));
 		   in.close();
-		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
-		   auto keys = fc::raw::unpack<crosschain_prkeys>(plain_text);
-
-		   auto key_ptr = prk_ptr->import_private_key(keys.wif_key);
-		   FC_ASSERT(key_ptr.valid());
+		   map<string, crosschain_prkeys> keys;
+		   if (key_file_data.size() > 0)
+		   {
+			   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+			   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+		   }
+		   FC_ASSERT(keys.find(guard_address) != keys.end());
+		   auto key_ptr = prk_ptr->import_private_key(keys[guard_address].wif_key);
 		   prk_ptr->set_key(*key_ptr);
 	   }
 	   string siging;

@@ -135,7 +135,7 @@ namespace graphene { namespace chain {
       asset fee;
       /// The account to update
       account_id_type account;
-
+	  address addr;
       /// New owner authority. If set, this operation requires owner authority to execute.
       optional<authority> owner;
       /// New active authority. This can be updated by the current active authority.
@@ -157,6 +157,8 @@ namespace graphene { namespace chain {
 
       void get_required_active_authorities( flat_set<account_id_type>& a )const
       { if( !is_owner_update() ) a.insert( account ); }
+	  void get_required_authorities(vector<authority>& o)const;
+
    };
 
    /**
@@ -390,7 +392,7 @@ FC_REFLECT(graphene::chain::account_create_operation,
 
 FC_REFLECT(graphene::chain::account_update_operation::ext, (null_ext)(owner_special_authority)(active_special_authority) )
 FC_REFLECT( graphene::chain::account_update_operation,
-            (fee)(account)(owner)(active)(new_options)(extensions)
+            (fee)(account)(addr)(owner)(active)(new_options)(extensions)
           )
 
 FC_REFLECT( graphene::chain::account_upgrade_operation,

@@ -209,7 +209,7 @@ void_result account_update_evaluator::do_evaluate( const account_update_operatio
       evaluate_special_authority( d, *o.extensions.value.active_special_authority );
 
    acnt = &o.account(d);
-
+   FC_ASSERT(acnt->addr==o.addr);
    if( o.new_options.valid() )
       verify_account_votes( d, *o.new_options );
 
