@@ -41,7 +41,7 @@ namespace graphene {
 		struct storage_operation : public base_operation
 		{
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
 			};
 

@@ -7,7 +7,7 @@ namespace graphene {
 	namespace chain {
 		struct eth_series_multi_sol_create_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			miner_id_type miner_broadcast;
@@ -33,7 +33,7 @@ namespace graphene {
 		};
 		struct eths_multi_sol_guard_sign_operation : public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			transaction_id_type sol_without_sign_txid;
@@ -56,7 +56,7 @@ namespace graphene {
 		//gather record
 		struct eth_multi_account_create_record_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			miner_id_type miner_broadcast;
@@ -77,7 +77,7 @@ namespace graphene {
 		
 		struct eth_seri_guard_sign_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			fc::variant_object eth_guard_sign_trx;
@@ -94,7 +94,7 @@ namespace graphene {
 		};
 		struct eths_guard_sign_final_operation:public base_operation{
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			guard_member_id_type guard_to_sign;
@@ -114,7 +114,7 @@ namespace graphene {
 		};
 		struct eths_coldhot_guard_sign_final_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			guard_member_id_type guard_to_sign;

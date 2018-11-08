@@ -63,7 +63,7 @@ namespace graphene { namespace chain {
     */
    struct guard_member_update_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
       asset                                 fee;
       /// The committee member to update.

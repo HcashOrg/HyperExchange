@@ -423,7 +423,7 @@ namespace graphene { namespace chain {
    struct asset_issue_operation : public base_operation
    {
       struct fee_parameters_type { 
-         uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION; 
+         uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; 
          uint32_t price_per_kbyte = GRAPHENE_BLOCKCHAIN_PRECISION;
       };
 
@@ -450,7 +450,7 @@ namespace graphene { namespace chain {
     */
    struct asset_reserve_operation : public base_operation
    {
-      struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
       asset             fee;
       account_id_type   payer;
@@ -467,7 +467,7 @@ namespace graphene { namespace chain {
    struct asset_claim_fees_operation : public base_operation
    {
       struct fee_parameters_type {
-         uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+         uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
       };
 
       asset           fee;
@@ -482,7 +482,7 @@ namespace graphene { namespace chain {
    struct asset_real_create_operation :public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 
 	   asset fee;
@@ -502,7 +502,7 @@ namespace graphene { namespace chain {
    };
    struct asset_eth_create_operation :public base_operation {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 
 	   asset fee;
@@ -525,7 +525,7 @@ namespace graphene { namespace chain {
    struct gurantee_create_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address owner_addr;
@@ -543,7 +543,7 @@ namespace graphene { namespace chain {
    struct gurantee_cancel_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address owner_addr;
@@ -558,7 +558,7 @@ namespace graphene { namespace chain {
    struct publisher_appointed_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address publisher;
@@ -571,7 +571,7 @@ namespace graphene { namespace chain {
    struct publisher_canceled_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address publisher;
@@ -585,7 +585,7 @@ namespace graphene { namespace chain {
    struct asset_fee_modification_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   share_type crosschain_fee;
@@ -598,7 +598,7 @@ namespace graphene { namespace chain {
    struct set_guard_lockbalance_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   std::map<string,asset> lockbalance;
@@ -610,7 +610,7 @@ namespace graphene { namespace chain {
    struct senator_determine_withdraw_deposit_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   bool can;
@@ -622,7 +622,7 @@ namespace graphene { namespace chain {
    struct senator_determine_block_payment_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   std::map<uint32_t, uint32_t> blocks_pairs;

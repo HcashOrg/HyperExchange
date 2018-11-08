@@ -111,7 +111,7 @@ namespace graphene { namespace chain {
    struct call_order_update_operation : public base_operation
    {
       /** this is slightly more expensive than limit orders, this pricing impacts prediction markets */
-      struct fee_parameters_type { uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+      struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
       asset               fee;
       account_id_type     funding_account; ///< pays fee, collateral, and cover
