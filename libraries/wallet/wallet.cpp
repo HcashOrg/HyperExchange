@@ -3163,6 +3163,7 @@ public:
 		 }
 		 if (total!=fc::uint128_t())
 			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
+		 return obj;
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
