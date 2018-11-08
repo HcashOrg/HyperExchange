@@ -1885,8 +1885,8 @@ class wallet_api
        */
       full_transaction propose_fee_change(
          const string& proposing_account,
-         fc::time_point_sec expiration_time,
          const variant_object& changed_values,
+		 int64_t expiration_time,
          bool broadcast = false);
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 

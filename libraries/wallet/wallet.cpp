@@ -5406,7 +5406,7 @@ public:
 
    full_transaction propose_fee_change(
       const string& proposing_account,
-      fc::time_point_sec expiration_time,
+      int64_t expiration_time,
       const variant_object& changed_fees,
       bool broadcast = false)
    {
@@ -7130,8 +7130,8 @@ full_transaction wallet_api::propose_pay_back_asset_rate_change(
 
 full_transaction wallet_api::propose_fee_change(
    const string& proposing_account,
-   fc::time_point_sec expiration_time,
    const variant_object& changed_fees,
+   int64_t expiration_time,
    bool broadcast /* = false */
    )
 {
