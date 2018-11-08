@@ -46,7 +46,7 @@ namespace graphene { namespace chain {
    struct transfer_operation : public base_operation
    {
       struct fee_parameters_type {
-         uint64_t fee       = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+         uint64_t fee       = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
          uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
       };
 
@@ -89,7 +89,7 @@ namespace graphene { namespace chain {
    struct override_transfer_operation : public base_operation
    {
       struct fee_parameters_type {
-         uint64_t fee       = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+         uint64_t fee       = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
          uint32_t price_per_kbyte = 10; /// only required for large memos.
       };
 
@@ -114,7 +114,7 @@ namespace graphene { namespace chain {
    struct asset_transfer_from_cold_to_hot_operation :public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address addr;
@@ -133,7 +133,7 @@ namespace graphene { namespace chain {
    struct sign_multisig_asset_operation :public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset fee;
 	   address addr;

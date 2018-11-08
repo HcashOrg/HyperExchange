@@ -2563,7 +2563,7 @@ vector<referendum_object> database_api_impl::get_referendum_transactions_waiting
 	idx.inspect_all_objects([&](const object& obj) {
 		const referendum_object& p = static_cast<const referendum_object&>(obj);
 		auto accounts = p.required_account_approvals;
-		if (accounts.find(addr) != accounts.end() && p.finished == false)
+		if (accounts.find(addr) != accounts.end())
 			result.push_back(p);
 	});
 	return result;

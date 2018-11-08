@@ -10,7 +10,7 @@ class sha512
   public:
     sha512();
     explicit sha512( const string& hex_str );
-
+	explicit sha512(const char *data, size_t size);
     string str()const;
     operator string()const;
 

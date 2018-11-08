@@ -6,7 +6,7 @@ namespace graphene {
 	namespace chain {
 		struct crosschain_record_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			crosschain::hd_trx cross_chain_trx;
 			//TODO:refund balance in the situation that channel account tie to formal account
@@ -27,7 +27,7 @@ namespace graphene {
 		}; 
 		struct crosschain_withdraw_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			address withdraw_account;
 			string amount;
@@ -47,7 +47,7 @@ namespace graphene {
 		};
 		struct crosschain_withdraw_without_sign_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			//transaction_id_type ccw_trx_id;
 			vector<transaction_id_type> ccw_trx_ids;
@@ -70,7 +70,7 @@ namespace graphene {
 		};
 		struct crosschain_withdraw_with_sign_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			transaction_id_type ccw_trx_id;
 			fc::variant_object withdraw_source_trx;
@@ -92,7 +92,7 @@ namespace graphene {
 		};
 		struct crosschain_withdraw_combine_sign_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			fc::variant_object cross_chain_trx;
 			vector<transaction_id_type> signed_trx_ids;
@@ -117,7 +117,7 @@ namespace graphene {
 
 		struct crosschain_withdraw_result_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			crosschain::hd_trx cross_chain_trx;
 			//TODO:refund balance in the situation that channel account tie to formal account

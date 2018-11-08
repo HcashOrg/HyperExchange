@@ -802,7 +802,7 @@ public:
 	   return id;
    }
 
-   crosschain_prkeys create_crosschain_symbol(const string& symbol)
+   crosschain_prkeys create_crosschain_symbol(const string& symbol, bool cold=false)
    {
 	   try {
 		   auto pos = symbol.find("|etguard");
@@ -837,8 +837,11 @@ public:
 		   keys.addr = addr;
 		   keys.pubkey = pubkey;
 		   keys.wif_key = wif_key;
-		   _crosschain_keys[addr] = keys;
-		   save_wallet_file();
+		   if (!cold)
+		   {
+			   _crosschain_keys[addr] = keys;
+			   save_wallet_file();
+		   }
 		   return keys;
 	   }FC_CAPTURE_AND_RETHROW((symbol))
 
@@ -1184,6 +1187,7 @@ public:
 
       return total_fee;
    }
+   
    transaction preview_builder_transaction(transaction_handle_type handle)
    {
       FC_ASSERT(_builder_transactions.count(handle));
@@ -2861,7 +2865,28 @@ public:
 		   return sign_transaction(tx,broadcast);
 	   }FC_CAPTURE_AND_RETHROW((referendum_id)(amount)(broadcast))
    }
+   full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate,bool broadcast)
+   {
+	   try {
 
+		   FC_ASSERT(!is_locked());
+		   FC_ASSERT(pledge_pay_back_rate >= 0 && pledge_pay_back_rate <= 20, "pledge_pay_back_rate must between 0 20");
+		   auto ctz = get_miner(citizen);
+		   auto acct=get_account(citizen);
+		   FC_ASSERT(acct.id == ctz.miner_account, "Invalid citizen:" + citizen);
+		   acct.options.miner_pledge_pay_back = pledge_pay_back_rate;
+		   account_update_operation op;
+		   op.account = acct.id;
+		   op.new_options = acct.options;
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((citizen)(pledge_pay_back_rate))
+   }
    full_transaction citizen_referendum_for_senator(const string& citizen,const string& amount ,const map<account_id_type,account_id_type>& replacement,bool broadcast)
    {
 	   try {
@@ -3096,6 +3121,7 @@ public:
    {
       try
       {
+		 miner_object obj;
          fc::optional<miner_id_type> miner_id = maybe_id<miner_id_type>(owner_account);
          if (miner_id)
          {
@@ -3103,8 +3129,12 @@ public:
             ids_to_get.push_back(*miner_id);
             std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(ids_to_get);
             if (miner_objects.front())
-               return *miner_objects.front();
-            FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
+				obj= *miner_objects.front();
+			else
+			{
+				FC_THROW("No witness is registered for id ${id}", ("id", owner_account));
+			}
+            
          }
          else
          {
@@ -3114,7 +3144,7 @@ public:
                account_id_type owner_account_id = get_account_id(owner_account);
                fc::optional<miner_object> witness = _remote_db->get_miner_by_account(owner_account_id);
                if (witness)
-                  return *witness;
+				   obj= *witness;
                else
                   FC_THROW("No witness is registered for account ${account}", ("account", owner_account));
             }
@@ -3123,6 +3153,17 @@ public:
                FC_THROW("No account or witness named ${account}", ("account", owner_account));
             }
          }
+		 fc::uint128_t total = 0;
+		 auto ctzs = list_active_citizens();
+		 for (auto& ctz =ctzs.begin();ctz!=ctzs.end();ctz++)
+		 {
+			 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
+			 if (miner_objects.front())
+				 total += miner_objects.front()->pledge_weight;
+		 }
+		 if (total!=fc::uint128_t())
+			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
+		 return obj;
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
@@ -3502,7 +3543,7 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
-   full_transaction update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+   full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -3512,8 +3553,25 @@ public:
 		   auto asset_id = get_asset_id(symbol);
 		   auto  hot_keys =create_crosschain_symbol(symbol+"|etguard");
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
-		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard");
+		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard",true);
 
+		   auto plain_txt = fc::raw::pack(cold_keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+
+		   fc::ofstream outfile{ fc::path(out_key_file) };
+		   outfile.write(encrypted.data(), encrypted.size());
+		   outfile.flush();
+		   outfile.close();
+		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
+		   FC_ASSERT(in.is_open());
+		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
+		   
+		   auto keys_chk = fc::raw::unpack<crosschain_prkeys>(plain_text);
+		   std::cout << "s:\n" << fc::json::to_pretty_string(cold_keys) << std::endl;
+		   std::cout << "s:\n" << fc::json::to_pretty_string(keys_chk) << std::endl;
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
@@ -4223,7 +4281,8 @@ public:
 		transaction.validate();
 		sign_transaction(transaction, true);
    }
-   void guard_sign_coldhot_transaction(const string& tx_id, const string& guard) {
+
+   void guard_sign_coldhot_transaction(const string& tx_id, const string& guard,const string& keyfile,const string& decryptkey) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
 	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
@@ -4248,6 +4307,7 @@ public:
 	   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
 	   string redeemScript = "";
 	   string guard_address = "";
+	   bool cold = false;
 	   const account_object & account_obj = get_account(guard);
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
@@ -4267,6 +4327,7 @@ public:
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
 					   guard_address = guard_multi_address_obj->new_address_cold;
+					   cold = true;
 					   break;
 				   }
 			   }
@@ -4276,10 +4337,29 @@ public:
 	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
 	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
-	   auto wif_key = _crosschain_keys[guard_address].wif_key;
-	   auto key_ptr = prk_ptr->import_private_key(wif_key);
-	   FC_ASSERT(key_ptr.valid());
-	   prk_ptr->set_key(*key_ptr);
+	   if (cold)
+	   {
+
+		   auto wif_key = _crosschain_keys[guard_address].wif_key;
+
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+
+		   prk_ptr->set_key(*key_ptr);
+	   }
+	   else
+	   {
+		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+		   FC_ASSERT(in.is_open());
+		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+		   auto keys = fc::raw::unpack<crosschain_prkeys>(plain_text);
+
+		   auto key_ptr = prk_ptr->import_private_key(keys.wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   prk_ptr->set_key(*key_ptr);
+	   }
 	   string siging;
 	   if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos) {
 		   siging = crosschain_plugin->sign_multisig_transaction(fc::variant_object("get_param_hash", coldhot_op.coldhot_trx_original_chain), prk_ptr, redeemScript, false);
@@ -5326,7 +5406,7 @@ public:
 
    full_transaction propose_fee_change(
       const string& proposing_account,
-      fc::time_point_sec expiration_time,
+      int64_t expiration_time,
       const variant_object& changed_fees,
       bool broadcast = false)
    {
@@ -5391,8 +5471,7 @@ public:
 
       proposal_create_operation prop_op;
 
-      prop_op.expiration_time = expiration_time;
-      prop_op.review_period_seconds = current_params.committee_proposal_review_period;
+      prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
       prop_op.fee_paying_account = get_account(proposing_account).addr;
 
       prop_op.proposed_ops.emplace_back( update_op );
@@ -5862,6 +5941,7 @@ std::string operation_result_printer::operator()(const string& a)
 }}}
 
 namespace graphene { namespace wallet {
+
    vector<brain_key_info> utility::derive_owner_keys_from_brain_key(string brain_key, int number_of_desired_keys)
    {
       // Safety-check
@@ -6550,7 +6630,10 @@ address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
 }
-
+full_transaction wallet_api::set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast)
+{
+	return my->set_citizen_pledge_pay_back_rate(citizen, pledge_pay_back_rate, broadcast);
+}
 full_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
                                            string memo, bool broadcast)
 {
@@ -6620,8 +6703,8 @@ std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_cross
 	
 	return my->get_withdraw_crosschain_without_sign_transaction();
 }
-void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& guard) {
-	return my->guard_sign_coldhot_transaction(tx_id, guard);
+void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey) {
+	return my->guard_sign_coldhot_transaction(tx_id, senator, keyfile,decryptkey);
 }
 
 void wallet_api::senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
@@ -7047,8 +7130,8 @@ full_transaction wallet_api::propose_pay_back_asset_rate_change(
 
 full_transaction wallet_api::propose_fee_change(
    const string& proposing_account,
-   fc::time_point_sec expiration_time,
    const variant_object& changed_fees,
+   int64_t expiration_time,
    bool broadcast /* = false */
    )
 {
@@ -7554,9 +7637,9 @@ full_transaction wallet_api::cancel_coldhot_uncombined_transaction(const string 
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
 }
-full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, bool broadcast)
+graphene::chain::full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast/*=true*/)
 {
-	return my->update_asset_private_keys(from_account,symbol,broadcast);
+	return my->update_asset_private_keys(from_account,symbol,out_key_file,encrypt_key,broadcast);
 }
 
 

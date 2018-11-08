@@ -60,7 +60,7 @@ namespace graphene { namespace chain {
    {
       struct fee_parameters_type
       {
-         share_type fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+         share_type fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
       };
 
       asset             fee;

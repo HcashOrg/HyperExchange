@@ -7,7 +7,7 @@ namespace graphene {
 	namespace chain {
 		struct coldhot_transfer_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			string multi_account_withdraw;
 			string multi_account_deposit;
@@ -26,7 +26,7 @@ namespace graphene {
 		};
 		struct coldhot_transfer_without_sign_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			
 			transaction_id_type coldhot_trx_id;
@@ -49,7 +49,7 @@ namespace graphene {
 		struct coldhot_transfer_with_sign_operation :public base_operation {
 
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			
 			transaction_id_type coldhot_trx_id;
@@ -73,7 +73,7 @@ namespace graphene {
 		struct coldhot_transfer_combine_sign_operation :public base_operation {
 
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			
 			fc::variant_object coldhot_trx_original_chain;
@@ -96,7 +96,7 @@ namespace graphene {
 		};
 		struct coldhot_transfer_result_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			
 			crosschain::hd_trx coldhot_trx_original_chain;
@@ -115,7 +115,7 @@ namespace graphene {
 		};
 		struct coldhot_cancel_transafer_transaction_operation : public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 
 			transaction_id_type trx_id;
@@ -131,7 +131,7 @@ namespace graphene {
 		};
 		struct coldhot_cancel_uncombined_trx_operaion :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 
 			transaction_id_type trx_id;
