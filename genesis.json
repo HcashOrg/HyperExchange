@@ -676,13 +676,18 @@
       "owner_key": "HX86DztjrzeWVmQKec4zTmkXDqphoNN9XMQYGH6RtwDHgTK7DjYx",
       "active_key": "HX86DztjrzeWVmQKec4zTmkXDqphoNN9XMQYGH6RtwDHgTK7DjYx",
       "is_lifetime_member": false
-    }
+    },{
+	  "name": "hyper-exchange",
+	  "owner_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
+	  "active_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
+	  "is_lifetime_member": false
+	}
   ],
   "initial_assets": [],
   "initial_balances": [{
       "owner": "HXNUWGgmxyLy1VpXN3F6vEVWWTL86negEi46",
       "asset_symbol": "HX",
-      "amount": "1000000000000000"
+      "amount": "100000000"
   }],
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
@@ -776,7 +781,7 @@
       "owner_name": "lynx",
 	  "type":"PERMANENT"
     },{
-      "owner_name": "scorpius",
+      "owner_name": "libra",
 	  "type":"PERMANENT"
     },{
       "owner_name": "scorpius"
