@@ -55,7 +55,7 @@ bool referendum_object::is_authorized_to_execute(database& db) const
 		   approved_key_weights += temp_hi + boost::multiprecision::uint128_t(iter->pledge_weight.lo);
 	   }
 
-	   return approved_key_weights >= (total_weights/3*2);
+	   return approved_key_weights >= (total_weights/3*2 + 1);
    } 
    catch ( const fc::exception& e )
    {

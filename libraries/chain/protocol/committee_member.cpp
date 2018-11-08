@@ -33,7 +33,7 @@ void guard_member_create_operation::validate()const
 void guard_member_update_operation::validate()const
 {
    FC_ASSERT( fee.amount >= 0 );
-   FC_ASSERT(replace_queue.size() <= 5 && replace_queue.size()>=1);
+   FC_ASSERT(replace_queue.size() <=3 && replace_queue.size()>=1);
 }
 
 void committee_member_update_global_parameters_operation::validate() const
