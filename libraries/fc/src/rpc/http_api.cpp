@@ -91,7 +91,7 @@ void http_api_connection::on_request( const fc::http::request& req, const fc::ht
       auto var = fc::json::from_string( req_body );
       const auto& var_obj = var.get_object();
 
-      if( var_obj.contains( "method" ) )
+      if( var_obj.contains( "method" ) && var_obj.contains("id"))
       {
          auto call = var.as<fc::rpc::request>();
          try
