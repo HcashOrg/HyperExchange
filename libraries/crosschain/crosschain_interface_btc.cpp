@@ -330,12 +330,37 @@ namespace graphene {
 			auto vins = tx["vin"].get_array();
 			for (auto vin : vins)
 			{
-				FC_ASSERT(vin.get_object().contains("txid"));
-				auto vin_tx = transaction_query(vin.get_object()["txid"].as_string());
-				FC_ASSERT(vin_tx.contains("vout"));
-				auto vouts = vin_tx["vout"].get_array();
-				for (auto vout : vouts)
-				{
+				try {
+					FC_ASSERT(vin.get_object().contains("txid"));
+					auto vin_tx = transaction_query(vin.get_object()["txid"].as_string());
+					FC_ASSERT(vin_tx.contains("vout"));
+					auto vouts = vin_tx["vout"].get_array();
+					for (auto vout : vouts)
+					{
+						FC_ASSERT(vout.get_object().contains("scriptPubKey"));
+						FC_ASSERT(vout.get_object().contains("value"));
+						auto scriptPubKey = vout.get_object()["scriptPubKey"].get_object();
+						FC_ASSERT(scriptPubKey.contains("addresses"));
+
+						auto vout_address = scriptPubKey["addresses"].get_array();
+						if (vout_address.size() != 1) {
+							continue;
+						}
+						if (vout_address[0].as_string() == trx.from_account) {
+							checkfrom = true;
+						}
+					}
+				}
+				catch (...) {
+					continue;
+				}
+			}
+			//check vout
+			bool checkto = false;
+			auto vouts = tx["vout"].get_array();
+			for (auto vout : vouts)
+			{
+				try {
 					FC_ASSERT(vout.get_object().contains("scriptPubKey"));
 					FC_ASSERT(vout.get_object().contains("value"));
 					auto scriptPubKey = vout.get_object()["scriptPubKey"].get_object();
@@ -345,32 +370,18 @@ namespace graphene {
 					if (vout_address.size() != 1) {
 						continue;
 					}
-					if (vout_address[0].as_string() == trx.from_account) {
-						checkfrom = true;
+					if (vout_address[0].as_string() == trx.to_account) {
+						char temp[1024];
+						std::sprintf(temp, "%.8f", vout.get_object()["value"].as_double());
+						std::string source_amount = graphene::utilities::remove_zero_for_str_amount(temp);
+						FC_ASSERT(source_amount == trx.amount);
+						checkto = true;
 					}
 				}
-			}
-			//check vout
-			bool checkto = false;
-			auto vouts = tx["vout"].get_array();
-			for (auto vout : vouts)
-			{
-				FC_ASSERT(vout.get_object().contains("scriptPubKey"));
-				FC_ASSERT(vout.get_object().contains("value"));
-				auto scriptPubKey = vout.get_object()["scriptPubKey"].get_object();
-				FC_ASSERT(scriptPubKey.contains("addresses"));
-
-				auto vout_address = scriptPubKey["addresses"].get_array();
-				if (vout_address.size() != 1) {
+				catch (...) {
 					continue;
 				}
-				if (vout_address[0].as_string() == trx.to_account) {
-					char temp[1024];
-					std::sprintf(temp, "%.8f", vout.get_object()["value"].as_double());
-					std::string source_amount = graphene::utilities::remove_zero_for_str_amount(temp);
-					FC_ASSERT(source_amount == trx.amount);
-					checkto = true;
-				}
+
 			}
 
 			/*
