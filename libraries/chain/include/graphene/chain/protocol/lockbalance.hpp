@@ -6,7 +6,7 @@ namespace graphene {
 	namespace chain {
 		struct foreclose_balance_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			asset_id_type foreclose_asset_id;
@@ -26,7 +26,7 @@ namespace graphene {
 		};
 		struct lockbalance_operation : public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;

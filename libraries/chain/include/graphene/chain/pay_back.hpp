@@ -6,7 +6,7 @@ namespace graphene {
 	namespace chain {
 		struct pay_back_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			address pay_back_owner;
 			asset fee;
@@ -25,7 +25,7 @@ namespace graphene {
 
 		struct bonus_operation :public base_operation {
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			address bonus_owner;
 			asset fee;

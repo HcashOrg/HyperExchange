@@ -32,7 +32,7 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 {
    transaction_evaluation_state dry_run_eval(&db);
    if (finished == true)
-	   return true;
+	   return false;
    try {
 	   if (type == vote_id_type::committee)
 		   return approved_key_approvals.size() >= size_t(required_account_approvals.size()*2/3 + 1);

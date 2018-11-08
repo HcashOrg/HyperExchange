@@ -293,7 +293,6 @@ processed_transaction database::push_referendum(const referendum_object& referen
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);
 			elog("e", ("e", e.to_detail_string()));
-			remove(referendum);
 			throw;
 		}
 		ptrx.operation_results = std::move(eval_state.operation_results);
@@ -337,7 +336,6 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
    catch (const fc::exception& e) {
 	   _applied_ops.resize(old_applied_ops_size);
 	   elog("e", ("e", e.to_detail_string()));
-	   remove(proposal);
 	   throw;
    }
    ptrx.operation_results = std::move(eval_state.operation_results);
