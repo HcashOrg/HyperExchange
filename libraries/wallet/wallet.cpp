@@ -2876,7 +2876,7 @@ public:
 		   FC_ASSERT(acct.id == ctz.miner_account, "Invalid citizen:" + citizen);
 		   acct.options.miner_pledge_pay_back = pledge_pay_back_rate;
 		   account_update_operation op;
-		   op.account = ctz.miner_account;
+		   op.account = acct.id;
 		   op.new_options = acct.options;
 		   signed_transaction tx;
 		   tx.operations.push_back(op);
@@ -4307,6 +4307,7 @@ public:
 	   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
 	   string redeemScript = "";
 	   string guard_address = "";
+	   bool cold = false;
 	   const account_object & account_obj = get_account(guard);
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
@@ -4326,6 +4327,7 @@ public:
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
 					   guard_address = guard_multi_address_obj->new_address_cold;
+					   cold = true;
 					   break;
 				   }
 			   }
@@ -4335,20 +4337,29 @@ public:
 	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
 	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
-	   auto wif_key = _crosschain_keys[guard_address].wif_key;
+	   if (cold)
+	   {
 
-	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-	   FC_ASSERT(in.is_open());
-	   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-		   (std::istreambuf_iterator<char>()));
-	   in.close();
-	   const auto plain_text= fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
-	   auto keys=fc::raw::unpack<crosschain_prkeys>(plain_text);
-	   //auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   auto wif_key = _crosschain_keys[guard_address].wif_key;
 
-	   auto key_ptr = prk_ptr->import_private_key(keys.wif_key);
-	   FC_ASSERT(key_ptr.valid());
-	   prk_ptr->set_key(*key_ptr);
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+
+		   prk_ptr->set_key(*key_ptr);
+	   }
+	   else
+	   {
+		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+		   FC_ASSERT(in.is_open());
+		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+		   auto keys = fc::raw::unpack<crosschain_prkeys>(plain_text);
+
+		   auto key_ptr = prk_ptr->import_private_key(keys.wif_key);
+		   FC_ASSERT(key_ptr.valid());
+		   prk_ptr->set_key(*key_ptr);
+	   }
 	   string siging;
 	   if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos) {
 		   siging = crosschain_plugin->sign_multisig_transaction(fc::variant_object("get_param_hash", coldhot_op.coldhot_trx_original_chain), prk_ptr, redeemScript, false);
