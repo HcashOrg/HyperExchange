@@ -85,13 +85,16 @@ namespace graphene {
 				}
 				const auto&  guard_idx = db().get_index_type<guard_member_index>().indices().get<by_account>();
 				FC_ASSERT(op.replace_queue.size() >0 && op.replace_queue.size() <= 3);
+				fc::flat_set<account_id_type> target;
 				for (const auto& itr : replace_queue)
 				{
 					auto itr_first = guard_idx.find(itr.first);
 					FC_ASSERT(itr_first != guard_idx.end() && itr_first->formal != true);
 					auto itr_second = guard_idx.find(itr.second);
 					FC_ASSERT(itr_second != guard_idx.end() && itr_second->formal == true && itr_second->senator_type== PERMANENT);
+					target.insert(itr.second);
 				}
+				FC_ASSERT(target.size() == replace_queue.size(), "replaced senators should be unique.");
                 return void_result();
             } FC_CAPTURE_AND_RETHROW((op))
         }
@@ -280,15 +283,17 @@ namespace graphene {
 				if (itr != referendum_idx.rend())
 					_id = itr->id;
 				FC_ASSERT(o.replace_queue.size() > 0 && o.replace_queue.size() <=3 );
+				fc::flat_set<account_id_type> target;
 				for (const auto& iter : o.replace_queue)
 				{
 					auto itr_first_senator = all_guard_ic.find(iter.first);
 					auto itr_first_citizen = all_miner_ic.find(iter.first);
 					auto itr_second_senator = all_guard_ic.find(iter.second);
 					FC_ASSERT(itr_second_senator != all_guard_ic.end() && itr_second_senator->formal == true && itr_second_senator->senator_type != PERMANENT);
-					
 					FC_ASSERT(itr_first_citizen == all_miner_ic.end() && (itr_first_senator != all_guard_ic.end() && itr_first_senator->formal != true));
+					target.insert(iter.second);
 				}
+				FC_ASSERT(o.replace_queue.size() == target.size(),"replaced senator should be unique.");
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
