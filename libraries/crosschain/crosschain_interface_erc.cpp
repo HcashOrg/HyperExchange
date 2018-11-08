@@ -436,7 +436,7 @@ namespace graphene {
 				dev::eth::TransactionSkeleton ret;
 				
 				ret.gasPrice = dev::jsToU256("5000000000");
-				ret.gas = dev::jsToU256("4500000");
+				ret.gas = dev::jsToU256("3000000");
 				ret.creation = true;
 				std::vector<char> bin_input;
 				unsigned int nDeplength = 0;
