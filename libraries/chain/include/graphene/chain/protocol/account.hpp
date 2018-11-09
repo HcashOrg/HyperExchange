@@ -374,7 +374,23 @@ namespace graphene { namespace chain {
 	   }
 	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
    };
+   struct block_address_operation : public base_operation 
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   fc::flat_set<address> blocked_address;
+	   address fee_payer() const { return address(); }
+	   void validate() const { FC_ASSERT(blocked_address.size() > 0); }
+   };
 
+   struct cancel_address_block_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   fc::flat_set<address> cancel_blocked_address;
+	   address fee_payer() const { return address(); }
+	   void validate() const { FC_ASSERT(cancel_blocked_address.size() > 0); }
+   };
 
 
 } } // graphene::chain
@@ -415,3 +431,7 @@ FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_ty
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))
 FC_REFLECT(graphene::chain::account_create_multisignature_address_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_create_multisignature_address_operation, (fee)(addr)(multisignature)(pubs)(required)(guarantee_id))
+FC_REFLECT(graphene::chain::block_address_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::block_address_operation,(fee)(blocked_address))
+FC_REFLECT(graphene::chain::cancel_address_block_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::cancel_address_block_operation, (fee)(cancel_blocked_address))

@@ -104,7 +104,21 @@ public:
 	void_result do_evaluate(const account_create_multisignature_address_operation& o);
 	void_result do_apply(const account_create_multisignature_address_operation& o);
 };
+class block_address_evaluator :public evaluator<block_address_evaluator>
+{
+public:
+	typedef block_address_operation operation_type;
+	void_result do_evaluate(const block_address_operation& o);
+	void_result do_apply(const block_address_operation& o);
+};
 
+class cancel_address_block_evaluator : public evaluator<cancel_address_block_evaluator>
+{
+public:
+	typedef cancel_address_block_operation operation_type;
+	void_result do_evaluate(const cancel_address_block_operation& o);
+	void_result do_apply(const cancel_address_block_operation& o);
+};
 
 
 } } // graphene::chain

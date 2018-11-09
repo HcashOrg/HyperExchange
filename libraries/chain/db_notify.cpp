@@ -80,7 +80,8 @@ struct get_impacted_account_visitor
    void operator() (const sign_multisig_asset_operation& op) {}
    void operator()( const asset_update_bitasset_operation& op ) {}
    void operator()( const asset_update_feed_producers_operation& op ) {}
-
+   void operator()(const block_address_operation& op) {}
+   void operator()(const cancel_address_block_operation& op) {}
    void operator()( const asset_issue_operation& op )
    {
       _impacted.insert( op.issue_to_account );

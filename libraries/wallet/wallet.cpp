@@ -3067,6 +3067,51 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(blocks_pays)(expiration_time)(broadcast))
    }
+   full_transaction proposal_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   block_address_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.blocked_address = block_addr;
+		
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(block_addr)(expiration_time)(broadcast))
+   }
+
+   full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   cancel_address_block_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.cancel_blocked_address = block_addr;
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(block_addr)(expiration_time)(broadcast))
+   }
 
    full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol, int64_t expiration_time, bool broadcast)
    {
@@ -6333,6 +6378,15 @@ void wallet_api::add_operation_to_builder_transaction(transaction_handle_type tr
    my->add_operation_to_builder_transaction(transaction_handle, op);
 }
 
+full_transaction wallet_api::proposal_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->proposal_block_address(account,block_addr,expiration_time,broadcast);
+}
+
+full_transaction wallet_api::proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->proposal_cancel_block_address(account,block_addr,expiration_time,broadcast);
+}
 void wallet_api::replace_operation_in_builder_transaction(transaction_handle_type handle, unsigned operation_index, const operation& new_op)
 {
    my->replace_operation_in_builder_transaction(handle, operation_index, new_op);
@@ -6498,7 +6552,7 @@ bool wallet_api::import_crosschain_key(string wif_key, string symbol)
 {
 	FC_ASSERT(!is_locked());
 	string shorthash;
-	if (symbol == "ETH" || symbol.find("ERC") != symbol.npos)
+	if (symbol == "ETH" || symbol.find("ERC") != symbol.npos || symbol == "HC")
 	{
 		auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		FC_ASSERT(ptr != nullptr, "plugin doesnt exist.");

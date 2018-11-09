@@ -697,8 +697,15 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
 			  }
 		  }
 		  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,0,fc::flat_set<public_key_type>());
-	  };
-      trx.verify_authority( chain_id,get_addresses, get_global_properties().parameters.max_authority_depth );
+	      };
+		  auto is_blocked_address = [&](address addr) {
+			 // need to check
+			  const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
+			  if (blocked_idx.find(addr) != blocked_idx.end())
+				  return true;
+			  return false;
+		  };
+      trx.verify_authority( chain_id,get_addresses, is_blocked_address,get_global_properties().parameters.max_authority_depth );
    }
 
    //Skip all manner of expiration and TaPoS checking if we're on block 1; It's impossible that the transaction is

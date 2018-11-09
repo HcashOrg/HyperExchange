@@ -273,6 +273,7 @@ struct sign_state
 
 void verify_authority(const vector<operation>& ops, const flat_set<public_key_type>& sigs,
 	const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	const std::function<bool(address)>& is_blocked_address,
 	uint32_t max_recursion,
 	bool allow_committe)
 {
@@ -289,6 +290,11 @@ void verify_authority(const vector<operation>& ops, const flat_set<public_key_ty
 		for (const auto& auth : other)
 		{
 			GRAPHENE_ASSERT(s.check_authority(&auth), tx_missing_other_auth, "Missing Authority", ("auth", auth)("sigs", sigs));
+			for (const auto k : auth.address_auths)
+			{
+				auto addr = k.first;
+				GRAPHENE_ASSERT(!is_blocked_address(addr), blocked_addresses, "address has been blocked", ("address", addr));
+			}
 		}
 		FC_ASSERT(other.size() != 0);
 		GRAPHENE_ASSERT(
@@ -449,10 +455,11 @@ void signed_transaction::verify_authority(
 void signed_transaction::verify_authority(
 	const chain_id_type& chain_id,
 	const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	const std::function<bool(address)>& is_blocked_address,
 	uint32_t max_recursion)const
 {
 	try {
-		graphene::chain::verify_authority(operations, get_signature_keys(chain_id), get_addresses, max_recursion);
+		graphene::chain::verify_authority(operations, get_signature_keys(chain_id), get_addresses,is_blocked_address, max_recursion);
 
 	}FC_CAPTURE_AND_RETHROW((*this))
 }
