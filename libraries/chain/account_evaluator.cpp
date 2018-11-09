@@ -512,4 +512,54 @@ void_result account_create_multisignature_address_evaluator::do_apply(const acco
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result block_address_evaluator::do_evaluate(const block_address_operation& o)
+{
+	try {
+		FC_ASSERT(o.blocked_address.size() >0 );
+		const auto& blocked_idx =db().get_index_type<blocked_index>().indices().get<by_address>();
+		for (auto addr : o.blocked_address)
+		{
+			FC_ASSERT(blocked_idx.find(addr) == blocked_idx.end(),"address has been blocked.");
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result block_address_evaluator::do_apply(const block_address_operation& o)
+{
+	try {
+		for (auto addr : o.blocked_address)
+		{
+			db().create<blocked_address_object>([&](blocked_address_object& obj) {
+				obj.blocked_address = addr;
+			});
+		}
+		
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result cancel_address_block_evaluator::do_evaluate(const cancel_address_block_operation& o)
+{
+	try {
+		FC_ASSERT(o.cancel_blocked_address.size() > 0);
+		const auto& blocked_idx = db().get_index_type<blocked_index>().indices().get<by_address>();
+		for (auto addr : o.cancel_blocked_address)
+		{
+			FC_ASSERT(blocked_idx.find(addr) != blocked_idx.end(), "address has not been blocked.");
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result cancel_address_block_evaluator::do_apply(const cancel_address_block_operation& o)
+{
+	try {
+		FC_ASSERT(o.cancel_blocked_address.size() > 0);
+		auto& blocked_idx = db().get_index_type<blocked_index>().indices().get<by_address>();
+		for (auto addr : o.cancel_blocked_address)
+		{
+			db().remove(*blocked_idx.find(addr));
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+
+
 } } // graphene::chain

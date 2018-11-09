@@ -189,7 +189,8 @@ namespace graphene { namespace chain {
       impl_buyback_object_type,
       impl_fba_accumulator_object_type,
 	  impl_guarantee_obj_type,
-	  impl_address_transaction_history_object_type
+	  impl_address_transaction_history_object_type,
+	  impl_blocked_address_obj_type
    };
 
    //typedef fc::unsigned_int            object_id_type;
@@ -276,6 +277,7 @@ namespace graphene { namespace chain {
    class multisig_account_pair_object;
    class guarantee_object;
    class history_transaction_object;
+   class blocked_address_object;
    class trx_object;
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
@@ -300,6 +302,7 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_fba_accumulator_object_type, fba_accumulator_object >                    fba_accumulator_id_type;
    typedef object_id< implementation_ids, impl_multisig_account_binding_object_type, multisig_account_pair_object >     multisig_account_pair_id_type;
    typedef object_id< implementation_ids, impl_guarantee_obj_type, guarantee_object >     guarantee_object_id_type;
+   typedef object_id< implementation_ids, impl_blocked_address_obj_type, blocked_address_object >     blocked_address_id_type;
    typedef fc::array<char, GRAPHENE_MAX_ASSET_SYMBOL_LENGTH>    symbol_type;
    typedef fc::ripemd160                                        block_id_type;
    typedef fc::ripemd160                                        checksum_type;
@@ -469,6 +472,8 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_buyback_object_type)
                  (impl_fba_accumulator_object_type)
 	             (impl_multisig_account_binding_object_type)
+	             (impl_blocked_address_obj_type)
+	             (impl_guarantee_obj_type)
                )
 
 FC_REFLECT_TYPENAME( graphene::chain::share_type )
@@ -516,7 +521,8 @@ FC_REFLECT_TYPENAME(graphene::chain::transaction_contract_storage_diff_object_id
 FC_REFLECT_TYPENAME(graphene::chain::contract_event_notify_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_history_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::eth_multi_account_id_type)
-
+FC_REFLECT_TYPENAME(graphene::chain::blocked_address_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::guarantee_object_id_type)
 FC_REFLECT( graphene::chain::void_t, )
 
 FC_REFLECT_ENUM( graphene::chain::asset_issuer_permission_flags,

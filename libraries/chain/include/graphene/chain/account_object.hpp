@@ -374,6 +374,14 @@ namespace graphene { namespace chain {
          map< account_id_type, set<account_id_type> > referred_by;
    };
 
+   class blocked_address_object : public abstract_object<blocked_address_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id =  impl_blocked_address_obj_type;
+	   address blocked_address;
+   };
+
    struct by_account_asset;
    struct by_asset_balance;
    /**
@@ -536,6 +544,14 @@ namespace graphene { namespace chain {
    */
    typedef generic_index<multisig_address_object, multisig_address_object_multi_index_type> multisig_address_index;
 
+   typedef multi_index_container<
+	   blocked_address_object,
+	   indexed_by<
+	        ordered_unique<tag<by_id>, member<object, object_id_type, & object::id>>,
+	        ordered_unique<tag<by_address> ,member<blocked_address_object,address, &blocked_address_object::blocked_address>>
+	   >
+   > blocked_address_object_multi_index_type;
+   typedef generic_index<blocked_address_object, blocked_address_object_multi_index_type> blocked_index;
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::account_object,
@@ -575,4 +591,4 @@ FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (lifetime_fees_paid)
                     (pending_fees)(pending_vested_fees)
                   )
-
+FC_REFLECT_DERIVED(graphene::chain::blocked_address_object, (graphene::db::object),(blocked_address))

@@ -153,6 +153,7 @@ namespace graphene { namespace chain {
 	  void verify_authority(
 		  const chain_id_type& chain_id,
 		  const std::function<std::tuple<address,int,fc::flat_set<public_key_type>>(address)>& get_addresses,
+		  const std::function<bool(address)>& is_blocked_address,
 		  uint32_t max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH)const;
       /**
        * This is a slower replacement for get_required_signatures()
@@ -186,6 +187,7 @@ namespace graphene { namespace chain {
 
    void verify_authority(const vector<operation>& ops, const flat_set<public_key_type>& sigs,
 	   const std::function<std::tuple<address, int, fc::flat_set<public_key_type>>(address)>& get_addresses,
+	   const std::function<bool(address)>& is_blocked_addres,
 	   uint32_t max_recursion = GRAPHENE_MAX_SIG_CHECK_DEPTH,
 	   bool allow_committe = false);
 
