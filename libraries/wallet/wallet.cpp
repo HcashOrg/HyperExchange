@@ -4284,9 +4284,14 @@ public:
 		auto prk_hot_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
 		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_hot_address) > 0, "private key doesnt belong to this wallet.");
 		std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-		std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-			(std::istreambuf_iterator<char>()));
-		in.close();
+		std::vector<char> key_file_data;
+		if (in.is_open())
+		{
+			key_file_data= std::vector<char>((std::istreambuf_iterator<char>(in)),
+				(std::istreambuf_iterator<char>()));
+			in.close();
+		}
+
 		map<string, crosschain_prkeys> decrypted_keys;
 		if (key_file_data.size() > 0)
 		{
@@ -4399,9 +4404,13 @@ public:
 	   else
 	   {
 		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-			   (std::istreambuf_iterator<char>()));
-		   in.close();
+		   std::vector<char> key_file_data;
+		   if (in.is_open())
+		   {
+			   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+		   }
 		   map<string, crosschain_prkeys> keys;
 		   if (key_file_data.size() > 0)
 		   {
@@ -4457,9 +4466,13 @@ public:
 
 	   string wif_key;
 	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-	   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-		   (std::istreambuf_iterator<char>()));
-	   in.close();
+	   std::vector<char> key_file_data;
+	   if (in.is_open())
+	   {
+		   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+	   }
 	   map<string, crosschain_prkeys> decrypted_keys;
 	   if (key_file_data.size() > 0)
 	   {
