@@ -2161,7 +2161,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_asset)
 	    (get_asset_imp)
         (create_senator_member)
-        (resign_senator_member)
         (get_citizen)
         (get_senator_member)
         (list_citizens)
