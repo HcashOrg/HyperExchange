@@ -625,7 +625,7 @@ class database_api
 	  vector<guard_lock_balance_object> get_guard_asset_lock_balance(const asset_id_type& id)const;
       variant_object decoderawtransaction(const string& raw_trx, const string& symbol) const;
 	  share_type get_miner_pay_per_block(uint32_t block_num) const;
-	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
+	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;

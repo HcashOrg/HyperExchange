@@ -240,6 +240,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			});
 		}
 		if ((o.chain_type == "ETH") || (o.chain_type.find("ERC") != o.chain_type.npos)) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(transaction_id_type(o.multi_redeemScript_hot), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<miner_generate_multi_asset_operation>::value));
 		}
 	}FC_CAPTURE_AND_RETHROW((o))

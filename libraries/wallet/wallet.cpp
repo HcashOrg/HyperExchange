@@ -3643,7 +3643,7 @@ public:
 				   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 			   }
 		   }
-		   keys[cold_keys.addr] = cold_keys;
+		   keys[symbol+cold_keys.addr] = cold_keys;
 
 		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary|std::ios::trunc);
 		   auto plain_txt = fc::raw::pack(keys);
@@ -4218,18 +4218,17 @@ public:
       return sign_transaction(trx, broadcast);
    }
    std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id) {
-	   
-	   auto temp = address(account_address);
-	   auto crosschain_all = _remote_db->get_account_crosschain_transaction(account_address);
-	   if (transaction_id_type(trx_id) == transaction_id_type()){
-		   return crosschain_all;
-	   }
 	   std::vector<crosschain_trx_object> resluts;
-	   for (auto obj : crosschain_all) {
-		   if (transaction_id_type(trx_id) == obj.transaction_id){
-			   resluts.push_back(obj);
-			   break;
+	   if (trx_id == "")
+	   {
+		   auto temp = address(account_address);
+		   auto crosschain_all = _remote_db->get_account_crosschain_transaction(account_address, transaction_id_type());
+		   if (trx_id == "") {
+			   return crosschain_all;
 		   }
+	   }
+	   else if ((account_address == "") && (transaction_id_type(trx_id) != transaction_id_type())){
+		   return _remote_db->get_account_crosschain_transaction(account_address, transaction_id_type(trx_id));
 	   }
 	   return resluts;
    }
@@ -4330,23 +4329,28 @@ public:
 		auto prk_hot_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
 		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_hot_address) > 0, "private key doesnt belong to this wallet.");
 		std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-		std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-			(std::istreambuf_iterator<char>()));
-		in.close();
+		std::vector<char> key_file_data;
+		if (in.is_open())
+		{
+			key_file_data= std::vector<char>((std::istreambuf_iterator<char>(in)),
+				(std::istreambuf_iterator<char>()));
+			in.close();
+		}
+
 		map<string, crosschain_prkeys> decrypted_keys;
 		if (key_file_data.size() > 0)
 		{
 			const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
 			decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 		}
-		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0|| decrypted_keys.find(multi_account_op.guard_sign_cold_address)!= decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
-
+		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0|| decrypted_keys.find(multi_account_op.chain_type+multi_account_op.guard_sign_cold_address)!= decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
 		string wif_key_cold;
 		if(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0)
 			wif_key_cold=_crosschain_keys[multi_account_op.guard_sign_cold_address].wif_key;
 		else
 		{
-			wif_key_cold = decrypted_keys[multi_account_op.guard_sign_cold_address].wif_key;
+			std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << multi_account_op.chain_type + multi_account_op.guard_sign_cold_address << std::endl;
+			wif_key_cold = decrypted_keys[multi_account_op.chain_type+multi_account_op.guard_sign_cold_address].wif_key;
 		}
 		auto wif_key_hot = _crosschain_keys[multi_account_op.guard_sign_hot_address].wif_key;
 
@@ -4432,10 +4436,10 @@ public:
 	   }
 	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
-	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
-	   if (cold)
+	  
+	   if (!cold)
 	   {
-
+		   FC_ASSERT(_crosschain_keys.count(guard_address) > 0, "private key doesnt belong to this wallet.");
 		   auto wif_key = _crosschain_keys[guard_address].wif_key;
 
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
@@ -4445,17 +4449,22 @@ public:
 	   else
 	   {
 		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-		   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-			   (std::istreambuf_iterator<char>()));
-		   in.close();
+		   std::vector<char> key_file_data;
+		   if (in.is_open())
+		   {
+			   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+		   }
 		   map<string, crosschain_prkeys> keys;
 		   if (key_file_data.size() > 0)
 		   {
 			   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
 			   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 		   }
-		   FC_ASSERT(keys.find(guard_address) != keys.end(),"cold key can't be found in keyfile");
-		   auto key_ptr = prk_ptr->import_private_key(keys[guard_address].wif_key);
+		   FC_ASSERT(keys.find(coldhot_op.asset_symbol + guard_address) != keys.end(),"cold key can't be found in keyfile");
+		   std::cout << fc::json::to_pretty_string(keys) << std::endl << coldhot_op.asset_symbol + guard_address << std::endl;
+		   auto key_ptr = prk_ptr->import_private_key(keys[coldhot_op.asset_symbol+guard_address].wif_key);
 		   prk_ptr->set_key(*key_ptr);
 	   }
 	   string siging;
@@ -4502,20 +4511,28 @@ public:
 
 	   string wif_key;
 	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
-	   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
-		   (std::istreambuf_iterator<char>()));
-	   in.close();
+	   std::vector<char> key_file_data;
+	   if (in.is_open())
+	   {
+		   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+	   }
 	   map<string, crosschain_prkeys> decrypted_keys;
 	   if (key_file_data.size() > 0)
 	   {
 		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
 		   decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 	   }
-	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0|| decrypted_keys.find(sign_senator) != decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
+	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0|| decrypted_keys.find(coldhot_op.asset_symbol + sign_senator) != decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
 	   if (_crosschain_keys.count(sign_senator) > 0)
 		   wif_key = _crosschain_keys[sign_senator].wif_key;
 	   else
-		   wif_key = decrypted_keys[sign_senator].wif_key;
+	   {
+		   std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << coldhot_op.asset_symbol + sign_senator << std::endl;
+		   wif_key = decrypted_keys[coldhot_op.asset_symbol + sign_senator].wif_key;
+	   }
+
 	   auto key_ptr = prk_ptr->import_private_key(wif_key);
 	   FC_ASSERT(key_ptr.valid());
 
