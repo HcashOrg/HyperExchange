@@ -187,7 +187,8 @@ namespace detail {
          {
             // https://blocklinkstalk.org/index.php/topic,23715.0.html
             vector<string> seeds = {
-				"117.78.44.37:9034"
+				"117.78.44.37:9034",
+				"39.98.59.190:9034"
 				/*
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
