@@ -4173,18 +4173,17 @@ public:
       return sign_transaction(trx, broadcast);
    }
    std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id) {
-	   
-	   auto temp = address(account_address);
-	   auto crosschain_all = _remote_db->get_account_crosschain_transaction(account_address);
-	   if (transaction_id_type(trx_id) == transaction_id_type()){
-		   return crosschain_all;
-	   }
 	   std::vector<crosschain_trx_object> resluts;
-	   for (auto obj : crosschain_all) {
-		   if (transaction_id_type(trx_id) == obj.transaction_id){
-			   resluts.push_back(obj);
-			   break;
+	   if (trx_id == "")
+	   {
+		   auto temp = address(account_address);
+		   auto crosschain_all = _remote_db->get_account_crosschain_transaction(account_address, transaction_id_type());
+		   if (trx_id == "") {
+			   return crosschain_all;
 		   }
+	   }
+	   else if ((account_address == "") && (transaction_id_type(trx_id) != transaction_id_type())){
+		   return _remote_db->get_account_crosschain_transaction(account_address, transaction_id_type(trx_id));
 	   }
 	   return resluts;
    }
