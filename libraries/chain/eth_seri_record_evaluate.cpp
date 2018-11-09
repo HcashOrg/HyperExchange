@@ -17,6 +17,9 @@ namespace graphene {
 
 				const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 				FC_ASSERT(assets.find(o.chain_type) != assets.end());
+				if (trx_state->_trx == nullptr)
+					return void_result();
+
 				FC_ASSERT(trx_state->_trx->operations.size() == 1);
 				//if the multi-addr correct or not.
 				vector<string> symbol_addrs_cold;
@@ -87,6 +90,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		object_id_type eth_series_multi_sol_create_evaluator::do_apply(const eth_series_multi_sol_create_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eth_series_multi_sol_create_operation>::value));
 			return object_id_type();
 		}
@@ -105,6 +109,8 @@ namespace graphene {
 				auto multi_account_create_iter = multi_account_create_db.find(o.sol_without_sign_txid);
 				FC_ASSERT(multi_account_create_iter != multi_account_create_db.end());
 				FC_ASSERT(multi_account_create_iter->state == sol_create_need_guard_sign);
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				FC_ASSERT(trx_state->_trx->operations.size() == 1);
 				FC_ASSERT(multi_account_create_iter->object_transaction.operations.size() == 1);
 				FC_ASSERT(multi_account_create_iter->symbol == o.chain_type);
@@ -131,6 +137,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		object_id_type eth_series_multi_sol_guard_sign_evaluator::do_apply(const eths_multi_sol_guard_sign_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(o.sol_without_sign_txid, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_multi_sol_guard_sign_operation>::value));
 			return object_id_type();
 		}
@@ -162,6 +169,7 @@ namespace graphene {
 			
 		}
 		object_id_type eths_guard_sign_final_evaluator::do_apply(const eths_guard_sign_final_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
@@ -190,6 +198,7 @@ namespace graphene {
 
 		}
 		object_id_type eths_coldhot_guard_sign_final_evaluator::do_apply(const eths_coldhot_guard_sign_final_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_coldhot_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_coldhot_guard_sign_final_operation>::value));
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
@@ -242,6 +251,7 @@ namespace graphene {
 			
 		}
 		object_id_type eth_multi_account_create_record_evaluator::do_apply(const eth_multi_account_create_record_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(o.pre_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eth_multi_account_create_record_operation>::value));
 			return object_id_type();
 		}

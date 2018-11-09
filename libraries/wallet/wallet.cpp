@@ -4387,10 +4387,10 @@ public:
 	   }
 	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
-	   FC_ASSERT(_crosschain_keys.count(guard_address)>0,"private key doesnt belong to this wallet.");
+	  
 	   if (!cold)
 	   {
-
+		   FC_ASSERT(_crosschain_keys.count(guard_address) > 0, "private key doesnt belong to this wallet.");
 		   auto wif_key = _crosschain_keys[guard_address].wif_key;
 
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
