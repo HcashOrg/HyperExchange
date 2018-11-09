@@ -252,7 +252,10 @@ private:
          //}
       _wallet.pending_account_registrations.erase( it );
    }
-
+   void claim_account_update(const account_object& obj)
+   {
+		   _wallet.update_account(obj);
+   }
    // after a witness registration succeeds, this saves the private key in the wallet permanently
    //
    void claim_registered_miner(const std::string& witness_name)
@@ -315,6 +318,22 @@ private:
 				   claim_registered_miner(optional_account->name);
             }
       }
+	  if (!_wallet.pending_account_updation.empty())
+	  {
+		  // make a vector of the owner accounts for update pending registration
+		  std::vector<transaction_id_type> pending_trx_ids = boost::copy_range<std::vector<transaction_id_type> >(boost::adaptors::keys(_wallet.pending_account_updation));
+
+		  for (auto id : pending_trx_ids)
+		  {
+			  auto trx=_remote_db->get_transaction_by_id(id);
+			  if (trx.valid())
+			  {
+				  auto acct=_remote_db->get_account(_wallet.pending_account_updation[id]);
+				  claim_account_update(acct);
+				  _wallet.pending_account_updation.erase(id);
+			  }
+		  }
+	  }
       if (_wallet.event_handlers.size() != 0)
       {
           auto& idx = _wallet.event_handlers.get<by_id>();
@@ -2884,7 +2903,9 @@ public:
 		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
 		   tx.validate();
 
-		   return sign_transaction(tx, broadcast);
+		   full_transaction res= sign_transaction(tx, broadcast);
+		   _wallet.pending_account_updation[res.trxid] = acct.name;
+		   return res;
 
 	   }FC_CAPTURE_AND_RETHROW((citizen)(pledge_pay_back_rate))
    }
@@ -4242,7 +4263,7 @@ public:
 		   return optional<multisig_account_pair_object>();
 	   return get_multisig_account_pair(ret->multisig_account_pair_object_id);
    }
-   void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
+   void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator,const string& keyfile,const string&decryptkey) {
 		FC_ASSERT(!is_locked());
 		auto guard_obj = get_guard_member(senator);
 		const account_object & account_obj = get_account(senator);
@@ -4263,8 +4284,25 @@ public:
 		auto prk_cold_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
 		auto prk_hot_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(multi_account_op.chain_type);
 		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_hot_address) > 0, "private key doesnt belong to this wallet.");
-		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0, "private key doesnt belong to this wallet.");
-		auto wif_key_cold = _crosschain_keys[multi_account_op.guard_sign_cold_address].wif_key;
+		std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+		std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			(std::istreambuf_iterator<char>()));
+		in.close();
+		map<string, crosschain_prkeys> decrypted_keys;
+		if (key_file_data.size() > 0)
+		{
+			const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+			decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+		}
+		FC_ASSERT(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0|| decrypted_keys.find(multi_account_op.guard_sign_cold_address)!= decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
+
+		string wif_key_cold;
+		if(_crosschain_keys.count(multi_account_op.guard_sign_cold_address) > 0)
+			wif_key_cold=_crosschain_keys[multi_account_op.guard_sign_cold_address].wif_key;
+		else
+		{
+			wif_key_cold = decrypted_keys[multi_account_op.guard_sign_cold_address].wif_key;
+		}
 		auto wif_key_hot = _crosschain_keys[multi_account_op.guard_sign_hot_address].wif_key;
 
 		auto key_cold_ptr = prk_cold_ptr->import_private_key(wif_key_cold);
@@ -4371,7 +4409,7 @@ public:
 			   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
 			   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 		   }
-		   FC_ASSERT(keys.find(guard_address) != keys.end());
+		   FC_ASSERT(keys.find(guard_address) != keys.end(),"cold key can't be found in keyfile");
 		   auto key_ptr = prk_ptr->import_private_key(keys[guard_address].wif_key);
 		   prk_ptr->set_key(*key_ptr);
 	   }
@@ -4397,7 +4435,7 @@ public:
 	   sign_transaction(transaction, true);
 	   
    }
-   void senator_sign_eths_coldhot_final_trx(const string& trx_id, const string & senator) {
+   void senator_sign_eths_coldhot_final_trx(const string& trx_id, const string & senator, const string& keyfile, const string&decryptkey) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(trx_id) != transaction_id_type(), "not correct transction.");
 	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_eth_guard_need_sign, transaction_id_type(trx_id));
@@ -4414,8 +4452,25 @@ public:
 	   auto without_sign = eth_without_sign_trx_obj["without_sign"].as_string();
 
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
-	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0, "private key doesnt belong to this wallet.");
-	   auto wif_key = _crosschain_keys[sign_senator].wif_key;
+	   
+
+
+	   string wif_key;
+	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+	   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+		   (std::istreambuf_iterator<char>()));
+	   in.close();
+	   map<string, crosschain_prkeys> decrypted_keys;
+	   if (key_file_data.size() > 0)
+	   {
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+		   decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+	   }
+	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0|| decrypted_keys.find(sign_senator) != decrypted_keys.end(), "private key doesnt belong to this wallet or keyfile.");
+	   if (_crosschain_keys.count(sign_senator) > 0)
+		   wif_key = _crosschain_keys[sign_senator].wif_key;
+	   else
+		   wif_key = decrypted_keys[sign_senator].wif_key;
 	   auto key_ptr = prk_ptr->import_private_key(wif_key);
 	   FC_ASSERT(key_ptr.valid());
 
@@ -6722,14 +6777,14 @@ void wallet_api::senator_sign_coldhot_transaction(const string& tx_id, const str
 	return my->guard_sign_coldhot_transaction(tx_id, senator, keyfile,decryptkey);
 }
 
-void wallet_api::senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator) {
-	my->senator_sign_eths_multi_account_create_trx(tx_id, senator);
+void wallet_api::senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey) {
+	my->senator_sign_eths_multi_account_create_trx(tx_id, senator,keyfile,decryptkey);
 }
 void wallet_api::senator_sign_eths_final_trx(const string& trx_id, const string & senator) {
 	my->senator_sign_eths_final_trx(trx_id, senator);
 }
-void wallet_api::senator_sign_eths_coldhot_final_trx(const string& trx_id, const string & senator) {
-	my->senator_sign_eths_coldhot_final_trx(trx_id, senator);
+void wallet_api::senator_sign_eths_coldhot_final_trx(const string& trx_id, const string & senator, const string& keyfile, const string& decryptkey) {
+	my->senator_sign_eths_coldhot_final_trx(trx_id, senator,keyfile,decryptkey);
 }
 void wallet_api::senator_sign_crosschain_transaction(const string& trx_id,const string& guard){
 	return my->guard_sign_crosschain_transaction(trx_id,guard);
