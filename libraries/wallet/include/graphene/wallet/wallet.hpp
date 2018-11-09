@@ -335,6 +335,7 @@ struct wallet_data
    // map of account_name -> base58_private_key for
    //    incomplete account regs
    map<string, address > pending_account_registrations;
+   map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
 
    key_label_index_type                                              labeled_keys;
@@ -1809,9 +1810,9 @@ class wallet_api
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
 	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
-	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
 	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
-	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -2071,6 +2072,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (cipher_keys)
             (extra_keys)
             (pending_account_registrations)(pending_miner_registrations)
+			(pending_account_updation)
             (labeled_keys)
             (blind_receipts)
             (ws_server)
