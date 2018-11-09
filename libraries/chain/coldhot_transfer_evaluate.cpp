@@ -33,6 +33,8 @@ namespace graphene {
 				FC_ASSERT((withdraw_multi &&deposit_multi), "Cant Transfer account which is not multi account");
 				//FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				auto current_trx_id = trx_state->_trx->id();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
 				FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "This coldhot Transaction exist");
@@ -43,6 +45,7 @@ namespace graphene {
 		void_result coldhot_transfer_evaluate::do_apply(const coldhot_transfer_operation& o) {
 			try {
 				database& d = db();
+				FC_ASSERT(trx_state->_trx != nullptr);
 				d.adjust_coldhot_transaction(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_operation>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
