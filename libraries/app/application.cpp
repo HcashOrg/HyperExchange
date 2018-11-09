@@ -110,12 +110,17 @@ namespace detail {
 			                                          name_key.get_public_key(),
 			                                          name_key.get_public_key(),
 			                                          true);
+		  genesis_state_type::initial_committee_member_type senator;
 		  if (i < 5)
 		  {
-			  initial_state.initial_guard_candidates.push_back({ name,PERMANENT });
+			  senator.owner_name = name;
+			  senator.type = PERMANENT;
+			  initial_state.initial_guard_candidates.push_back(senator);
 		  }
 		  else {
-			  initial_state.initial_guard_candidates.push_back({ name,EXTERNAL });
+			  senator.owner_name = name;
+			  senator.type = EXTERNAL;
+			  initial_state.initial_guard_candidates.push_back(senator);
 		  }
 		  
 
