@@ -60,6 +60,7 @@ namespace graphene {
 				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
 				FC_ASSERT(sign_guard_iter != guard_dbs.end());
 				FC_ASSERT(sign_guard_iter->senator_type == PERMANENT);
+				FC_ASSERT(sign_guard_iter->formal == true);
 				std::string temp_cold, temp_hot;
 				for (auto guard_account_id : eth_guard_account_ids) {
 					if (guard_account_id.first == sign_guard_iter->guard_member_account){
