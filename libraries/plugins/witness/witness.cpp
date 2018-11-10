@@ -287,6 +287,8 @@ void miner_plugin::check_eths_generate_multi_addr(miner_id_type miner, fc::ecc::
 				const auto&  mul_acc_db = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_mulaccount_trx_id>();
 				auto multi_withsign_trx = mul_acc_db.find(transaction_id_type(mul_acc.first));
 				FC_ASSERT(multi_withsign_trx != mul_acc_db.end());
+				if (!instance.contain_crosschain_handles(multi_withsign_trx->symbol))
+					continue;
 				auto crosschain_interface = instance.get_crosschain_handle(multi_withsign_trx->symbol);
 				std::vector<std::string> hot_trx_id;
 				hot_trx_id.push_back(multi_withsign_trx->hot_sol_trx_id);
