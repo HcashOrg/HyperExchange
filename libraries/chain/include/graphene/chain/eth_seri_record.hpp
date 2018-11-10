@@ -138,7 +138,7 @@ namespace graphene {
 FC_REFLECT(graphene::chain::eth_seri_guard_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eth_seri_guard_sign_operation, (fee)(eth_guard_sign_trx)(guard_address)(guard_to_sign))
 FC_REFLECT(graphene::chain::eth_series_multi_sol_create_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::eth_series_multi_sol_create_operation, (fee)(miner_broadcast)(miner_broadcast_addrss)(multi_cold_address)
+FC_REFLECT(graphene::chain::eth_series_multi_sol_create_operation, (fee)(guard_to_sign)(miner_broadcast)(miner_broadcast_addrss)(multi_cold_address)
 																	(multi_hot_address)(multi_account_tx_without_sign_hot)(multi_account_tx_without_sign_cold)(cold_nonce)(hot_nonce)(chain_type)(guard_sign_hot_address)(guard_sign_cold_address))
 FC_REFLECT(graphene::chain::eth_multi_account_create_record_operation::fee_parameters_type,(fee))
 FC_REFLECT(graphene::chain::eth_multi_account_create_record_operation, (fee)(miner_broadcast)(miner_address)(chain_type)(multi_pubkey_type)(eth_multi_account_trx)(eth_multi_account_trx)(pre_trx_id))
