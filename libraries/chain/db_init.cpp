@@ -290,6 +290,8 @@ void database::initialize_evaluators()
    register_evaluator<referendum_update_evaluator>();
    register_evaluator<citizen_referendum_senator_evaluator>();
    register_evaluator<referendum_accelerate_pledge_evaluator>();
+   register_evaluator<block_address_evaluator>();
+   register_evaluator<cancel_address_block_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -357,7 +359,7 @@ void database::initialize_indexes()
    add_index <primary_index<contract_history_object_index                               > >();
    add_index<primary_index<eth_multi_account_trx_index>>();
    add_index<primary_index<referendum_index>>();
-  
+   add_index<primary_index<blocked_index>>  ();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

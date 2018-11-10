@@ -199,6 +199,7 @@ namespace graphene {
 					db_adjust_balance(op.fee_payer(), -fee_need_pay);
 					db_adjust_frozen(guarantee_obj.owner_addr,-fee_from_account);
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
+					FC_ASSERT(get_trx_eval_state()->_trx != nullptr);
 					db_record_guarantee(*op.get_guarantee_id(), get_trx_eval_state()->_trx->id());
 					db_adjust_balance(guarantee_obj.owner_addr,fee_need_pay);
 				}

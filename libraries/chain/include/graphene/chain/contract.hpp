@@ -72,7 +72,7 @@ namespace graphene {
 		struct contract_register_operation : public base_operation
 		{
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 			
@@ -103,7 +103,7 @@ namespace graphene {
 		struct contract_upgrade_operation : public base_operation
 		{
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 
@@ -133,7 +133,7 @@ namespace graphene {
 		struct contract_invoke_operation : public base_operation
 		{
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 
@@ -183,7 +183,7 @@ namespace graphene {
 		struct transfer_contract_operation : public base_operation
         {
             struct fee_parameters_type {
-                uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+                uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
                 uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
             };
 
@@ -217,7 +217,7 @@ namespace graphene {
 
 			
 			struct fee_parameters_type {
-				uint64_t fee = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 			};
 			asset fee;
 			string memo;

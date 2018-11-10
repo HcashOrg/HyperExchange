@@ -335,6 +335,7 @@ struct wallet_data
    // map of account_name -> base58_private_key for
    //    incomplete account regs
    map<string, address > pending_account_registrations;
+   map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
 
    key_label_index_type                                              labeled_keys;
@@ -1006,7 +1007,11 @@ class wallet_api
       */
       string lightwallet_broadcast(signed_transaction trx);
 
-
+      /**
+       *  get referenced block info for light wallet 
+       *  @returns ref_block_num & ref_block_prefix
+       */
+      string lightwallet_get_refblock_info();
 
 
 	  /** Transfer an amount from one address to another.
@@ -1804,10 +1809,10 @@ class wallet_api
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
-	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator);
-	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator);
+	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
+	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
 	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
-	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator);
+	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -1881,8 +1886,8 @@ class wallet_api
        */
       full_transaction propose_fee_change(
          const string& proposing_account,
-         fc::time_point_sec expiration_time,
          const variant_object& changed_values,
+		 int64_t expiration_time,
          bool broadcast = false);
 	  std::vector<lockbalance_object> get_account_lock_balance(const string& account)const;
 
@@ -1997,7 +2002,7 @@ class wallet_api
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
-	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol,bool broadcast=true);
+	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol, const string& out_key_file, const string& encrypt_key,bool broadcast=true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
@@ -2024,10 +2029,12 @@ class wallet_api
 	  optional<guarantee_object> get_guarantee_order(const guarantee_object_id_type id);
 	  full_transaction senator_appointed_publisher(const string& account,const account_id_type publisher,const string& symbol, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_cancel_publisher(const string& account, const account_id_type publisher, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction citizen_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
-	  full_transaction citizen_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast = true);
+	  full_transaction senator_appointed_lockbalance_senator(const string& account, const std::map<string,asset>& lockbalance, int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_withdraw_deposit(const string& account, bool can,const string& symbol ,int64_t expiration_time, bool broadcast = true);
 	  full_transaction senator_determine_block_payment(const string& account, const std::map<uint32_t,uint32_t>& blocks_pays, int64_t expiration_time, bool broadcast = true);
+	  full_transaction proposal_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
+	  full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_referendum_for_senator(const string& citizen, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
@@ -2037,6 +2044,7 @@ class wallet_api
 	  string sign_multisig_trx(const address& addr,const string& trx);
 	  signed_transaction decode_multisig_transaction(const string& trx);
 	variant_object  get_multisig_address(const address& addr);
+	full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast=true);
 	  flat_set< miner_id_type> list_active_citizens();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
@@ -2066,6 +2074,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (cipher_keys)
             (extra_keys)
             (pending_account_registrations)(pending_miner_registrations)
+			(pending_account_updation)
             (labeled_keys)
             (blind_receipts)
             (ws_server)
@@ -2154,7 +2163,6 @@ FC_API( graphene::wallet::wallet_api,
         (get_asset)
 	    (get_asset_imp)
         (create_senator_member)
-        (resign_senator_member)
         (get_citizen)
         (get_senator_member)
         (list_citizens)
@@ -2298,18 +2306,19 @@ FC_API( graphene::wallet::wallet_api,
         (get_contract_invoke_object)
 		(get_guarantee_order)
 		(senator_appointed_publisher)
-		(citizen_appointed_crosschain_fee)
+		(senator_appointed_crosschain_fee)
 	    (remove_guarantee_id)
 		(network_get_info)
         (start_citizen)
 		(get_account_crosschain_transaction)
         (witness_node_stop)
 		(get_bonus_balance)
-		(citizen_appointed_lockbalance_senator)
+		(senator_appointed_lockbalance_senator)
 		(get_citizen_lockbalance_info)
 		(senator_cancel_publisher)
 		(senator_determine_withdraw_deposit)
         (lightwallet_broadcast)
+        (lightwallet_get_refblock_info)
         (create_multisignature_address)
 		(get_first_contract_address)
 	    (get_pubkey_from_priv)
@@ -2318,6 +2327,7 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_from_to_address)
 		(combine_transaction)
 		(get_multisig_address)
+			(set_citizen_pledge_pay_back_rate)
 		(list_active_citizens)
 		(decode_multisig_transaction)
 		(get_pubkey_from_account)
@@ -2326,4 +2336,6 @@ FC_API( graphene::wallet::wallet_api,
 		(get_referendum_for_voter)
 		(referendum_accelerate_pledge)
 		(approve_referendum)
+		(proposal_block_address)
+		(proposal_cancel_block_address)
       )

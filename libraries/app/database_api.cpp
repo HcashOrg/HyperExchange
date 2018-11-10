@@ -162,7 +162,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<multisig_asset_transfer_object> get_multisigs_trx() const;
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
-	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account)const;
+	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
 	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
@@ -2563,7 +2563,7 @@ vector<referendum_object> database_api_impl::get_referendum_transactions_waiting
 	idx.inspect_all_objects([&](const object& obj) {
 		const referendum_object& p = static_cast<const referendum_object&>(obj);
 		auto accounts = p.required_account_approvals;
-		if (accounts.find(addr) != accounts.end() && p.finished == false)
+		if (accounts.find(addr) != accounts.end())
 			result.push_back(p);
 	});
 	return result;
@@ -2810,8 +2810,8 @@ share_type database_api::get_miner_pay_per_block(uint32_t block_num) const
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }
-vector<crosschain_trx_object>  database_api::get_account_crosschain_transaction(const string& account)const {
-	return my->get_account_crosschain_transaction(account);
+vector<crosschain_trx_object>  database_api::get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const {
+	return my->get_account_crosschain_transaction(account,id);
 }
 vector<optional<multisig_address_object>> database_api::get_multi_account_guard(const string & multi_address, const string& symbol) const {
 	return my->get_multi_account_guard(multi_address, symbol);
@@ -2842,11 +2842,20 @@ vector<coldhot_transfer_object> database_api_impl::get_coldhot_transaction(const
 		return result;
 	}
 }
-vector<crosschain_trx_object>  database_api_impl::get_account_crosschain_transaction(const string& account)const {
+vector<crosschain_trx_object>  database_api_impl::get_account_crosschain_transaction(const string& account, const transaction_id_type& id)const {
 	vector<crosschain_trx_object> result;
-	auto cross_trx_range = _db.get_index_type<crosschain_trx_index>().indices().get<by_withdraw_link_account>().equal_range(account);
-	for (const auto crosschain_trx_obj : boost::make_iterator_range(cross_trx_range.first,cross_trx_range.second)){
-		result.push_back(crosschain_trx_obj);
+	if (account == "" && id != transaction_id_type()) {
+		auto& cross_trx_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+		auto cross_trx_iter = cross_trx_db.find(id);
+		if (cross_trx_iter != cross_trx_db.end()){
+			result.push_back(*cross_trx_iter);
+		}
+	}
+	else {
+		auto cross_trx_range = _db.get_index_type<crosschain_trx_index>().indices().get<by_withdraw_link_account>().equal_range(account);
+		for (const auto crosschain_trx_obj : boost::make_iterator_range(cross_trx_range.first, cross_trx_range.second)) {
+			result.push_back(crosschain_trx_obj);
+		}
 	}
 	return result;
 }

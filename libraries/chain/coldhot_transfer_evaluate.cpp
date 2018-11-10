@@ -31,8 +31,10 @@ namespace graphene {
 					}
 				}
 				FC_ASSERT((withdraw_multi &&deposit_multi), "Cant Transfer account which is not multi account");
-				FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
+				//FC_ASSERT((o.multi_account_deposit != o.multi_account_withdraw), "Cant Transfer account which is accually same account");
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				auto current_trx_id = trx_state->_trx->id();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(current_trx_id);
 				FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "This coldhot Transaction exist");
@@ -43,6 +45,7 @@ namespace graphene {
 		void_result coldhot_transfer_evaluate::do_apply(const coldhot_transfer_operation& o) {
 			try {
 				database& d = db();
+				FC_ASSERT(trx_state->_trx != nullptr);
 				d.adjust_coldhot_transaction(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_operation>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -64,6 +67,8 @@ namespace graphene {
 				FC_ASSERT(coldhot_tx_iter != coldhot_tx_dbs.end(), "coldhot original trx doesn`t exist");
 				//check without sign trx whether exist
 				auto& coldhot_without_sign_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>();
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				auto coldhot_without_sign_tx_iter = coldhot_without_sign_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_without_sign_tx_iter == coldhot_without_sign_tx_dbs.end(), "coldhot trx without sign has been created");
 				
@@ -89,7 +94,7 @@ namespace graphene {
 					mul_obj.set("turn_without_eth_sign", o.coldhot_trx_original_chain);
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object(mul_obj));
 				}
-				else if (o.asset_symbol.find("ETH") != o.asset_symbol.npos)
+				else if (o.asset_symbol == "ETH")
 				{
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
 				}
@@ -141,6 +146,7 @@ namespace graphene {
 		}
 		void_result coldhot_transfer_without_sign_evaluate::do_apply(const coldhot_transfer_without_sign_operation& o) {
 			try {
+				FC_ASSERT(trx_state->_trx != nullptr);
 				db().adjust_coldhot_transaction(o.coldhot_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_without_sign_operation>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -156,6 +162,8 @@ namespace graphene {
 				auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				auto coldhot_without_sign_tx_iter = coldhot_tx_dbs.find(o.coldhot_trx_id);
 				FC_ASSERT(coldhot_without_sign_tx_iter != coldhot_tx_dbs.end(), "coldhot original trx doesn`t exist");
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "coldhot trx with this sign has been created");
 
@@ -181,6 +189,7 @@ namespace graphene {
 		}
 		void_result coldhot_transfer_with_sign_evaluate::do_apply(const coldhot_transfer_with_sign_operation& o) {
 			try {
+				FC_ASSERT(trx_state->_trx!= nullptr);
 				db().adjust_coldhot_transaction(o.coldhot_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_with_sign_operation>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -197,6 +206,8 @@ namespace graphene {
 				auto coldhot_without_sign_tx_iter = coldhot_tx_dbs.find(o.coldhot_transfer_trx_id);
 				FC_ASSERT(coldhot_without_sign_tx_iter != coldhot_tx_dbs.end(), "coldhot without sign trx doesn`t exist");
 				//auto& coldhot_tx_dbs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				auto coldhot_tx_iter = coldhot_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_tx_iter == coldhot_tx_dbs.end(), "coldhot trx combine has been created");
 				auto coldhot_relate_original_iter = coldhot_tx_dbs.find(coldhot_without_sign_tx_iter->relate_trx_id);
@@ -228,6 +239,7 @@ namespace graphene {
 		}
 		void_result coldhot_transfer_combine_sign_evaluate::do_apply(const coldhot_transfer_combine_sign_operation& o) {
 			try {
+				FC_ASSERT(trx_state->_trx != nullptr);
 				db().adjust_coldhot_transaction(o.coldhot_transfer_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value));
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				if (!manager.contain_crosschain_handles(o.asset_symbol))
@@ -277,7 +289,20 @@ namespace graphene {
 				if (crosschain_plugin->valid_config()) {
 					return void_result();
 				}
-				crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
+				auto obj = db().get_asset(o.coldhot_trx_original_chain.asset_symbol);
+				FC_ASSERT(obj.valid());
+				auto descrip = obj->options.description;
+				bool bCheckTransactionValid = false;
+				if (o.coldhot_trx_original_chain.asset_symbol.find("ERC") != o.coldhot_trx_original_chain.asset_symbol.npos) {
+					auto temp_hdtx = o.coldhot_trx_original_chain;
+					temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
+					bCheckTransactionValid = crosschain_plugin->validate_link_trx(temp_hdtx);
+				}
+				else {
+					bCheckTransactionValid = crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
+				}
+				FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
+				//crosschain_plugin->validate_link_trx(o.coldhot_trx_original_chain);
 				return void_result();
 
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -287,6 +312,7 @@ namespace graphene {
 				auto& originaldb = db().get_index_type<coldhot_transfer_index>().indices().get<by_original_trxid_optype>();
 				auto combine_op_number = uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value);
 				auto combine_trx_iter = originaldb.find(boost::make_tuple(o.coldhot_trx_original_chain.trx_id, combine_op_number));
+				FC_ASSERT(trx_state->_trx != nullptr);
 				db().adjust_coldhot_transaction(combine_trx_iter->relate_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_result_operation>::value));
 				db().adjust_crosschain_confirm_trx(o.coldhot_trx_original_chain);
 
@@ -321,6 +347,7 @@ namespace graphene {
 		}
 		void_result coldhot_cancel_transafer_transaction_evaluate::do_apply(const coldhot_cancel_transafer_transaction_operation& o) {
 			try {
+				FC_ASSERT(trx_state->_trx != nullptr);
 				db().adjust_coldhot_transaction(o.trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_cancel_transafer_transaction_operation>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -337,6 +364,8 @@ namespace graphene {
 				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_without_sign_trx_create, "Coldhot transaction state error");
 				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
 				FC_ASSERT(source_trx != coldhot_db.end(),"source trx exist error");
+				if(trx_state->_trx==nullptr)
+					return  void_result();
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
@@ -344,6 +373,7 @@ namespace graphene {
 		}
 		void_result coldhot_cancel_uncombined_trx_evaluate::do_apply(const coldhot_cancel_uncombined_trx_operaion& o) {
 			try {
+				FC_ASSERT(trx_state->_trx != nullptr,"trx_state->_trx should not be nullptr");
 				db().adjust_coldhot_transaction(o.trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_cancel_uncombined_trx_operaion>::value));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))

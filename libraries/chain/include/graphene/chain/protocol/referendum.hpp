@@ -69,7 +69,7 @@ namespace graphene { namespace chain {
    struct referendum_create_operation : public base_operation
    {
        struct fee_parameters_type { 
-          uint64_t fee            = 50 * GRAPHENE_HXCHAIN_PRECISION;
+          uint64_t fee            = 1000 * GRAPHENE_HXCHAIN_PRECISION;
        };
        asset              fee;
 	   account_id_type    proposer;
@@ -92,7 +92,7 @@ namespace graphene { namespace chain {
    struct referendum_update_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 20 * GRAPHENE_HXCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 
 	   address            fee_paying_account;
@@ -111,7 +111,7 @@ namespace graphene { namespace chain {
    {
 	   struct fee_parameters_type
 	   {
-		   uint64_t fee = 20 * GRAPHENE_HXCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   address          fee_paying_account;
 	   asset            fee;

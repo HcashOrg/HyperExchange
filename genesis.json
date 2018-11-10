@@ -1,11 +1,11 @@
 {
-  "initial_timestamp": "2018-10-25T09:12:15",
+  "initial_timestamp": "2018-11-09T10:02:05",
   "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
       "parameters": [[
           0,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
@@ -18,7 +18,7 @@
           }
         ],[
           3,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           4,{
@@ -54,7 +54,7 @@
           }
         ],[
           11,{
-            "fee": 5000
+            "fee": 100
           }
         ],[
           12,{
@@ -82,12 +82,12 @@
           }
         ],[
           17,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 10
           }
         ],[
           18,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           19,{
@@ -115,7 +115,7 @@
           }
         ],[
           25,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           26,{
@@ -127,12 +127,12 @@
           }
         ],[
           28,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 10
           }
         ],[
           29,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 10
           }
         ],[
@@ -158,11 +158,11 @@
           }
         ],[
           35,{
-            "fee": 30000
+            "fee": 1000000000
           }
         ],[
           36,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           37,{
@@ -197,16 +197,16 @@
           44,{}
         ],[
           45,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 10
           }
         ],[
           46,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           47,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           48,{
@@ -226,7 +226,7 @@
           51,{}
         ],[
           52,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           53,{}
@@ -236,157 +236,157 @@
           }
         ],[
           55,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           56,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           57,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           58,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           59,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           60,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           61,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           62,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           63,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           64,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           65,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           66,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           67,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           68,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           69,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           70,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           71,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           72,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           73,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           74,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           75,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           76,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           77,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           78,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           79,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           80,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           81,{
-            "fee": 200,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           82,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           83,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           84,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           85,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           86,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           87,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           88,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           89,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           90,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           91,{
-            "fee": 200
+            "fee": 100
           }
         ],[
           92,{
@@ -394,14 +394,66 @@
           }
         ],[
           93,{
-            "fee": 200
+            "fee": 100
+          }
+        ],[
+          94,{
+            "fee": 100
+          }
+        ],[
+          95,{
+            "fee": 100
+          }
+        ],[
+          96,{
+            "fee": 100
+          }
+        ],[
+          97,{
+            "fee": 100
+          }
+        ],[
+          98,{
+            "fee": 100
+          }
+        ],[
+          99,{
+            "fee": 100
+          }
+        ],[
+          100,{
+            "fee": 100
+          }
+        ],[
+          101,{
+            "fee": 100000000
+          }
+        ],[
+          102,{
+            "fee": 100
+          }
+        ],[
+          103,{
+            "fee": 100
+          }
+        ],[
+          104,{
+            "fee": 100
+          }
+        ],[
+          105,{
+            "fee": 100
+          }
+        ],[
+          106,{
+            "fee": 100
           }
         ]
       ],
       "scale": 10000
     },
     "block_interval": 5,
-    "maintenance_interval": 86400,
+    "maintenance_interval": 600,
     "maintenance_skip_slots": 3,
     "committee_proposal_review_period": 1209600,
     "maximum_transaction_size": 2048,
@@ -433,271 +485,332 @@
     "extensions": []
   },
   "initial_accounts": [{
-      "name": "citizen0",
+      "name": "hydra",
       "owner_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC",
       "active_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC",
       "is_lifetime_member": true
     },{
-      "name": "citizen1",
+      "name": "uma",
       "owner_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA",
       "active_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA",
       "is_lifetime_member": true
     },{
-      "name": "citizen2",
+      "name": "cetus",
       "owner_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD",
       "active_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD",
       "is_lifetime_member": true
     },{
-      "name": "citizen3",
+      "name": "pegasus",
       "owner_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2",
       "active_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2",
       "is_lifetime_member": true
     },{
-      "name": "citizen4",
+      "name": "leo",
       "owner_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn",
       "active_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn",
       "is_lifetime_member": true
     },{
-      "name": "citizen5",
+      "name": "pisces",
       "owner_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca",
       "active_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca",
       "is_lifetime_member": true
     },{
-      "name": "citizen6",
+      "name": "sagittarius",
       "owner_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14",
       "active_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14",
       "is_lifetime_member": true
     },{
-      "name": "citizen7",
+      "name": "taurus",
       "owner_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87",
       "active_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87",
       "is_lifetime_member": true
     },{
-      "name": "citizen8",
+      "name": "camelopardus",
       "owner_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj",
       "active_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj",
       "is_lifetime_member": true
     },{
-      "name": "citizen9",
+      "name": "serpens",
       "owner_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY",
       "active_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY",
       "is_lifetime_member": true
     },{
-      "name": "citizen10",
+      "name": "centaurus",
       "owner_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5",
       "active_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5",
       "is_lifetime_member": true
     },{
-      "name": "citizen11",
+      "name": "monoceros",
       "owner_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN",
       "active_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN",
       "is_lifetime_member": true
     },{
-      "name": "citizen12",
+      "name": "phoenix",
       "owner_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7",
       "active_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7",
       "is_lifetime_member": true
     },{
-      "name": "citizen13",
+      "name": "aeies",
       "owner_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm",
       "active_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm",
       "is_lifetime_member": true
     },{
-      "name": "citizen14",
+      "name": "capricornus",
       "owner_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N",
       "active_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N",
       "is_lifetime_member": true
     },{
-      "name": "citizen15",
+      "name": "pavo",
       "owner_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d",
       "active_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d",
       "is_lifetime_member": true
     },{
-      "name": "citizen16",
+      "name": "lupus",
       "owner_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN",
       "active_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN",
       "is_lifetime_member": true
     },{
-      "name": "citizen17",
+      "name": "tucana",
       "owner_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75",
       "active_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75",
       "is_lifetime_member": true
     },{
-      "name": "citizen18",
+      "name": "vulpecula",
       "owner_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g",
       "active_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g",
       "is_lifetime_member": true
     },{
-      "name": "citizen19",
+      "name": "hydrus",
       "owner_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq",
       "active_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq",
       "is_lifetime_member": true
     },{
-      "name": "citizen20",
+      "name": "lacerta",
       "owner_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG",
       "active_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG",
       "is_lifetime_member": true
     },{
-      "name": "citizen21",
+      "name": "delphinus",
       "owner_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V",
       "active_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V",
       "is_lifetime_member": true
     },{
-      "name": "citizen22",
+      "name": "corvus",
       "owner_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ",
       "active_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ",
       "is_lifetime_member": true
     },{
-      "name": "citizen23",
+      "name": "dorado",
       "owner_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8",
       "active_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8",
       "is_lifetime_member": true
     },{
-      "name": "citizen24",
+      "name": "volans",
       "owner_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75",
       "active_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75",
       "is_lifetime_member": true
     },{
-      "name": "senator0",
+      "name": "draco",
       "owner_key": "HX4tY1YqtsguE2bR79Zr73qyTFHaY3at1DGT24iMjoXZ3N3gvada",
       "active_key": "HX4tY1YqtsguE2bR79Zr73qyTFHaY3at1DGT24iMjoXZ3N3gvada",
       "is_lifetime_member": true
     },{
-      "name": "senator1",
+      "name": "cygnus",
       "owner_key": "HX5ZZbBhhfm1R4Z5Tw1sTAG9wwy8ZAbEXpeFV2tnoFUmGBB28uTD",
       "active_key": "HX5ZZbBhhfm1R4Z5Tw1sTAG9wwy8ZAbEXpeFV2tnoFUmGBB28uTD",
       "is_lifetime_member": true
     },{
-      "name": "senator2",
+      "name": "aquila",
       "owner_key": "HX57k46zjxYeVB3sYMEo943UUen2gjKD3KYTLLTxEikpjT2MK4Sq",
       "active_key": "HX57k46zjxYeVB3sYMEo943UUen2gjKD3KYTLLTxEikpjT2MK4Sq",
       "is_lifetime_member": true
     },{
-      "name": "senator3",
+      "name": "lynx",
       "owner_key": "HX8D22sYugMZXbTophjGiNunNRZ7b9MTSTwiRY6Xnaa7HwzaRP8v",
       "active_key": "HX8D22sYugMZXbTophjGiNunNRZ7b9MTSTwiRY6Xnaa7HwzaRP8v",
       "is_lifetime_member": true
     },{
-      "name": "senator4",
+      "name": "libra",
       "owner_key": "HX7EKLoNGL1b8Rr8ue24jcyyoqj5okaR2fXhKSBr7r3zLZWQB9b7",
       "active_key": "HX7EKLoNGL1b8Rr8ue24jcyyoqj5okaR2fXhKSBr7r3zLZWQB9b7",
       "is_lifetime_member": true
     },{
-      "name": "senator5",
+      "name": "scorpius",
       "owner_key": "HX6RYoxn9Q4ZyeRDcm9k2UCCJcfUiexrq7D6jcitcoM7QoDBi9DF",
       "active_key": "HX6RYoxn9Q4ZyeRDcm9k2UCCJcfUiexrq7D6jcitcoM7QoDBi9DF",
       "is_lifetime_member": true
     },{
-      "name": "senator6",
+      "name": "fornax",
       "owner_key": "HX7htYSY1sy5t8oVMkq3NZrq77xZBUnK2QXGjF5wFkcgLCUE8fbx",
       "active_key": "HX7htYSY1sy5t8oVMkq3NZrq77xZBUnK2QXGjF5wFkcgLCUE8fbx",
       "is_lifetime_member": true
     },{
-      "name": "hyper-exchange",
+      "name": "grus",
+      "owner_key": "HX8T2Ax3jQ4mUmFjURT2FaQmNXSTPZXnen5Si1YNg9CXKhd5UwuW",
+      "active_key": "HX8T2Ax3jQ4mUmFjURT2FaQmNXSTPZXnen5Si1YNg9CXKhd5UwuW",
+      "is_lifetime_member": false
+    },{
+      "name": "lepus",
       "owner_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
       "active_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
       "is_lifetime_member": false
-    }
+    },{
+      "name": "lyra",
+      "owner_key": "HX6ZTk65dP73ATsZ4N7KsQ97mdeV5esM4vkYw3DJX8YxMzbdCDPB",
+      "active_key": "HX6ZTk65dP73ATsZ4N7KsQ97mdeV5esM4vkYw3DJX8YxMzbdCDPB",
+      "is_lifetime_member": false
+    },{
+      "name": "columba",
+      "owner_key": "HX7bARy9e7S1vNVhrUb6RuSu1mbxHxWADgrRJDraBFPuL5CkPZfX",
+      "active_key": "HX7bARy9e7S1vNVhrUb6RuSu1mbxHxWADgrRJDraBFPuL5CkPZfX",
+      "is_lifetime_member": false
+    },{
+      "name": "ara",
+      "owner_key": "HX83Ke6Gg6YiMiPEJezU1rbHLV77CPQkpMHt5oMSHug6ByzBfWsw",
+      "active_key": "HX83Ke6Gg6YiMiPEJezU1rbHLV77CPQkpMHt5oMSHug6ByzBfWsw",
+      "is_lifetime_member": false
+    },{
+      "name": "apus",
+      "owner_key": "HX5r4C8pz2ByCYbXhnKWnjaZ9wHpzvcNb31Wdrfbu3W3DzPZxVWz",
+      "active_key": "HX5r4C8pz2ByCYbXhnKWnjaZ9wHpzvcNb31Wdrfbu3W3DzPZxVWz",
+      "is_lifetime_member": false
+    },{
+      "name": "sagitta",
+      "owner_key": "HX6KnUBdNTrQiyGi4HdWnTHgQ6HBrRzdvT6KGgCP2AqqJcFVzVAp",
+      "active_key": "HX6KnUBdNTrQiyGi4HdWnTHgQ6HBrRzdvT6KGgCP2AqqJcFVzVAp",
+      "is_lifetime_member": false
+    },{
+      "name": "perseus",
+      "owner_key": "HX86DztjrzeWVmQKec4zTmkXDqphoNN9XMQYGH6RtwDHgTK7DjYx",
+      "active_key": "HX86DztjrzeWVmQKec4zTmkXDqphoNN9XMQYGH6RtwDHgTK7DjYx",
+      "is_lifetime_member": false
+    },{
+	  "name": "hyper-exchange",
+	  "owner_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
+	  "active_key": "HX5gnTbYox9MqZSvBvyxc3yX6Y96fympG1tuZ5LBYXXyazL3dZcz",
+	  "is_lifetime_member": false
+	}
   ],
   "initial_assets": [],
   "initial_balances": [{
       "owner": "HXNUWGgmxyLy1VpXN3F6vEVWWTL86negEi46",
       "asset_symbol": "HX",
-      "amount": "100000000"
+      "amount": "1000000000000000"
   }],
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
   "initial_miner_candidates": [{
-      "owner_name": "citizen0",
+      "owner_name": "hydra",
       "block_signing_key": "HX5xumZhCRbSykbRnUfo2p4KCwHzADXbTFtJ9BUc4kMVn4tW4VpC"
     },{
-      "owner_name": "citizen1",
+      "owner_name": "uma",
       "block_signing_key": "HX5rvEaLm9E21W4yhjaZWeuDXpmTBPfQA4kmvXoj6AJJnNHDkCkA"
     },{
-      "owner_name": "citizen2",
+      "owner_name": "cetus",
       "block_signing_key": "HX8HESiZGuD9xgewHu48zjM5yaT8PQf9gV9TGLKGxwbfM6EfXZsD"
     },{
-      "owner_name": "citizen3",
+      "owner_name": "pegasus",
       "block_signing_key": "HX8ZNquWSvrWUUyQqciF13Pt1D5LCVQr6HbmX3iZGBdsybnpZwm2"
     },{
-      "owner_name": "citizen4",
+      "owner_name": "leo",
       "block_signing_key": "HX6ex347Ceze3UdQSXKtay2n4biMP8TSWFvEo9G7u24SgSA8qQbn"
     },{
-      "owner_name": "citizen5",
+      "owner_name": "pisces",
       "block_signing_key": "HX7GQQ46E3BQP58KN5YyiguqRko1onZYGTVm3TN1g1LMCXG4cSca"
     },{
-      "owner_name": "citizen6",
+      "owner_name": "sagittarius",
       "block_signing_key": "HX7E7zUe9mxBmc1QAfG6yDtt8Wn6LgkTKvDXVrFwy5yhc7dW8u14"
     },{
-      "owner_name": "citizen7",
+      "owner_name": "taurus",
       "block_signing_key": "HX7rZc5ZH8XpYucwzbUPxhdSBA2Sc86mxYHutNsiJeqRPGEByK87"
     },{
-      "owner_name": "citizen8",
+      "owner_name": "camelopardus",
       "block_signing_key": "HX5bfvDbr3xGNqEmUCtSy3uwsWRbg9xaR34RF7QQT34zqM559Dgj"
     },{
-      "owner_name": "citizen9",
+      "owner_name": "serpens",
       "block_signing_key": "HX8KgBP3DedoricgVyzondjCh4Hrj8RkNnLdfM1pmoY9pP29StNY"
     },{
-      "owner_name": "citizen10",
+      "owner_name": "centaurus",
       "block_signing_key": "HX81Fc7N2A88B41quyUfEJkeZCtKocuiJ84kyJ2sga7Psz1nQYn5"
     },{
-      "owner_name": "citizen11",
+      "owner_name": "monoceros",
       "block_signing_key": "HX6SYhbTZaxGRomqwEXC95zdsWWLNCLhTyRLiU2MZySq59tWM6TN"
     },{
-      "owner_name": "citizen12",
+      "owner_name": "phoenix",
       "block_signing_key": "HX5mKu1dYTZEBWVKCgTReqSgbS3tXckt7xV3QZ4qVXDjtkrdd2w7"
     },{
-      "owner_name": "citizen13",
+      "owner_name": "aeies",
       "block_signing_key": "HX6kZXKtJ4rXdcT8AdLUGzrZqdjyoo9sFKT9QZPRCULkLnFsE2mm"
     },{
-      "owner_name": "citizen14",
+      "owner_name": "capricornus",
       "block_signing_key": "HX8eyVZb2aDqgWcEfHDc2FnKXLuPtV7VVV2fxwN1E5vLh9PBgd4N"
     },{
-      "owner_name": "citizen15",
+      "owner_name": "pavo",
       "block_signing_key": "HX5ky5CdZeqQa9k6BWSv38H54oU8i2JFwc4P9cv8TvumLkJ6gc8d"
     },{
-      "owner_name": "citizen16",
+      "owner_name": "lupus",
       "block_signing_key": "HX5Lj4P7DpWJBNKxcyMZoVaEGAYwT2PrFsEftCiLcQRekV4pi1MN"
     },{
-      "owner_name": "citizen17",
+      "owner_name": "tucana",
       "block_signing_key": "HX4ydwWABvhupZKCBeGWaDLsYtizKBu8hhtV1ieHDDgTSmAWmC75"
     },{
-      "owner_name": "citizen18",
+      "owner_name": "vulpecula",
       "block_signing_key": "HX5JAdaZ6mPRd7UXCcXJNLRtLhK6WBR1ZtRH8amR8MmUn9jV9w8g"
     },{
-      "owner_name": "citizen19",
+      "owner_name": "hydrus",
       "block_signing_key": "HX7mevSDnu9uYHvTCkV9SmPk5ZTWahUPGpzQdSGzqK5CM4dtpXEq"
     },{
-      "owner_name": "citizen20",
+      "owner_name": "lacerta",
       "block_signing_key": "HX7qt8fYUVyYhKUv69UT4HBhjmxGJwigGNJd3AXmqQ8WuWFcLHKG"
     },{
-      "owner_name": "citizen21",
+      "owner_name": "delphinus",
       "block_signing_key": "HX74pMeC7aPUbcE1qh8oX3x4hU8YphdZbqZcmnFzGWfrQKhjaz6V"
     },{
-      "owner_name": "citizen22",
+      "owner_name": "corvus",
       "block_signing_key": "HX69aPEN9FAMEoobBkp2UMzVL8DfmnSCfTWk5a2Neni3t1sGAkTZ"
     },{
-      "owner_name": "citizen23",
+      "owner_name": "dorado",
       "block_signing_key": "HX78BGAgS9bZPjuWVVjHrTP5S5EjpTdccoU2JMht3ne4R2nCdqM8"
     },{
-      "owner_name": "citizen24",
+      "owner_name": "volans",
       "block_signing_key": "HX68zowMMUTge44WFKUrtC4Pvs2bnswLcsL9Zq68GCos85eJpS75"
     }
   ],
   "initial_guard_candidates": [{
-      "owner_name": "senator0"
+      "owner_name": "draco",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "senator1"
+      "owner_name": "cygnus",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "senator2"
+      "owner_name": "aquila",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "senator3"
+      "owner_name": "lynx",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "senator4"
+      "owner_name": "libra",
+	  "type":"PERMANENT"
     },{
-      "owner_name": "senator5"
+      "owner_name": "scorpius"
     },{
-      "owner_name": "senator6"
+      "owner_name": "fornax"
+    },{
+      "owner_name": "grus"
+    },{
+      "owner_name": "lepus"
+    },{
+      "owner_name": "lyra"
+    },{
+      "owner_name": "columba"
+    },{
+      "owner_name": "ara"
+    },{
+      "owner_name": "apus"
+    },{
+      "owner_name": "sagitta"
+    },{
+      "owner_name": "perseus"
     }
   ],
   "initial_worker_candidates": [],

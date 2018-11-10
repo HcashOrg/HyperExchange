@@ -39,6 +39,7 @@ namespace graphene { namespace chain {
          object_id_type do_apply( const referendum_create_operation& o );
 		 void pay_fee() override;
          transaction _proposed_trx;
+		 fc::uint128_t _pledge =0;
    };
 
    class referendum_update_evaluator :public evaluator<referendum_update_evaluator>

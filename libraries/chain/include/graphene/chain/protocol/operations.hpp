@@ -162,7 +162,9 @@ namespace graphene { namespace chain {
 			referendum_create_operation,
 		    citizen_referendum_senator_operation,
 			referendum_update_operation,
-			referendum_accelerate_pledge_operation
+			referendum_accelerate_pledge_operation,
+			block_address_operation,
+		    cancel_address_block_operation
          > operation;
 
    /// @} // operations group

@@ -135,7 +135,7 @@ namespace graphene { namespace chain {
       asset fee;
       /// The account to update
       account_id_type account;
-
+	  address addr;
       /// New owner authority. If set, this operation requires owner authority to execute.
       optional<authority> owner;
       /// New active authority. This can be updated by the current active authority.
@@ -157,6 +157,8 @@ namespace graphene { namespace chain {
 
       void get_required_active_authorities( flat_set<account_id_type>& a )const
       { if( !is_owner_update() ) a.insert( account ); }
+	  void get_required_authorities(vector<authority>& o)const;
+
    };
 
    /**
@@ -305,7 +307,7 @@ namespace graphene { namespace chain {
    */
    struct account_unbind_operation : public base_operation
    {
-	   struct fee_parameters_type { uint64_t fee = 0.002 * GRAPHENE_HXCHAIN_PRECISION; };
+	   struct fee_parameters_type { uint64_t fee =0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 
 	   asset           fee;
 	   std::string crosschain_type;
@@ -372,7 +374,23 @@ namespace graphene { namespace chain {
 	   }
 	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
    };
+   struct block_address_operation : public base_operation 
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   fc::flat_set<address> blocked_address;
+	   address fee_payer() const { return address(); }
+	   void validate() const { FC_ASSERT(blocked_address.size() > 0); }
+   };
 
+   struct cancel_address_block_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   fc::flat_set<address> cancel_blocked_address;
+	   address fee_payer() const { return address(); }
+	   void validate() const { FC_ASSERT(cancel_blocked_address.size() > 0); }
+   };
 
 
 } } // graphene::chain
@@ -390,7 +408,7 @@ FC_REFLECT(graphene::chain::account_create_operation,
 
 FC_REFLECT(graphene::chain::account_update_operation::ext, (null_ext)(owner_special_authority)(active_special_authority) )
 FC_REFLECT( graphene::chain::account_update_operation,
-            (fee)(account)(owner)(active)(new_options)(extensions)
+            (fee)(account)(addr)(owner)(active)(new_options)(extensions)
           )
 
 FC_REFLECT( graphene::chain::account_upgrade_operation,
@@ -413,3 +431,7 @@ FC_REFLECT(graphene::chain::account_multisig_create_operation::fee_parameters_ty
 FC_REFLECT(graphene::chain::account_multisig_create_operation, (fee)(crosschain_type)(account_id)(addr)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(signature))
 FC_REFLECT(graphene::chain::account_create_multisignature_address_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::account_create_multisignature_address_operation, (fee)(addr)(multisignature)(pubs)(required)(guarantee_id))
+FC_REFLECT(graphene::chain::block_address_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::block_address_operation,(fee)(blocked_address))
+FC_REFLECT(graphene::chain::cancel_address_block_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::cancel_address_block_operation, (fee)(cancel_blocked_address))

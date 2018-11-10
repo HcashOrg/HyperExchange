@@ -17,11 +17,14 @@ namespace graphene {
 
 				const auto& assets = db().get_index_type<asset_index>().indices().get<by_symbol>();
 				FC_ASSERT(assets.find(o.chain_type) != assets.end());
+				if (trx_state->_trx == nullptr)
+					return void_result();
+
 				FC_ASSERT(trx_state->_trx->operations.size() == 1);
 				//if the multi-addr correct or not.
 				vector<string> symbol_addrs_cold;
 				vector<string> symbol_addrs_hot;
-				vector<account_id_type> eth_guard_account_ids;
+				vector<pair<account_id_type, pair<string, string>>> eth_guard_account_ids;
 				const auto& addr = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 				auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
 				std::for_each(
@@ -30,10 +33,26 @@ namespace graphene {
 					{
 						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
-						eth_guard_account_ids.push_back(obj.guard_account);
+						auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
+						eth_guard_account_ids.push_back(account_pair);
 					}
 				}
 				);
+				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
+				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
+				FC_ASSERT(hot_range.first == hot_range.second);
+				FC_ASSERT(cold_range.first == cold_range.second);
+				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_id>();
+				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
+				FC_ASSERT(sign_guard_iter != guard_dbs.end());
+				FC_ASSERT(sign_guard_iter->senator_type == PERMANENT);
+				FC_ASSERT(sign_guard_iter->formal == true);
+				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+				if (!instance.contain_crosschain_handles(o.chain_type))
+					return void_result();
+				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
+				if (!crosschain_interface->valid_config())
+					return void_result();
 				auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(o.chain_type);
 				std::string temp_address_cold;
 				std::string temp_address_hot;
@@ -47,29 +66,25 @@ namespace graphene {
 				}
 				FC_ASSERT(o.multi_hot_address == temp_address_hot);
 				FC_ASSERT(o.multi_cold_address == temp_address_cold);
-				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
-				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
-				FC_ASSERT(hot_range.first == hot_range.second);
-				FC_ASSERT(cold_range.first == cold_range.second);
 				
-				std::string temp_cold = ptr->get_address_by_pubkey(*symbol_addrs_cold.begin());
-				std::string temp_hot = ptr->get_address_by_pubkey(*symbol_addrs_hot.begin());
+				std::string temp_cold, temp_hot;
+				for (auto guard_account_id : eth_guard_account_ids) {
+					if (guard_account_id.first == sign_guard_iter->guard_member_account){
+						temp_hot = ptr->get_address_by_pubkey(guard_account_id.second.first);
+						temp_cold = ptr->get_address_by_pubkey(guard_account_id.second.second);
+						break;
+					}
+				}
+				FC_ASSERT(temp_hot != "", "guard donst has hot address");
+				FC_ASSERT(temp_cold != "", "guard donst has cold address");
 				FC_ASSERT(o.guard_sign_hot_address == temp_hot);
 				FC_ASSERT(o.guard_sign_cold_address == temp_cold);
-				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_account>();
-				auto guard_iter = guard_dbs.find(*eth_guard_account_ids.begin());
-				FC_ASSERT(guard_iter != guard_dbs.end());
-				FC_ASSERT(o.guard_to_sign == guard_iter->id);
+
 				const auto& guard_ids = db().get_global_properties().active_committee_members;
-				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size());
-				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-				if (!instance.contain_crosschain_handles(o.chain_type))
-					return void_result();
-				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
-				if (!crosschain_interface->valid_config())
-					return void_result();
-				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(o.chain_type + "_cold|"+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
-				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(o.chain_type + "_hot|" + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
+				
+				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold+'|'+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot +'|' + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				FC_ASSERT(o.multi_account_tx_without_sign_cold != "","eth multi acocunt cold trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_hot != "", "eth multi acocunt ,hot trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_cold == multi_addr_cold[temp_cold]);
@@ -77,6 +92,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		object_id_type eth_series_multi_sol_create_evaluator::do_apply(const eth_series_multi_sol_create_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(transaction_id_type(), trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eth_series_multi_sol_create_operation>::value));
 			return object_id_type();
 		}
@@ -95,6 +111,8 @@ namespace graphene {
 				auto multi_account_create_iter = multi_account_create_db.find(o.sol_without_sign_txid);
 				FC_ASSERT(multi_account_create_iter != multi_account_create_db.end());
 				FC_ASSERT(multi_account_create_iter->state == sol_create_need_guard_sign);
+				if (trx_state->_trx == nullptr)
+					return void_result();
 				FC_ASSERT(trx_state->_trx->operations.size() == 1);
 				FC_ASSERT(multi_account_create_iter->object_transaction.operations.size() == 1);
 				FC_ASSERT(multi_account_create_iter->symbol == o.chain_type);
@@ -121,6 +139,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		object_id_type eth_series_multi_sol_guard_sign_evaluator::do_apply(const eths_multi_sol_guard_sign_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(o.sol_without_sign_txid, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_multi_sol_guard_sign_operation>::value));
 			return object_id_type();
 		}
@@ -152,6 +171,7 @@ namespace graphene {
 			
 		}
 		object_id_type eths_guard_sign_final_evaluator::do_apply(const eths_guard_sign_final_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
@@ -180,6 +200,7 @@ namespace graphene {
 
 		}
 		object_id_type eths_coldhot_guard_sign_final_evaluator::do_apply(const eths_coldhot_guard_sign_final_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_coldhot_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_coldhot_guard_sign_final_operation>::value));
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
@@ -232,6 +253,7 @@ namespace graphene {
 			
 		}
 		object_id_type eth_multi_account_create_record_evaluator::do_apply(const eth_multi_account_create_record_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(o.pre_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eth_multi_account_create_record_operation>::value));
 			return object_id_type();
 		}

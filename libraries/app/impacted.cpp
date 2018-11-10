@@ -87,7 +87,8 @@ struct get_impacted_account_visitor
    void operator()(const account_bind_operation& op) {}
    void operator()(const account_unbind_operation& op) {}
    void operator()(const account_multisig_create_operation& op) {}
-
+   void operator()(const block_address_operation& op) {}
+   void operator() (const cancel_address_block_operation& op) {}
    void operator()( const asset_create_operation& op ) {}
    void operator()( const asset_update_operation& op )
    {

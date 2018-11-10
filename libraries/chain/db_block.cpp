@@ -285,14 +285,14 @@ processed_transaction database::push_referendum(const referendum_object& referen
 			{
 				eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
 			}
-			modify(referendum, [](referendum_object& obj) {
+			modify(referendum, [this](referendum_object& obj) {
 				obj.finished = true;
+				obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
 			});
 		}
 		catch (const fc::exception& e) {
 			_applied_ops.resize(old_applied_ops_size);
 			elog("e", ("e", e.to_detail_string()));
-			remove(referendum);
 			throw;
 		}
 		ptrx.operation_results = std::move(eval_state.operation_results);
@@ -312,15 +312,30 @@ processed_transaction database::push_proposal(const proposal_object& proposal)
 
    try {
       //auto session = _undo_db.start_undo_session(true);
-      for( auto& op : proposal.proposed_transaction.operations )
-         eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
-      remove(proposal);
+	   bool del = true;
+	   for (auto& op : proposal.proposed_transaction.operations)
+	   {
+		   eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+		   if (op.which() == operation::tag<guard_member_update_operation>().value)
+		   {
+			   del = false;
+		   }
+	   }
+	   if (!del)
+	   {
+		   modify(proposal, [this](proposal_object& obj) {
+			   obj.finished = true;
+			   obj.expiration_time = head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+		   });
+	   }
+	   else
+		   remove(proposal);
+      
       //session.merge();
    }
    catch (const fc::exception& e) {
 	   _applied_ops.resize(old_applied_ops_size);
 	   elog("e", ("e", e.to_detail_string()));
-	   remove(proposal);
 	   throw;
    }
    ptrx.operation_results = std::move(eval_state.operation_results);
@@ -682,8 +697,15 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
 			  }
 		  }
 		  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,0,fc::flat_set<public_key_type>());
-	  };
-      trx.verify_authority( chain_id,get_addresses, get_global_properties().parameters.max_authority_depth );
+	      };
+		  auto is_blocked_address = [&](address addr) {
+			 // need to check
+			  const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
+			  if (blocked_idx.find(addr) != blocked_idx.end())
+				  return true;
+			  return false;
+		  };
+      trx.verify_authority( chain_id,get_addresses, is_blocked_address,get_global_properties().parameters.max_authority_depth );
    }
 
    //Skip all manner of expiration and TaPoS checking if we're on block 1; It's impossible that the transaction is

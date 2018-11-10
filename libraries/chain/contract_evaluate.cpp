@@ -1023,6 +1023,7 @@ namespace graphene {
         }
         transaction_id_type contract_common_evaluate::get_current_trx_id() const
         {
+			FC_ASSERT(gen_eval->get_trx_eval_state()->_trx != nullptr);
             return gen_eval->get_trx_eval_state()->_trx->id();
         }
          void contract_common_evaluate::do_apply_contract_event_notifies()
@@ -1281,6 +1282,7 @@ namespace graphene {
 					 get_db().adjust_balance(guarantee_obj.owner_addr, -unspent_to_return);
 					 get_db().adjust_balance(*caller_address, unspent_to_return);
 				 }
+				 FC_ASSERT(gen_eval->get_trx_eval_state()->_trx != nullptr);
 				 get_db().record_guarantee(*get_guarantee_id(), gen_eval->get_trx_eval_state()->_trx->id());
              }
              get_db().modify_current_collected_fee(asset(total_fee - unspent_fee, asset_id_type()));

@@ -54,6 +54,7 @@ class proposal_object : public abstract_object<proposal_object>
 	  flat_set<address>     disapproved_key_approvals;
 	  flat_set<address>     required_account_approvals;
 	  vote_id_type::vote_type       type;
+	  bool                        finished = false;
       bool is_authorized_to_execute(database& db)const;
 };
 
@@ -82,11 +83,13 @@ class required_approval_index : public secondary_index
 };
 
 struct by_expiration{};
+struct by_finished {};
 typedef boost::multi_index_container<
    proposal_object,
    indexed_by<
       ordered_unique< tag< by_id >, member< object, object_id_type, &object::id > >,
-      ordered_non_unique< tag< by_expiration >, member< proposal_object, time_point_sec, &proposal_object::expiration_time > >
+      ordered_non_unique< tag< by_expiration >, member< proposal_object, time_point_sec, &proposal_object::expiration_time > >,
+	  ordered_non_unique<tag<by_finished>,member<proposal_object,bool,&proposal_object::finished>>
    >
 > proposal_multi_index_container;
 typedef generic_index<proposal_object, proposal_multi_index_container> proposal_index;
@@ -96,4 +99,4 @@ typedef generic_index<proposal_object, proposal_multi_index_container> proposal_
 FC_REFLECT_DERIVED( graphene::chain::proposal_object, (graphene::chain::object),(proposer)
                     (expiration_time)(review_period_time)(proposed_transaction)(required_active_approvals)
                     (available_active_approvals)(required_owner_approvals)(available_owner_approvals)
-                    (available_key_approvals)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(type) )
+                    (available_key_approvals)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(type)(finished) )

@@ -110,7 +110,7 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("117.78.44.37"))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("39.98.59.190"))
 	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
 	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
@@ -345,7 +345,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				continue;
 			vector<string> symbol_addrs_cold;
 			vector<string> symbol_addrs_hot;
-			vector<account_id_type> eth_guard_account_ids;
+			vector<pair<account_id_type,pair<string,string>>> eth_guard_account_ids;
+			//map<account_id_type,pair<string,string>> 
 			if (!instance.contain_crosschain_handles(iter.symbol))
 				continue;
 			auto crosschain_interface = instance.get_crosschain_handle(iter.symbol);
@@ -358,7 +359,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 					{
 						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
-						eth_guard_account_ids.push_back(obj.guard_account);
+						auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
+						eth_guard_account_ids.push_back(account_pair);
 					}
 				}
 			}
@@ -366,12 +368,13 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 			if (symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size() && (eth_guard_account_ids.size() == guard_ids.size()))
 			{
 				
-				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol+"_cold", symbol_addrs_cold,(symbol_addrs_cold.size()*2/3 + 1));
-				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, (symbol_addrs_hot.size() * 2/3 + 1));
+				
 				signed_transaction trx;
 				try {
-					if ((iter.symbol.find("ETH") != iter.symbol.npos) || (iter.symbol.find("ERC") != iter.symbol.npos)) {
+					if ((iter.symbol=="ETH") || (iter.symbol.find("ERC") != iter.symbol.npos)) {
+						
 						auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(iter.symbol);
+						//check  repetition
 						std::string temp_address_cold;
 						std::string temp_address_hot;
 						for (auto public_cold : symbol_addrs_cold)
@@ -382,16 +385,31 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						{
 							temp_address_hot += ptr->get_address_by_pubkey(public_hot);
 						}
-						std::string temp_cold = ptr->get_address_by_pubkey(*symbol_addrs_cold.begin());
-						std::string temp_hot = ptr->get_address_by_pubkey(*symbol_addrs_hot.begin());
-						std::string cold_without_sign = multi_addr_cold_obj[temp_cold];
-						std::string hot_without_sign = multi_addr_hot_obj[temp_hot];
 						auto hot_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(temp_address_hot);
 						auto cold_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(temp_address_cold);
-						if (hot_range.first != hot_range.second || cold_range.first != cold_range.second)
-						{
+						if (hot_range.first != hot_range.second || cold_range.first != cold_range.second){
 							continue;
 						}
+						std::string temp_cold, temp_hot; 
+						const auto& guard_dbs = db.get_index_type<guard_member_index>().indices().get<by_account>();
+						guard_member_id_type sign_guard_id;
+						for (auto guard_account_id : eth_guard_account_ids){
+							auto guard_iter = guard_dbs.find(guard_account_id.first);
+							FC_ASSERT(guard_iter != guard_dbs.end());
+							if (PERMANENT == guard_iter->senator_type){
+								sign_guard_id = guard_iter->id;
+								temp_hot = ptr->get_address_by_pubkey(guard_account_id.second.first);
+								temp_cold = ptr->get_address_by_pubkey(guard_account_id.second.second);
+								break;
+							}
+						}
+						//FC_ASSERT(sign_guard_id != guard_member_id_type(), "sign guard doesnt exist");
+						FC_ASSERT(temp_hot != "","guard donst has hot address");
+						FC_ASSERT(temp_cold != "", "guard donst has cold address");
+						auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(temp_cold, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+						auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(temp_hot, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+						std::string cold_without_sign = multi_addr_cold_obj[temp_cold];
+						std::string hot_without_sign = multi_addr_hot_obj[temp_hot];
 						eth_series_multi_sol_create_operation op;
 						uint32_t expiration_time_offset = 0;
 						auto dyn_props = db.get_dynamic_global_properties();
@@ -406,10 +424,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						op.hot_nonce = multi_addr_hot_obj["nonce"];
 						op.guard_sign_cold_address = temp_cold;
 						op.guard_sign_hot_address = temp_hot;
-						const auto& guard_dbs = db.get_index_type<guard_member_index>().indices().get<by_account>();
-						auto guard_iter = guard_dbs.find(*eth_guard_account_ids.begin());
-						FC_ASSERT(guard_iter != guard_dbs.end());
-						op.guard_to_sign = guard_iter->id;
+						op.guard_to_sign = sign_guard_id;
 						op.chain_type = iter.symbol;
 						trx.operations.emplace_back(op);
 						set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
@@ -422,7 +437,8 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				}catch(...){
 					continue;
 				}
-				
+				auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_cold", symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+				auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(iter.symbol + "_hot", symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				miner_generate_multi_asset_operation op;
 				uint32_t expiration_time_offset = 0;
 				auto dyn_props = db.get_dynamic_global_properties();

@@ -42,7 +42,7 @@ void_result referendum_create_evaluator::do_evaluate(const referendum_create_ope
    auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
    auto iter = citizen_idx.find(proposer);
    FC_ASSERT(iter != citizen_idx.end(), "referendum proposer must be a citizen.");
-
+   _pledge = iter->pledge_weight;
    const auto& dynamic_obj = d.get_dynamic_global_properties();
    FC_ASSERT(!dynamic_obj.referendum_flag || (dynamic_obj.referendum_flag && (d.head_block_time() < dynamic_obj.next_vote_time)));
    const auto& proposal_idx = d.get_index_type<proposal_index>().indices().get<by_id>();
@@ -92,7 +92,8 @@ object_id_type referendum_create_evaluator::do_apply(const referendum_create_ope
 	   {
 		   referendum.required_account_approvals.insert(acc.find(a.miner_account)->addr);
 	   });
-	   referendum.pledge = o.fee.amount;
+	   referendum.citizen_pledge = _pledge;
+	   referendum.pledge = o.fee.amount ;
    });
    return ref_obj.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -159,6 +160,7 @@ void_result referendum_update_evaluator::do_apply(const referendum_update_operat
 			catch (fc::exception& e) {
 				wlog("Proposed transaction ${id} failed to apply once approved with exception:\n----\n${reason}\n----\nWill try again when it expires.",
 					("id", o.referendum)("reason", e.to_detail_string()));
+				db().remove(*_referendum);
 				_referendum_failed = true;
 			}
 		}

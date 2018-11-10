@@ -230,6 +230,12 @@ share_type account_update_operation::calculate_fee( const fee_parameters_type& k
    return core_fee_required;
 }
 
+void account_update_operation::get_required_authorities(vector<authority>& o) const
+{
+	// registrar should be required anyway as it is the fee_payer(), but we insert it here just to be sure
+	o.push_back(authority(1, addr, 1));
+}
+
 void account_update_operation::validate()const
 {
    FC_ASSERT( account != GRAPHENE_TEMP_ACCOUNT );
