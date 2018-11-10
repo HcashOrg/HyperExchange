@@ -3222,7 +3222,7 @@ public:
          }
 		 fc::uint128_t total = 0;
 		 auto ctzs = list_active_citizens();
-		 for (auto& ctz =ctzs.begin();ctz!=ctzs.end();ctz++)
+		 for (auto ctz =ctzs.begin();ctz!=ctzs.end();ctz++)
 		 {
 			 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
 			 if (miner_objects.front())
