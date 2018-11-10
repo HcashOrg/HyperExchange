@@ -34,6 +34,7 @@ namespace graphene { namespace chain {
 
          void_result do_evaluate( const guard_member_create_operation& o );
          object_id_type do_apply( const guard_member_create_operation& o );
+		 void pay_fee() override;
    };
 
    class guard_member_update_evaluator : public evaluator<guard_member_update_evaluator>

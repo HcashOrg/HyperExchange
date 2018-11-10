@@ -69,7 +69,13 @@ namespace graphene {
                 return new_del_object.id;
             } FC_CAPTURE_AND_RETHROW((op))
         }
-
+		void guard_member_create_evaluator::pay_fee()
+		{
+			FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
+			db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
+				d.current_supply -= this->core_fees_paid.amount;
+			});
+		}
         void_result guard_member_update_evaluator::do_evaluate(const guard_member_update_operation& op)
         {
             try {
