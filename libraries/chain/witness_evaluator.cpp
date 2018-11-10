@@ -167,7 +167,7 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 			if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
 			{
 				//FC_ASSERT(func(obj.guard_account) == true, "${guard_account} is not a formal guard." ,("guard_account", obj.guard_account));
-				if (func(obj.guard_account) == true)
+				if (func(obj.guard_account))
 				{
 					symbol_addrs_cold.push_back(obj.new_pubkey_cold);
 					symbol_addrs_hot.push_back(obj.new_pubkey_hot);
