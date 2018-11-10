@@ -38,6 +38,21 @@ namespace graphene {
 					}
 				}
 				);
+				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
+				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
+				FC_ASSERT(hot_range.first == hot_range.second);
+				FC_ASSERT(cold_range.first == cold_range.second);
+				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_id>();
+				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
+				FC_ASSERT(sign_guard_iter != guard_dbs.end());
+				FC_ASSERT(sign_guard_iter->senator_type == PERMANENT);
+				FC_ASSERT(sign_guard_iter->formal == true);
+				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+				if (!instance.contain_crosschain_handles(o.chain_type))
+					return void_result();
+				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
+				if (!crosschain_interface->valid_config())
+					return void_result();
 				auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(o.chain_type);
 				std::string temp_address_cold;
 				std::string temp_address_hot;
@@ -51,16 +66,7 @@ namespace graphene {
 				}
 				FC_ASSERT(o.multi_hot_address == temp_address_hot);
 				FC_ASSERT(o.multi_cold_address == temp_address_cold);
-				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
-				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
-				FC_ASSERT(hot_range.first == hot_range.second);
-				FC_ASSERT(cold_range.first == cold_range.second);
-
-				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_id>();
-				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
-				FC_ASSERT(sign_guard_iter != guard_dbs.end());
-				FC_ASSERT(sign_guard_iter->senator_type == PERMANENT);
-				FC_ASSERT(sign_guard_iter->formal == true);
+				
 				std::string temp_cold, temp_hot;
 				for (auto guard_account_id : eth_guard_account_ids) {
 					if (guard_account_id.first == sign_guard_iter->guard_member_account){
@@ -76,12 +82,7 @@ namespace graphene {
 
 				const auto& guard_ids = db().get_global_properties().active_committee_members;
 				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
-				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
-				if (!instance.contain_crosschain_handles(o.chain_type))
-					return void_result();
-				auto crosschain_interface = instance.get_crosschain_handle(o.chain_type);
-				if (!crosschain_interface->valid_config())
-					return void_result();
+				
 				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold+'|'+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
 				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot +'|' + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				FC_ASSERT(o.multi_account_tx_without_sign_cold != "","eth multi acocunt cold trx error");
