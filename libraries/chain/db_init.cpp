@@ -208,6 +208,7 @@ void database::initialize_evaluators()
    register_evaluator<coldhot_transfer_result_evaluate>();
    register_evaluator<coldhot_cancel_transafer_transaction_evaluate>();
    register_evaluator<coldhot_cancel_uncombined_trx_evaluate>();
+   register_evaluator<eth_cancel_coldhot_fail_trx_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();
    register_evaluator<account_create_evaluator>();
@@ -261,6 +262,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_claim_fees_evaluator>();
    register_evaluator<guard_refund_balance_evaluator>();
    register_evaluator<guard_refund_crosschain_trx_evaluator>();
+   register_evaluator<eth_cancel_fail_crosschain_trx_evaluate>();
    register_evaluator<asset_real_create_evaluator>();
    register_evaluator<miner_generate_multi_asset_evaluator>();
    register_evaluator<guard_update_multi_account_evaluator>();

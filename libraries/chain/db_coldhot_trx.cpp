@@ -145,6 +145,38 @@ namespace graphene {
 						obj.curret_trx_state = coldhot_transaction_fail;
 					});
 				}
+				else if (op_type == operation::tag<eth_cancel_coldhot_fail_trx_operaion>::value) {
+					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+					auto eth_final_iter = coldhot_db_objs.find(relate_trx_id);
+					auto range_sign_objs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(eth_final_iter->relate_trx_id);
+					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(relate_trx_id);
+					auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
+					//change without sign trx status
+					modify(*tx_coldhot_without_sign_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
+					modify(*eth_final_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
+					//change sign trx status
+					for (auto sign_trx_obj : boost::make_iterator_range(range_sign_objs.first, range_sign_objs.second)) {
+						auto temp_iter = coldhot_db_objs.find(sign_trx_obj.current_id);
+						modify(*temp_iter, [&](coldhot_transfer_object& obj) {
+							obj.curret_trx_state = coldhot_transaction_fail;
+						});
+					}
+					//change coldhot transfer trx status
+					modify(*tx_coldhot_original_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
+					create<coldhot_transfer_object>([&](coldhot_transfer_object& obj) {
+						obj.op_type = op_type;
+						obj.relate_trx_id = eth_final_iter->relate_trx_id;
+						obj.current_id = current_trx_id;
+						obj.current_trx = current_trx;
+						obj.curret_trx_state = coldhot_transaction_fail;
+					});
+				}
 				else if (op_type == operation::tag<eths_coldhot_guard_sign_final_operation>::value){
 				auto & tx_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id> ();
 				auto tx_combine_sign_iter = tx_db_objs.find(relate_trx_id);

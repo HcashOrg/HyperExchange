@@ -43,5 +43,9 @@ namespace graphene {
 		void coldhot_cancel_uncombined_trx_operaion::validate() const {
 
 		}
+		void eth_cancel_coldhot_fail_trx_operaion::validate() const {
+
+		}
+
 	}
 }

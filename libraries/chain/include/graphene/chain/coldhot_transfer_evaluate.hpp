@@ -62,5 +62,13 @@ namespace graphene {
 
 			virtual void pay_fee() override;
 		};
+		class eth_cancel_coldhot_fail_trx_evaluate :public evaluator<eth_cancel_coldhot_fail_trx_evaluate> {
+		public:
+			typedef eth_cancel_coldhot_fail_trx_operaion operation_type;
+			void_result do_evaluate(const eth_cancel_coldhot_fail_trx_operaion& o);
+			void_result do_apply(const eth_cancel_coldhot_fail_trx_operaion& o);
+
+			virtual void pay_fee() override;
+		};
 	}
 }

@@ -182,6 +182,7 @@ struct get_impacted_account_visitor
    }
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()(const guard_refund_crosschain_trx_operation& op) {}
+   void operator()(const eth_cancel_fail_crosschain_trx_operation& op){}
    void operator()( const vesting_balance_withdraw_operation& op ) {}
    void operator()( const worker_create_operation& op ) {}
    void operator()( const custom_operation& op ) {}
@@ -207,6 +208,7 @@ struct get_impacted_account_visitor
    void operator()(const coldhot_transfer_result_operation& op) {}
    void operator()(const coldhot_cancel_transafer_transaction_operation& op){}
    void operator()(const coldhot_cancel_uncombined_trx_operaion& op) {}
+   void operator()(const eth_cancel_coldhot_fail_trx_operaion& op) {}
    void operator()( const balance_claim_operation& op ) {}
    void operator() (const gurantee_create_operation& op) {}
    void operator() (const publisher_appointed_operation& op) {}

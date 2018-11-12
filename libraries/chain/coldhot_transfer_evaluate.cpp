@@ -381,5 +381,56 @@ namespace graphene {
 		void coldhot_cancel_uncombined_trx_evaluate::pay_fee() {
 
 		}
+		void_result eth_cancel_coldhot_fail_trx_evaluate::do_evaluate(const eth_cancel_coldhot_fail_trx_operaion& o) {
+			try {
+				database & d = db();
+				auto & coldhot_db = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				auto coldhot_iter = coldhot_db.find(o.fail_trx_id);
+				FC_ASSERT(coldhot_iter != coldhot_db.end());
+				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_eth_guard_sign, "Coldhot transaction state error");
+				auto coldhot_without_sign_iter = coldhot_db.find(coldhot_iter->relate_trx_id);
+				FC_ASSERT(coldhot_without_sign_iter != coldhot_db.end());
+				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
+				FC_ASSERT(source_trx != coldhot_db.end(), "source trx exist error");
+				if (trx_state->_trx == nullptr)
+					return  void_result();
+				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
+				FC_ASSERT(coldhot_iter->current_trx.operations.size() == 1, "operation size error");
+				auto op = coldhot_iter->current_trx.operations[0];
+				FC_ASSERT(op.which() == operation::tag<eths_coldhot_guard_sign_final_operation>::value, "operation type error");
+				auto eths_guard_sign_final_op = op.get<eths_coldhot_guard_sign_final_operation>();
+				FC_ASSERT(eths_guard_sign_final_op.chain_type == "ETH" || eths_guard_sign_final_op.chain_type.find("ERC") != eths_guard_sign_final_op.chain_type.npos);
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(eths_guard_sign_final_op.chain_type))
+					return void_result();
+				auto hdl = manager.get_crosschain_handle(std::string(eths_guard_sign_final_op.chain_type));
+				if (!hdl->valid_config())
+					return void_result();
+				auto eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id;
+				auto eth_transaction = hdl->transaction_query(eth_fail_transaction_id);
+				FC_ASSERT(eth_transaction.contains("respit_trx"));
+				FC_ASSERT(eth_transaction.contains("source_trx"));
+				auto respit_trx = eth_transaction["respit_trx"].get_object();
+				auto eth_source_trx = eth_transaction["source_trx"].get_object();
+				FC_ASSERT(respit_trx.contains("logs"));
+				FC_ASSERT(respit_trx.contains("gasUsed"));
+				FC_ASSERT(eth_source_trx.contains("gas"));
+				auto receipt_logs = respit_trx["logs"].get_array();
+				FC_ASSERT(receipt_logs.size() == 0, "this trasnaction not fail");
+				FC_ASSERT(eth_source_trx["gas"].as_string() == respit_trx["gasUsed"].as_string());
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+
+		}
+		void_result eth_cancel_coldhot_fail_trx_evaluate::do_apply(const eth_cancel_coldhot_fail_trx_operaion& o) {
+			try {
+				FC_ASSERT(trx_state->_trx != nullptr, "trx_state->_trx should not be nullptr");
+				db().adjust_coldhot_transaction(o.fail_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eth_cancel_coldhot_fail_trx_operaion>::value));
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		void eth_cancel_coldhot_fail_trx_evaluate::pay_fee() {
+
+		}
 	}
 }

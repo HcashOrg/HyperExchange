@@ -116,12 +116,14 @@ struct get_impacted_account_visitor
    void operator()(const coldhot_transfer_result_operation& op) {}
    void operator()(const coldhot_cancel_transafer_transaction_operation& op) {}
    void operator()(const coldhot_cancel_uncombined_trx_operaion& op) {}
+   void operator()(const eth_cancel_coldhot_fail_trx_operaion& op) {}
    void operator()(const guard_update_multi_account_operation& op) {}
    void operator()(const miner_generate_multi_asset_operation& op) {}
    void operator() (const miner_merge_signatures_operation& op) {}
    void operator() (const asset_transfer_from_cold_to_hot_operation& op) {}
    void operator()(const guard_refund_balance_operation& op) {}
    void operator()(const guard_refund_crosschain_trx_operation& op) {}
+   void operator()(const eth_cancel_fail_crosschain_trx_operation& op){}
    void operator() (const referendum_accelerate_pledge_operation& op) {}
    void operator()(const asset_real_create_operation& op) {}
    void operator()(const asset_eth_create_operation&op){}

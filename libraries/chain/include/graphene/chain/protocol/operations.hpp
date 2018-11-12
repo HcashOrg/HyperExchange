@@ -164,7 +164,9 @@ namespace graphene { namespace chain {
 			referendum_update_operation,
 			referendum_accelerate_pledge_operation,
 			block_address_operation,
-		    cancel_address_block_operation
+		    cancel_address_block_operation,
+			eth_cancel_fail_crosschain_trx_operation,
+			eth_cancel_coldhot_fail_trx_operaion
          > operation;
 
    /// @} // operations group
