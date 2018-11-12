@@ -140,7 +140,8 @@ namespace graphene {
 				auto eths_guard_sign_final_op = op.get<eths_guard_sign_final_operation>();
 				auto without_iter = trx_db.find(iter->relate_transaction_id);
 				FC_ASSERT(without_iter != trx_db.end(), "without transaction not exist.");
-				auto without_sign_op = op.get<crosschain_withdraw_without_sign_operation>();
+				auto without_op = without_iter->real_transaction.operations[0];
+				auto without_sign_op = without_op.get<crosschain_withdraw_without_sign_operation>();
 				auto asset_symbol = without_sign_op.asset_symbol;
 				const asset_object&   asset_type = without_sign_op.asset_id(d);
 				FC_ASSERT(asset_symbol == "ETH" || asset_symbol.find("ERC") != asset_symbol.npos);
