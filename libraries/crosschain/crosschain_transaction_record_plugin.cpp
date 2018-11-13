@@ -65,23 +65,31 @@ namespace graphene {
 
 					for (const auto & trx : pending_trx) {
 						hd_trx handle_trx;
+						std::string real_trx;
 						if (asset_symbol == "ETH" || asset_symbol.find("ERC")!= asset_symbol.npos)
 						{
 							handle_trx = hdl->turn_trx(fc::variant_object("plugin_get_trx", trx));
+							real_trx = handle_trx.trx_id;
+							if (handle_trx.trx_id.find('|') != handle_trx.trx_id.npos)
+							{
+								auto pos = handle_trx.trx_id.find('|');
+								real_trx = handle_trx.trx_id.substr(pos + 1);
+							}
 						}
 						else {
 							handle_trx = hdl->turn_trx(trx);
+							real_trx = handle_trx.trx_id;
 						}
 						
 						fc::scoped_lock<std::mutex> _lock(db.db_lock);
 						auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
-						auto trx_iter = trx_iters.find(handle_trx.trx_id);
+						auto trx_iter = trx_iters.find(real_trx);
 						if (trx_iter != trx_iters.end()) {
 							continue;
 						}
 						db.create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
 							obj.handle_trx = handle_trx;
-							obj.handle_trx_id = handle_trx.trx_id;
+							obj.handle_trx_id = real_trx;
 							obj.acquired_transaction_state = acquired_trx_uncreate;
 						});
 					}

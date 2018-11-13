@@ -292,7 +292,16 @@ namespace graphene {
 				database & d = db();
 				auto& originaldb = d.get_index_type<coldhot_transfer_index>().indices().get<by_original_trxid_optype>();
 				auto combine_op_number = uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value);
-				auto combine_trx_iter = originaldb.find(boost::make_tuple(o.coldhot_trx_original_chain.trx_id, combine_op_number));
+				string crosschain_trx_id = o.coldhot_trx_original_chain.trx_id;
+				if (o.coldhot_trx_original_chain.asset_symbol == "ETH" || o.coldhot_trx_original_chain.asset_symbol.find("ERC") != o.coldhot_trx_original_chain.asset_symbol.npos)
+				{
+					if (o.coldhot_trx_original_chain.trx_id.find('|') != o.coldhot_trx_original_chain.trx_id.npos)
+					{
+						auto pos = o.coldhot_trx_original_chain.trx_id.find('|');
+						crosschain_trx_id = o.coldhot_trx_original_chain.trx_id.substr(pos + 1);
+					}
+				}
+				auto combine_trx_iter = originaldb.find(boost::make_tuple(crosschain_trx_id, combine_op_number));
 				FC_ASSERT(combine_trx_iter != originaldb.end(), "combine sign trx doesn`t exist");
 				auto& coldhot_db_objs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(combine_trx_iter->relate_trx_id);
@@ -300,7 +309,7 @@ namespace graphene {
 				auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
 				FC_ASSERT(tx_coldhot_original_iter != coldhot_db_objs.end(), "coldhot transfer trx doesn`t exist");
 				auto & deposit_db = d.get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
-				auto deposit_to_link_trx = deposit_db.find(o.coldhot_trx_original_chain.trx_id);
+				auto deposit_to_link_trx = deposit_db.find(crosschain_trx_id);
 				if (deposit_to_link_trx != deposit_db.end()) {
 					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
 						FC_ASSERT("deposit to link transaction doesn`t exist");
@@ -335,7 +344,16 @@ namespace graphene {
 			try {
 				auto& originaldb = db().get_index_type<coldhot_transfer_index>().indices().get<by_original_trxid_optype>();
 				auto combine_op_number = uint64_t(operation::tag<coldhot_transfer_combine_sign_operation>::value);
-				auto combine_trx_iter = originaldb.find(boost::make_tuple(o.coldhot_trx_original_chain.trx_id, combine_op_number));
+				string crosschain_trx_id = o.coldhot_trx_original_chain.trx_id;
+				if (o.coldhot_trx_original_chain.asset_symbol == "ETH" || o.coldhot_trx_original_chain.asset_symbol.find("ERC") != o.coldhot_trx_original_chain.asset_symbol.npos)
+				{
+					if (o.coldhot_trx_original_chain.trx_id.find('|') != o.coldhot_trx_original_chain.trx_id.npos)
+					{
+						auto pos = o.coldhot_trx_original_chain.trx_id.find('|');
+						crosschain_trx_id = o.coldhot_trx_original_chain.trx_id.substr(pos + 1);
+					}
+				}
+				auto combine_trx_iter = originaldb.find(boost::make_tuple(crosschain_trx_id, combine_op_number));
 				FC_ASSERT(trx_state->_trx != nullptr);
 				db().adjust_coldhot_transaction(combine_trx_iter->relate_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_transfer_result_operation>::value));
 				db().adjust_crosschain_confirm_trx(o.coldhot_trx_original_chain);

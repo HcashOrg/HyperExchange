@@ -172,7 +172,16 @@ namespace graphene {
 		
 			auto& originaldb = db().get_index_type<crosschain_trx_index>().indices().get<by_original_id_optype>();
 			auto combine_op_number = uint64_t(operation::tag<crosschain_withdraw_combine_sign_operation>::value);
-			auto combine_trx_iter = originaldb.find(boost::make_tuple(o.cross_chain_trx.trx_id, combine_op_number));
+			string crosschain_trx_id = o.cross_chain_trx.trx_id;
+			if (o.cross_chain_trx.asset_symbol == "ETH" || o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)
+			{
+				if (o.cross_chain_trx.trx_id.find('|') != o.cross_chain_trx.trx_id.npos)
+				{
+					auto pos = o.cross_chain_trx.trx_id.find('|');
+					crosschain_trx_id = o.cross_chain_trx.trx_id.substr(pos + 1);
+				}
+			}
+			auto combine_trx_iter = originaldb.find(boost::make_tuple(crosschain_trx_id, combine_op_number));
 			FC_ASSERT(combine_trx_iter != originaldb.end());
 			auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 			auto tx_without_sign_iter = tx_db_objs.find(combine_trx_iter->relate_transaction_id);
@@ -183,7 +192,7 @@ namespace graphene {
 				FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
 			}
 			auto & deposit_db = db().get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
-			auto deposit_to_link_trx = deposit_db.find(o.cross_chain_trx.trx_id);
+			auto deposit_to_link_trx = deposit_db.find(crosschain_trx_id);
 			if (deposit_to_link_trx != deposit_db.end()) {
 				FC_ASSERT((deposit_to_link_trx->acquired_transaction_state == acquired_trx_uncreate),"deposit transaction exist");
 // 				if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
@@ -226,7 +235,16 @@ namespace graphene {
 			FC_ASSERT(trx_state->_trx != nullptr);
 			auto& originaldb = db().get_index_type<crosschain_trx_index>().indices().get<by_original_id_optype>();
 			auto combine_op_number = uint64_t(operation::tag<crosschain_withdraw_combine_sign_operation>::value);
-			auto combine_trx_iter = originaldb.find(boost::make_tuple(o.cross_chain_trx.trx_id, combine_op_number));
+			string crosschain_trx_id = o.cross_chain_trx.trx_id;
+			if (o.cross_chain_trx.asset_symbol == "ETH" || o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)
+			{
+				if (o.cross_chain_trx.trx_id.find('|') != o.cross_chain_trx.trx_id.npos)
+				{
+					auto pos = o.cross_chain_trx.trx_id.find('|');
+					crosschain_trx_id = o.cross_chain_trx.trx_id.substr(pos + 1);
+				}
+			}
+			auto combine_trx_iter = originaldb.find(boost::make_tuple(crosschain_trx_id, combine_op_number));
 			db().adjust_crosschain_confirm_trx(o.cross_chain_trx);
 			db().adjust_crosschain_transaction(combine_trx_iter->relate_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<crosschain_withdraw_result_operation>::value), withdraw_transaction_confirm);
 			return void_result();

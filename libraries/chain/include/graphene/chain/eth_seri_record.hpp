@@ -112,6 +112,40 @@ namespace graphene {
 				a.push_back(authority(1, guard_address, 1));
 			}
 		};
+		struct eths_guard_change_signer_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+			};
+			asset fee;
+			guard_member_id_type guard_to_sign;
+			std::string new_signer;
+			transaction_id_type combine_trx_id;
+			std::string signed_crosschain_trx;
+			std::string signed_crosschain_trx_id;
+			address guard_address;
+			std::string chain_type;
+			address fee_payer()const {
+				return guard_address;
+			}
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+		};
+		struct eths_guard_coldhot_change_signer_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+			};
+			asset fee;
+			guard_member_id_type guard_to_sign;
+			std::string new_signer;
+			transaction_id_type combine_trx_id;
+			std::string signed_crosschain_trx;
+			std::string signed_crosschain_trx_id;
+			address guard_address;
+			std::string chain_type;
+			address fee_payer()const {
+				return guard_address;
+			}
+			share_type      calculate_fee(const fee_parameters_type& k)const;
+		};
 		struct eths_coldhot_guard_sign_final_operation :public base_operation {
 			struct fee_parameters_type {
 				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
@@ -149,3 +183,7 @@ FC_REFLECT(graphene::chain::eths_guard_sign_final_operation::fee_parameters_type
 FC_REFLECT(graphene::chain::eths_guard_sign_final_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(chain_type)(signed_crosschain_trx)(guard_address))
 FC_REFLECT(graphene::chain::eths_coldhot_guard_sign_final_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eths_coldhot_guard_sign_final_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(chain_type)(signed_crosschain_trx)(guard_address))
+FC_REFLECT(graphene::chain::eths_guard_change_signer_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::eths_guard_change_signer_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(new_signer)(chain_type)(signed_crosschain_trx)(guard_address))
+FC_REFLECT(graphene::chain::eths_guard_coldhot_change_signer_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::eths_guard_coldhot_change_signer_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(new_signer)(chain_type)(signed_crosschain_trx)(guard_address))

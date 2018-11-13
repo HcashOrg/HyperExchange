@@ -31,6 +31,12 @@ namespace graphene {
 		share_type eths_coldhot_guard_sign_final_operation::calculate_fee(const fee_parameters_type& k)const {
 			return share_type(0);
 		}
+		share_type eths_guard_change_signer_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
+		share_type eths_guard_coldhot_change_signer_operation::calculate_fee(const fee_parameters_type& k)const {
+			return share_type(0);
+		}
 		void eth_multi_account_create_record_operation::validate() const {
 
 		}
