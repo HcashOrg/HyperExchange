@@ -134,19 +134,67 @@ namespace graphene {
 				FC_ASSERT(cold_trx_id == o.multi_cold_trxid);
 				FC_ASSERT(create_multi_account_op.multi_account_tx_without_sign_cold == cold_trx.to_account);
 				FC_ASSERT(create_multi_account_op.multi_account_tx_without_sign_hot == hot_trx.to_account);
-				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_hot_sol_guard_sign));
-				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_cold_sol_guard_sign));
+				
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		object_id_type eth_series_multi_sol_guard_sign_evaluator::do_apply(const eths_multi_sol_guard_sign_operation& o) {
 			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_eths_multi_account_record(o.sol_without_sign_txid, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_multi_sol_guard_sign_operation>::value));
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.chain_type)) {
+				return object_id_type();
+			}
+			auto handle = manager.get_crosschain_handle(o.chain_type);
+			if (!handle->valid_config()) {
+				return object_id_type();
+			}
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_hot_sol_guard_sign));
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_cold_sol_guard_sign));
 			return object_id_type();
 		}
 		void eth_series_multi_sol_guard_sign_evaluator::pay_fee() {
 
 		}
+		void_result eths_guard_change_signer_evaluator::do_evaluate(const eths_guard_change_signer_operation& o) {
+			try {
+				const auto& guard_db = db().get_index_type<guard_member_index>().indices().get<by_id>();
+				auto guard_iter = guard_db.find(o.guard_to_sign);
+				FC_ASSERT(guard_iter != guard_db.end(), "This Guard doesnt exist");
 
+				const auto& crosschain_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+				const auto trx_iter = crosschain_db.find(o.combine_trx_id);
+				FC_ASSERT(trx_iter != crosschain_db.end());
+				FC_ASSERT(trx_iter->trx_state == withdraw_eth_guard_need_sign);
+				auto combine_op = trx_iter->real_transaction.operations[0].get<crosschain_withdraw_combine_sign_operation>();
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.chain_type)) {
+					return void_result();
+				}
+				auto handle = manager.get_crosschain_handle(o.chain_type);
+				if (!handle->valid_config()) {
+					return void_result();
+				}
+				auto change_signer_input = handle->turn_trx(fc::variant_object("change_signer", o.signed_crosschain_trx));
+				auto combine_trx_input = handle->turn_trx(fc::variant_object("change_signer", combine_op.cross_chain_trx["without_sign"].as_string()));
+				FC_ASSERT(combine_trx_input.to_account == change_signer_input.to_account);
+				
+			}FC_CAPTURE_AND_RETHROW((o))
+
+		}
+		object_id_type eths_guard_change_signer_evaluator::do_apply(const eths_guard_change_signer_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
+			db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_change_signer_operation>::value), withdraw_eth_guard_sign);
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.chain_type)) {
+				return object_id_type();
+			}
+			auto handle = manager.get_crosschain_handle(o.chain_type);
+			if (!handle->valid_config()) {
+				return object_id_type();
+			}
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			return object_id_type();
+		}
 		void_result eths_guard_sign_final_evaluator::do_evaluate(const eths_guard_sign_final_operation& o) {
 			try{
 				const auto& guard_db = db().get_index_type<guard_member_index>().indices().get<by_id>();
@@ -166,15 +214,68 @@ namespace graphene {
 				}
 				auto combine_trx = handle->turn_trx(fc::variant_object("get_without_sign", o.signed_crosschain_trx));
 				FC_ASSERT(combine_trx.to_account == combine_op.cross_chain_trx["without_sign"].as_string());
-				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+				
 			}FC_CAPTURE_AND_RETHROW((o))
 			
 		}
 		object_id_type eths_guard_sign_final_evaluator::do_apply(const eths_guard_sign_final_operation& o) {
 			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.chain_type)) {
+				return object_id_type();
+			}
+			auto handle = manager.get_crosschain_handle(o.chain_type);
+			if (!handle->valid_config()) {
+				return object_id_type();
+			}
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
+		}
+		void_result eths_guard_coldhot_change_signer_evaluator::do_evaluate(const eths_guard_coldhot_change_signer_operation& o) {
+			try {
+				const auto& guard_db = db().get_index_type<guard_member_index>().indices().get<by_id>();
+				auto guard_iter = guard_db.find(o.guard_to_sign);
+				FC_ASSERT(guard_iter != guard_db.end(), "This Guard doesnt exist");
+				const auto& coldhot_db = db().get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				const auto trx_iter = coldhot_db.find(o.combine_trx_id);
+				FC_ASSERT(trx_iter != coldhot_db.end());
+				auto combine_op = trx_iter->current_trx.operations[0].get<coldhot_transfer_combine_sign_operation>();
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.chain_type)) {
+					return void_result();
+				}
+				auto handle = manager.get_crosschain_handle(o.chain_type);
+				if (!handle->valid_config()) {
+					return void_result();
+				}
+				auto change_signer_input = handle->turn_trx(fc::variant_object("change_signer", o.signed_crosschain_trx));
+				auto combine_trx_input = handle->turn_trx(fc::variant_object("change_signer", combine_op.coldhot_trx_original_chain["without_sign"].as_string()));
+				FC_ASSERT(combine_trx_input.to_account == change_signer_input.to_account);
+				/*auto coldhot_trx = handle->turn_trx(fc::variant_object("get_without_sign", o.signed_crosschain_trx));
+				FC_ASSERT(coldhot_trx.to_account == combine_op.coldhot_trx_original_chain["without_sign"].as_string());*/
+
+			}FC_CAPTURE_AND_RETHROW((o))
+
+		}
+		object_id_type eths_guard_coldhot_change_signer_evaluator::do_apply(const eths_guard_coldhot_change_signer_operation& o) {
+			FC_ASSERT(trx_state->_trx != nullptr);
+			db().adjust_coldhot_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_coldhot_change_signer_operation>::value));
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.chain_type)) {
+				return object_id_type();
+			}
+			auto handle = manager.get_crosschain_handle(o.chain_type);
+			if (!handle->valid_config()) {
+				return object_id_type();
+			}
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			//db().adjust_eths_multi_account_record();
+			return object_id_type();
+		}
+		void eths_guard_coldhot_change_signer_evaluator::pay_fee() {
+
 		}
 		void_result eths_coldhot_guard_sign_final_evaluator::do_evaluate(const eths_coldhot_guard_sign_final_operation& o) {
 			try {
@@ -195,13 +296,22 @@ namespace graphene {
 				}
 				auto coldhot_trx = handle->turn_trx(fc::variant_object("get_without_sign", o.signed_crosschain_trx));
 				FC_ASSERT(coldhot_trx.to_account == combine_op.coldhot_trx_original_chain["without_sign"].as_string());
-				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+				
 			}FC_CAPTURE_AND_RETHROW((o))
 
 		}
 		object_id_type eths_coldhot_guard_sign_final_evaluator::do_apply(const eths_coldhot_guard_sign_final_operation& o) {
 			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_coldhot_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_coldhot_guard_sign_final_operation>::value));
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.chain_type)) {
+				return object_id_type();
+			}
+			auto handle = manager.get_crosschain_handle(o.chain_type);
+			if (!handle->valid_config()) {
+				return object_id_type();
+			}
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
 		}
@@ -209,6 +319,9 @@ namespace graphene {
 
 		}
 		void eths_guard_sign_final_evaluator::pay_fee() {
+
+		}
+		void eths_guard_change_signer_evaluator::pay_fee() {
 
 		}
 		void_result eth_multi_account_create_record_evaluator::do_evaluate(const eth_multi_account_create_record_operation& o) {

@@ -161,7 +161,11 @@ namespace graphene {
 				auto hdl = manager.get_crosschain_handle(std::string(eths_guard_sign_final_op.chain_type));
 				if (!hdl->valid_config())
 					return void_result();
-				auto eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id;
+				std::string eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id;
+				if (eths_guard_sign_final_op.signed_crosschain_trx_id.find('|') != eths_guard_sign_final_op.signed_crosschain_trx_id.npos) {
+					auto pos = eths_guard_sign_final_op.signed_crosschain_trx_id.find('|');
+					eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id.substr(pos + 1);
+				}
 				auto eth_transaction = hdl->transaction_query(eth_fail_transaction_id);
 				FC_ASSERT(eth_transaction.contains("respit_trx"));
 				FC_ASSERT(eth_transaction.contains("source_trx"));

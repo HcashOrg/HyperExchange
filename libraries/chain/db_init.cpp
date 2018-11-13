@@ -208,6 +208,8 @@ void database::initialize_evaluators()
    register_evaluator<coldhot_transfer_result_evaluate>();
    register_evaluator<coldhot_cancel_transafer_transaction_evaluate>();
    register_evaluator<coldhot_cancel_uncombined_trx_evaluate>();
+   register_evaluator<eths_guard_change_signer_evaluator>();
+   register_evaluator<eths_guard_coldhot_change_signer_evaluator>();
    register_evaluator<eth_cancel_coldhot_fail_trx_evaluate>();
    register_evaluator<guard_lock_balance_evaluator>();
    register_evaluator<guard_foreclose_balance_evaluator>();

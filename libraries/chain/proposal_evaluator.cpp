@@ -56,10 +56,16 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   if (op.op.which() == operation::tag<guard_refund_crosschain_trx_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
-	   if (op.op.which() == operation::tag<eth_cancel_coldhot_fail_trx_operaion>::value) {
+	   else if (op.op.which() == operation::tag<eth_cancel_coldhot_fail_trx_operaion>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
-	   if (op.op.which() == operation::tag<eth_cancel_fail_crosschain_trx_operation>::value) {
+	   else if (op.op.which() == operation::tag<eth_cancel_fail_crosschain_trx_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
+	   else if (op.op.which() == operation::tag<eths_guard_change_signer_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
+	   else if (op.op.which() == operation::tag<eths_guard_coldhot_change_signer_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
 	   else if (op.op.which() == operation::tag<guard_member_resign_operation>::value)
@@ -232,7 +238,7 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)
 
 		  {
-			  if (a.formal)  //only formal guard can vote
+			  if (a.formal && a.senator_type == PERMANENT)  //only formal guard can vote
 				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
 		  });
 	  }
