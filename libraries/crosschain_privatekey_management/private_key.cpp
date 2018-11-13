@@ -106,7 +106,10 @@ namespace graphene { namespace privatekey_management {
 		}
 		
 	}
-
+	bool crosschain_privatekey_base::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig)
+	{
+		return graphene::utxo::validateUtxoTransaction(addr,redeemscript,sig);
+	}
 
 	void btc_privatekey::init()
 	{
@@ -323,7 +326,6 @@ namespace graphene { namespace privatekey_management {
 	{
 		return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
 	}
-
 	fc::optional<fc::ecc::private_key> ltc_privatekey::import_private_key(const std::string& wif_key)
 	{
 /*

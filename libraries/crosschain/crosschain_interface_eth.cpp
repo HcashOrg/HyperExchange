@@ -1147,6 +1147,11 @@ namespace graphene {
 		{
 			return true;
 		}
+		bool crosschain_interface_eth::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig)
+		{
+			return false;
+		}
+
 		bool crosschain_interface_eth::validate_address(const std::string& addr)
 		{
 

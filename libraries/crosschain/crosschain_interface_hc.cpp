@@ -403,6 +403,15 @@ namespace graphene {
 		{
 			return true;
 		}
+
+		bool crosschain_interface_hc::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig)
+		{
+			try {
+				graphene::privatekey_management::hc_privatekey hk;
+				return hk.validate_transaction(addr,redeemscript,sig);
+			}FC_CAPTURE_AND_RETHROW((addr)(redeemscript)(sig))
+		}
+
 		bool crosschain_interface_hc::validate_address(const std::string& addr)
 		{
 

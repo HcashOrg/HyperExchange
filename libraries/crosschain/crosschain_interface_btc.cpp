@@ -517,6 +517,14 @@ namespace graphene {
 			FC_CAPTURE_AND_RETHROW((trx));
 			return hdtx;
 		}
+		bool crosschain_interface_btc::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig)
+		{
+			try {
+				graphene::privatekey_management::btc_privatekey btk;
+				return btk.validate_transaction( addr,redeemscript,sig);
+			}FC_CAPTURE_AND_LOG((addr)(redeemscript)(sig));
+		}
+
 
 		void crosschain_interface_btc::broadcast_transaction(const fc::variant_object &trx)
 		{

@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 // 	auto max_id = db_priv.fetch_current_max_id();
 // 	printf("%d\n", max_id);
 
-/*
+
 	btc_privatekey priv;
 
 	std::string script = "OP_HASH160 97f0c041b556fbb141364790b596cd9b3b2b403b OP_EQUAL";
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 	{
 		std::cout << "same signature" << std::endl;
 	}
-*/	
+	
 
 
 	
@@ -157,18 +157,18 @@ int main(int argc, char** argv)
 // 
 // 	libbitcoin::der_signature out;
 // 	printf("the result is %s\n", libbitcoin::encode_base16(out).c_str());
-btc_privatekey pkey;
-pkey.import_private_key("KwbYc3Vzs6d52Rz9UsEPMvAF8DLddthU2g8KpqQ2eHyUVTC1tPeq");
-std::string raw_transaction = "020000000101efc30cb46b3561d1ade9df3800ca560325beb92b15993b1078f53c73153be70000000000ffffffff026043993b000000001976a914bbad6509cda94ef4cc7735d41be492c2e9bab45488ac00286bee0000000017a9140f4d3a1d1b70386fe0846ef8432c8ebcc3c9ee058700000000";
-std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
-//auto str = pkey.sign_trx(raw_transaction,0);
-//std::cout << str << std::endl;
-
-auto addr = pkey.get_address();
-fc::optional<fc::ecc::private_key> optional_private_key = graphene::utilities::wif_to_key("5KAffU3Pw7RNJAJ3d1qUrJ6QPVb6UFx6CJ4MhgfoHL7YwYspHhs");
-graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
-std::cout << wif_pub_key.operator fc::string() << std::endl;
-std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
+//btc_privatekey pkey;
+//pkey.import_private_key("KwbYc3Vzs6d52Rz9UsEPMvAF8DLddthU2g8KpqQ2eHyUVTC1tPeq");
+//std::string raw_transaction = "020000000101efc30cb46b3561d1ade9df3800ca560325beb92b15993b1078f53c73153be70000000000ffffffff026043993b000000001976a914bbad6509cda94ef4cc7735d41be492c2e9bab45488ac00286bee0000000017a9140f4d3a1d1b70386fe0846ef8432c8ebcc3c9ee058700000000";
+//std::string redeemscript = "76a914a29932129ee913c92e40909e9a725195d600ab5f88ac";
+////auto str = pkey.sign_trx(raw_transaction,0);
+////std::cout << str << std::endl;
+//
+//auto addr = pkey.get_address();
+//fc::optional<fc::ecc::private_key> optional_private_key = graphene::utilities::wif_to_key("5KAffU3Pw7RNJAJ3d1qUrJ6QPVb6UFx6CJ4MhgfoHL7YwYspHhs");
+//graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
+//std::cout << wif_pub_key.operator fc::string() << std::endl;
+//std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
 	getchar();
 	return 0;
 }

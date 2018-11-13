@@ -1,6 +1,7 @@
 #include <graphene/chain/crosschain_record_evaluate.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
+#include <graphene/chain/account_object.hpp>
 #include <fc/smart_ref_impl.hpp>
 
 namespace graphene {
@@ -444,7 +445,30 @@ namespace graphene {
 			FC_ASSERT(sign_iter == signs.end(), "Guard has sign this transaction");
 			//db().get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
 			//auto trx_iter = trx_db.find(boost::make_tuple(o.ccw_trx_id, withdraw_sign_trx));
-		
+			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+			if (!manager.contain_crosschain_handles(o.asset_symbol))
+				return void_result();
+			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+			if (!hdl->valid_config())
+				return void_result();
+
+		    auto hd_trxs=hdl->turn_trxs(o.withdraw_source_trx);
+			FC_ASSERT(hd_trxs.trxs.size() == 1);
+			auto crosschain_trx = hd_trxs.trxs.begin()->second;
+			vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
+			FC_ASSERT(senator_pubks.size() > 0);
+			auto& acc_idx = db().get_index_type<account_index>().indices().get<by_address>();
+			auto acc_itr = acc_idx.find(o.guard_address);
+			FC_ASSERT(acc_itr != acc_idx.end());
+			int index = 0;
+			for (; index < senator_pubks.size(); index++)
+			{
+				if (senator_pubks[index].guard_account == acc_itr->get_id())
+					break;
+			}
+			FC_ASSERT(index < senator_pubks.size());
+			auto multisig_account_obj = db().get(senator_pubks[index].multisig_account_pair_object_id);
+			FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot,o.ccw_trx_signature) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold,multisig_account_obj.redeemScript_cold,o.ccw_trx_signature));
 			return void_result();
 		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_apply(const crosschain_withdraw_with_sign_operation& o) {

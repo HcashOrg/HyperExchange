@@ -1170,6 +1170,13 @@ namespace graphene {
 		{
 			return true;
 		}
+		bool crosschain_interface_erc::validate_transaction( const std::string& addr,const std::string& redeemscript,const std::string& sig)
+		{
+			try {
+				return false;
+			}FC_CAPTURE_AND_RETHROW((sig)(addr)(redeemscript));
+		}
+
 		bool crosschain_interface_erc::validate_address(const std::string& addr)
 		{
 

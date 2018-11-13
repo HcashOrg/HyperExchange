@@ -34,6 +34,7 @@ namespace graphene {
 			virtual bool validate_other_trx(const fc::variant_object &trx) override;
 			virtual bool validate_address(const std::string& addr) override;
 			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) override;
+			virtual bool validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig) override;
 			virtual bool create_signature(graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string &content, std::string &signature) override;
 			virtual hd_trx turn_trx(const fc::variant_object & trx) override;
 			virtual crosschain_trx turn_trxs(const fc::variant_object & trx)override;

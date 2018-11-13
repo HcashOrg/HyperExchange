@@ -35,6 +35,7 @@ namespace graphene {
 			bool is_empty() const {	return _key == fc::ecc::private_key(); }
 			virtual std::string get_public_key() = 0;
 			virtual std::string get_address_by_pubkey(const std::string& pub) = 0;
+			virtual bool validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig) ;
 			int  get_pubkey_prefix() { return _pubkey_prefix; }
 			bool set_pubkey_prefix(int prefix = 0) { _pubkey_prefix = prefix; return true; }
 			bool set_script_prefix(int prefix = 0) { _script_prefix = prefix; return true; }
