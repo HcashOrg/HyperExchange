@@ -63,6 +63,7 @@
 # include <sys/stat.h>
 #endif
 #include "graphene/chain/contract_entry.hpp"
+#include "boost/filesystem/operations.hpp"
 
 #define BRAIN_KEY_WORD_COUNT 16
 
@@ -3686,7 +3687,8 @@ public:
 		   //outfile.write(encrypted.data(), encrypted.size());
 		   //outfile.flush();
 		   //outfile.close();
-
+		   string tmpf=out_key_file+".tmp";
+		   boost::system::error_code ercode;
 		   map<string, crosschain_prkeys> keys;
 		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
 		   if (in.is_open())
@@ -3695,6 +3697,7 @@ public:
 			   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
 				   (std::istreambuf_iterator<char>()));
 			   in.close();
+			   boost::filesystem::copy_file(out_key_file, tmpf);
 			   if (key_file_data.size() > 0)
 			   {
 				   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
@@ -3702,7 +3705,6 @@ public:
 			   }
 		   }
 		   keys[symbol+cold_keys.addr] = cold_keys;
-
 		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary|std::ios::trunc);
 		   auto plain_txt = fc::raw::pack(keys);
 		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
@@ -3724,7 +3726,7 @@ public:
 		   trx.operations.emplace_back(op);
 		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
 		   trx.validate();
-
+		   boost::filesystem::remove(tmpf);
 		   return sign_transaction(trx,broadcast);
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
    }
