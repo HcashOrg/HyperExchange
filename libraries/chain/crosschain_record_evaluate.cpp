@@ -453,7 +453,7 @@ namespace graphene {
 				return void_result();
 
 		    auto hd_trxs=hdl->turn_trxs(o.withdraw_source_trx);
-			FC_ASSERT(hd_trxs.trxs.size() == 1);
+			FC_ASSERT(hd_trxs.trxs.size() >= 1);
 			auto crosschain_trx = hd_trxs.trxs.begin()->second;
 			vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
 			FC_ASSERT(senator_pubks.size() > 0);

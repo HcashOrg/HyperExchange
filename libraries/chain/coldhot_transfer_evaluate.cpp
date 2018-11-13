@@ -191,8 +191,8 @@ namespace graphene {
 				if (!hdl->valid_config())
 					return void_result();
 				auto hd_trxs = hdl->turn_trxs(o.coldhot_trx_original_chain);
-				FC_ASSERT(hd_trxs.trxs.size() == 1);
-				auto crosschain_trx = hd_trxs.trxs.begin()->second;
+				FC_ASSERT(hd_trxs.trxs.size() >= 1);
+				auto crosschain_trx = hd_trxs.trxs.begin()->second;  
 				vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
 				FC_ASSERT(senator_pubks.size() > 0);
 				auto& acc_idx = db().get_index_type<account_index>().indices().get<by_address>();
