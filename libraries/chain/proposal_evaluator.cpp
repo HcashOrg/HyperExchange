@@ -192,7 +192,7 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
    transaction_evaluation_state eval_state(&db());
    //eval_state.operation_results.reserve(_proposed_trx.operations.size());
    //eval_state._trx = &processed_transaction(_proposed_trx);
-
+   eval_state._is_proposed_trx = true;
    for (const auto& op : _proposed_trx.operations)
    {
 	   unique_ptr<op_evaluator>& eval = db().get_evaluator(op);
