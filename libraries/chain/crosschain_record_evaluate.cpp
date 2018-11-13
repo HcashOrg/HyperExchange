@@ -451,8 +451,14 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
-
-		    auto hd_trxs=hdl->turn_trxs(o.withdraw_source_trx);
+			crosschain_trx hd_trxs;
+			if (o.asset_symbol != "ETH")
+			{
+				hd_trxs = hdl->turn_trxs(o.withdraw_source_trx);
+			}
+			else {
+				hd_trxs= hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.withdraw_source_trx));
+			}
 			FC_ASSERT(hd_trxs.trxs.size() >= 1);
 			auto crosschain_trx = hd_trxs.trxs.begin()->second;
 			vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
