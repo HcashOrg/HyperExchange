@@ -352,6 +352,14 @@ namespace graphene {
 		{
 			return true;
 		}
+		bool crosschain_interface_ub::validate_transaction( const std::string& addr,const std::string& redeemscript,const std::string& sig)
+		{
+			try {
+				graphene::privatekey_management::ub_privatekey ubt;
+				return ubt.validate_transaction(addr,redeemscript,sig);
+
+			}FC_CAPTURE_AND_RETHROW((addr)(redeemscript)(sig));
+		}
 		bool crosschain_interface_ub::validate_address(const std::string& addr)
 		{
 			graphene::privatekey_management::ub_privatekey ubt;

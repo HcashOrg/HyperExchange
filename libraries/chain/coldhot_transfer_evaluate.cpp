@@ -183,6 +183,30 @@ namespace graphene {
 					}
 				}
 				FC_ASSERT(!isSigned, "Guard has sign this transaction");
+
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.asset_symbol))
+					return void_result();
+				auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
+				if (!hdl->valid_config())
+					return void_result();
+				auto hd_trxs = hdl->turn_trxs(o.coldhot_trx_original_chain);
+				FC_ASSERT(hd_trxs.trxs.size() >= 1);
+				auto crosschain_trx = hd_trxs.trxs.begin()->second;  
+				vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
+				FC_ASSERT(senator_pubks.size() > 0);
+				auto& acc_idx = db().get_index_type<account_index>().indices().get<by_address>();
+				auto acc_itr = acc_idx.find(o.guard_address);
+				FC_ASSERT(acc_itr != acc_idx.end());
+				int index = 0;
+				for (; index < senator_pubks.size(); index++)
+				{
+					if (senator_pubks[index].guard_account == acc_itr->get_id())
+						break;
+				}
+				FC_ASSERT(index < senator_pubks.size());
+				auto multisig_account_obj = db().get(senator_pubks[index].multisig_account_pair_object_id);
+				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			

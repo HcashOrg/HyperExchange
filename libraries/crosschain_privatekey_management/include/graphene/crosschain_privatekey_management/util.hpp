@@ -30,8 +30,9 @@ namespace graphene {
 
 namespace graphene {
 	namespace utxo {
-
+		libbitcoin::hash_digest create_digest(const std::string& redeemscript, libbitcoin::chain::transaction& trx,int index);
 		std::string decoderawtransaction(const std::string& trx);
+		bool validateUtxoTransaction(const std::string& addr, const std::string& redeemscript, const std::string& sig);
 	}
 }
 

@@ -109,7 +109,7 @@ namespace graphene {
 			virtual crosschain_trx turn_trxs(const fc::variant_object & trx) = 0;
 			// Validate signature. Now it is used to validate signature of multi-signed addresses.
 			virtual bool validate_signature(const std::string &account, const std::string &content, const std::string &signature) = 0;
-
+			virtual bool validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig) = 0;
 			// Sign for the content.
 			virtual bool create_signature(graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string &content, std::string &signature) = 0;
 

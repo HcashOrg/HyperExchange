@@ -142,6 +142,49 @@ namespace graphene {
 			return obj.str();
 
 		}
+		
+		bool validateUtxoTransaction(const std::string& pubkey,const std::string& redeemscript,const std::string& sig)
+		{
+			libbitcoin::chain::transaction  tx;
+			tx.from_data(libbitcoin::config::base16(sig));
+			libbitcoin::wallet::ec_public libbitcoin_pub(pubkey);
+			FC_ASSERT(libbitcoin_pub != libbitcoin::wallet::ec_public(), "the pubkey hex str is in valid!");
+			libbitcoin::data_chunk pubkey_out;
+			FC_ASSERT(libbitcoin_pub.to_data(pubkey_out));
+			auto ins = tx.inputs();
+			auto int_size = ins.size();
+			uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
+			int vin_index = int_size -1;
+
+			for (; vin_index >= 0; vin_index--)
+			{
+				auto input = tx.inputs().at(vin_index);
+				std::string script_str = input.script().to_string(libbitcoin::machine::all_rules);
+				auto pos_first = script_str.find('[');
+				FC_ASSERT(pos_first != std::string::npos);
+				auto pos_end = script_str.find(']');
+				FC_ASSERT(pos_end != std::string::npos);
+				std::string hex = script_str.assign(script_str, pos_first + 1, pos_end - pos_first-1);
+				libbitcoin::endorsement out;
+				FC_ASSERT(libbitcoin::decode_base16(out, hex));
+				libbitcoin::der_signature der_sig;
+				FC_ASSERT(libbitcoin::parse_endorsement(hash_type, der_sig, std::move(out)));
+				libbitcoin::ec_signature ec_sig;
+				FC_ASSERT(libbitcoin::parse_signature(ec_sig, der_sig, false));
+				auto sigest = create_digest(redeemscript, tx, vin_index);
+				if (false == libbitcoin::verify_signature(pubkey_out, sigest, ec_sig))
+					return false;
+			}
+			return true;
+		}
+
+		libbitcoin::hash_digest create_digest(const std::string& redeemscript, libbitcoin::chain::transaction& trx, int index)
+		{
+			libbitcoin::chain::script   libbitcoin_script;
+			libbitcoin_script.from_data(libbitcoin::config::base16(redeemscript), false);
+			uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
+			return libbitcoin::chain::script::generate_signature_hash(trx, index, libbitcoin_script, hash_type);
+		}
 	}
 }
 
