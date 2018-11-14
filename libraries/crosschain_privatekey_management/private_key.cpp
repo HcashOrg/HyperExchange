@@ -114,12 +114,12 @@ namespace graphene { namespace privatekey_management {
 	void btc_privatekey::init()
 	{
 		set_id(0);
-		set_pubkey_prefix(0x6F);
-		set_script_prefix(0xC4);
-		set_privkey_prefix(0xEF);
-		//set_pubkey_prefix(0x0);
-		//set_script_prefix(0x05);
-		//set_privkey_prefix(0x80);
+		//set_pubkey_prefix(0x6F);
+		//set_script_prefix(0xC4);
+		//set_privkey_prefix(0xEF);
+		set_pubkey_prefix(0x0);
+		set_script_prefix(0x05);
+		set_privkey_prefix(0x80);
 	}
 
 
@@ -212,12 +212,12 @@ namespace graphene { namespace privatekey_management {
 	void ltc_privatekey::init()
 	{
 		set_id(0);
-		set_pubkey_prefix(0x6F);
-		set_script_prefix(0x3A);
-		set_privkey_prefix(0xEF);
-		//set_pubkey_prefix(0x30);
-		//set_script_prefix(0x32);
-		//set_privkey_prefix(0xB0);
+		//set_pubkey_prefix(0x6F);
+		//set_script_prefix(0x3A);
+		//set_privkey_prefix(0xEF);
+		set_pubkey_prefix(0x30);
+		set_script_prefix(0x32);
+		set_privkey_prefix(0xB0);
 	}
 
 	std::string  ltc_privatekey::get_wif_key()
@@ -544,10 +544,10 @@ namespace graphene { namespace privatekey_management {
 	}
 	void hc_privatekey::init() {
 		set_id(0);
-		set_pubkey_prefix(0x0f21);
-		set_privkey_prefix(0x230e);
-		//set_pubkey_prefix(0x097f);
-		//set_privkey_prefix(0x19ab);
+		//set_pubkey_prefix(0x0f21);
+		//set_privkey_prefix(0x230e);
+		set_pubkey_prefix(0x097f);
+		set_privkey_prefix(0x19ab);
 	}
 	std::string hc_privatekey::get_wif_key() {
 		FC_ASSERT(is_empty() == false, "private key is empty!");
