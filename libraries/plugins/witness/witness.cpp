@@ -80,15 +80,15 @@ void miner_plugin::plugin_set_program_options(
     (std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
    for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
    {
-	   auto name = "miner" + fc::to_string(i);
+	   auto name = "citizen" + fc::to_string(i);
 	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 	   vec.push_back
 	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
    }
 
-   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_GUARD_COUNT; i++)
+   for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
    {
-	   auto name = "guard" + fc::to_string(i);
+	   auto name = "senator" + fc::to_string(i);
 	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 	   vec.push_back
 	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
