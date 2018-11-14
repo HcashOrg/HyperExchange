@@ -73,11 +73,11 @@ void miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
-   auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("hyper-exchange")));
+   //auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("hyper-exchange")));
 
    vector<std::pair<chain::public_key_type, string>> vec;
-   vec.push_back
-    (std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
+   /*vec.push_back
+	(std::make_pair(chain::public_key_type(default_priv_key.get_public_key()), graphene::utilities::key_to_wif(default_priv_key)));
    for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MIN_MINER_COUNT; i++)
    {
 	   auto name = "citizen" + fc::to_string(i);
@@ -92,7 +92,7 @@ void miner_plugin::plugin_set_program_options(
 	   auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
 	   vec.push_back
 	   (std::make_pair(chain::public_key_type(name_key.get_public_key()), graphene::utilities::key_to_wif(name_key)));
-   }
+   }*/
 
    string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    vector<string> chain_type;
