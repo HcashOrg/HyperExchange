@@ -168,7 +168,9 @@ namespace graphene { namespace chain {
 			eth_cancel_fail_crosschain_trx_operation,
 			eth_cancel_coldhot_fail_trx_operaion,
 			eths_guard_change_signer_operation,
-			eths_guard_coldhot_change_signer_operation
+			eths_guard_coldhot_change_signer_operation,
+			coldhot_cancel_combined_trx_operaion,
+			guard_cancel_combine_trx_operation
          > operation;
 
    /// @} // operations group

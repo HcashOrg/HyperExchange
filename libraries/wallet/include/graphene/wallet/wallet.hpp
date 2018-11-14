@@ -1997,9 +1997,11 @@ class wallet_api
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
 	  full_transaction refund_uncombined_transaction(const string senator,const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction refund_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction eth_cancel_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_eth_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_uncombined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction cancel_coldhot_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_cold_hot_uncreate_transaction(const string& proposer,const string& trxid, const int64_t& exception_time, bool broadcast = false);
 	  full_transaction transfer_from_cold_to_hot(const string& proposer,const string& from_account,const string& to_account,const string& amount,const string& asset_symbol, const string& memo, const int64_t& exception_time, bool broadcast=true);
 	  vector<optional<multisig_address_object>> get_multi_account_senator(const string & multi_address, const string& symbol)const;
@@ -2245,7 +2247,9 @@ FC_API( graphene::wallet::wallet_api,
 		(get_binding_account)
 		(withdraw_cross_chain_transaction)
 		(refund_uncombined_transaction)
+		(refund_combined_transaction)
 		(cancel_coldhot_uncombined_transaction)
+			(cancel_coldhot_combined_transaction)
 		(eth_cancel_fail_transaction)
 		(cancel_coldhot_eth_fail_transaction)
 		(transfer_senator_multi_account)

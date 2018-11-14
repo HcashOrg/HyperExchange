@@ -59,6 +59,12 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   else if (op.op.which() == operation::tag<eth_cancel_coldhot_fail_trx_operaion>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
+	   else if (op.op.which() == operation::tag<guard_cancel_combine_trx_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
+	   else if (op.op.which() == operation::tag<coldhot_cancel_combined_trx_operaion>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
 	   else if (op.op.which() == operation::tag<eth_cancel_fail_crosschain_trx_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }

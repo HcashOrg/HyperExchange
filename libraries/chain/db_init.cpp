@@ -296,6 +296,8 @@ void database::initialize_evaluators()
    register_evaluator<referendum_accelerate_pledge_evaluator>();
    register_evaluator<block_address_evaluator>();
    register_evaluator<cancel_address_block_evaluator>();
+   register_evaluator<guard_cancel_combine_trx_evaluator>();
+   register_evaluator<coldhot_cancel_combined_trx_evaluate>();
 }
 
 void database::initialize_indexes()
