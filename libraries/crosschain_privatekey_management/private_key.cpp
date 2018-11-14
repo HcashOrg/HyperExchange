@@ -1158,7 +1158,7 @@ namespace graphene { namespace privatekey_management {
 		auto sign_str = dev::sign(sec, hash);
 		std::vector<char> sign_bin(sign_str.begin(), sign_str.end());
 		std::string signs = BinToHex(sign_bin, false);
-		/*if (signs.substr(signs.size() - 2) == "00")
+		if (signs.substr(signs.size() - 2) == "00")
 		{
 			signs[signs.size() - 2] = '1';
 			signs[signs.size() - 1] = 'b';
@@ -1168,9 +1168,9 @@ namespace graphene { namespace privatekey_management {
 			signs[signs.size() - 2] = '1';
 			signs[signs.size() - 1] = 'c';
 		}
-		*/
+		
 		//formal eth sign v
-		if (signs.substr(signs.size() - 2) == "00")
+		/*if (signs.substr(signs.size() - 2) == "00")
 		{
 			signs[signs.size() - 2] = '2';
 			signs[signs.size() - 1] = '5';
@@ -1179,7 +1179,7 @@ namespace graphene { namespace privatekey_management {
 		{
 			signs[signs.size() - 2] = '2';
 			signs[signs.size() - 1] = '6';
-		}
+		}*/
 		
 		return signs;
 	}
