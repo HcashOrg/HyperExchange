@@ -6292,10 +6292,15 @@ std::string operation_result_printer::operator()(const string& a)
 	return a;
 }
 
+
+
 }}}
 
 namespace graphene { namespace wallet {
-
+	bool crosschain_prkeys::operator==(const crosschain_prkeys& key) const
+	{
+		return (addr == key.addr) && (pubkey == key.pubkey) && (wif_key == key.wif_key);
+	}
    vector<brain_key_info> utility::derive_owner_keys_from_brain_key(string brain_key, int number_of_desired_keys)
    {
       // Safety-check
