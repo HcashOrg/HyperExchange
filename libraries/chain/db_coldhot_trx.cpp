@@ -148,8 +148,8 @@ namespace graphene {
 				else if (op_type == operation::tag<coldhot_cancel_combined_trx_operaion>::value) {
 					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto coldhot_combine_trx_iter = coldhot_db_objs.find(relate_trx_id);
-					auto range_sign_objs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(relate_trx_id);
-					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(relate_trx_id);
+					auto range_sign_objs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(coldhot_combine_trx_iter->relate_trx_id);
+					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(coldhot_combine_trx_iter->relate_trx_id);
 					auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
 					modify(*coldhot_combine_trx_iter, [&](coldhot_transfer_object& obj) {
 						obj.curret_trx_state = coldhot_transaction_fail;

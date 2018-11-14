@@ -3658,6 +3658,7 @@ public:
 	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
 	   prop_op.proposer = get_account(guard).get_id();
 	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
 	   eth_cancel_coldhot_fail_trx_operaion cancel_op;
 	   cancel_op.fail_trx_id = transaction_id_type(txid);
 	   cancel_op.guard = addr;
@@ -3714,6 +3715,7 @@ public:
 	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
 	   prop_op.proposer = get_account(guard).get_id();
 	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
 	   coldhot_cancel_combined_trx_operaion cancel_op;
 	   cancel_op.fail_trx_id = transaction_id_type(txid);
 	   cancel_op.guard = addr;
