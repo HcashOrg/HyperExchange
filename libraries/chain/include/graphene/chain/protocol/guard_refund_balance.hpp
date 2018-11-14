@@ -36,6 +36,19 @@ namespace graphene {
 			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
 
 		};
+		struct guard_cancel_combine_trx_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+			};
+			asset fee;
+			address    guard_address;
+			guard_member_id_type guard_id;
+			transaction_id_type fail_trx_id;
+			address fee_payer()const {
+				return guard_address;
+			}
+			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
+		};
 		struct eth_cancel_fail_crosschain_trx_operation :public base_operation {
 			struct fee_parameters_type {
 				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
@@ -55,5 +68,7 @@ FC_REFLECT(graphene::chain::guard_refund_balance_operation::fee_parameters_type,
 FC_REFLECT(graphene::chain::guard_refund_balance_operation, (fee)(refund_addr)(txid))
 FC_REFLECT(graphene::chain::guard_refund_crosschain_trx_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::guard_refund_crosschain_trx_operation, (fee)(guard_address)(guard_id)(not_enough_sign_trx_id))
+FC_REFLECT(graphene::chain::guard_cancel_combine_trx_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::guard_cancel_combine_trx_operation, (fee)(guard_address)(guard_id)(fail_trx_id))
 FC_REFLECT(graphene::chain::eth_cancel_fail_crosschain_trx_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eth_cancel_fail_crosschain_trx_operation, (fee)(guard_address)(guard_id)(fail_transaction_id))

@@ -219,6 +219,8 @@ struct get_impacted_account_visitor
    void operator() (const account_create_multisignature_address_operation& op) {}
    void operator() (const eths_guard_change_signer_operation& op){}
    void operator() (const eths_guard_coldhot_change_signer_operation & op){}
+   void operator() (const coldhot_cancel_combined_trx_operaion & op) {}
+   void operator() (const guard_cancel_combine_trx_operation & op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );
