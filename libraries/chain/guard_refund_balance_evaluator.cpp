@@ -169,14 +169,15 @@ namespace graphene {
 				database& d = db();
 				auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto iter = crosschain_trxs.find(transaction_id_type(o.fail_trx_id));
-				auto crosschain_sign_trxs_range = d.get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(iter->transaction_id);
+				
+				auto without_iter = crosschain_trxs.find(iter->relate_transaction_id);
+				auto crosschain_sign_trxs_range = d.get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(without_iter->transaction_id);
 				for (auto sign_trx : boost::make_iterator_range(crosschain_sign_trxs_range.first, crosschain_sign_trxs_range.second)) {
 					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
 					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
 					});
 				}
-				auto without_iter = crosschain_trxs.find(iter->relate_transaction_id);
 				auto op = without_iter->real_transaction.operations[0];
 				auto without_sign_op = op.get<crosschain_withdraw_without_sign_operation>();
 				const asset_object&   asset_type = without_sign_op.asset_id(d);
@@ -193,6 +194,9 @@ namespace graphene {
 					});
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
+					obj.trx_state = withdraw_canceled;
+				});
+				d.modify(*without_iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
 				});
 				d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, without_sign_op](asset_dynamic_data_object& d) {
