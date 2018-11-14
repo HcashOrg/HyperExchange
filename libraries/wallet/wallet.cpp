@@ -3773,7 +3773,7 @@ public:
 		   out.flush();
 		   out.close();
 		   //output check
-		   std::ofstream out_chk(out_key_file, std::ios::in | std::ios::binary);
+		   std::ifstream out_chk(out_key_file, std::ios::in | std::ios::binary);
 		   FC_ASSERT(out_chk.is_open(),"keyfile check failed!Open key file  failed!");
 		   std::vector<char> key_file_data_chk((std::istreambuf_iterator<char>(out_chk)),
 			   (std::istreambuf_iterator<char>()));
