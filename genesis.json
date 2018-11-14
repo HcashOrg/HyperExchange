@@ -1,5 +1,5 @@
 {
-  "initial_timestamp": "2018-11-09T10:02:05",
+  "initial_timestamp": "2018-11-14T06:32:50",
   "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
@@ -32,7 +32,7 @@
           }
         ],[
           6,{
-            "fee": 200000000,
+            "fee": 100,
             "price_per_kbyte": 10
           }
         ],[
@@ -448,12 +448,36 @@
           106,{
             "fee": 100
           }
+        ],[
+          107,{
+            "fee": 100
+          }
+        ],[
+          108,{
+            "fee": 100
+          }
+        ],[
+          109,{
+            "fee": 100
+          }
+        ],[
+          110,{
+            "fee": 100
+          }
+        ],[
+          111,{
+            "fee": 100
+          }
+        ],[
+          112,{
+            "fee": 100
+          }
         ]
       ],
       "scale": 10000
     },
     "block_interval": 5,
-    "maintenance_interval": 600,
+    "maintenance_interval": 86400,
     "maintenance_skip_slots": 3,
     "committee_proposal_review_period": 1209600,
     "maximum_transaction_size": 2048,
@@ -480,7 +504,7 @@
     "accounts_per_fee_scale": 1000,
     "account_fee_scale_bitshifts": 4,
     "max_authority_depth": 2,
-    "min_pay_back_balance": 50000000,
+    "min_pay_back_balance": 100,
     "min_pay_back_balance_other_asset": [],
     "extensions": []
   },
