@@ -3770,6 +3770,17 @@ public:
 		   out.write(encrypted.data(), encrypted.size());
 		   out.flush();
 		   out.close();
+		   //output check
+		   std::ofstream out_chk(out_key_file, std::ios::in | std::ios::binary);
+		   FC_ASSERT(out_chk.is_open(),"keyfile check failed!Open key file  failed!");
+		   std::vector<char> key_file_data_chk((std::istreambuf_iterator<char>(out_chk)),
+			   (std::istreambuf_iterator<char>()));
+		   FC_ASSERT(key_file_data_chk.size() > 0, "key file shuld not be empty");
+		   const auto plain_text_chk = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data_chk);
+		   map<string, crosschain_prkeys> keys_chk = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text_chk);
+		   FC_ASSERT(keys == keys_chk,"Key file check faild!");
+
+		   //output check end
 		   account_multisig_create_operation op;
 		   op.addr = get_account(guard_account.guard_member_account).addr;
 		   op.account_id = get_account(guard_account.guard_member_account).get_id();
@@ -3785,8 +3796,10 @@ public:
 		   trx.operations.emplace_back(op);
 		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
 		   trx.validate();
+		   auto res= sign_transaction(trx,broadcast);
 		   boost::filesystem::remove(tmpf);
-		   return sign_transaction(trx,broadcast);
+		   return res;
+
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast))
    }
    vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol) {
