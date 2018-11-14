@@ -73,7 +73,7 @@ void miner_plugin::plugin_set_program_options(
    boost::program_options::options_description& command_line_options,
    boost::program_options::options_description& config_file_options)
 {
-   auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("nathan")));
+   auto default_priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("hyper-exchange")));
 
    vector<std::pair<chain::public_key_type, string>> vec;
    vec.push_back
