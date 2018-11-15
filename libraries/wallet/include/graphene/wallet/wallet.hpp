@@ -1814,7 +1814,7 @@ class wallet_api
 	  void senator_sign_eths_multi_account_create_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
 	  void senator_sign_eths_final_trx(const string& tx_id, const string& senator);
 	  void senator_changer_eth_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast);
-	  void senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast);
+	  void senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, const string& keyfile, const string& decryptkey, bool broadcast);
 	  void senator_sign_eths_coldhot_final_trx(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
       /** Signs a transaction.
        *

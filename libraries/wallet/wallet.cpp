@@ -4484,7 +4484,7 @@ public:
 			wif_key_cold=_crosschain_keys[multi_account_op.guard_sign_cold_address].wif_key;
 		else
 		{
-			std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << multi_account_op.chain_type + multi_account_op.guard_sign_cold_address << std::endl;
+			//std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << multi_account_op.chain_type + multi_account_op.guard_sign_cold_address << std::endl;
 			wif_key_cold = decrypted_keys[multi_account_op.chain_type+multi_account_op.guard_sign_cold_address].wif_key;
 		}
 		auto wif_key_hot = _crosschain_keys[multi_account_op.guard_sign_hot_address].wif_key;
@@ -4598,7 +4598,7 @@ public:
 			   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
 		   }
 		   FC_ASSERT(keys.find(coldhot_op.asset_symbol + guard_address) != keys.end(),"cold key can't be found in keyfile");
-		   std::cout << fc::json::to_pretty_string(keys) << std::endl << coldhot_op.asset_symbol + guard_address << std::endl;
+		   //std::cout << fc::json::to_pretty_string(keys) << std::endl << coldhot_op.asset_symbol + guard_address << std::endl;
 		   auto key_ptr = prk_ptr->import_private_key(keys[coldhot_op.asset_symbol+guard_address].wif_key);
 		   prk_ptr->set_key(*key_ptr);
 	   }
@@ -4664,7 +4664,7 @@ public:
 		   wif_key = _crosschain_keys[sign_senator].wif_key;
 	   else
 	   {
-		   std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << coldhot_op.asset_symbol + sign_senator << std::endl;
+		   //std::cout << fc::json::to_pretty_string(decrypted_keys) << std::endl << coldhot_op.asset_symbol + sign_senator << std::endl;
 		   wif_key = decrypted_keys[coldhot_op.asset_symbol + sign_senator].wif_key;
 	   }
 
@@ -4721,7 +4721,7 @@ public:
 	   }
 	   return guardId;
    }
-   void senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast) {
+   void senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, const string& keyfile, const string& decryptkey, bool broadcast) {
 
 	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_eth_guard_need_sign, transaction_id_type(txid));
 	   FC_ASSERT(trx.size() == 1, "Transaction error");
@@ -4735,8 +4735,30 @@ public:
 	   auto sign_senator = newaddress;
 	   auto without_sign = eth_without_sign_trx_obj["without_sign"].as_string();
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);
-	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0, "private key doesnt belong to this wallet.");
-	   auto wif_key = _crosschain_keys[sign_senator].wif_key;
+	   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+	   std::vector<char> key_file_data;
+	   if (in.is_open())
+	   {
+		   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+			   (std::istreambuf_iterator<char>()));
+		   in.close();
+	   }
+
+	   map<string, crosschain_prkeys> decrypted_keys;
+	   if (key_file_data.size() > 0)
+	   {
+		   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+		   decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+	   }
+
+	   FC_ASSERT(_crosschain_keys.count(sign_senator) > 0|| decrypted_keys.find(withop_without_sign.asset_symbol+ sign_senator)!= decrypted_keys.end(), "private key doesnt belong to this wallet.");
+	   string wif_key;
+	   if(_crosschain_keys.count(sign_senator) > 0)
+		   wif_key = _crosschain_keys[sign_senator].wif_key;
+	   else
+	   {
+		   wif_key = decrypted_keys[withop_without_sign.asset_symbol + sign_senator].wif_key;
+	   }
 	   auto key_ptr = prk_ptr->import_private_key(wif_key);
 	   FC_ASSERT(key_ptr.valid());
 	   string siging = hdl->sign_multisig_transaction(fc::variant_object("change_signer_sign", without_sign), prk_ptr, "", false);
@@ -7083,8 +7105,8 @@ void wallet_api::senator_sign_eths_final_trx(const string& trx_id, const string 
 void wallet_api::senator_changer_eth_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast) {
 	my->senator_changer_eth_singer_trx(guard, txid, newaddress, expiration_time,broadcast);
 }
-void wallet_api::senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast) {
-	my->senator_changer_eth_coldhot_singer_trx(guard, txid, newaddress, expiration_time, broadcast);
+void wallet_api::senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, const string& keyfile, const string& decryptkey, bool broadcast) {
+	my->senator_changer_eth_coldhot_singer_trx(guard, txid, newaddress, expiration_time, keyfile, decryptkey, broadcast);
 }
 
 void wallet_api::senator_sign_eths_coldhot_final_trx(const string& trx_id, const string & senator, const string& keyfile, const string& decryptkey) {
