@@ -2058,6 +2058,7 @@ class wallet_api
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
 	  fc::string get_first_contract_address();
+	  map<string, crosschain_prkeys> decrypt_coldkeys(const string& key, const string& file);
       //citizen
       void start_citizen(bool);
 
@@ -2351,4 +2352,5 @@ FC_API( graphene::wallet::wallet_api,
 		(approve_referendum)
 		(proposal_block_address)
 		(proposal_cancel_block_address)
+		(decrypt_coldkeys)
       )

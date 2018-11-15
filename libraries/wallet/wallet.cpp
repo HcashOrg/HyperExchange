@@ -319,20 +319,27 @@ private:
 				   claim_registered_miner(optional_account->name);
             }
       }
+
 	  if (!_wallet.pending_account_updation.empty())
 	  {
 		  // make a vector of the owner accounts for update pending registration
+
 		  std::vector<transaction_id_type> pending_trx_ids = boost::copy_range<std::vector<transaction_id_type> >(boost::adaptors::keys(_wallet.pending_account_updation));
 
 		  for (auto id : pending_trx_ids)
 		  {
-			  auto trx=_remote_db->get_transaction_by_id(id);
+			  //std::cout << "Try get trx" << fc::json::to_string(id)<<std::endl;
+			  try {
+				  auto trx = _remote_db->get_transaction_by_id(id);
+			 
 			  if (trx.valid())
 			  {
 				  auto acct=_remote_db->get_account(_wallet.pending_account_updation[id]);
 				  claim_account_update(acct);
 				  _wallet.pending_account_updation.erase(id);
 			  }
+			  }catch(...)
+			  {}
 		  }
 	  }
       if (_wallet.event_handlers.size() != 0)
@@ -511,17 +518,27 @@ public:
 
    void schedule_loop()
    {
-	   static uint32_t block_num = 0;
-	   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
-	   fc::time_point now = fc::time_point::now();
-	   fc::time_point next_wakeup(now + fc::seconds(block_interval));
-	   auto height = _remote_db->get_dynamic_global_properties().head_block_number;
-	   if (height != block_num)
+	   //std::cout << "schedule_loop" << std::endl;
+	   fc::time_point next_wakeup(fc::time_point::now() + fc::seconds(5));
+	   try {
+		   static uint32_t block_num = 0;
+		   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
+		   fc::time_point now = fc::time_point::now();
+		   next_wakeup=fc::time_point(now + fc::seconds(block_interval));
+		   auto height = _remote_db->get_dynamic_global_properties().head_block_number;
+		   if (height != block_num)
+		   {
+			   block_num = height;
+			   resync();
+		   }
+	   }
+	   catch (const fc::exception& e)
 	   {
-		   block_num = height;
-		   resync();
+		   //std::cout << e.to_detail_string()<< std::endl;
 	   }
 	   fc::schedule([this] {schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+
+	   //std::cout << "schedule_loop  end" << std::endl;
    }
    void encrypt_keys()
    {
@@ -2906,6 +2923,9 @@ public:
 
 		   full_transaction res= sign_transaction(tx, broadcast);
 		   _wallet.pending_account_updation[res.trxid] = acct.name;
+
+		   //std::cout <<"new trx"<<fc::json::to_pretty_string(res.trxid) << std::endl;
+		   //std::cout << fc::json::to_pretty_string(_wallet.pending_account_updation) << std::endl;
 		   return res;
 
 	   }FC_CAPTURE_AND_RETHROW((citizen)(pledge_pay_back_rate))
@@ -8939,6 +8959,25 @@ signed_block_with_info::signed_block_with_info( const signed_block& block )
    transaction_ids.reserve( transactions.size() );
    for( const processed_transaction& tx : transactions )
 	   transaction_ids.push_back( tx.id() );
+}
+
+map<string, crosschain_prkeys> wallet_api::decrypt_coldkeys(const string& key, const string& file)
+{
+	map<string, crosschain_prkeys> keys;
+	std::ifstream in(file, std::ios::in | std::ios::binary);
+	FC_ASSERT(in.is_open(),"key file open failed!\n");
+	{
+
+		std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+			(std::istreambuf_iterator<char>()));
+		in.close();
+		if (key_file_data.size() > 0)
+		{
+			const auto plain_text = fc::aes_decrypt(fc::sha512(key.c_str(), key.length()), key_file_data);
+			keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+		}
+	}
+	return keys;
 }
 void wallet_api::start_citizen(bool start)
 {
