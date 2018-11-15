@@ -1079,7 +1079,7 @@ namespace graphene {
 			ret.from = dev::jsToAddress(from_account);
 			ret.to = dev::jsToAddress(to_account);
 			ret.gasPrice = dev::jsToU256("5000000000");
-			ret.gas = dev::jsToU256("4500000");
+			ret.gas = dev::jsToU256("3000000");
 			std::vector<char> bin_input;
 			unsigned int nDeplength = 0;
 			bool b_converse = erc::from_hex(eth_param.data(), bin_input, eth_param.size(), nDeplength);
