@@ -114,7 +114,7 @@ namespace graphene {
 				std::string sour_float = source.substr(pos + 1);
 				if (sour_float.size() > precision || sour_float.size() < 1)
 				{
-					FC_ASSERT("ERC serise amount error");
+					FC_ASSERT(false,"ERC serise amount error");
 				}
 				ret += sour_float;
 				std::string temp((18 - sour_float.size()), '0');

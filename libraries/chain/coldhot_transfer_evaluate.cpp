@@ -323,7 +323,7 @@ namespace graphene {
 				auto deposit_to_link_trx = deposit_db.find(crosschain_trx_id);
 				if (deposit_to_link_trx != deposit_db.end()) {
 					if (deposit_to_link_trx->acquired_transaction_state != acquired_trx_uncreate) {
-						FC_ASSERT("deposit to link transaction doesn`t exist");
+						FC_ASSERT(false,"deposit to link transaction doesn`t exist");
 					}
 				}
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
