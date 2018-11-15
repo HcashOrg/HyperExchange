@@ -43,7 +43,7 @@ namespace graphene {
 				if (deposit_to_link_trx == deposit_db.end()) {
 					create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
 						obj.handle_trx = handled_trx;
-						obj.handle_trx_id = handled_trx.trx_id;
+						obj.handle_trx_id = crosschain_trx_id;
 						obj.acquired_transaction_state = acquired_trx_comfirmed;
 					});
 				}
