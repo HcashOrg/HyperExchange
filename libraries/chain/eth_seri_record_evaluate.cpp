@@ -160,7 +160,7 @@ namespace graphene {
 				const auto& guard_db = db().get_index_type<guard_member_index>().indices().get<by_id>();
 				auto guard_iter = guard_db.find(o.guard_to_sign);
 				FC_ASSERT(guard_iter != guard_db.end(), "This Guard doesnt exist");
-
+				FC_ASSERT(guard_iter->senator_type == PERMANENT);
 				const auto& crosschain_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				const auto trx_iter = crosschain_db.find(o.combine_trx_id);
 				FC_ASSERT(trx_iter != crosschain_db.end());
@@ -238,6 +238,7 @@ namespace graphene {
 				const auto& guard_db = db().get_index_type<guard_member_index>().indices().get<by_id>();
 				auto guard_iter = guard_db.find(o.guard_to_sign);
 				FC_ASSERT(guard_iter != guard_db.end(), "This Guard doesnt exist");
+				FC_ASSERT(guard_iter->senator_type == PERMANENT);
 				const auto& coldhot_db = db().get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 				const auto trx_iter = coldhot_db.find(o.combine_trx_id);
 				FC_ASSERT(trx_iter != coldhot_db.end());
