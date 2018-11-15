@@ -193,7 +193,15 @@ namespace graphene {
 				auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 				if (!hdl->valid_config())
 					return void_result();
-				auto hd_trxs = hdl->turn_trxs(o.coldhot_trx_original_chain);
+				//auto hd_trxs = hdl->turn_trxs(o.coldhot_trx_original_chain);
+				crosschain_trx hd_trxs;
+				if (o.asset_symbol != "ETH" && o.asset_symbol.find("ERC") == o.asset_symbol.npos)
+				{
+					hd_trxs = hdl->turn_trxs(o.coldhot_trx_original_chain);
+				}
+				else {
+					hd_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
+				}
 				FC_ASSERT(hd_trxs.trxs.size() >= 1);
 				auto crosschain_trx = hd_trxs.trxs.begin()->second;  
 				vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);

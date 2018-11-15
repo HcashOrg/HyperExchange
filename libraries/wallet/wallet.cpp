@@ -4709,15 +4709,15 @@ public:
    }
    void senator_changer_eth_coldhot_singer_trx(const string guard, const string txid, const string& newaddress, const int64_t& expiration_time, bool broadcast) {
 
-	   auto trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_eth_guard_need_sign, transaction_id_type(txid));
+	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_eth_guard_need_sign, transaction_id_type(txid));
 	   FC_ASSERT(trx.size() == 1, "Transaction error");
-	   auto& op = trx[0].real_transaction.operations[0];
-	   auto withop_without_sign = op.get<crosschain_withdraw_combine_sign_operation>();
+	   auto& op = trx[0].current_trx.operations[0];
+	   auto withop_without_sign = op.get<coldhot_transfer_combine_sign_operation>();
 	   auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 	   auto hdl = manager.get_crosschain_handle(std::string(withop_without_sign.asset_symbol));
 	   string config = (*_crosschain_manager)->get_config();
 	   hdl->initialize_config(fc::json::from_string(config).get_object());
-	   auto eth_without_sign_trx_obj = withop_without_sign.cross_chain_trx;
+	   auto eth_without_sign_trx_obj = withop_without_sign.coldhot_trx_original_chain;
 	   auto sign_senator = newaddress;
 	   auto without_sign = eth_without_sign_trx_obj["without_sign"].as_string();
 	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(withop_without_sign.asset_symbol);

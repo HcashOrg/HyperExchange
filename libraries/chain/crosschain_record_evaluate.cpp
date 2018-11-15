@@ -470,7 +470,7 @@ namespace graphene {
 			if (!hdl->valid_config())
 				return void_result();
 			crosschain_trx hd_trxs;
-			if (o.asset_symbol != "ETH")
+			if (o.asset_symbol != "ETH" && o.asset_symbol.find("ERC") == o.asset_symbol.npos)
 			{
 				hd_trxs = hdl->turn_trxs(o.withdraw_source_trx);
 			}
