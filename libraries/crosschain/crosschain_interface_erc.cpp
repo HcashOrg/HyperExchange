@@ -433,7 +433,7 @@ namespace graphene {
 						req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Addr.importAddr\" ,\
-				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << addr << "\"}}";
+				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << temp << "\"}}";
 						std::cout << req_body.str() << std::endl;
 						fc::http::connection_sync conn;
 						conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
@@ -1079,7 +1079,7 @@ namespace graphene {
 			ret.from = dev::jsToAddress(from_account);
 			ret.to = dev::jsToAddress(to_account);
 			ret.gasPrice = dev::jsToU256("5000000000");
-			ret.gas = dev::jsToU256("4500000");
+			ret.gas = dev::jsToU256("3000000");
 			std::vector<char> bin_input;
 			unsigned int nDeplength = 0;
 			bool b_converse = erc::from_hex(eth_param.data(), bin_input, eth_param.size(), nDeplength);
