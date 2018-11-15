@@ -55,6 +55,7 @@ struct crosschain_prkeys
 	string addr;
 	string pubkey;
 	string wif_key;
+	bool operator==(const crosschain_prkeys& key) const;
 };
 
 struct plain_keys
