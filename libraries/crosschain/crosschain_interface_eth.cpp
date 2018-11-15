@@ -383,7 +383,7 @@ namespace graphene {
 						req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Addr.importAddr\" ,\
-				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << addr << "\"}}";
+				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << temp << "\"}}";
 						std::cout << req_body.str() << std::endl;
 						fc::http::connection_sync conn;
 						conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
