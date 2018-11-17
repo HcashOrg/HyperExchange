@@ -112,7 +112,7 @@ namespace graphene { namespace chain {
           * Will close the database before wiping. Database will be closed when this function returns.
           */
          void wipe(const fc::path& data_dir, bool include_blocks);
-         void close(bool rewind = false);
+         void close();
 
          //////////////////// db_block.cpp ////////////////////
 
@@ -630,6 +630,8 @@ namespace graphene { namespace chain {
          //gas_price check
          share_type                        _min_gas_price=1;
 	public:
+
+		bool rewind_on_close = false;
 		std::mutex                         db_lock;
    };
 

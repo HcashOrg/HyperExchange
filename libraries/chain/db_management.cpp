@@ -33,6 +33,7 @@
 #include <functional>
 #include <iostream>
 
+#include "boost/filesystem/operations.hpp"
 namespace graphene { namespace chain {
 
 database::database()
@@ -149,22 +150,24 @@ void database::open(
                          ("last_block->id", last_block->id())("head_block_num",head_block_num()) );
          }
       }
-      fc::path data_dir = get_data_dir() / "undo_db";
-      _undo_db.from_file(data_dir.string());
-      fc::path fork_data_dir = get_data_dir() / "fork_db";
-      _fork_db.from_file(fork_data_dir.string());
+
+		  fc::path data_dir = get_data_dir() / "undo_db";
+		  _undo_db.from_file(data_dir.string());
+		  fc::path fork_data_dir = get_data_dir() / "fork_db";
+		  _fork_db.from_file(fork_data_dir.string());
+
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 }
 
-void database::close(bool rewind)
+void database::close()
 {
    // TODO:  Save pending tx's on close()
    clear_pending();
 
    // pop all of the blocks that we can given our undo history, this should
    // throw when there is no more undo history to pop
-   if( rewind )
+   if( rewind_on_close )
    {
       try
       {
@@ -200,8 +203,17 @@ void database::close(bool rewind)
    object_database::close();
    fc::path undo_data_dir = get_data_dir() / "undo_db";
    fc::path fork_data_dir = get_data_dir() / "fork_db";
-   _undo_db.save_to_file(undo_data_dir.string());
-   _fork_db.save_to_file(fork_data_dir.string());
+   if (!rewind_on_close)
+   {
+	   _undo_db.save_to_file(undo_data_dir.string());
+	   _fork_db.save_to_file(fork_data_dir.string());
+   }
+   else
+   {
+	   boost::filesystem::remove(undo_data_dir);
+	   boost::filesystem::remove(fork_data_dir);
+   }
+
 
    if( _block_id_to_block.is_open() )
       _block_id_to_block.close();

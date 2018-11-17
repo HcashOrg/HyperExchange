@@ -469,6 +469,15 @@ namespace detail {
                loaded_checkpoints[item.first] = item.second;
             }
          }
+		 if (_options->count("rewind-on-close"))
+		 {
+			 _chain_db-> rewind_on_close = true;
+		 }
+		 else
+		 {
+			 _chain_db->rewind_on_close = false;
+		 }
+
          _chain_db->add_checkpoints( loaded_checkpoints );
 
          bool replay = false;
@@ -1075,7 +1084,8 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("replay-blockchain", "Rebuild object graph by replaying all blocks")
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
-	     ("testnet", "Start for testnet")
+		 ("testnet", "Start for testnet")
+	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
          ;
    command_line_options.add(_cli_options);
