@@ -53,8 +53,9 @@ namespace fc
       { 
         _last_ntp_delta_initialized = false;
         _ntp_hosts.push_back(std::make_pair("pool.ntp.org", 123));
-
-        //_ntp_hosts.push_back(std::make_pair("time1.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("cn.ntp.org.cn", 123));
+		_ntp_hosts.push_back(std::make_pair("edu.ntp.org.cn", 123));
+		_ntp_hosts.push_back(std::make_pair("hk.ntp.org.cn", 123));
         
       } 
 
@@ -289,5 +290,15 @@ namespace fc
   {
       return my->_last_ntp_delta_microseconds;
   }
+  ntp_info ntp::get_ntp_info() const
+  {
+	  ntp_info res;
+	  res._last_valid_ntp_reply_received_time=my->_last_valid_ntp_reply_received_time;
+	  res._last_ntp_delta_initialized=my->_last_ntp_delta_initialized;
+	  res._last_ntp_delta_microseconds=my->_last_ntp_delta_microseconds;
+	  return res;
+  }
+
+
 
 } //namespace fc

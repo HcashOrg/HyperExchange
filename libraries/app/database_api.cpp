@@ -40,7 +40,6 @@
 
 #include <cfenv>
 #include <iostream>
-
 #define GET_REQUIRED_FEES_MAX_RECURSION 4
 
 typedef std::map< std::pair<graphene::chain::asset_id_type, graphene::chain::asset_id_type>, std::vector<fc::variant> > market_queue_type;
@@ -368,6 +367,10 @@ contract_object database_api::get_contract_object(const string& contract_address
 ContractEntryPrintable database_api::get_contract_info_by_name(const string& contract_name)const
 {
     return my->get_contract_object_by_name(contract_name);
+}
+fc::ntp_info database_api::get_ntp_info() const
+{
+	return fc::time_point::get_ntp_info();
 }
 ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
 {

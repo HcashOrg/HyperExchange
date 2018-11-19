@@ -21,16 +21,24 @@ namespace fc {
 
   time_point time_point::now()
   {
-	  /*
-	  
+
      fc::ntp* actual_ntp_service = detail::ntp_service.load();
      if (actual_ntp_service)
      {
          return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count())) + fc::microseconds(actual_ntp_service->get_delta_microseconds());
      }
      return time_point(microseconds(bch::duration_cast<bch::microseconds>(bch::system_clock::now().time_since_epoch()).count()));
-	 */
-	 return local_now();
+  }
+  ntp_info time_point::get_ntp_info()
+  {
+	  ntp_info res;
+	  fc::ntp* actual_ntp_service = detail::ntp_service.load();
+	  if (actual_ntp_service)
+	  {
+		  res=actual_ntp_service->get_ntp_info();
+	  }
+	  return res;
+
   }
   time_point time_point::local_now()
   {
@@ -167,7 +175,20 @@ namespace fc {
                                               const std::string& ago /* = " ago" */) {
     return get_approximate_relative_time_string(time_point_sec(event_time), time_point_sec(relative_to_time), ago);
   }
+  ntp_info & ntp_info::operator=(const ntp_info & info)
+  {
+	  _last_valid_ntp_reply_received_time = info._last_valid_ntp_reply_received_time;
+	  _last_ntp_delta_initialized = info._last_ntp_delta_initialized;
+	  _last_ntp_delta_microseconds = info._last_ntp_delta_microseconds;
+	  return *this;
+  }
 
+  ntp_info::ntp_info(const ntp_info& info)
+  {
+	  _last_valid_ntp_reply_received_time = info._last_valid_ntp_reply_received_time;
+	  _last_ntp_delta_initialized = info._last_ntp_delta_initialized;
+	  _last_ntp_delta_microseconds = info._last_ntp_delta_microseconds;
+  }
   void to_variant( const microseconds& input_microseconds,  variant& output_variant )
   {
     output_variant = input_microseconds.count();

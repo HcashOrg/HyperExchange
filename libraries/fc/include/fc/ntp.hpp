@@ -21,7 +21,7 @@ namespace fc {
          optional<time_point> get_time()const;
 
          int64_t get_delta_microseconds()const;
-
+		 ntp_info get_ntp_info() const;
       private:
         std::unique_ptr<detail::ntp_impl> my;
    };

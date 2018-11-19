@@ -61,7 +61,7 @@
 #include <map>
 #include <memory>
 #include <vector>
-
+#include <fc/ntp.hpp>
 namespace graphene { namespace app {
 
 using namespace graphene::chain;
@@ -663,6 +663,8 @@ class database_api
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
+	  fc::ntp_info get_ntp_info() const;
+
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -836,4 +838,5 @@ FC_API(graphene::app::database_api,
 	(get_referendum_object)
 	(get_eths_multi_create_account_trx)
 	(get_referendum_transactions_waiting)
+	(get_ntp_info)
 );
