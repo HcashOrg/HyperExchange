@@ -22,35 +22,22 @@
  * THE SOFTWARE.
  */
 #pragma once
+#include <fc/crypto/ripemd160.hpp>
 #include <graphene/db/object.hpp>
 #include <deque>
 #include <fc/exception/exception.hpp>
 #include <fstream>
 #include <map>
+
+
 namespace graphene { namespace db {
 
+	using namespace boost::multi_index;
    using std::unordered_map;
    using fc::flat_set;
    class object_database;
-   struct serializable_obj
-   {
-       int s;
-       int t;
-       variant obj;
-       serializable_obj() {}
-       serializable_obj(const object& obj);
-       unique_ptr<object>  to_object() const;
-   };
-   struct serializable_undo_state
-   {
-       serializable_undo_state() {}
-       serializable_undo_state(const serializable_undo_state& sta);
-       unordered_map<object_id_type, serializable_obj > old_values;
-       unordered_map<object_id_type, object_id_type>      old_index_next_ids;
-       std::unordered_set<object_id_type>                 new_ids;
-       unordered_map<object_id_type, serializable_obj> removed;
-   };
-   struct undo_state
+   struct serializable_undo_state;
+ struct undo_state
    {
        undo_state() {}
       unordered_map<object_id_type, unique_ptr<object> > old_values;
@@ -166,8 +153,7 @@ namespace graphene { namespace db {
          std::deque<undo_state>  _stack;
          object_database&        _db;
          size_t                  _max_size = 1440;
+
    };
 
 } } // graphene::db
-FC_REFLECT(graphene::db::serializable_obj, (s)(t)(obj))
-FC_REFLECT(graphene::db::serializable_undo_state,(old_values)(old_index_next_ids)(new_ids)(removed))

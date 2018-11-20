@@ -56,6 +56,7 @@
 #include <graphene/chain/buyback_object.hpp>
 #include <graphene/chain/fba_object.hpp>
 #include <graphene/chain/referendum_object.hpp>
+#include <graphene/db/serializable_undo_state.hpp>
 #include <iostream>
 namespace graphene { namespace db {
     using namespace graphene::chain;
@@ -392,6 +393,11 @@ inline serializable_undo_state undo_state::get_serializable_undo_state()
     return res;
 }
 
+undo_state_id_type serializable_undo_state::undo_id()const
+{
+	//auto data=fc::raw::pack(*this);
+	return undo_state_id_type();//fc::ripemd160::hash(data.data(), (uint32_t)data.size());
+}
 undo_state::undo_state(const serializable_undo_state & sta)
 {
     for (auto i = sta.old_values.begin(); i != sta.old_values.end(); i++)
