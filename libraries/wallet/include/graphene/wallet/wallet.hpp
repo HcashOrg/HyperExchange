@@ -2059,6 +2059,7 @@ class wallet_api
       void encrypt_keys();
 	  fc::string get_first_contract_address();
 	  map<string, crosschain_prkeys> decrypt_coldkeys(const string& key, const string& file);
+	  string sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast = true);
       //citizen
       void start_citizen(bool);
 
@@ -2355,6 +2356,6 @@ FC_API( graphene::wallet::wallet_api,
 		(proposal_block_address)
 		(proposal_cancel_block_address)
 		(decrypt_coldkeys)
+		(sign_multisig_transaction)
 	    (get_witnessnode_ntp_info)
-		(get_cliwallet_ntp_info)
       )
