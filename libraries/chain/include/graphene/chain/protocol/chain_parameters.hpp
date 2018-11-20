@@ -75,6 +75,7 @@ namespace graphene { namespace chain {
 	  share_type              bonus_distribute_limit = GRAPHENE_BONUS_DISTRIBUTE_LIMIT;
 	  share_type			 min_pay_back_balance = GRAPHENE_DEFAULT_MIN_PAY_BACK_BALANCE;
 	  flat_map<string, asset>  min_pay_back_balance_other_asset;
+	  int64_t               validate_time_period = GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD;
       extensions_type         extensions;
 
       /** defined in fee_schedule.cpp */

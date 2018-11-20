@@ -44,6 +44,7 @@
 #define GRAPHENE_MIN_PLEDGE_WEIGHT_LINE 50
 #define GRAPHENE_BONUS_DISTRIBUTE_LIMIT int64_t(1000000000ll)
 #define GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM  int64_t(100000ll)
+#define  GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD 2*3600
 /**
  * Don't allow the committee_members to publish a limit that would
  * make the network unable to operate.
