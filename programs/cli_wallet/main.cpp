@@ -66,7 +66,7 @@ namespace bpo = boost::program_options;
 int main( int argc, char** argv )
 {
    try {
-
+	  fc::time_point::start_ntp();
       boost::program_options::options_description opts;
          opts.add_options()
          ("help,h", "Print this help message and exit.")

@@ -9,6 +9,7 @@
 #endif //// _MSC_VER
 
 namespace fc {
+ 
   class microseconds {
     public:
         explicit microseconds( int64_t c = 0) :_count(c){}
@@ -40,12 +41,12 @@ namespace fc {
   class variant;
   void to_variant( const fc::microseconds&,  fc::variant&  );
   void from_variant( const fc::variant& , fc::microseconds& );
-
+  struct ntp_info;
   class time_point {
     public:
         explicit time_point( microseconds e = microseconds() ) :elapsed(e){}
         static time_point now();
-
+		static ntp_info get_ntp_info();
         static time_point local_now();
         static time_point maximum() { return time_point( microseconds::maximum() ); }
         static time_point min() { return time_point();                      }
@@ -69,7 +70,19 @@ namespace fc {
     private:
         microseconds elapsed;
   };
-
+  struct ntp_info
+  {
+	  fc::time_point                                   _last_valid_ntp_reply_received_time;
+	  bool												_last_ntp_delta_initialized;
+	  int64_t											_last_ntp_delta_microseconds;
+	  ntp_info()
+	  {
+		  _last_ntp_delta_initialized = false;
+		  _last_ntp_delta_microseconds = 0;
+	  }
+	  ntp_info& operator=(const ntp_info& info);
+	  ntp_info(const ntp_info& info);
+  };
   /**
    *  A lower resolution time_point accurate only to seconds from 1970
    */
@@ -141,7 +154,7 @@ namespace fc {
 FC_REFLECT_TYPENAME( fc::time_point )
 FC_REFLECT_TYPENAME( fc::microseconds )
 FC_REFLECT_TYPENAME( fc::time_point_sec )
-
+FC_REFLECT(fc::ntp_info, (_last_valid_ntp_reply_received_time)(_last_ntp_delta_initialized)(_last_ntp_delta_microseconds))
 #ifdef _MSC_VER
   #pragma warning (pop)
 #endif /// #ifdef _MSC_VER
