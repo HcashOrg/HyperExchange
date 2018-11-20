@@ -197,6 +197,7 @@ namespace graphene {
 					price p(guarantee_obj.asset_orign,guarantee_obj.asset_target);
 					auto fee_need_pay = fee_from_account * p;
 					db_adjust_balance(op.fee_payer(), -fee_need_pay);
+					FC_ASSERT(fee_from_account.amount > 0,"fee cost should exceed 0");
 					db_adjust_frozen(guarantee_obj.owner_addr,-fee_from_account);
 					db_adjust_guarantee(*op.get_guarantee_id(),fee_need_pay);
 					FC_ASSERT(get_trx_eval_state()->_trx != nullptr);

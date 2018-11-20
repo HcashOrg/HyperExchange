@@ -1925,7 +1925,28 @@ public:
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
+   string sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
+		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
+		   crosschain->initialize_config(fc::json::from_string(config).get_object());
+		   auto iter = _crosschain_keys.find(from);
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
+		   
 
+		   auto multisig_obj = get_current_multi_address(symbol);
+		   auto from_addr = multisig_obj->bind_account_hot;
+		   auto reedeem = multisig_obj->redeemScript_hot;
+
+		   return prk_ptr->mutisign_trx(reedeem, trx);
+
+ 
+	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
+   }
    string signrawtransaction(const string& from,const string& symbol, const fc::variant_object& trx, bool broadcast = true)
    {
 	   try {
@@ -8984,6 +9005,10 @@ void wallet_api::start_citizen(bool start)
     my->start_miner(start);
 }
 
+string wallet_api::sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast )
+{
+	return my->sign_multisig_transaction(from,symbol,trx, broadcast);
+}
 void wallet_api::witness_node_stop()
 {
     my->witness_node_stop();

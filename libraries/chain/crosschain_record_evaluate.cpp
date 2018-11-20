@@ -24,6 +24,8 @@ namespace graphene {
 			FC_ASSERT(obj.valid());
 			auto descrip = obj->options.description;
 			bool bCheckTransactionValid = false;
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+				return void_result();
 			if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
 				auto temp_hdtx = o.cross_chain_trx;
 				temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
@@ -207,6 +209,8 @@ namespace graphene {
 				return void_result();
 			auto obj = db().get_asset(o.cross_chain_trx.asset_symbol);
 			FC_ASSERT(obj.valid());
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+				return void_result();
 			auto descrip = obj->options.description;
 			bool bCheckTransactionValid = false;
 			if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
@@ -272,6 +276,8 @@ namespace graphene {
 				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
+				return void_result();
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
 				return void_result();
 			crosschain_trx create_trxs;
 			if ((o.asset_symbol.find("ERC") != o.asset_symbol.npos))
@@ -468,6 +474,8 @@ namespace graphene {
 				return void_result();
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
+				return void_result();
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
 				return void_result();
 			crosschain_trx hd_trxs;
 			if (o.asset_symbol != "ETH" && o.asset_symbol.find("ERC") == o.asset_symbol.npos)
