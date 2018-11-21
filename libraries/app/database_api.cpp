@@ -2657,7 +2657,7 @@ vector<lockbalance_object> database_api_impl::get_account_lock_balance(const acc
 	vector<lockbalance_object> result;
 	lb_index.inspect_all_objects([&](const object& obj) {
 		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
-		if (p.lock_balance_account == id) {
+		if (p.lock_balance_account == id && p.lock_asset_amount > 0) {
 			result.emplace_back(p);
 		}
 	});
