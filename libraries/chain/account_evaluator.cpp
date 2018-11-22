@@ -115,7 +115,12 @@ void_result account_create_evaluator::do_evaluate( const account_create_operatio
       auto current_account_itr = acnt_indx.indices().get<by_name>().find( op.name );
       FC_ASSERT( current_account_itr == acnt_indx.indices().get<by_name>().end() );
    }
-
+   if (d.head_block_num() > 120000)
+   {
+	   auto addr = address(op.owner.get_keys().front());
+	   auto addr_itr = acnt_indx.indices().get<by_address>().find(addr);
+	   FC_ASSERT(addr_itr == acnt_indx.indices().get<by_address>().end(),"there an account with same address.");
+   }
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 

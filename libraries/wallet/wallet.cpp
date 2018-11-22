@@ -8988,14 +8988,6 @@ void wallet_api::witness_node_stop()
 {
     my->witness_node_stop();
 }
-fc::ntp_info wallet_api::get_witnessnode_ntp_info()
-{
-	return my->_remote_db->get_ntp_info();
-}
-fc::ntp_info wallet_api::get_cliwallet_ntp_info()
-{
-	return fc::time_point::get_ntp_info();
-}
 } } // graphene::wallet
 
 void fc::to_variant(const account_multi_index_type& accts, fc::variant& vo)

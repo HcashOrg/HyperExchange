@@ -98,7 +98,7 @@ namespace graphene {
 
 			// Merge all signatures into on transaction.
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) = 0;
-
+			virtual std::string get_from_address(const fc::variant_object& trx) = 0;
 			// Validate transaction.
 			virtual bool validate_link_trx(const hd_trx &trx) = 0;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) = 0;
