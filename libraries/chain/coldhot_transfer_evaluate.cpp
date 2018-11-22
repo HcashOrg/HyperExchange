@@ -182,7 +182,8 @@ namespace graphene {
 					FC_ASSERT(coldhot_sign_tx.current_trx.operations.size() == 1);
 					auto op = coldhot_sign_tx.current_trx.operations[0];
 					auto sign_op = op.get<coldhot_transfer_with_sign_operation>();
-					if (sign_op.coldhot_transfer_sign == o.coldhot_transfer_sign) {
+					//if (sign_op.coldhot_transfer_sign == o.coldhot_transfer_sign) {
+					if (sign_op.sign_guard == o.sign_guard) {
 						isSigned = true;
 						break;
 					}

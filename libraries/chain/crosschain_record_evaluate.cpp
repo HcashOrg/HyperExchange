@@ -447,7 +447,8 @@ namespace graphene {
 				std::string temp_sign;
 				auto op = sign_obj.real_transaction.operations[0];
 				auto sign_op = op.get<crosschain_withdraw_with_sign_operation>();
-				std::string sig = sign_op.ccw_trx_signature;
+				//std::string sig = sign_op.ccw_trx_signature;
+				std::string sig = fc::variant(sign_op.sign_guard).as_string();
 				signs.insert(sig);
 			}
 // 			db().get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& obj)
@@ -465,7 +466,8 @@ namespace graphene {
 //                                 std::string sig = sign_op.ccw_trx_signature;
 // 				signs.insert(sig);
 // 			}
-			auto sign_iter = signs.find(o.ccw_trx_signature);
+			//auto sign_iter = signs.find(o.ccw_trx_signature);
+			auto sign_iter = signs.find(fc::variant(o.sign_guard).as_string());
 			FC_ASSERT(sign_iter == signs.end(), "Guard has sign this transaction");
 			//db().get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
 			//auto trx_iter = trx_db.find(boost::make_tuple(o.ccw_trx_id, withdraw_sign_trx));
