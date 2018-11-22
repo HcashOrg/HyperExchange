@@ -58,6 +58,8 @@
 #include <graphene/chain/referendum_object.hpp>
 #include <graphene/db/serializable_undo_state.hpp>
 #include <iostream>
+#include <leveldb/db.h>
+#include <leveldb/cache.h>
 namespace graphene { namespace db {
     using namespace graphene::chain;
 void undo_database::enable()  { _disabled = false; }
@@ -70,10 +72,15 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
    if( force_enable ) 
       _disabled = false;
 
-   while( size() > max_size() )
-      _stack.pop_front();
-
-   _stack.emplace_back();
+   while (size() > max_size())
+   {
+	   //在pop将对应的db中的存储删掉
+	   state_storage->remove(_stack.front());
+	   _stack.pop_front();
+   }
+   //将当前back存入db,和stack,清空当前back
+   _stack.push_back(state_storage->store_undo_state(back));
+   back.reset();
    ++_active_sessions;
    return session(*this, disable_on_exit );
 }
@@ -81,9 +88,7 @@ void undo_database::on_create( const object& obj )
 {
    if( _disabled ) return;
 
-   if( _stack.empty() )
-      _stack.emplace_back();
-   auto& state = _stack.back();
+   auto& state = back;
    auto index_id = object_id_type( obj.id.space(), obj.id.type(), 0 );
    auto itr = state.old_index_next_ids.find( index_id );
    if( itr == state.old_index_next_ids.end() )
@@ -94,9 +99,8 @@ void undo_database::on_modify( const object& obj )
 {
    if( _disabled ) return;
 
-   if( _stack.empty() )
-      _stack.emplace_back();
-   auto& state = _stack.back();
+
+   auto& state = back;
    if( state.new_ids.find(obj.id) != state.new_ids.end() )
       return;
    auto itr =  state.old_values.find(obj.id);
@@ -107,9 +111,8 @@ void undo_database::on_remove( const object& obj )
 {
    if( _disabled ) return;
 
-   if( _stack.empty() )
-      _stack.emplace_back();
-   undo_state& state = _stack.back();
+
+   undo_state& state = back;
    if( state.new_ids.count(obj.id) )
    {
       state.new_ids.erase(obj.id);
@@ -132,7 +135,7 @@ void undo_database::undo()
    FC_ASSERT( _active_sessions > 0 );
    disable();
 
-   auto& state = _stack.back();
+   auto& state = back;
    for( auto& item : state.old_values )
    {
       _db.modify( _db.get_object( item.second->id ), [&]( object& obj ){ obj.move_from( *item.second ); } );
@@ -150,10 +153,18 @@ void undo_database::undo()
 
    for( auto& item : state.removed )
       _db.insert( std::move(*item.second) );
-
-   _stack.pop_back();
-   if( _stack.empty() )
-      _stack.emplace_back();
+   //将stack中最后一个id对应的state移入back;
+   //stack中最后一个id以及对应的state移除
+   //如果只有一个back active,将back重置,否则从stack中最后一个移除放入back
+   if (_stack.size() > 0)
+   {
+	   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+	   _stack.pop_back();
+   }
+   else
+   {
+	   back.reset();
+   }
    enable();
    --_active_sessions;
 } FC_CAPTURE_AND_RETHROW() }
@@ -161,9 +172,12 @@ void undo_database::undo()
 void undo_database::merge()
 {
    FC_ASSERT( _active_sessions > 0 );
-   FC_ASSERT( _stack.size() >=2 );
-   auto& state = _stack.back();
-   auto& prev_state = _stack[_stack.size()-2];
+   FC_ASSERT( _stack.size() >=1 );
+   auto& state = back;
+   undo_state sta;
+   FC_ASSERT(state_storage->get_state(_stack.back(), sta));
+   //auto& prev_state = _stack[_stack.size()-2];
+   auto& prev_state = sta;
 
    // An object's relationship to a state can be:
    // in new_ids            : new
@@ -269,6 +283,9 @@ void undo_database::merge()
       // nop + del(was=Y) -> del(was=Y)
       prev_state.removed[obj.second->id] = std::move(obj.second);
    }
+   //将结果赋值给back,同时将stack的最后一个key以及对应的state移除
+   back = prev_state;
+   state_storage->remove(_stack.back());
    _stack.pop_back();
    --_active_sessions;
 }
@@ -285,7 +302,8 @@ void undo_database::pop_commit()
 
    disable();
    try {
-      auto& state = _stack.back();
+	   //将back中的操作回退，将stack中的最后一个作为back
+      auto& state = back;
 
       for( auto& item : state.old_values )
       {
@@ -304,7 +322,8 @@ void undo_database::pop_commit()
 
       for( auto& item : state.removed )
          _db.insert( std::move(*item.second) );
-
+	  //将stack中的最后一个取出设置为back
+	  FC_ASSERT(state_storage->get_state(_stack.back(),back));
       _stack.pop_back();
    }
    catch ( const fc::exception& e )
@@ -324,23 +343,17 @@ size_t undo_database::max_size() const {
 }
 const undo_state& undo_database::head()const
 {
-   FC_ASSERT( !_stack.empty() );
-   return _stack.back();
+   return back;
 }
 
  void undo_database::save_to_file(const fc::string & path)
 {
-    std::deque<serializable_undo_state>  out_stack;
-    for (auto& item : _stack)
-    {
-        out_stack.push_back(item.get_serializable_undo_state());
-    }
-	if (out_stack.size() > 0)
+	 _stack.push_back(state_storage->store_undo_state(back));
+	if (_stack.size() > 0)
 	{
-		printf("undo size save:%d\n", out_stack.size());
-		fc::json::save_to_file(out_stack, path);
+		printf("undo size save:%d\n", _stack.size());
+		fc::json::save_to_file(_stack, path);
 	}
-        
 }
 
  void undo_database::reset()
@@ -352,24 +365,13 @@ const undo_state& undo_database::head()const
 	 if (!fc::exists(path))
 		 return;
      try {
-         std::deque<serializable_undo_state>  out_stack = fc::json::from_file(path).as<std::deque<serializable_undo_state>>();
-         _stack.resize(out_stack.size());
+		 //从文件中读出，将最后一个从db中取出置入back
+         std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path).as<std::deque<undo_state_id_type>>();
+         _stack=out_stack;
          int num = 0;
-         for (auto i : out_stack)
-         {
-
-             for (auto it = i.old_values.begin(); it != i.old_values.end(); it++)
-             {
-                 _stack[num].old_values[it->first] = it->second.to_object();
-             }
-             _stack[num].old_index_next_ids = i.old_index_next_ids;
-             _stack[num].new_ids = i.new_ids;
-             for (auto it = i.removed.begin(); it != i.removed.end(); it++)
-             {
-                 _stack[num].old_values[it->first] = it->second.to_object();
-             }
-             num++;
-         }
+		 FC_ASSERT(state_storage->get_state(_stack.back(),back));
+		 state_storage->remove(_stack.back());
+		 _stack.pop_back();
 	 }
 	 catch (...)
 	 {
@@ -377,7 +379,7 @@ const undo_state& undo_database::head()const
 	 }
 }
 
-inline serializable_undo_state undo_state::get_serializable_undo_state()
+inline serializable_undo_state undo_state::get_serializable_undo_state() const
 {
     serializable_undo_state res;
     for (auto i = old_values.begin(); i != old_values.end(); i++)
@@ -397,6 +399,41 @@ undo_state_id_type serializable_undo_state::undo_id()const
 {
 	//auto data=fc::raw::pack(*this);
 	return undo_state_id_type();//fc::ripemd160::hash(data.data(), (uint32_t)data.size());
+}
+void undo_state::reset()
+{
+	old_values.clear();
+	old_index_next_ids.clear();
+	new_ids.clear();
+	removed.clear();
+}
+undo_state& undo_state::operator=(const undo_state& sta)
+{
+	reset();
+	for (auto i = sta.old_values.begin(); i != sta.old_values.end(); i++)
+	{
+		old_values[i->first] = i->second->clone();
+	}
+	old_index_next_ids = sta.old_index_next_ids;
+	new_ids = sta.new_ids;
+	for (auto i = sta.removed.begin(); i != sta.removed.end(); i++)
+	{
+		removed[i->first] = i->second->clone();
+	}
+}
+undo_state& undo_state::operator=(const serializable_undo_state& sta)
+{
+	reset();
+	for (auto i = sta.old_values.begin(); i != sta.old_values.end(); i++)
+	{
+		old_values[i->first] = i->second.to_object();
+	}
+	old_index_next_ids = sta.old_index_next_ids;
+	new_ids = sta.new_ids;
+	for (auto i = sta.removed.begin(); i != sta.removed.end(); i++)
+	{
+		removed[i->first] = i->second.to_object();
+	}
 }
 undo_state::undo_state(const serializable_undo_state & sta)
 {
@@ -609,6 +646,115 @@ serializable_undo_state::serializable_undo_state(const serializable_undo_state &
     this->old_values = sta.old_values;
     this->removed = sta.removed;
 }
+void undo_storage::open(const fc::path& dbdir)
+{
+	try {
+		leveldb::Options options;
+		options.block_cache = leveldb::NewLRUCache(100 * 1048576);
+		options.create_if_missing = true;
+		open_status = leveldb::DB::Open(options, "/tmp/testdb", &db);
+		if (!open_status.ok())
+		{
+			db = NULL;
+
+			elog("undo_storage open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			FC_ASSERT(false, "undo database_open error");
+		}
+
+	} FC_CAPTURE_AND_RETHROW((dbdir))
+}
+
+bool undo_storage::is_open()const
+{
+	return open_status.ok();
+}
+
+void undo_storage::close()
+{
+	FC_ASSERT(db != NULL, "db not opened!");
+	delete db;
+}
+
+void undo_storage::flush()
+{
+
+}
+
+bool undo_storage::get_state(const undo_state_id_type& id, undo_state& state)const 
+{
+	auto res=fetch_optional(id);
+	if (!res.valid())
+		return false;
+	state = *res;
+	return true;
+}
+undo_state_id_type undo_storage::store_undo_state(const undo_state& b)
+{
+	auto obj = b.get_serializable_undo_state();
+	auto id = obj.undo_id();
+	store(id, obj);
+	return id;
+}
+void undo_storage::store(const undo_state_id_type & _id, const serializable_undo_state& b)
+{
+	try {
+		undo_state_id_type id = _id;
+		if (id == undo_state_id_type())
+		{
+			id = b.undo_id();
+			elog("id argument of block_database::store() was not initialized for block ${id}", ("id", id));
+		}
+		leveldb::WriteOptions write_options;
+		write_options.sync = true;
+		leveldb::Status sta = db->Put(write_options, _id.str(), fc::json::to_string(b));
+		if (!sta.ok())
+		{
+			elog("Put error: ${key}", ("key", _id.str().c_str()));
+			FC_ASSERT(false, "Put Data to undo_storage failed");
+		}
+
+	} FC_CAPTURE_AND_RETHROW((_id)(b))
+}
+
+void undo_storage::remove(const undo_state_id_type& id)
+{
+	try {
+		FC_ASSERT(id != undo_state_id_type());
+		leveldb::WriteOptions write_options;
+		write_options.sync = true;
+		leveldb::Status sta = db->Delete(write_options, id.str());
+		if (!sta.ok())
+		{
+			elog("delete error: ${key}", ("key", id.str().c_str()));
+			FC_ASSERT(false, "Delete Data to undo_storage failed");
+		}
+
+	} FC_CAPTURE_AND_RETHROW((id))
+}
+optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_id_type& id)const
+{
+	try
+	{
+		string out;
+		leveldb::ReadOptions read_options;
+		leveldb::Status sta = db->Get(read_options, id.str(), &out);
+		if (!sta.ok())
+		{
+			elog("read error: ${key}", ("key", id.str().c_str()));
+			FC_ASSERT(false, "Delete Data to undo_storage failed");
+		}
+		serializable_undo_state state = fc::json::from_string(out).as<serializable_undo_state>();
+		return state;
+	}
+	catch (const fc::exception&)
+	{
+	}
+	catch (const std::exception&)
+	{
+	}
+	return optional<serializable_undo_state>();
+}
+
 }
 
 } // graphene::db

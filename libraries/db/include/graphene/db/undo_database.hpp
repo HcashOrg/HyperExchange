@@ -28,134 +28,168 @@
 #include <fc/exception/exception.hpp>
 #include <fstream>
 #include <map>
+#include <graphene/db/serializable_undo_state.hpp>
+#include <leveldb/db.h>
 
 
-namespace graphene { namespace db {
+namespace graphene {
+	namespace db {
 
-	using namespace boost::multi_index;
-   using std::unordered_map;
-   using fc::flat_set;
-   class object_database;
-   struct serializable_undo_state;
- struct undo_state
-   {
-       undo_state() {}
-      unordered_map<object_id_type, unique_ptr<object> > old_values;
-      unordered_map<object_id_type, object_id_type>      old_index_next_ids;
-      std::unordered_set<object_id_type>                 new_ids;
-      unordered_map<object_id_type, unique_ptr<object> > removed;
-      serializable_undo_state get_serializable_undo_state();
-      undo_state(const serializable_undo_state& sta);
-   };
+		using namespace boost::multi_index;
+		using std::unordered_map;
+		using fc::flat_set;
+		class object_database;
+		struct serializable_undo_state;
+		struct undo_state
+		{
+			undo_state() {}
+			unordered_map<object_id_type, unique_ptr<object> > old_values;
+			unordered_map<object_id_type, object_id_type>      old_index_next_ids;
+			std::unordered_set<object_id_type>                 new_ids;
+			unordered_map<object_id_type, unique_ptr<object> > removed;
+			serializable_undo_state get_serializable_undo_state() const;
+			undo_state(const serializable_undo_state& sta);
+			undo_state& operator=(const serializable_undo_state& sta);
+			undo_state& operator=(const undo_state& sta);
+			void reset();
+		};
+		class undo_storage
+		{
+		public:
+			void open(const fc::path& dbdir);
+			bool is_open()const;
+			void flush();
+			void close();
 
+			void store(const undo_state_id_type & _id, const serializable_undo_state& b);
+			undo_state_id_type store_undo_state(const undo_state& b);
+			void remove(const undo_state_id_type& id);
+			bool get_state(const undo_state_id_type& id,undo_state& state) const ;
+			bool                   contains(const undo_state_id_type& id)const;
+			block_id_type          fetch_block_id(uint32_t block_num)const;
+			optional<serializable_undo_state> fetch_optional(const undo_state_id_type& id)const;
+			optional<serializable_undo_state> fetch_by_number(uint32_t block_num)const;
+			optional<serializable_undo_state> last()const;
+			optional<undo_state_id_type> last_id()const;
+		private:
+			leveldb::DB* db = false;;
+			leveldb::Status open_status;
+		};
 
-   /**
-    * @class undo_database
-    * @brief tracks changes to the state and allows changes to be undone
-    *
-    */
-   class undo_database
-   {
-      public:
-         undo_database( object_database& db ):_db(db){}
+		/**
+		 * @class undo_database
+		 * @brief tracks changes to the state and allows changes to be undone
+		 *
+		 */
+		class undo_database
+		{
+		public:
+			undo_database(object_database& db) :_db(db) {}
 
-         class session
-         {
-            public:
-               session( session&& mv )
-               :_db(mv._db),_apply_undo(mv._apply_undo)
-               {
-                  mv._apply_undo = false;
-               }
-               ~session() {
-                  try {
-                     if( _apply_undo ) _db.undo();
-                  }
-                  catch ( const fc::exception& e )
-                  {
-                     elog( "${e}", ("e",e.to_detail_string() ) );
-                     throw; // maybe crash..
-                  }
-                  if( _disable_on_exit ) _db.disable();
-               }
-               void commit() { _apply_undo = false; _db.commit();  }
-               void undo()   { if( _apply_undo ) _db.undo(); _apply_undo = false; }
-               void merge()  { if( _apply_undo ) _db.merge(); _apply_undo = false; }
+			class session
+			{
+			public:
+				session(session&& mv)
+					:_db(mv._db), _apply_undo(mv._apply_undo)
+				{
+					mv._apply_undo = false;
+				}
+				~session() {
+					try {
+						if (_apply_undo) _db.undo();
+					}
+					catch (const fc::exception& e)
+					{
+						elog("${e}", ("e", e.to_detail_string()));
+						throw; // maybe crash..
+					}
+					if (_disable_on_exit) _db.disable();
+				}
+				void commit() { _apply_undo = false; _db.commit(); }
+				void undo() { if (_apply_undo) _db.undo(); _apply_undo = false; }
+				void merge() { if (_apply_undo) _db.merge(); _apply_undo = false; }
 
-               session& operator = ( session&& mv )
-               { try {
-                  if( this == &mv ) return *this;
-                  if( _apply_undo ) _db.undo();
-                  _apply_undo = mv._apply_undo;
-                  mv._apply_undo = false;
-                  return *this;
-               } FC_CAPTURE_AND_RETHROW() }
+				session& operator = (session&& mv)
+				{
+					try {
+						if (this == &mv) return *this;
+						if (_apply_undo) _db.undo();
+						_apply_undo = mv._apply_undo;
+						mv._apply_undo = false;
+						return *this;
+					} FC_CAPTURE_AND_RETHROW()
+				}
 
-            private:
-               friend class undo_database;
-               session(undo_database& db, bool disable_on_exit = false): _db(db),_disable_on_exit(disable_on_exit) {}
-               undo_database& _db;
+			private:
+				friend class undo_database;
+				session(undo_database& db, bool disable_on_exit = false) : _db(db), _disable_on_exit(disable_on_exit) {}
+				undo_database& _db;
 
-               bool _apply_undo = true;
-               bool _disable_on_exit = false;
-         };
+				bool _apply_undo = true;
+				bool _disable_on_exit = false;
+			};
 
-         void    disable();
-         void    enable();
-         bool    enabled()const { return !_disabled; }
-		 int     get_active_session() { return _active_sessions; }
-         session start_undo_session( bool force_enable = false );
-         /**
-          * This should be called just after an object is created
-          */
-         void on_create( const object& obj );
-         /**
-          * This should be called just before an object is modified
-          *
-          * If it's a new object as of this undo state, its pre-modification value is not stored, because prior to this
-          * undo state, it did not exist. Any modifications in this undo state are irrelevant, as the object will simply
-          * be removed if we undo.
-          */
-         void on_modify( const object& obj );
-         /**
-          * This should be called just before an object is removed.
-          *
-          * If it's a new object as of this undo state, its pre-removal value is not stored, because prior to this undo
-          * state, it did not exist. Now that it's been removed, it doesn't exist again, so nothing has happened.
-          * Instead, remove it from the list of newly created objects (which must be deleted if we undo), as we don't
-          * want to re-delete it if this state is undone.
-          */
-         void on_remove( const object& obj );
+			void    disable();
+			void    enable();
+			bool    enabled()const { return !_disabled; }
+			int     get_active_session() { return _active_sessions; }
+			session start_undo_session(bool force_enable = false);
+			/**
+			 * This should be called just after an object is created
+			 */
+			void on_create(const object& obj);
+			/**
+			 * This should be called just before an object is modified
+			 *
+			 * If it's a new object as of this undo state, its pre-modification value is not stored, because prior to this
+			 * undo state, it did not exist. Any modifications in this undo state are irrelevant, as the object will simply
+			 * be removed if we undo.
+			 */
+			void on_modify(const object& obj);
+			/**
+			 * This should be called just before an object is removed.
+			 *
+			 * If it's a new object as of this undo state, its pre-removal value is not stored, because prior to this undo
+			 * state, it did not exist. Now that it's been removed, it doesn't exist again, so nothing has happened.
+			 * Instead, remove it from the list of newly created objects (which must be deleted if we undo), as we don't
+			 * want to re-delete it if this state is undone.
+			 */
+			void on_remove(const object& obj);
 
-         /**
-          *  Removes the last committed session,
-          *  note... this is dangerous if there are
-          *  active sessions... thus active sessions should
-          *  track
-          */
-         void pop_commit();
+			/**
+			 *  Removes the last committed session,
+			 *  note... this is dangerous if there are
+			 *  active sessions... thus active sessions should
+			 *  track
+			 */
+			void pop_commit();
 
-         std::size_t size()const { return _stack.size(); }
-		 void set_max_size(size_t new_max_size);
-		 size_t max_size()const;
+			std::size_t size()const { return _stack.size(); }
+			void set_max_size(size_t new_max_size);
+			size_t max_size()const;
 
-         const undo_state& head()const;
+			const undo_state& head()const;
 
-         void save_to_file(const fc::string& path);
-         void from_file(const fc::string& path);
-         void reset();
-      private:
-         void undo();
-         void merge();
-         void commit();
+			void save_to_file(const fc::string& path);
+			void from_file(const fc::string& path);
+			void reset();
+		private:
+			void undo();
+			void merge();
+			void commit();
 
-         uint32_t                _active_sessions = 0;
-         bool                    _disabled = true;
-         std::deque<undo_state>  _stack;
-         object_database&        _db;
-		 object_database*        state_storage;
-         size_t                  _max_size = 1440;
+			uint32_t                _active_sessions = 0;
+			bool                    _disabled = true;
+			std::deque<undo_state_id_type>  _stack;
+			object_database&        _db;
+			undo_storage*           state_storage;
+			size_t                  _max_size = 1440;
+			//back保存当前活跃的state,不活跃的将id存入stack,数据存入db;
+			//在保存时需要将back现存入stack和db
+			//在初始化时，从文件恢复stack和storage，根据stack的尾部的id，从storage中找到对应state，反序列化赋值给back
+			undo_state              back;
 
-   };
+		};
 
-} } // graphene::db
+	}
+} // graphene::db
