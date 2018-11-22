@@ -95,6 +95,7 @@ namespace graphene { namespace db {
                friend class undo_database;
                session(undo_database& db, bool disable_on_exit = false): _db(db),_disable_on_exit(disable_on_exit) {}
                undo_database& _db;
+
                bool _apply_undo = true;
                bool _disable_on_exit = false;
          };
@@ -152,6 +153,7 @@ namespace graphene { namespace db {
          bool                    _disabled = true;
          std::deque<undo_state>  _stack;
          object_database&        _db;
+		 object_database*        state_storage;
          size_t                  _max_size = 1440;
 
    };
