@@ -1000,14 +1000,18 @@ public:
       if (!optional_private_key)
          FC_THROW("Invalid private key");
       graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
-
-      account_object account = get_account( account_name_or_id );
-	  if (account.addr != address())
+	  account_object account;
+      account_object temp = get_account( account_name_or_id );
+	  if (temp.addr != address())
 	  {
-		  if (account.addr != address(wif_pub_key))
+		  if (temp.addr != address(wif_pub_key))
 		  {
 			  if (_wallet.my_accounts.get<by_address>().count(account.addr) > 0)
 				  FC_THROW("there is same account in this wallet.");
+		  }
+		  else
+		  {
+			  account = temp;
 		  }
 	  }
 		  
