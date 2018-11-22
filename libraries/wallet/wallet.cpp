@@ -1021,6 +1021,7 @@ public:
 
       _keys[wif_pub_key] = wif_key;
 	  account.addr = address(wif_pub_key);
+	  account.name = account_name_or_id;
 	  vector<address> vec;
 	  vec.push_back(account.addr);
 	  auto vec_acc = _remote_db->get_accounts_addr(vec);
