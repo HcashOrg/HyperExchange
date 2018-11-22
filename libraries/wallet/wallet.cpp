@@ -1002,12 +1002,7 @@ public:
       graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 
       account_object account = get_account( account_name_or_id );
-	  if (account.addr == address())
-	  {
-		  create_account(account_name_or_id);
-		  account = get_account(account_name_or_id);
-	  }
-	  else
+	  if (account.addr != address())
 	  {
 		  if (account.addr != address(wif_pub_key))
 		  {
@@ -1017,7 +1012,6 @@ public:
 	  }
 		  
 	  string addr = account.addr.operator fc::string();
-      // make a list of all current public keys for the named account
       flat_set<public_key_type> all_keys_for_account;
       std::vector<public_key_type> active_keys = account.active.get_keys();
       std::vector<public_key_type> owner_keys = account.owner.get_keys();
@@ -1027,8 +1021,21 @@ public:
 
       _keys[wif_pub_key] = wif_key;
 	  account.addr = address(wif_pub_key);
+	  vector<address> vec;
+	  vec.push_back(account.addr);
+	  auto vec_acc = _remote_db->get_accounts_addr(vec);
+	  for (auto op : vec_acc)
+	  {
+		  if (op.valid())
+		  {
+			  if (fc::json::to_string(account) != fc::json::to_string(*op))
+			  {
+				  wlog("Account ${id} : \"${name}\" updated on chain", ("id", account.get_id())("name", account.name));
+			  }
+			  account = *op;
+		  } 
+	  }
       _wallet.update_account(account);
-
       _wallet.extra_keys[account.id].insert(wif_pub_key);
 	  if (account.options.memo_key == public_key_type())
 		  return true;
@@ -1087,27 +1094,27 @@ public:
             ("chain_id", _chain_id) );
 
       size_t account_pagination = 100;
-      vector< string > account_names_to_send;
+      vector< address > account_address_to_send;
       size_t n = _wallet.my_accounts.size();
-	  account_names_to_send.reserve( std::min( account_pagination, n ) );
+	  account_address_to_send.reserve( std::min( account_pagination, n ) );
       auto it = _wallet.my_accounts.begin();
 
       for( size_t start=0; start<n; start+=account_pagination )
       {
          size_t end = std::min( start+account_pagination, n );
          assert( end > start );
-		 account_names_to_send.clear();
+		 account_address_to_send.clear();
          std::vector< account_object > old_accounts;
          for( size_t i=start; i<end; i++ )
          {
             assert( it != _wallet.my_accounts.end() );
             old_accounts.push_back( *it );
-			account_names_to_send.push_back( old_accounts.back().name );
+			account_address_to_send.push_back( old_accounts.back().addr );
             ++it;
          }
-         std::vector< optional< account_object > > accounts = _remote_db->lookup_account_names(account_names_to_send);
+         std::vector< optional< account_object > > accounts = _remote_db->get_accounts_addr(account_address_to_send);
          // server response should be same length as request
-         FC_ASSERT( accounts.size() == account_names_to_send.size() );
+         FC_ASSERT( accounts.size() == account_address_to_send.size() );
          size_t i = 0;
          for( optional< account_object >& acct : accounts )
          {
@@ -1121,12 +1128,11 @@ public:
             // this check makes sure the server didn't send results
             // in a different order, or accounts we didn't request
             //FC_ASSERT( acct->id == old_acct.id );
-			acct->addr = old_acct.addr;
+		/*	acct->addr = old_acct.addr;
 			if (acct->id == old_acct.id  || acct->addr == old_acct.addr)
 			{
 				acct->addr = old_acct.addr;
-		
-			}
+			}*/
             if( fc::json::to_string(*acct) != fc::json::to_string(old_acct) )
             {
                wlog( "Account ${id} : \"${name}\" updated on chain", ("id", acct->id)("name", acct->name) );
@@ -8988,6 +8994,15 @@ map<string, crosschain_prkeys> wallet_api::decrypt_coldkeys(const string& key, c
 void wallet_api::start_citizen(bool start)
 {
     my->start_miner(start);
+}
+
+fc::ntp_info wallet_api::get_witnessnode_ntp_info()
+{
+	return my->_remote_db->get_ntp_info();
+}
+fc::ntp_info wallet_api::get_cliwallet_ntp_info()
+{
+	return fc::time_point::get_ntp_info();
 }
 
 void wallet_api::witness_node_stop()
