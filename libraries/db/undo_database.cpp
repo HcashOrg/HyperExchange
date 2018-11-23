@@ -382,7 +382,7 @@ const undo_state& undo_database::head()const
 		 return;
      try {
 		 //从文件中读出，将最后一个从db中取出置入back
-         std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path).as<std::deque<undo_state_id_type>>();
+         std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path+STACK_FILE_NAME).as<std::deque<undo_state_id_type>>();
          _stack=out_stack;
          int num = 0;
 		
