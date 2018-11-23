@@ -186,6 +186,7 @@ add_library( leveldb ${LEVEL_DB_SOURCES} )
 target_link_libraries( leveldb ${LEVELDB_BUILD_LIBRARIES} )
 target_include_directories( leveldb PRIVATE ${LEVELDB_BUILD_PRIVATE_INCLUDES}
                                     PUBLIC "${LEVEL_DB_DIR}/include" )
+set_target_properties(leveldb PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(leveldb PROPERTIES COMPILE_DEFINITIONS "${LEVELDB_BUILD_DEFINES}")
 
 
