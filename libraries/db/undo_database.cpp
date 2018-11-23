@@ -60,9 +60,15 @@
 #include <iostream>
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
+#define STACK_FILE_NAME  "stack"
+#define STORAGE_FILE_NAME "storage"
 namespace graphene { namespace db {
     using namespace graphene::chain;
 void undo_database::enable()  { _disabled = false; }
+undo_database::undo_database(object_database & db) :_db(db) 
+{
+	state_storage = std::make_unique<undo_storage>();
+}
 void undo_database::disable() { _disabled = true; }
 
 undo_database::session undo_database::start_undo_session( bool force_enable )
@@ -348,12 +354,15 @@ const undo_state& undo_database::head()const
 
  void undo_database::save_to_file(const fc::string & path)
 {
+	 if (state_storage == NULL||!state_storage->is_open())
+		 return;
 	 _stack.push_back(state_storage->store_undo_state(back));
 	if (_stack.size() > 0)
 	{
 		printf("undo size save:%d\n", _stack.size());
-		fc::json::save_to_file(_stack, path);
+		fc::json::save_to_file(_stack, path+STACK_FILE_NAME);
 	}
+	state_storage->close();
 }
 
  void undo_database::reset()
@@ -362,13 +371,16 @@ const undo_state& undo_database::head()const
  }
  void undo_database::from_file(const fc::string & path)
 {
-	 if (!fc::exists(path))
+	 state_storage->close();
+	 state_storage->open(path + STORAGE_FILE_NAME);
+	 if (!fc::exists(path+STACK_FILE_NAME))
 		 return;
      try {
 		 //从文件中读出，将最后一个从db中取出置入back
          std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path).as<std::deque<undo_state_id_type>>();
          _stack=out_stack;
          int num = 0;
+		
 		 FC_ASSERT(state_storage->get_state(_stack.back(),back));
 		 state_storage->remove(_stack.back());
 		 _stack.pop_back();
@@ -397,8 +409,8 @@ inline serializable_undo_state undo_state::get_serializable_undo_state() const
 
 undo_state_id_type serializable_undo_state::undo_id()const
 {
-	//auto data=fc::raw::pack(*this);
-	return undo_state_id_type();//fc::ripemd160::hash(data.data(), (uint32_t)data.size());
+	auto data=fc::raw::pack(*this);
+	return fc::ripemd160::hash(data.data(), (uint32_t)data.size());
 }
 void undo_state::reset()
 {
@@ -420,6 +432,7 @@ undo_state& undo_state::operator=(const undo_state& sta)
 	{
 		removed[i->first] = i->second->clone();
 	}
+	return *this;
 }
 undo_state& undo_state::operator=(const serializable_undo_state& sta)
 {
@@ -434,6 +447,7 @@ undo_state& undo_state::operator=(const serializable_undo_state& sta)
 	{
 		removed[i->first] = i->second.to_object();
 	}
+	return *this;
 }
 undo_state::undo_state(const serializable_undo_state & sta)
 {
@@ -652,7 +666,7 @@ void undo_storage::open(const fc::path& dbdir)
 		leveldb::Options options;
 		options.block_cache = leveldb::NewLRUCache(100 * 1048576);
 		options.create_if_missing = true;
-		open_status = leveldb::DB::Open(options, "/tmp/testdb", &db);
+		open_status = leveldb::DB::Open(options, dbdir.generic_string(), &db);
 		if (!open_status.ok())
 		{
 			db = NULL;
@@ -666,13 +680,16 @@ void undo_storage::open(const fc::path& dbdir)
 
 bool undo_storage::is_open()const
 {
-	return open_status.ok();
+	return db!=NULL;
 }
 
 void undo_storage::close()
 {
-	FC_ASSERT(db != NULL, "db not opened!");
-	delete db;
+	if (db != NULL)
+	{
+		delete db;
+		db = NULL;
+	}
 }
 
 void undo_storage::flush()

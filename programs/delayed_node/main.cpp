@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
       auto delayed_plug = node.register_plugin<delayed_node::delayed_node_plugin>();
       auto history_plug = node.register_plugin<account_history::account_history_plugin>();
-	  auto transaction_plg = node.register_plugin<transaction::transaction_plugin>();
+	  auto transaction_plg = node.register_plugin<graphene::transaction::transaction_plugin>();
       auto market_history_plug = node.register_plugin<market_history::market_history_plugin>();
 
       try

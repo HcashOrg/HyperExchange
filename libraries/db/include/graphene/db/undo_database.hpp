@@ -60,7 +60,7 @@ namespace graphene {
 			bool is_open()const;
 			void flush();
 			void close();
-
+			~undo_storage() { close(); };
 			void store(const undo_state_id_type & _id, const serializable_undo_state& b);
 			undo_state_id_type store_undo_state(const undo_state& b);
 			void remove(const undo_state_id_type& id);
@@ -84,7 +84,7 @@ namespace graphene {
 		class undo_database
 		{
 		public:
-			undo_database(object_database& db) :_db(db) {}
+			undo_database(object_database& db);
 
 			class session
 			{
@@ -182,7 +182,7 @@ namespace graphene {
 			bool                    _disabled = true;
 			std::deque<undo_state_id_type>  _stack;
 			object_database&        _db;
-			undo_storage*           state_storage;
+			std::unique_ptr<undo_storage>           state_storage;
 			size_t                  _max_size = 1440;
 			//back保存当前活跃的state,不活跃的将id存入stack,数据存入db;
 			//在保存时需要将back现存入stack和db
