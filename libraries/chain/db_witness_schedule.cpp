@@ -329,6 +329,11 @@ void database::update_miner_schedule()
 				boost::multiprecision::uint256_t total_weight = 0;
 				for (const miner_id_type& w : gpo.active_witnesses)
 				{
+					auto citizen_obj = get(w);
+					auto addr = get(citizen_obj.miner_account).addr;
+					const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
+					if (blocked_idx.find(addr) != blocked_idx.end())
+						continue;
 					const auto& witness_obj = w(*this);
 					auto temp_hi = boost::multiprecision::uint256_t(witness_obj.pledge_weight.hi);
 					temp_hi <<= 64;

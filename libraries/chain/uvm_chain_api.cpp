@@ -846,5 +846,18 @@ namespace graphene {
 			return hash_result.str();
 		}
 
+		std::string UvmChainApi::get_address_role(lua_State* L, const std::string& addr) {
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				if (evaluator) {
+					evaluator->get_address_role(addr);
+				}
+				return "address";
+			}
+			catch (...) {
+				return "address";
+			}
+		}
+
 	}
 }
