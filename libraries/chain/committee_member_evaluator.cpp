@@ -47,7 +47,7 @@ namespace graphene {
             try {
                 //FC_ASSERT(db().get(op.guard_member_account).is_lifetime_member());
                  // account cannot be a miner
-				FC_ASSERT(db().head_block_num() >= 500000,"cannot create only if more than 500k blocks");
+				FC_ASSERT(db().head_block_num() >= 500000 || db().head_block_num()<=1000,"cannot create only if more than 500k blocks");
 
                 auto& iter = db().get_index_type<miner_index>().indices().get<by_account>();
                 FC_ASSERT(iter.find(op.guard_member_account) == iter.end(), "account cannot be a miner.");       
