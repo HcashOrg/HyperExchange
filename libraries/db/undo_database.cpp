@@ -64,10 +64,15 @@
 #define STORAGE_FILE_NAME "storage"
 namespace graphene { namespace db {
     using namespace graphene::chain;
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 void undo_database::enable()  { _disabled = false; }
 undo_database::undo_database(object_database & db) :_db(db) 
 {
-	state_storage = std::make_unique<undo_storage>();
+	state_storage = make_unique<undo_storage>();
 }
 void undo_database::disable() { _disabled = true; }
 
@@ -463,10 +468,7 @@ undo_state::undo_state(const serializable_undo_state & sta)
     }
 }
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+
 
 template <typename T> 
 std::unique_ptr<object> create_obj_unique_ptr(const variant& var)
@@ -722,7 +724,6 @@ void undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 			elog("id argument of block_database::store() was not initialized for block ${id}", ("id", id));
 		}
 		leveldb::WriteOptions write_options;
-		write_options.sync = true;
 		leveldb::Status sta = db->Put(write_options, _id.str(), fc::json::to_string(b));
 		if (!sta.ok())
 		{
