@@ -850,12 +850,12 @@ namespace graphene {
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				if (evaluator) {
-					evaluator->get_address_role(addr);
+					return evaluator->get_address_role(addr);
 				}
 				return "address";
 			}
 			catch (...) {
-				return "address";
+				return "other";
 			}
 		}
 
