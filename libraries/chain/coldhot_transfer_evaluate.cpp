@@ -292,12 +292,16 @@ namespace graphene {
 				auto crosschain_plugin = manager.get_crosschain_handle(std::string(o.asset_symbol));
 				if (!crosschain_plugin->valid_config())
 					return void_result();
+				if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+				{
+					return void_result();
+				}
 				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos)
 				{
 
 				}
 				else {
-					crosschain_plugin->broadcast_transaction(o.coldhot_trx_original_chain);
+					fc::async([crosschain_plugin,o] {crosschain_plugin->broadcast_transaction(o.coldhot_trx_original_chain); });
 				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))

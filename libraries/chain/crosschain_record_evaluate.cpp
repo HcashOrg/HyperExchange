@@ -413,12 +413,15 @@ namespace graphene {
 			auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
 			if (!hdl->valid_config())
 				return void_result();
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+				return void_result();
 			if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos)
 			{
 
 			}
 			else {
-			hdl->broadcast_transaction(o.cross_chain_trx);
+				fc::async([hdl,o] {
+					hdl->broadcast_transaction(o.cross_chain_trx); });
 			}
 			return void_result();
 		}

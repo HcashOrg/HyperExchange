@@ -148,8 +148,8 @@ namespace graphene {
 			if (!handle->valid_config()) {
 				return object_id_type();
 			}
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_hot_sol_guard_sign));
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_cold_sol_guard_sign));
+		    handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_hot_sol_guard_sign));
+			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.multi_cold_sol_guard_sign)); 		
 			return object_id_type();
 		}
 		void eth_series_multi_sol_guard_sign_evaluator::pay_fee() {
@@ -192,7 +192,13 @@ namespace graphene {
 			if (!handle->valid_config()) {
 				return object_id_type();
 			}
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+			{
+				return object_id_type();
+			}
+			fc::async([handle,o] {
+				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+				 });
 			return object_id_type();
 		}
 		void_result eths_guard_sign_final_evaluator::do_evaluate(const eths_guard_sign_final_operation& o) {
@@ -229,7 +235,12 @@ namespace graphene {
 			if (!handle->valid_config()) {
 				return object_id_type();
 			}
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+			{
+				return object_id_type();
+			}
+			fc::async([handle,o] {
+				handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx)); });
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
 		}
@@ -271,7 +282,11 @@ namespace graphene {
 			if (!handle->valid_config()) {
 				return object_id_type();
 			}
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+			{
+				return object_id_type();
+			}
+			fc::async([handle,o] {handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx)); });
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
 		}
@@ -312,7 +327,11 @@ namespace graphene {
 			if (!handle->valid_config()) {
 				return object_id_type();
 			}
-			handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx));
+			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+			{
+				return object_id_type();
+			}
+			fc::async([handle,o] {handle->broadcast_transaction(fc::variant_object("trx", "0x" + o.signed_crosschain_trx)); });
 			//db().adjust_eths_multi_account_record();
 			return object_id_type();
 		}
