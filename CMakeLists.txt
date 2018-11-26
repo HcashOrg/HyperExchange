@@ -128,6 +128,7 @@ if( WIN32 )
     list(INSERT LEVELDB_BUILD_PRIVATE_INCLUDES 0 "${CMAKE_SOURCE_DIR}/libraries/leveldb-msvc/include")
 else( WIN32 ) # Apple AND Linux
 	list(APPEND LEVELDB_BUILD_DEFINES LEVELDB_PLATFORM_POSIX LEVELDB_ATOMIC_PRESENT)
+	SET(LEVELDB_PORT_FILE "${LEVEL_DB_DIR}/port/port_posix.cc" )
     if( APPLE )
         list(APPEND LEVELDB_BUILD_DEFINES OS_MACOSX)
     else() # Linux
