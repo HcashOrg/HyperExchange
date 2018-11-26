@@ -190,8 +190,7 @@ namespace graphene { namespace chain {
       impl_fba_accumulator_object_type,
 	  impl_guarantee_obj_type,
 	  impl_address_transaction_history_object_type,
-	  impl_blocked_address_obj_type,
-	  impl_undo_state_ob_type
+	  impl_blocked_address_obj_type
    };
 
    //typedef fc::unsigned_int            object_id_type;
