@@ -457,6 +457,21 @@ namespace graphene {
 				FC_THROW(signature);
 			*/
 		}
+		std::string crosschain_interface_ub::get_from_address(const fc::variant_object& trx)
+		{
+			try {
+				auto tx = trx["trx"].get_object();
+				for (auto vin : tx["vin"].get_array())
+				{
+					auto index = vin.get_object()["vout"].as_uint64();
+					auto from_trx_id = vin.get_object()["txid"].as_string();
+					auto from_trx = transaction_query(from_trx_id);
+					return from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
+				}
+				return std::string();
+			}FC_CAPTURE_AND_RETHROW((trx));
+		}
+
 
 		crosschain_trx crosschain_interface_ub::turn_trxs(const fc::variant_object & trx)
 		{

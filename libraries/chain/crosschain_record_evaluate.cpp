@@ -447,7 +447,8 @@ namespace graphene {
 				std::string temp_sign;
 				auto op = sign_obj.real_transaction.operations[0];
 				auto sign_op = op.get<crosschain_withdraw_with_sign_operation>();
-				std::string sig = sign_op.ccw_trx_signature;
+				//std::string sig = sign_op.ccw_trx_signature;
+				std::string sig = fc::variant(sign_op.sign_guard).as_string();
 				signs.insert(sig);
 			}
 // 			db().get_index_type<crosschain_trx_index >().inspect_all_objects([&](const object& obj)
@@ -465,7 +466,8 @@ namespace graphene {
 //                                 std::string sig = sign_op.ccw_trx_signature;
 // 				signs.insert(sig);
 // 			}
-			auto sign_iter = signs.find(o.ccw_trx_signature);
+			//auto sign_iter = signs.find(o.ccw_trx_signature);
+			auto sign_iter = signs.find(fc::variant(o.sign_guard).as_string());
 			FC_ASSERT(sign_iter == signs.end(), "Guard has sign this transaction");
 			//db().get_index_type<crosschain_trx_index>().indices().get<by_trx_relate_type_stata>();
 			//auto trx_iter = trx_db.find(boost::make_tuple(o.ccw_trx_id, withdraw_sign_trx));
@@ -478,16 +480,18 @@ namespace graphene {
 			if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
 				return void_result();
 			crosschain_trx hd_trxs;
+			std::string from_account;
 			if (o.asset_symbol != "ETH" && o.asset_symbol.find("ERC") == o.asset_symbol.npos)
 			{
-				hd_trxs = hdl->turn_trxs(o.withdraw_source_trx);
+				from_account = hdl->get_from_address(o.withdraw_source_trx);
 			}
 			else {
 				hd_trxs= hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.withdraw_source_trx));
+				FC_ASSERT(hd_trxs.trxs.size() >= 1);
+				auto crosschain_tx = hd_trxs.trxs.begin()->second;
+				from_account = crosschain_tx.from_account;
 			}
-			FC_ASSERT(hd_trxs.trxs.size() >= 1);
-			auto crosschain_trx = hd_trxs.trxs.begin()->second;
-			vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(crosschain_trx.from_account, o.asset_symbol);
+			vector<multisig_address_object>  senator_pubks = db().get_multi_account_senator(from_account, o.asset_symbol);
 			FC_ASSERT(senator_pubks.size() > 0);
 			auto& acc_idx = db().get_index_type<account_index>().indices().get<by_address>();
 			auto acc_itr = acc_idx.find(o.guard_address);

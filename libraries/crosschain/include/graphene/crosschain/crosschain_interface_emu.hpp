@@ -67,6 +67,7 @@ namespace graphene {
 			virtual hd_trx turn_trx(const fc::variant_object & trx) override;
 			virtual crosschain_trx turn_trxs(const fc::variant_object & trx)override;
 			virtual void broadcast_transaction(const fc::variant_object &trx) override ;
+			virtual std::string get_from_address(const fc::variant_object& trx) override { return std::string(); }
 			virtual std::vector<fc::variant_object> query_account_balance(const std::string &account) override ;
 			virtual std::vector<fc::variant_object> transaction_history(std::string symbol, const std::string &user_account, uint32_t start_block, uint32_t limit, uint32_t& end_block_num) override ;
 			virtual std::string export_private_key(std::string &account, std::string &encrypt_passprase) override ;

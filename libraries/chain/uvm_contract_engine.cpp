@@ -37,7 +37,7 @@ namespace uvm
 	}
 	void UvmContractEngine::set_gas_used(int64_t gas_used)
 	{
-		int *insts_executed_count = uvm::lua::lib::get_lua_state_value(_scope->L(), INSTRUCTIONS_EXECUTED_COUNT_LUA_STATE_MAP_KEY).int_pointer_value;
+		int64_t *insts_executed_count = uvm::lua::lib::get_lua_state_value(_scope->L(), INSTRUCTIONS_EXECUTED_COUNT_LUA_STATE_MAP_KEY).int_pointer_value;
 		if (insts_executed_count)
 		{
 			*insts_executed_count = gas_used;

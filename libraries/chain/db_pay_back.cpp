@@ -40,7 +40,11 @@ namespace graphene {
 				auto payback_address_iter = payback_db.find(payback_owner);
 				FC_ASSERT((payback_address_iter != payback_db.end()), "this address has no pay back balance");
 				if (symbol_type == "") {
-					return payback_address_iter->owner_balance;
+					for (auto itr : payback_address_iter->owner_balance)
+					{
+						if (itr.second > asset(0))
+							results.insert(itr);
+					}
 				}
 				else {
 					//
@@ -48,7 +52,7 @@ namespace graphene {
 					FC_ASSERT(obj.valid());
 					for (auto iter = payback_address_iter->owner_balance.begin(); iter != payback_address_iter->owner_balance.end();++iter)
 					{
-						if (iter->second.asset_id == obj->get_id())
+						if (iter->second.asset_id == obj->get_id() && iter->second.amount > 0)
 							results[iter->first] = iter->second;
 					}
 				}

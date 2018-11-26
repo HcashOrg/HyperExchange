@@ -1255,6 +1255,28 @@ namespace graphene {
                  d.store_contract_storage_change_obj(addr, block_num);
              }
          }
+		 std::string contract_common_evaluate::get_address_role(const std::string& addr_str) const {
+			 // "senator" or "address" or "other"
+			 try {
+				 FC_ASSERT(graphene::chain::address::is_valid(addr_str));
+				 const auto& account_idx = get_db().get_index_type<account_index>().indices();
+				 const auto& guard_idx = get_db().get_index_type<guard_member_index>().indices();
+				 auto itr = account_idx.get<by_address>().find(address(addr_str));
+				 if (itr == account_idx.get<by_address>().end())
+				 {
+					 return "address";
+				 }
+				 auto itr_senator = guard_idx.get<by_account>().find(itr->get_id());
+				 if (itr_senator != guard_idx.get<by_account>().end())
+					 return "senator";
+				 return "address";
+				 
+			 }
+			 catch (...)
+			 {
+				 return "other";
+			 }
+		 }
          bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
          {
              auto obj=get_db().get_asset(GRAPHENE_SYMBOL);

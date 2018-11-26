@@ -184,8 +184,8 @@ struct wallet_data
    /// @return true if the account was newly inserted; false if it was only updated
    bool update_account(const account_object& acct)
    {
-      auto& idx = my_accounts.get<by_name>();
-      auto itr = idx.find(acct.name);
+      auto& idx = my_accounts.get<by_address>();
+      auto itr = idx.find(acct.addr);
       if( itr != idx.end() )
       {
          idx.replace(itr, acct);
