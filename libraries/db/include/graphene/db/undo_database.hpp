@@ -188,6 +188,7 @@ namespace graphene {
 			//在保存时需要将back现存入stack和db
 			//在初始化时，从文件恢复stack和storage，根据stack的尾部的id，从storage中找到对应state，反序列化赋值给back
 			undo_state              back;
+			bool active_back = false;
 
 		};
 

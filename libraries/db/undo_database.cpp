@@ -90,8 +90,10 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
 	   _stack.pop_front();
    }
    //将当前back存入db,和stack,清空当前back
-   _stack.push_back(state_storage->store_undo_state(back));
+   if(active_back)
+		_stack.push_back(state_storage->store_undo_state(back));
    back.reset();
+   active_back = true;
    ++_active_sessions;
    return session(*this, disable_on_exit );
 }
@@ -142,7 +144,8 @@ void undo_database::on_remove( const object& obj )
 void undo_database::undo()
 { 
 	try {
-   FC_ASSERT( !_disabled );
+   FC_ASSERT(!_disabled);
+   FC_ASSERT(active_back);
    FC_ASSERT( _active_sessions > 0 );
    disable();
 
@@ -170,10 +173,13 @@ void undo_database::undo()
    if (_stack.size() > 0)
    {
 	   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+	   state_storage->remove(_stack.back());
 	   _stack.pop_back();
    }
    else
    {
+
+	   active_back = false;
 	   back.reset();
    }
    enable();
@@ -310,32 +316,41 @@ void undo_database::pop_commit()
 {
    FC_ASSERT( _active_sessions == 0 );
    FC_ASSERT( !_stack.empty() );
-
+   FC_ASSERT(active_back);
    disable();
    try {
 	   //将back中的操作回退，将stack中的最后一个作为back
-      auto& state = back;
+	   auto& state = back;
 
-      for( auto& item : state.old_values )
-      {
-         _db.modify( _db.get_object( item.second->id ), [&]( object& obj ){ obj.move_from( *item.second ); } );
-      }
+	   for (auto& item : state.old_values)
+	   {
+		   _db.modify(_db.get_object(item.second->id), [&](object& obj) { obj.move_from(*item.second); });
+	   }
 
-      for( auto ritr = state.new_ids.begin(); ritr != state.new_ids.end(); ++ritr  )
-      {
-         _db.remove( _db.get_object(*ritr) );
-      }
+	   for (auto ritr = state.new_ids.begin(); ritr != state.new_ids.end(); ++ritr)
+	   {
+		   _db.remove(_db.get_object(*ritr));
+	   }
 
-      for( auto& item : state.old_index_next_ids )
-      {
-         _db.get_mutable_index( item.first.space(), item.first.type() ).set_next_id( item.second );
-      }
+	   for (auto& item : state.old_index_next_ids)
+	   {
+		   _db.get_mutable_index(item.first.space(), item.first.type()).set_next_id(item.second);
+	   }
 
-      for( auto& item : state.removed )
-         _db.insert( std::move(*item.second) );
-	  //将stack中的最后一个取出设置为back
-	  FC_ASSERT(state_storage->get_state(_stack.back(),back));
-      _stack.pop_back();
+	   for (auto& item : state.removed)
+		   _db.insert(std::move(*item.second));
+	   //将stack中的最后一个取出设置为back
+	   if (_stack.size() > 0)
+	   {
+		   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+		   state_storage->remove(_stack.back());
+		   _stack.pop_back();
+	   }
+	   else
+	   {
+		   back.reset();
+		   active_back = false;
+	   }
    }
    catch ( const fc::exception& e )
    {
