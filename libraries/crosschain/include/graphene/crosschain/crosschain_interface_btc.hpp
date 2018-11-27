@@ -35,6 +35,7 @@ namespace graphene {
 			virtual std::string sign_multisig_transaction(fc::variant_object trx, graphene::privatekey_management::crosschain_privatekey_base*& sign_key,const std::string& redeemScript, bool broadcast = true) override;
 			virtual fc::variant_object merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures) override;
 			virtual bool validate_link_trx(const hd_trx &trx) override;
+			virtual bool validate_link_trx_v1(const hd_trx &trx) override { return validate_link_trx(trx); }
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) override;
 			virtual bool validate_other_trx(const fc::variant_object &trx) override;
 			virtual bool validate_address(const std::string& addr) override;

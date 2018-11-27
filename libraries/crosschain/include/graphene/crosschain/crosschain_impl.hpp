@@ -102,6 +102,7 @@ namespace graphene {
 			// Validate transaction.
 			virtual bool validate_link_trx(const hd_trx &trx) = 0;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) = 0;
+			virtual bool validate_link_trx_v1(const hd_trx &trx) = 0;
 			virtual bool validate_other_trx(const fc::variant_object &trx) = 0;
 			virtual bool validate_address(const std::string& addr) = 0;
 			//Turn plugin transaction to handle transaction
