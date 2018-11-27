@@ -17,7 +17,9 @@ namespace fc {
 
          void add_server( const std::string& hostname, uint16_t port = 123 );
          void set_request_interval( uint32_t interval_sec );
-         void request_now();
+		 void request_now();
+
+		 void re_request_now();
          optional<time_point> get_time()const;
 
          int64_t get_delta_microseconds()const;

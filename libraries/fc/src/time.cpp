@@ -58,6 +58,15 @@ namespace fc {
           }
       }
 }
+ void time_point::ntp_update_time()
+ {
+	 ntp_info res;
+	 fc::ntp* actual_ntp_service = detail::ntp_service.load();
+	 if (actual_ntp_service)
+	 {
+		 actual_ntp_service->re_request_now();
+	 }
+ }
   fc::string time_point_sec::to_non_delimited_iso_string()const
   {
     const auto ptime = boost::posix_time::from_time_t( time_t( sec_since_epoch() ) );

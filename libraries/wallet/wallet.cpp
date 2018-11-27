@@ -58,6 +58,7 @@
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/time.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -9001,13 +9002,17 @@ void wallet_api::start_citizen(bool start)
     my->start_miner(start);
 }
 
-fc::ntp_info wallet_api::get_witnessnode_ntp_info()
+std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
-	return my->_remote_db->get_ntp_info();
+	std::map<std::string, fc::ntp_info> res;
+	res["witness_node"]= my->_remote_db->get_ntp_info();
+	res["cli_wallet"]= fc::time_point::get_ntp_info();;
+	return res;
 }
-fc::ntp_info wallet_api::get_cliwallet_ntp_info()
+void wallet_api::ntp_update_time()
 {
-	return fc::time_point::get_ntp_info();
+	time_point::ntp_update_time();
+	my->_remote_db->ntp_update_time();
 }
 
 void wallet_api::witness_node_stop()

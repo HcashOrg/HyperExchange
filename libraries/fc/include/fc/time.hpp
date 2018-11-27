@@ -50,7 +50,8 @@ namespace fc {
         static time_point local_now();
         static time_point maximum() { return time_point( microseconds::maximum() ); }
         static time_point min() { return time_point();                      }
-        static void start_ntp();
+		static void start_ntp();
+		static void ntp_update_time();
         operator fc::string()const;
         static time_point from_iso_string( const fc::string& s );
 
@@ -72,6 +73,7 @@ namespace fc {
   };
   struct ntp_info
   {
+	  string                                           from;
 	  fc::time_point                                   _last_valid_ntp_reply_received_time;
 	  bool												_last_ntp_delta_initialized;
 	  int64_t											_last_ntp_delta_microseconds;
@@ -82,6 +84,7 @@ namespace fc {
 	  }
 	  ntp_info& operator=(const ntp_info& info);
 	  ntp_info(const ntp_info& info);
+	  bool operator<(const ntp_info& info)const;
   };
   /**
    *  A lower resolution time_point accurate only to seconds from 1970

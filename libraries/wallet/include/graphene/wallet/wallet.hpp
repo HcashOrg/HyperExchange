@@ -2066,8 +2066,8 @@ class wallet_api
       void witness_node_stop();
 
 	  //ntp
-	  fc::ntp_info get_witnessnode_ntp_info();
-	  fc::ntp_info get_cliwallet_ntp_info();
+	  std::map<std::string,fc::ntp_info> get_ntp_info();
+	  void ntp_update_time();
 };
 
 } }
@@ -2355,6 +2355,6 @@ FC_API( graphene::wallet::wallet_api,
 		(proposal_block_address)
 		(proposal_cancel_block_address)
 		(decrypt_coldkeys)
-	    (get_witnessnode_ntp_info)
-		(get_cliwallet_ntp_info)
+	    (get_ntp_info)
+		(ntp_update_time)
       )
