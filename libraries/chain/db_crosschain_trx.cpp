@@ -568,9 +568,10 @@ namespace graphene {
 		void database::create_acquire_crosschhain_transaction(miner_id_type miner, fc::ecc::private_key pk){
 			try {
 				map<string, vector<acquired_crosschain_trx_object>> acquired_crosschain_trx;
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o) {
 					const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
-					if (p.acquired_transaction_state == acquired_trx_uncreate) {
+					if (p.acquired_transaction_state == acquired_trx_uncreate && manager.contain_crosschain_handles(p.handle_trx.asset_symbol)){
 						acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
 					}
 				});
