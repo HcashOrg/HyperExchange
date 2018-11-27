@@ -20,13 +20,71 @@
 
 #include <atomic>
 #include <array>
-
+#include <fc/thread/mutex.hpp>
 
 namespace fc
 {
     namespace bch = boost::chrono;
   namespace detail {
 
+	  class ntp_response_selector
+	  {
+	  public:
+		  static fc::mutex mu;
+		  static std::map<string, ntp_info> db;
+		  static int64_t select(const ntp_info& info)
+		  {
+			  mu.lock();
+			  db[info.from] = info;
+			  auto now = time_point::now();
+			  //half an hour
+			  now -= microseconds(1800000000);
+			  std::map<string, ntp_info>::iterator it = db.begin();
+
+			  int64_t sum = 0;
+			  int64_t count = 0;
+			  int64_t max = 0;
+			  int64_t min = 0;
+			  while (it != db.end())
+			  {
+				  if (it->second._last_valid_ntp_reply_received_time < now)
+				  {
+					  it = db.erase(it);
+				  }
+				  else
+				  {
+					  auto delta = it->second._last_ntp_delta_microseconds;
+					  sum += delta;
+					  ++count;
+					  if (min > delta)
+						  min = delta;
+					  if (max < delta)
+						  max = delta;
+					  it++;
+				  }
+			  }
+			  mu.unlock();
+			  if (count == 0)
+				  return 0;
+			  if (db.size() > 5)
+			  {
+				  sum -= max;
+				  sum -= min;
+				  count -= 2;
+			  }
+			  return sum / count;
+		  }
+		  static void clear()
+		  {
+
+			  mu.lock();
+			  db.clear();
+			  mu.unlock();
+		  }
+	  };
+	  
+	  fc::mutex ntp_response_selector::mu;
+	  std::map<string, ntp_info> ntp_response_selector::db;
   class ntp_impl 
   {
     public:
@@ -55,7 +113,13 @@ namespace fc
         _ntp_hosts.push_back(std::make_pair("pool.ntp.org", 123));
 		_ntp_hosts.push_back(std::make_pair("cn.ntp.org.cn", 123));
 		_ntp_hosts.push_back(std::make_pair("edu.ntp.org.cn", 123));
-		_ntp_hosts.push_back(std::make_pair("hk.ntp.org.cn", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp1.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp2.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp3.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp4.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp5.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp6.aliyun.com", 123));
+		_ntp_hosts.push_back(std::make_pair("ntp7.aliyun.com", 123));
         
       } 
 
@@ -91,11 +155,11 @@ namespace fc
         {
           try 
           {
-            ////wlog( "resolving... ${r}", ("r", item) );
+            //wlog( "resolving... ${r}", ("r", item) );
             auto eps = resolve( item.first, item.second );
             for( auto ep : eps )
             {
-              ////wlog( "sending request to ${ep}", ("ep",ep) );
+              //wlog( "sending request to ${ep}", ("ep",ep) );
               std::shared_ptr<char> send_buffer(new char[48], [](char* p){ delete[] p; });
               std::array<unsigned char, 48> packet_to_send { {0xdb,0,0,0,0,0,0,0,0} };
               memcpy(send_buffer.get(), packet_to_send.data(), packet_to_send.size());
@@ -161,7 +225,7 @@ namespace fc
               try
               {
                 _sock.receive_from( receive_buffer, receive_buffer_size, from );
-                ////wlog("received ntp reply from ${from}",("from",from) );
+                //wlog("received ntp reply from ${from}",("from",from) );
               } FC_RETHROW_EXCEPTIONS(error, "Error reading from NTP socket");
 
               fc::time_point receive_time = fc::time_point::local_now();
@@ -175,23 +239,28 @@ namespace fc
                                                 (server_transmit_time - server_receive_time));
               ////wlog("origin_time = ${origin_time}, server_receive_time = ${server_receive_time}, server_transmit_time = ${server_transmit_time}, receive_time = ${receive_time}",
               //     ("origin_time", origin_time)("server_receive_time", server_receive_time)("server_transmit_time", server_transmit_time)("receive_time", receive_time));
-              ////wlog("ntp offset: ${offset}, round_trip_delay ${delay}", ("offset", offset)("delay", round_trip_delay));
+              //wlog("ntp offset: ${offset}, round_trip_delay ${delay}", ("offset", offset)("delay", round_trip_delay));
 
               //if the reply we just received has occurred more than a second after our last time request (it was more than a second ago since our last request)
               if( round_trip_delay > fc::seconds(1) )
               {
-                ////wlog("received stale ntp reply requested at ${request_time}, send a new time request", ("request_time", origin_time));
+                //wlog("received stale ntp reply requested at ${request_time}, send a new time request", ("request_time", origin_time));
                 request_now(); //request another reply and ignore this one
               }
               else //we think we have a timely reply, process it
               {
                 if( offset < fc::seconds(60*60*24) && offset > fc::seconds(-60*60*24) )
                 {
-                  _last_ntp_delta_microseconds = offset.count();
+				  ntp_info info;
+				  info.from = from.operator fc::string();
+				  info._last_ntp_delta_initialized = true;
+				  info._last_valid_ntp_reply_received_time = receive_time;
+				  info._last_ntp_delta_microseconds = offset.count();
+				  _last_ntp_delta_microseconds = ntp_response_selector::select(info);
                   _last_ntp_delta_initialized = true;
                   fc::microseconds ntp_delta_time = fc::microseconds(_last_ntp_delta_microseconds);
                   _last_valid_ntp_reply_received_time = receive_time;
-                  ////wlog("ntp_delta_time updated to ${delta_time}", ("delta_time",ntp_delta_time) );
+                  //wlog("ntp_delta_time updated to ${delta_time}", ("delta_time",ntp_delta_time) );
                 }
 				/*else
                   elog( "NTP time and local time vary by more than a day! ntp:${ntp_time} local:${local}", 
@@ -217,12 +286,11 @@ namespace fc
           _sock.close();
           fc::usleep(fc::seconds(_retry_failed_request_interval_sec));
         } //outer while loop
-        ////wlog("exiting ntp read_loop");
+        //wlog("exiting ntp read_loop");
       } //end read_loop()
     }; //ntp_impl
 
   } // namespace detail
-
 
 
   ntp::ntp()
@@ -278,6 +346,12 @@ namespace fc
   void ntp::request_now()
   {
     my->_ntp_thread.async( [=](){ my->request_now(); }, "request_now" ).wait();
+  }
+
+  void ntp::re_request_now()
+  {
+	  detail::ntp_response_selector::clear();
+	  request_now();
   }
 
   optional<time_point> ntp::get_time()const

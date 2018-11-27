@@ -664,6 +664,7 @@ class database_api
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 	  fc::ntp_info get_ntp_info() const;
+	  void ntp_update_time() const;
 
    private:
       std::shared_ptr< database_api_impl > my;
@@ -839,4 +840,5 @@ FC_API(graphene::app::database_api,
 	(get_eths_multi_create_account_trx)
 	(get_referendum_transactions_waiting)
 	(get_ntp_info)
+	(ntp_update_time)
 );
