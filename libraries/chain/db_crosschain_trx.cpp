@@ -572,12 +572,29 @@ namespace graphene {
 				get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o) {
 					const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
 					if (p.acquired_transaction_state == acquired_trx_uncreate && manager.contain_crosschain_handles(p.handle_trx.asset_symbol)){
-						acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+						if (p.handle_trx.trx_id != "e5a5043b7f4ae26793069b535de1ad0a443a6ae48c733b44aaad9662969fc960" &&
+							p.handle_trx.trx_id != "9b81ad5f2706bac7bcb4f1021ee4bc0cbcd44e46ed7da858c3a0a1fbfe9a901d" &&
+							p.handle_trx.trx_id != "3eb700c63e200787d7ee9618e68564301516785347a9916382050234a6ec8711" &&
+							p.handle_trx.trx_id != "a72207de343b0b768373ac4a3e8313b30f4383468bf705010e60175ee9951495" &&
+							p.handle_trx.trx_id != "caec0a90a1eb720c650379371981abf708101cc836cd9253ce3323796c50df72" &&
+							p.handle_trx.trx_id != "c18e2aab16c46e28f1f7f6a16dad370cf163138d9ff565003363048be933d2f4" &&
+							p.handle_trx.trx_id != "f10485e8e51be5d52980186831103f685ab61d40c2f681f4d8128995c0a42998" &&
+							p.handle_trx.trx_id != "364fb6d4bb4067f374922ffb52f12794afb73998d06dce89807a2eb535d8e116" &&
+							p.handle_trx.trx_id != "cf4b6b40d0cc961266571a536d4c09a2e259a668dbc578cf4c9457be886ca96e" &&
+							p.handle_trx.trx_id != "1f46b81cf37a94ee8caa89ea07af459ca7b1f563b09c98d86bd79867e0531e4b" &&
+							p.handle_trx.trx_id != "19d2186de845ce5b3dcbe066cf18a8540bea4a204d66c0f96ad0e723aea673d9" &&
+							p.handle_trx.trx_id != "2048d25667f95babc0ec7985d439c7ca03c0ac4dd1cc64ff50f893e963b14d97" &&
+							p.handle_trx.trx_id != "fcc47b568267a4ad63785ba899e0f426e8bd9729df159e007e32488d160324de" &&
+							p.handle_trx.trx_id != "b758ba6cf67e3697c01479b33fbe133d7b497109947cc448b62c67ea779a9616" &&
+							p.handle_trx.trx_id != "a666d28912419d2a82ef7c3a222a3e99dd72e4bda5d56246cc368dfd21cbd7f8" &&
+							p.handle_trx.trx_id != "4cdb41c2cc4a3cb2e56cd2febacc00327cb07c60353f09f0d637f81d28febd02")
+						{
+							acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+						}
 					}
 				});
 
 				for (auto & acquired_trxs : acquired_crosschain_trx) {
-
 					set<string> multi_account_obj_hot;
 					set<string> multi_account_obj_cold;
 					auto multi_account_range = get_index_type<multisig_account_pair_index>().indices().get<by_chain_type>().equal_range(acquired_trxs.first);
