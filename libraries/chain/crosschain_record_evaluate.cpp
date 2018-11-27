@@ -33,11 +33,14 @@ namespace graphene {
 					bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
 				}
 				else {
-					bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
-					if (!bCheckTransactionValid)
+					if (db().head_block_num() >= 220000)
 					{
-						std::cout << "id " << o.cross_chain_trx.trx_id << " addr: " << o.deposit_address.address_to_string() << std::endl;
+						bCheckTransactionValid = hdl->validate_link_trx_v1(o.cross_chain_trx);
 					}
+					else {
+						bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
+					}
+					
 				}
 				FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
 				auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();

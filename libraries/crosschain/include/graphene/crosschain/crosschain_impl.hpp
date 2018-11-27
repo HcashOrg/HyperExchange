@@ -31,6 +31,7 @@
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <graphene/utilities/string_escape.hpp>
+using namespace std;
 namespace graphene {
 	namespace crosschain {
 		typedef struct handle_history_trx {
@@ -84,7 +85,8 @@ namespace graphene {
 
 			// Query transaction details by transaction id.
 			virtual fc::variant_object transaction_query(std::string trx_id) = 0;
-
+			// Query transaction details by transaction id.
+			virtual fc::variant_object transaction_query(vector<std::string>& trx_ids) = 0;
 			// Transfer asset.
 			virtual fc::variant_object transfer(const std::string &from_account, const std::string &to_account, uint64_t amount, const std::string &symbol, const std::string &memo, bool broadcast = true) = 0;
 
@@ -102,6 +104,7 @@ namespace graphene {
 			// Validate transaction.
 			virtual bool validate_link_trx(const hd_trx &trx) = 0;
 			virtual bool validate_link_trx(const std::vector<hd_trx> &trx) = 0;
+			virtual bool validate_link_trx_v1(const hd_trx &trx) = 0;
 			virtual bool validate_other_trx(const fc::variant_object &trx) = 0;
 			virtual bool validate_address(const std::string& addr) = 0;
 			//Turn plugin transaction to handle transaction

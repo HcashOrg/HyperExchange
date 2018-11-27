@@ -397,17 +397,40 @@ signed_block database::_generate_block(
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
    reset_current_collected_fee();
+   map<string, int > temp_signature;
    for( const processed_transaction& tx : _pending_tx )
    {
       size_t new_total_size = total_block_size + fc::raw::pack_size( tx );
-
+	  bool continue_if = false;
       // postpone transaction if it would make block too big
       if( new_total_size >= maximum_block_size )
       {
          postponed_tx_count++;
          continue;
       }
-
+	  if (head_block_num() >= 220000)
+	  {
+		  //need to confirm the height of chain to check the number of signing trxs
+		  for (auto op : tx.operations)
+		  {
+			  if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
+			  {
+				  auto t_op = op.get<crosschain_withdraw_with_sign_operation>();
+				  temp_signature[t_op.asset_symbol]++;
+				  if (temp_signature[t_op.asset_symbol] > 1)
+					  continue_if = true;
+			  }
+			  else if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>().value)
+			  {
+				  auto t_op = op.get<coldhot_transfer_with_sign_operation>();
+				  temp_signature[t_op.asset_symbol]++;
+				  if (temp_signature[t_op.asset_symbol] > 1)
+					  continue_if = true;
+			  }
+		  }
+		  if (continue_if)
+			  continue;
+	  }
       try
       {
          auto temp_session = _undo_db.start_undo_session();
@@ -600,7 +623,7 @@ void database::_apply_block( const signed_block& next_block )
 
    _current_block_num    = next_block_num;
    _current_trx_in_block = 0;
-
+   map<string, int> temp_signature;
    for( const auto& trx : next_block.transactions )
    {
       /* We do not need to push the undo state for each transaction
@@ -609,6 +632,25 @@ void database::_apply_block( const signed_block& next_block )
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
+	   if (head_block_num() >= 220000)
+	   {
+		   //need to confirm the height of chain to check the number of signing trxs
+		   for (auto op : trx.operations)
+		   {
+			   if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
+			   {
+				   auto t_op = op.get<crosschain_withdraw_with_sign_operation>();
+				   temp_signature[t_op.asset_symbol]++;
+				   FC_ASSERT(temp_signature[t_op.asset_symbol] > 1, "with too many signing trx in this block.");
+			   }
+			   else if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>().value)
+			   {
+				   auto t_op = op.get<coldhot_transfer_with_sign_operation>();
+				   temp_signature[t_op.asset_symbol]++;
+				   FC_ASSERT (temp_signature[t_op.asset_symbol] > 1, "with too many signing trx in this block.");
+			   }
+		   }
+	   }
 	  const auto& apply_trx_res = apply_transaction(trx, skip);
 	  FC_ASSERT(apply_trx_res.operation_results == trx.operation_results, "operation apply result not same with result in block");
       ++_current_trx_in_block;
