@@ -57,6 +57,7 @@
 #include <graphene/chain/fba_object.hpp>
 #include <graphene/chain/referendum_object.hpp>
 #include <graphene/db/serializable_undo_state.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <iostream>
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
@@ -396,6 +397,15 @@ const undo_state& undo_database::head()const
  void undo_database::reset()
  {
      _stack.clear();
+
+	 
+ }
+ void undo_database::remove_storage(const fc::string & path)
+ {
+	 state_storage->close();
+	 boost::filesystem::remove_all(path + STORAGE_FILE_NAME);
+	 state_storage->open(path + STORAGE_FILE_NAME);
+	 active_back = false;
  }
  void undo_database::from_file(const fc::string & path)
 {

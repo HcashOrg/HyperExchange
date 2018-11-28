@@ -79,6 +79,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _fork_db.set_max_size(1440);
    _fork_db.reset();
    _undo_db.reset();
+   _undo_db.remove_storage((data_dir/"undo_db").string());
+
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
       if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
@@ -152,7 +154,13 @@ void database::open(
       }
 
 		  fc::path data_dir = get_data_dir() / "undo_db";
-		  _undo_db.from_file(data_dir.string());
+		  try {
+			  _undo_db.from_file(data_dir.string());
+		  }
+		  catch (...)
+		  {
+			  FC_CAPTURE_AND_THROW(deserialize_fork_database_failed, (data_dir));
+		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 

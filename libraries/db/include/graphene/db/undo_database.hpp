@@ -173,6 +173,7 @@ namespace graphene {
 			void save_to_file(const fc::string& path);
 			void from_file(const fc::string& path);
 			void reset();
+			void remove_storage(const fc::string& path);
 		private:
 			void undo();
 			void merge();
