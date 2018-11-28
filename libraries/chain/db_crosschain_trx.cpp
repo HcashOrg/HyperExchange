@@ -420,6 +420,8 @@ namespace graphene {
 				map<asset_id_type, double> fee;
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				for (auto & cross_chain_trx : boost::make_iterator_range(withdraw_range.first,withdraw_range.second)) {
+					if (dest_info.size() >= 10)
+						break;
 					if (cross_chain_trx.real_transaction.id() != cross_chain_trx.transaction_id || cross_chain_trx.real_transaction.operations.size() < 1) {
 						continue;
 					}
