@@ -1999,6 +1999,8 @@ class wallet_api
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
 	  full_transaction refund_uncombined_transaction(const string senator,const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction refund_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_pass_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_pass_coldhot_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction eth_cancel_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_eth_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_uncombined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
@@ -2143,6 +2145,8 @@ FC_API( graphene::wallet::wallet_api,
         (remove_builder_transaction)
         (is_new)
         (is_locked)
+		(senator_pass_combined_transaction)
+		(senator_pass_coldhot_combined_transaction)
         (lock)(unlock)(set_password)
         (dump_private_keys)
 	    (dump_private_key)
@@ -2161,7 +2165,7 @@ FC_API( graphene::wallet::wallet_api,
         (create_account_with_brain_key)
 	    (wallet_create_account)
         
-        (sell)
+        
         (get_eth_multi_account_trx)
         (get_transaction_id)
         (create_asset)

@@ -1528,7 +1528,8 @@ namespace graphene {
 					hdtx.amount = trx_base.value().str();
 					auto bin = trx_base.sha3();
 					std::vector<char> vectorBin(bin.begin(), bin.end());
-					hdtx.trx_id = "0x" + trx_base.to().hex() + '|' + sMsg_prefix;
+					hdtx.trx_id = "0x" + erc::to_hex(vectorBin.data(), vectorBin.size()) + "|0x" + trx_base.to().hex() + '|' + sMsg_prefix;
+					//hdtx.trx_id = "0x" + trx_base.to().hex() + '|' + sMsg_prefix;
 				}
 				return hdtx;
 			}

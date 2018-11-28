@@ -298,6 +298,8 @@ void database::initialize_evaluators()
    register_evaluator<cancel_address_block_evaluator>();
    register_evaluator<guard_cancel_combine_trx_evaluator>();
    register_evaluator<coldhot_cancel_combined_trx_evaluate>();
+   register_evaluator<senator_pass_success_trx_evaluate>();
+   register_evaluator<coldhot_pass_combine_trx_evaluate>();
 }
 
 void database::initialize_indexes()

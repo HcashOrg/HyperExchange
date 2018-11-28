@@ -103,6 +103,31 @@ namespace graphene {
 						});
 					}
 				}
+				else if (op_type == operation::tag<coldhot_pass_combine_trx_operation>::value) {
+					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+					auto coldhot_combine_trx_iter = coldhot_db_objs.find(relate_trx_id);
+					auto range_sign_objs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(coldhot_combine_trx_iter->relate_trx_id);
+					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(coldhot_combine_trx_iter->relate_trx_id);
+					auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
+					modify(*coldhot_combine_trx_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_confirm;
+					});
+					//change without sign trx status
+					modify(*tx_coldhot_without_sign_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_confirm;
+					});
+					//change sign trx status
+					for (auto sign_trx_obj : boost::make_iterator_range(range_sign_objs.first, range_sign_objs.second)) {
+						auto temp_iter = coldhot_db_objs.find(sign_trx_obj.current_id);
+						modify(*temp_iter, [&](coldhot_transfer_object& obj) {
+							obj.curret_trx_state = coldhot_transaction_confirm;
+						});
+					}
+					//change coldhot transfer trx status
+					modify(*tx_coldhot_original_iter, [&](coldhot_transfer_object& obj) {
+						obj.curret_trx_state = coldhot_transaction_confirm;
+					});
+				}
 				else if (op_type == operation::tag<coldhot_cancel_transafer_transaction_operation>::value) {
 					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto tx_coldhot_original_iter = coldhot_db_objs.find(relate_trx_id);

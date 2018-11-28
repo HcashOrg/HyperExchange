@@ -478,6 +478,47 @@ namespace graphene {
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
+#define PASS_HX_BLOCK_NUM 220000
+		void_result coldhot_pass_combine_trx_evaluate::do_evaluate(const coldhot_pass_combine_trx_operation& o) {
+			try {
+				database & d = db();
+				auto current_blockNum = db().head_block_num();
+				FC_ASSERT(current_blockNum >= PASS_HX_BLOCK_NUM, "You cant use this function now");
+				auto & coldhot_db = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				auto coldhot_iter = coldhot_db.find(o.pass_transaction_id);
+				FC_ASSERT(coldhot_iter != coldhot_db.end());
+				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_combine_trx_create, "Coldhot transaction state error");
+				const auto& guard_db = d.get_index_type<guard_member_index>().indices().get<by_id>();
+				auto guard_iter = guard_db.find(o.guard_id);
+				FC_ASSERT(guard_iter != guard_db.end());
+				FC_ASSERT(guard_iter->senator_type == PERMANENT);
+				/*
+				const auto& trx_history_db = d.get_index_type<trx_index>().indices().get<by_trx_id>();
+				const auto trx_history_iter = trx_history_db.find(o.pass_transaction_id);
+				FC_ASSERT(trx_history_iter != trx_history_db.end());
+				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
+				*/
+				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
+				FC_ASSERT(source_trx != coldhot_db.end(), "source trx exist error");
+				if (trx_state->_trx == nullptr)
+					return  void_result();
+				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+
+		}
+		void_result coldhot_pass_combine_trx_evaluate::do_apply(const coldhot_pass_combine_trx_operation& o) {
+			try {
+				FC_ASSERT(trx_state->_trx != nullptr, "trx_state->_trx should not be nullptr");
+				db().adjust_coldhot_transaction(o.pass_transaction_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<coldhot_pass_combine_trx_operation>::value));
+				return void_result();
+			}FC_CAPTURE_AND_RETHROW((o))
+		}
+		
+		void coldhot_pass_combine_trx_evaluate::pay_fee() {
+
+		}
 		void coldhot_cancel_combined_trx_evaluate::pay_fee() {
 
 		}

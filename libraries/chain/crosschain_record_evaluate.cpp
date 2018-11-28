@@ -90,6 +90,8 @@ namespace graphene {
 				auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_id>();
 				auto asset_itr = asset_idx.find(o.asset_id);
 				asset amount;
+				amount = asset_itr->amount_from_string(o.cross_chain_trx.amount);
+				/*
 				if ((o.cross_chain_trx.asset_symbol == "ETH") || (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)) {
 					auto pr = asset_itr->precision;
 					auto temp_amount = o.cross_chain_trx.amount;
@@ -114,7 +116,7 @@ namespace graphene {
 				}
 				else {
 					amount = asset_itr->amount_from_string(o.cross_chain_trx.amount);
-				}
+				}*/
 				db().adjust_balance(tunnel_itr->owner, amount);
 				db().adjust_deposit_to_link_trx(o.cross_chain_trx);
 				//			}

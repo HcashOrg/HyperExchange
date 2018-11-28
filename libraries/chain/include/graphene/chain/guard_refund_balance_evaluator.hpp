@@ -33,5 +33,11 @@ namespace graphene {
 			void_result do_evaluate(const eth_cancel_fail_crosschain_trx_operation& o);
 			void_result do_apply(const eth_cancel_fail_crosschain_trx_operation& o);
 		};
+		class senator_pass_success_trx_evaluate :public evaluator<senator_pass_success_trx_evaluate> {
+		public:
+			typedef senator_pass_success_trx_operation operation_type;
+			void_result do_evaluate(const senator_pass_success_trx_operation& o);
+			void_result do_apply(const senator_pass_success_trx_operation& o);
+		};
 	}
 }
