@@ -413,14 +413,14 @@ signed_block database::_generate_block(
 		  //need to confirm the height of chain to check the number of signing trxs
 		  for (auto op : tx.operations)
 		  {
-			  if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>().value)
+			  if (op.which() == operation::tag<crosschain_withdraw_with_sign_operation>::value)
 			  {
 				  auto t_op = op.get<crosschain_withdraw_with_sign_operation>();
 				  temp_signature[t_op.asset_symbol]++;
 				  if (temp_signature[t_op.asset_symbol] > 1)
 					  continue_if = true;
 			  }
-			  else if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>().value)
+			  else if (op.which() == operation::tag<coldhot_transfer_with_sign_operation>::value)
 			  {
 				  auto t_op = op.get<coldhot_transfer_with_sign_operation>();
 				  temp_signature[t_op.asset_symbol]++;
