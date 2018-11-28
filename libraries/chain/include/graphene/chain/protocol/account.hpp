@@ -390,6 +390,7 @@ namespace graphene { namespace chain {
 	   asset fee;
 	   fc::flat_set<address> cancel_blocked_address;
 	   address fee_payer() const { return address(); }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   void validate() const { FC_ASSERT(cancel_blocked_address.size() > 0); }
    };
 
