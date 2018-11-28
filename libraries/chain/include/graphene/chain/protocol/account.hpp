@@ -379,6 +379,7 @@ namespace graphene { namespace chain {
 	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
 	   asset fee;
 	   fc::flat_set<address> blocked_address;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   address fee_payer() const { return address(); }
 	   void validate() const { FC_ASSERT(blocked_address.size() > 0); }
    };
