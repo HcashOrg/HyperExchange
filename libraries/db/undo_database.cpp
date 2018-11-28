@@ -90,8 +90,12 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
 	   _stack.pop_front();
    }
    //将当前back存入db,和stack,清空当前back
-   if(active_back)
-		_stack.push_back(state_storage->store_undo_state(back));
+   if (active_back)
+   {
+	   //auto da = back.get_serializable_undo_state();
+	   //std::cout << "pop commit" << "id:" << da.undo_id().str() << " " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
+	   _stack.push_back(state_storage->store_undo_state(back));
+   }
    back.reset();
    active_back = true;
    ++_active_sessions;
@@ -173,6 +177,8 @@ void undo_database::undo()
    if (_stack.size() > 0)
    {
 	   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+	   //std::cout << "undo get " <<_stack.back().operator fc::string() <<back.new_ids.size() << " " << back.old_index_next_ids.size() << " " << back.old_values.size() << " " << back.removed.size() << std::endl;
+
 	   state_storage->remove(_stack.back());
 	   _stack.pop_back();
    }
@@ -343,6 +349,8 @@ void undo_database::pop_commit()
 	   if (_stack.size() > 0)
 	   {
 		   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+		   //auto da = back.get_serializable_undo_state();
+		   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
 		   state_storage->remove(_stack.back());
 		   _stack.pop_back();
 	   }
@@ -399,11 +407,13 @@ const undo_state& undo_database::head()const
 		 //从文件中读出，将最后一个从db中取出置入back
          std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path+STACK_FILE_NAME).as<std::deque<undo_state_id_type>>();
          _stack=out_stack;
-         int num = 0;
-		
-		 FC_ASSERT(state_storage->get_state(_stack.back(),back));
-		 state_storage->remove(_stack.back());
-		 _stack.pop_back();
+		 if (_stack.size() > 0)
+		 {
+			 FC_ASSERT(state_storage->get_state(_stack.back(), back));
+			 state_storage->remove(_stack.back());
+			 _stack.pop_back();
+			 active_back = true;
+		 }
 	 }
 	 catch (...)
 	 {
@@ -413,6 +423,7 @@ const undo_state& undo_database::head()const
 
 inline serializable_undo_state undo_state::get_serializable_undo_state() const
 {
+			   
     serializable_undo_state res;
     for (auto i = old_values.begin(); i != old_values.end(); i++)
     {
@@ -424,6 +435,9 @@ inline serializable_undo_state undo_state::get_serializable_undo_state() const
     {
         res.removed[i->first] = serializable_obj(*(i->second));
     }
+
+	//std::cout << "get_undo_state bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
+	//std::cout << "get_undo_state af " << res.new_ids.size() << " " << res.old_index_next_ids.size() << " " << res.old_values.size() << " " << res.removed.size() << " id:" << res.undo_id().str() << std::endl;
     return res;
 }
 
@@ -452,6 +466,9 @@ undo_state& undo_state::operator=(const undo_state& sta)
 	{
 		removed[i->first] = i->second->clone();
 	}
+	//std::cout << "op=2 af" << sta.new_ids.size() << " " << sta.old_index_next_ids.size() << " " << sta.old_values.size() << " " << sta.removed.size()  << std::endl;
+	//std::cout << "op=2 bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
+
 	return *this;
 }
 undo_state& undo_state::operator=(const serializable_undo_state& sta)
@@ -467,6 +484,9 @@ undo_state& undo_state::operator=(const serializable_undo_state& sta)
 	{
 		removed[i->first] = i->second.to_object();
 	}
+	//std::cout << "op= af" << sta.new_ids.size() << " " << sta.old_index_next_ids.size() << " " << sta.old_values.size() << " " << sta.removed.size() << "id:" << sta.undo_id().str() << std::endl;
+	//std::cout << "op= bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
+
 	return *this;
 }
 undo_state::undo_state(const serializable_undo_state & sta)
@@ -481,7 +501,9 @@ undo_state::undo_state(const serializable_undo_state & sta)
     {
         removed[i->first] = i->second.to_object();
     }
-}
+	//std::cout << "con af" << sta.new_ids.size() << " " << sta.old_index_next_ids.size() << " " << sta.old_values.size() << " " << sta.removed.size() << "id:" << sta.undo_id().str() << std::endl;
+	//std::cout << "con bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
+	}
 
 
 
@@ -756,7 +778,7 @@ void undo_storage::remove(const undo_state_id_type& id)
 	try {
 		FC_ASSERT(id != undo_state_id_type());
 		leveldb::WriteOptions write_options;
-		write_options.sync = true;
+		//write_options.sync = true;
 		leveldb::Status sta = db->Delete(write_options, id.str());
 		if (!sta.ok())
 		{
