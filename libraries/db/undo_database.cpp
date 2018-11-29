@@ -77,6 +77,15 @@ undo_database::undo_database(object_database & db) :_db(db)
 }
 void undo_database::disable() { _disabled = true; }
 
+void undo_database::discard()
+{
+	if (_disabled)
+		return;
+	reset();
+	disable();
+	remove_storage();
+}
+
 undo_database::session undo_database::start_undo_session( bool force_enable )
 {
    if( _disabled && !force_enable ) return session(*this);
@@ -315,6 +324,8 @@ void undo_database::merge()
 }
 void undo_database::commit()
 {
+	if (_disabled)
+		return;
    FC_ASSERT( _active_sessions > 0 );
    --_active_sessions;
 }
@@ -400,17 +411,18 @@ const undo_state& undo_database::head()const
 
 	 
  }
- void undo_database::remove_storage(const fc::string & path)
+ void undo_database::remove_storage()
  {
 	 state_storage->close();
-	 boost::filesystem::remove_all(path + STORAGE_FILE_NAME);
-	 state_storage->open(path + STORAGE_FILE_NAME);
+	 boost::filesystem::remove_all(storage_path + STORAGE_FILE_NAME);
+	 state_storage->open(storage_path + STORAGE_FILE_NAME);
 	 active_back = false;
  }
  void undo_database::from_file(const fc::string & path)
 {
 	 state_storage->close();
 	 state_storage->open(path + STORAGE_FILE_NAME);
+	 storage_path = path;
 	 if (!fc::exists(path+STACK_FILE_NAME))
 		 return;
      try {

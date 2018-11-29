@@ -78,9 +78,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _undo_db.enable();
    _fork_db.set_max_size(1440);
    _fork_db.reset();
-   _undo_db.reset();
-   _undo_db.remove_storage((data_dir/"undo_db").string());
-
+   _undo_db.discard();
+   uint32_t undo_enable_num = last_block_num - 1440;
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
       if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
@@ -105,6 +104,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
          break;
       }
       _fork_db.push_block(*block);
+	  if (i >= undo_enable_num)
+		  _undo_db.enable();
 	  auto session=_undo_db.start_undo_session();
       apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |

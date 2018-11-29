@@ -130,6 +130,7 @@ namespace graphene {
 			};
 
 			void    disable();
+			void    discard();
 			void    enable();
 			bool    enabled()const { return !_disabled; }
 			int     get_active_session() { return _active_sessions; }
@@ -173,7 +174,7 @@ namespace graphene {
 			void save_to_file(const fc::string& path);
 			void from_file(const fc::string& path);
 			void reset();
-			void remove_storage(const fc::string& path);
+			void remove_storage();
 		private:
 			void undo();
 			void merge();
@@ -184,6 +185,7 @@ namespace graphene {
 			std::deque<undo_state_id_type>  _stack;
 			object_database&        _db;
 			std::unique_ptr<undo_storage>           state_storage;
+			string					storage_path;
 			size_t                  _max_size = 1440;
 			//back保存当前活跃的state,不活跃的将id存入stack,数据存入db;
 			//在保存时需要将back现存入stack和db
