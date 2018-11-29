@@ -580,7 +580,11 @@ namespace graphene {
 				get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o) {
 					const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
 					if (p.acquired_transaction_state == acquired_trx_uncreate && manager.contain_crosschain_handles(p.handle_trx.asset_symbol)){
-						if (p.handle_trx.trx_id != "e5a5043b7f4ae26793069b535de1ad0a443a6ae48c733b44aaad9662969fc960" &&
+						if (head_block_num() >= 220000)
+						{
+							acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+						}
+						else if (p.handle_trx.trx_id != "e5a5043b7f4ae26793069b535de1ad0a443a6ae48c733b44aaad9662969fc960" &&
 							p.handle_trx.trx_id != "9b81ad5f2706bac7bcb4f1021ee4bc0cbcd44e46ed7da858c3a0a1fbfe9a901d" &&
 							p.handle_trx.trx_id != "3eb700c63e200787d7ee9618e68564301516785347a9916382050234a6ec8711" &&
 							p.handle_trx.trx_id != "a72207de343b0b768373ac4a3e8313b30f4383468bf705010e60175ee9951495" &&
