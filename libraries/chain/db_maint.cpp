@@ -581,6 +581,7 @@ void database::process_bonus()
 		//after waiting_list and sum, need to calculate rate 
 		std::map<asset_id_type, double> rate;
 		const auto&  sys_obj = get(asset_id_type(0));
+		_total_fees_pool = get_total_fees_obj().fees_pool;
 		for (auto& iter : _total_fees_pool)
 		{
 			if (iter.first == asset_id_type(0))
@@ -601,6 +602,9 @@ void database::process_bonus()
 				adjust_bonus_balance(iter.first,asset(bonus,r.first));
 			}
 		}
+		modify(get(total_fees_object_id_type()), [&](total_fees_object& obj) {
+			obj.fees_pool = _total_fees_pool; 
+		});
 	} FC_CAPTURE_AND_RETHROW()
 }
 

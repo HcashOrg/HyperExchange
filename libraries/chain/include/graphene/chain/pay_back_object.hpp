@@ -25,6 +25,15 @@ namespace graphene {
 			address owner;
 			map<asset_id_type, share_type> bonus;
 		};
+		class total_fees_object :public abstract_object<total_fees_object>
+		{
+		public:
+			total_fees_object() {}
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = total_fees_type;
+			map<asset_id_type, share_type> fees_pool;
+		};
+
 
 		struct by_payback_address;
 		using pay_back_multi_index_type = multi_index_container <
@@ -60,3 +69,4 @@ FC_REFLECT_DERIVED(graphene::chain::bonus_object, (graphene::db::object),
 (owner)
 (bonus)
 )
+FC_REFLECT_DERIVED(graphene::chain::total_fees_object,(graphene::db::object),(fees_pool))
