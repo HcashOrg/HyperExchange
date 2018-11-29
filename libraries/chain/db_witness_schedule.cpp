@@ -166,7 +166,10 @@ void database::update_fee_pool()
 		{
 			if (iter.first == asset_id_type(0))
 				continue;
-			_total_fees_pool[iter.first] += iter.second;
+			//_total_fees_pool[iter.first] += iter.second;
+			modify(get(total_fees_object_id_type()), [&](total_fees_object& obj) {
+				obj.fees_pool[iter.first] += iter.second; 
+			});
 		}
 	}FC_CAPTURE_AND_RETHROW()
 }
@@ -210,9 +213,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 			boost::multiprecision::uint256_t cal_cur_pledge = 0;
 			for (auto one_pledge : one_data)
 			{
-				
 				auto price_obj = dgp.current_price_feed.at(one_pledge.lock_asset_id);
-
 				if (one_pledge.lock_asset_id == asset_id_type(0))
 				{
 					boost::multiprecision::uint256_t cal_end = one_pledge.lock_asset_amount.value;
