@@ -1999,6 +1999,8 @@ class wallet_api
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
 	  full_transaction refund_uncombined_transaction(const string senator,const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction refund_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_pass_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_pass_coldhot_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction eth_cancel_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_eth_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_uncombined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
@@ -2059,7 +2061,6 @@ class wallet_api
       void encrypt_keys();
 	  fc::string get_first_contract_address();
 	  map<string, crosschain_prkeys> decrypt_coldkeys(const string& key, const string& file);
-	  string sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast = true);
       //citizen
       void start_citizen(bool);
 
@@ -2067,8 +2068,8 @@ class wallet_api
       void witness_node_stop();
 
 	  //ntp
-	  fc::ntp_info get_witnessnode_ntp_info();
-	  fc::ntp_info get_cliwallet_ntp_info();
+	  std::map<std::string,fc::ntp_info> get_ntp_info();
+	  void ntp_update_time();
 };
 
 } }
@@ -2144,6 +2145,8 @@ FC_API( graphene::wallet::wallet_api,
         (remove_builder_transaction)
         (is_new)
         (is_locked)
+		(senator_pass_combined_transaction)
+		(senator_pass_coldhot_combined_transaction)
         (lock)(unlock)(set_password)
         (dump_private_keys)
 	    (dump_private_key)
@@ -2162,7 +2165,7 @@ FC_API( graphene::wallet::wallet_api,
         (create_account_with_brain_key)
 	    (wallet_create_account)
         
-        (sell)
+        
         (get_eth_multi_account_trx)
         (get_transaction_id)
         (create_asset)
@@ -2356,6 +2359,6 @@ FC_API( graphene::wallet::wallet_api,
 		(proposal_block_address)
 		(proposal_cancel_block_address)
 		(decrypt_coldkeys)
-		(sign_multisig_transaction)
-	    (get_witnessnode_ntp_info)
+	    (get_ntp_info)
+		(ntp_update_time)
       )

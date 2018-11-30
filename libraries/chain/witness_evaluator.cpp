@@ -278,7 +278,10 @@ void_result miner_merge_signatures_evaluator::do_apply(const miner_merge_signatu
 		auto& transfers = db().get_index_type<crosschain_transfer_index>().indices().get<by_id>();
 		auto trx = transfers.find(o.id);
 		FC_ASSERT(trx != transfers.end());
-		crosschain_interface->broadcast_transaction(trx->trx);
+		if (fc::time_point::now() <= db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+		{
+			fc::async([crosschain_interface,trx] {crosschain_interface->broadcast_transaction(trx->trx); }, "broadcast transaction.");
+		}
 		db().modify(*trx, [&](multisig_asset_transfer_object& obj) {
 			obj.status = multisig_asset_transfer_object::waiting;
 		});

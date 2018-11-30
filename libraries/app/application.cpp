@@ -624,8 +624,26 @@ namespace detail {
       virtual bool handle_block(const graphene::net::block_message& blk_msg, bool sync_mode,
                                 std::vector<fc::uint160_t>& contained_transaction_message_ids) override
       { try {
+		  static int latency_chk = 0;
 
-         auto latency = fc::time_point::now() - blk_msg.block.timestamp;
+		  static time_point last_chk_tm = fc::time_point::now();
+		  time_point chk_tm = fc::time_point::now();
+
+		  auto latency = fc::time_point::now() - blk_msg.block.timestamp;
+		  if (!sync_mode && ((chk_tm - last_chk_tm) > fc::microseconds(1000000)) && (latency.count() / 1000) < -1000)
+		  {
+			  latency_chk++;
+			  if (latency_chk >= 3)
+			  {
+				  printf("update at time %s because latency", chk_tm.operator fc::string().c_str());
+				  time_point::ntp_update_time();
+				  last_chk_tm = chk_tm;
+			  }
+		  }
+		  else
+		  {
+			  latency_chk = 0;
+		  }
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
             const auto& miner = blk_msg.block.miner(*_chain_db);

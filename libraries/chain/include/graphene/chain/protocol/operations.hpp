@@ -170,7 +170,9 @@ namespace graphene { namespace chain {
 			eths_guard_change_signer_operation,
 			eths_guard_coldhot_change_signer_operation,
 			coldhot_cancel_combined_trx_operaion,
-			guard_cancel_combine_trx_operation
+			guard_cancel_combine_trx_operation,
+			senator_pass_success_trx_operation,
+			coldhot_pass_combine_trx_operation
          > operation;
 
    /// @} // operations group

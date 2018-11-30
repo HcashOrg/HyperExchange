@@ -71,6 +71,12 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   else if (op.op.which() == operation::tag<eths_guard_change_signer_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }
+	   else if (op.op.which() == operation::tag<senator_pass_success_trx_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
+	   else if (op.op.which() == operation::tag<coldhot_pass_combine_trx_operation>::value) {
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
+	   }
 	   else if (op.op.which() == operation::tag<eths_guard_coldhot_change_signer_operation>::value) {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "vote Type error");
 	   }

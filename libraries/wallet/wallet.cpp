@@ -58,6 +58,7 @@
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/time.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -1000,24 +1001,22 @@ public:
       if (!optional_private_key)
          FC_THROW("Invalid private key");
       graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
-
-      account_object account = get_account( account_name_or_id );
-	  if (account.addr == address())
+	  account_object account;
+      account_object temp = get_account( account_name_or_id );
+	  if (temp.addr != address())
 	  {
-		  create_account(account_name_or_id);
-		  account = get_account(account_name_or_id);
-	  }
-	  else
-	  {
-		  if (account.addr != address(wif_pub_key))
+		  if (temp.addr != address(wif_pub_key))
 		  {
 			  if (_wallet.my_accounts.get<by_address>().count(account.addr) > 0)
 				  FC_THROW("there is same account in this wallet.");
 		  }
+		  else
+		  {
+			  account = temp;
+		  }
 	  }
 		  
 	  string addr = account.addr.operator fc::string();
-      // make a list of all current public keys for the named account
       flat_set<public_key_type> all_keys_for_account;
       std::vector<public_key_type> active_keys = account.active.get_keys();
       std::vector<public_key_type> owner_keys = account.owner.get_keys();
@@ -1027,8 +1026,22 @@ public:
 
       _keys[wif_pub_key] = wif_key;
 	  account.addr = address(wif_pub_key);
+	  account.name = account_name_or_id;
+	  vector<address> vec;
+	  vec.push_back(account.addr);
+	  auto vec_acc = _remote_db->get_accounts_addr(vec);
+	  for (auto op : vec_acc)
+	  {
+		  if (op.valid())
+		  {
+			  if (fc::json::to_string(account) != fc::json::to_string(*op))
+			  {
+				  wlog("Account ${id} : \"${name}\" updated on chain", ("id", account.get_id())("name", account.name));
+			  }
+			  account = *op;
+		  } 
+	  }
       _wallet.update_account(account);
-
       _wallet.extra_keys[account.id].insert(wif_pub_key);
 	  if (account.options.memo_key == public_key_type())
 		  return true;
@@ -1087,27 +1100,27 @@ public:
             ("chain_id", _chain_id) );
 
       size_t account_pagination = 100;
-      vector< string > account_names_to_send;
+      vector< address > account_address_to_send;
       size_t n = _wallet.my_accounts.size();
-	  account_names_to_send.reserve( std::min( account_pagination, n ) );
+	  account_address_to_send.reserve( std::min( account_pagination, n ) );
       auto it = _wallet.my_accounts.begin();
 
       for( size_t start=0; start<n; start+=account_pagination )
       {
          size_t end = std::min( start+account_pagination, n );
          assert( end > start );
-		 account_names_to_send.clear();
+		 account_address_to_send.clear();
          std::vector< account_object > old_accounts;
          for( size_t i=start; i<end; i++ )
          {
             assert( it != _wallet.my_accounts.end() );
             old_accounts.push_back( *it );
-			account_names_to_send.push_back( old_accounts.back().name );
+			account_address_to_send.push_back( old_accounts.back().addr );
             ++it;
          }
-         std::vector< optional< account_object > > accounts = _remote_db->lookup_account_names(account_names_to_send);
+         std::vector< optional< account_object > > accounts = _remote_db->get_accounts_addr(account_address_to_send);
          // server response should be same length as request
-         FC_ASSERT( accounts.size() == account_names_to_send.size() );
+         FC_ASSERT( accounts.size() == account_address_to_send.size() );
          size_t i = 0;
          for( optional< account_object >& acct : accounts )
          {
@@ -1121,12 +1134,11 @@ public:
             // this check makes sure the server didn't send results
             // in a different order, or accounts we didn't request
             //FC_ASSERT( acct->id == old_acct.id );
-			acct->addr = old_acct.addr;
+		/*	acct->addr = old_acct.addr;
 			if (acct->id == old_acct.id  || acct->addr == old_acct.addr)
 			{
 				acct->addr = old_acct.addr;
-		
-			}
+			}*/
             if( fc::json::to_string(*acct) != fc::json::to_string(old_acct) )
             {
                wlog( "Account ${id} : \"${name}\" updated on chain", ("id", acct->id)("name", acct->name) );
@@ -1925,28 +1937,7 @@ public:
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
-   string sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast = true)
-   {
-	   try {
-		   FC_ASSERT(!is_locked());
-		   string config = (*_crosschain_manager)->get_config();
-		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
-		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
-		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   auto iter = _crosschain_keys.find(from);
-		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
-		   
 
-		   auto multisig_obj = get_current_multi_address(symbol);
-		   auto from_addr = multisig_obj->bind_account_hot;
-		   auto reedeem = multisig_obj->redeemScript_hot;
-
-		   return prk_ptr->mutisign_trx(reedeem, trx);
-
- 
-	   }FC_CAPTURE_AND_RETHROW((from)(trx)(broadcast))
-   }
    string signrawtransaction(const string& from,const string& symbol, const fc::variant_object& trx, bool broadcast = true)
    {
 	   try {
@@ -3265,13 +3256,19 @@ public:
                FC_THROW("No account or witness named ${account}", ("account", owner_account));
             }
          }
-		 fc::uint128_t total = 0;
-		 auto ctzs = list_active_citizens();
-		 for (auto ctz =ctzs.begin();ctz!=ctzs.end();ctz++)
+		 static fc::uint128_t total = 0;
+		 static uint32_t last_count = _remote_db->get_dynamic_global_properties().head_block_number;
+		 uint32_t cur_height = _remote_db->get_dynamic_global_properties().head_block_number;
+		 if (cur_height-(cur_height% GRAPHENE_PRODUCT_PER_ROUND)> last_count)
 		 {
-			 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
-			 if (miner_objects.front())
-				 total += miner_objects.front()->pledge_weight;
+			 last_count = cur_height;
+			 auto ctzs = list_active_citizens();
+			 for (auto ctz = ctzs.begin(); ctz != ctzs.end(); ctz++)
+			 {
+				 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
+				 if (miner_objects.front())
+					 total += miner_objects.front()->pledge_weight;
+			 }
 		 }
 		 if (total!=fc::uint128_t())
 			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
@@ -3627,6 +3624,37 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
+   
+	full_transaction senator_pass_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+	   auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_combine_trx_create, transaction_id_type(txid));
+	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+	   auto account = get_account(guard);
+	   auto guard_obj = get_guard_member(guard);
+	   FC_ASSERT(guard_obj.senator_type == PERMANENT,"Only Permanent senator can use this proposal");
+	   auto addr = account.addr;
+	   FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+	   FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+	   proposal_create_operation prop_op;
+	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+	   prop_op.proposer = get_account(guard).get_id();
+	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
+	   senator_pass_success_trx_operation guard_refund_op;
+	   guard_refund_op.pass_transaction_id = transaction_id_type(txid);
+	   guard_refund_op.guard_address = addr;
+	   guard_refund_op.guard_id = guard_obj.id;
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   prop_op.proposed_ops.emplace_back(guard_refund_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+	   signed_transaction trx;
+	   trx.operations.emplace_back(prop_op);
+	   set_operation_fees(trx, current_params.current_fees);
+	   trx.validate();
+
+	   return sign_transaction(trx, broadcast);
+   }
    full_transaction refund_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
@@ -3741,6 +3769,35 @@ public:
 	   set_operation_fees(trx, current_params.current_fees);
 	   trx.validate();
 
+	   return sign_transaction(trx, broadcast);
+   }
+	full_transaction senator_pass_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+	   auto without_sign_trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_combine_trx_create, transaction_id_type(txid));
+	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+	   auto account = get_account(guard);
+	   auto guard_obj = get_guard_member(guard);
+	   FC_ASSERT(guard_obj.senator_type == PERMANENT,"Only Permanent senator can use this proposal");
+	   auto addr = account.addr;
+	   FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+	   FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+	   proposal_create_operation prop_op;
+	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+	   prop_op.proposer = get_account(guard).get_id();
+	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
+	   coldhot_pass_combine_trx_operation cancel_op;
+	   cancel_op.pass_transaction_id = transaction_id_type(txid);
+	   cancel_op.guard = addr;
+	   cancel_op.guard_id = guard_obj.id;
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   prop_op.proposed_ops.emplace_back(cancel_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+	   signed_transaction trx;
+	   trx.operations.emplace_back(prop_op);
+	   set_operation_fees(trx, current_params.current_fees);
+	   trx.validate();
 	   return sign_transaction(trx, broadcast);
    }
    full_transaction cancel_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false) {
@@ -4003,6 +4060,12 @@ public:
 		   FC_ASSERT(!is_locked());
 		   account_bind_operation op;
 		   auto acct_obj = get_account(link_account);
+		   if (symbol.find("ERC") != symbol.npos) {
+			   auto eth_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "ETH");
+			   FC_ASSERT(eth_bind_account.size() != 0, "Must bind eth tunnel account first");
+			   std::string eth_tunnel_account = eth_bind_account.at(0)->bind_account;
+			   FC_ASSERT(eth_tunnel_account == tunnel_account, "erc tunnel account must consistent with eth tunnel account");
+		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
@@ -8071,6 +8134,9 @@ full_transaction wallet_api::refund_uncombined_transaction(const string guard, c
 full_transaction wallet_api::refund_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->refund_combined_transaction(guard, txid, expiration_time, broadcast);
 }
+full_transaction wallet_api::senator_pass_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->senator_pass_combined_transaction(guard, txid, expiration_time, broadcast);
+}
 full_transaction wallet_api::eth_cancel_fail_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->eth_cancel_fail_transaction(guard, txid, expiration_time, broadcast);
 }
@@ -8083,6 +8149,10 @@ full_transaction wallet_api::cancel_coldhot_uncombined_transaction(const string 
 full_transaction wallet_api::cancel_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->cancel_coldhot_combined_transaction(guard, txid, expiration_time, broadcast);
 }
+full_transaction wallet_api::senator_pass_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->senator_pass_coldhot_combined_transaction(guard, txid, expiration_time, broadcast);
+}
+
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
 }
@@ -9005,21 +9075,22 @@ void wallet_api::start_citizen(bool start)
     my->start_miner(start);
 }
 
-string wallet_api::sign_multisig_transaction(const string& from, const string& symbol, const fc::variant_object& trx, bool broadcast )
+std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
-	return my->sign_multisig_transaction(from,symbol,trx, broadcast);
+	std::map<std::string, fc::ntp_info> res;
+	res["witness_node"]= my->_remote_db->get_ntp_info();
+	res["cli_wallet"]= fc::time_point::get_ntp_info();;
+	return res;
 }
+void wallet_api::ntp_update_time()
+{
+	time_point::ntp_update_time();
+	my->_remote_db->ntp_update_time();
+}
+
 void wallet_api::witness_node_stop()
 {
     my->witness_node_stop();
-}
-fc::ntp_info wallet_api::get_witnessnode_ntp_info()
-{
-	return my->_remote_db->get_ntp_info();
-}
-fc::ntp_info wallet_api::get_cliwallet_ntp_info()
-{
-	return fc::time_point::get_ntp_info();
 }
 } } // graphene::wallet
 

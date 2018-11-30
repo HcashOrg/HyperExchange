@@ -569,7 +569,7 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
 
    db.combine_sign_transaction(scheduled_miner, private_key_itr->second);
    db.create_acquire_crosschhain_transaction(scheduled_miner, private_key_itr->second);
-   check_multi_transfer(scheduled_miner, private_key_itr->second);
+   //check_multi_transfer(scheduled_miner, private_key_itr->second);
    //generate blocks
    auto block = db.generate_block(
       scheduled_time,

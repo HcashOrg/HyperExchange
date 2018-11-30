@@ -432,17 +432,17 @@ signed_block database::_generate_block(
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
    reset_current_collected_fee();
+   map<string, int > temp_signature;
    for( const processed_transaction& tx : _pending_tx )
    {
       size_t new_total_size = total_block_size + fc::raw::pack_size( tx );
-
+	  bool continue_if = false;
       // postpone transaction if it would make block too big
       if( new_total_size >= maximum_block_size )
       {
          postponed_tx_count++;
          continue;
       }
-
       try
       {
          auto temp_session = _undo_db.start_undo_session();
@@ -635,7 +635,7 @@ void database::_apply_block( const signed_block& next_block )
 
    _current_block_num    = next_block_num;
    _current_trx_in_block = 0;
-
+   map<string, int> temp_signature;
    for( const auto& trx : next_block.transactions )
    {
       /* We do not need to push the undo state for each transaction

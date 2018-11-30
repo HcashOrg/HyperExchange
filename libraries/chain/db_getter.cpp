@@ -52,7 +52,10 @@ const dynamic_global_property_object&database::get_dynamic_global_properties() c
    return get( dynamic_global_property_id_type() );
 }
 
-
+const total_fees_object& database::get_total_fees_obj()const
+{
+	return get(total_fees_object_id_type());
+}
 
 const fee_schedule&  database::current_fee_schedule()const
 {

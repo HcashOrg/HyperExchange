@@ -158,6 +158,7 @@ namespace graphene { namespace chain {
       script_binding_object_type,
 	  pay_back_object_type,
 	  bonus_object_type,
+	  total_fees_type,
       contract_storage_change_object_type,
 	  contract_history_object_type,
 	  eth_multi_account_trx_object_type,
@@ -227,6 +228,7 @@ namespace graphene { namespace chain {
    class bonus_object;
    class contract_history_object;
    class eth_multi_account_trx_object;
+   class total_fees_object;
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
    typedef object_id< protocol_ids, force_settlement_object_type,   force_settlement_object>      force_settlement_id_type;
@@ -256,6 +258,7 @@ namespace graphene { namespace chain {
    typedef object_id<protocol_ids, contract_invoke_result_object_type, contract_invoke_result_object> contract_invoke_result_object_id_type;
    typedef object_id<protocol_ids, pay_back_object_type, pay_back_object> pay_back_object_id_type;
    typedef object_id<protocol_ids, bonus_object_type, bonus_object> bonus_object_id_type;
+   typedef object_id<protocol_ids, total_fees_type, total_fees_object> total_fees_object_id_type;
    typedef object_id<protocol_ids, contract_history_object_type, contract_history_object> contract_history_object_id_type;
    typedef object_id<protocol_ids, eth_multi_account_trx_object_type, eth_multi_account_trx_object> eth_multi_account_id_type;
    // implementation types
@@ -447,6 +450,7 @@ FC_REFLECT_ENUM( graphene::chain::object_type,
 				 (script_binding_object_type)
 				 (pay_back_object_type)
 	             (bonus_object_type)
+	             (total_fees_type)
 				 (contract_history_object_type)
 				(eth_multi_account_trx_object_type)
                  (OBJECT_TYPE_COUNT)
@@ -523,6 +527,8 @@ FC_REFLECT_TYPENAME(graphene::chain::contract_history_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::eth_multi_account_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::blocked_address_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::guarantee_object_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::bonus_object_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::total_fees_object_id_type)
 FC_REFLECT( graphene::chain::void_t, )
 
 FC_REFLECT_ENUM( graphene::chain::asset_issuer_permission_flags,

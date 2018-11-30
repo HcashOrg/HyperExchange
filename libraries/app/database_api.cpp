@@ -37,7 +37,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include<graphene/chain/witness_schedule_object.hpp>
 #include <cctype>
-
+#include <fc/ntp.hpp>
 #include <cfenv>
 #include <iostream>
 #define GET_REQUIRED_FEES_MAX_RECURSION 4
@@ -372,6 +372,12 @@ fc::ntp_info database_api::get_ntp_info() const
 {
 	return fc::time_point::get_ntp_info();
 }
+
+void database_api::ntp_update_time() const
+{
+	time_point::ntp_update_time();
+}
+
 ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
 {
     return my->get_contract_object(contract_address);

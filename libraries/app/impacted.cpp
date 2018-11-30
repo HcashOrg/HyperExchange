@@ -221,6 +221,8 @@ struct get_impacted_account_visitor
    void operator() (const eths_guard_coldhot_change_signer_operation & op){}
    void operator() (const coldhot_cancel_combined_trx_operaion & op) {}
    void operator() (const guard_cancel_combine_trx_operation & op) {}
+   void operator() (const senator_pass_success_trx_operation & op) {}
+   void operator() (const coldhot_pass_combine_trx_operation & op) {}
    void operator()( const override_transfer_operation& op )
    {
       _impacted.insert( op.to );
