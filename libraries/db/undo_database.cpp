@@ -413,14 +413,22 @@ const undo_state& undo_database::head()const
  }
  void undo_database::remove_storage()
  {
+	 std::cout << "remove_storage" << std::endl;
 	 state_storage->close();
 	 boost::filesystem::remove_all(storage_path + STORAGE_FILE_NAME);
+	 std::cout << "open db in remove storage" << std::endl;
 	 state_storage->open(storage_path + STORAGE_FILE_NAME);
+	 std::cout << "open db in ssssss" << std::endl;
 	 active_back = false;
  }
  void undo_database::from_file(const fc::string & path)
 {
+
+	 std::cout << "from file" << std::endl;
+	 std::cout << "close in from file" << std::endl;
 	 state_storage->close();
+
+	 std::cout << "open in from file" << std::endl;
 	 state_storage->open(path + STORAGE_FILE_NAME);
 	 storage_path = path;
 	 if (!fc::exists(path+STACK_FILE_NAME))
@@ -729,6 +737,7 @@ void undo_storage::open(const fc::path& dbdir)
 		leveldb::Options options;
 		options.block_cache = leveldb::NewLRUCache(100 * 1048576);
 		options.create_if_missing = true;
+		std::cout << "open undo_storage in open" << std::endl;
 		open_status = leveldb::DB::Open(options, dbdir.generic_string(), &db);
 		if (!open_status.ok())
 		{
@@ -748,8 +757,11 @@ bool undo_storage::is_open()const
 
 void undo_storage::close()
 {
+	std::cout << "try to close db" << std::endl;
 	if (db != NULL)
 	{
+
+		std::cout << "actualy close db" << std::endl;
 		delete db;
 		db = NULL;
 	}
