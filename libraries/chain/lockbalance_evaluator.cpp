@@ -41,6 +41,9 @@ namespace graphene{
 							b.lockbalance_total[asset_type.symbol] = asset(o.lock_asset_amount, o.lock_asset_id);
 						}
 					});
+					d.modify(d.get_lockbalance_records(), [o](lockbalance_record_object& obj) {
+						obj.record_list[o.lock_balance_addr][o.lock_asset_id] += o.lock_asset_amount;
+					});
 				}
 				else {
 					//TODO : ADD Handle Contact lock balance
@@ -81,6 +84,9 @@ namespace graphene{
 						map_lockbalance_total->second -= asset(o.foreclose_asset_amount,o.foreclose_asset_id);
 					}
 					
+				});
+				d.modify(d.get_lockbalance_records(), [o](lockbalance_record_object& obj) {
+					obj.record_list[o.foreclose_addr][o.foreclose_asset_id] -= o.foreclose_asset_amount;
 				});
 			}
 			else {

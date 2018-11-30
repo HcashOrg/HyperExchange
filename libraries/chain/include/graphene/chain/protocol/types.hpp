@@ -191,7 +191,8 @@ namespace graphene { namespace chain {
       impl_fba_accumulator_object_type,
 	  impl_guarantee_obj_type,
 	  impl_address_transaction_history_object_type,
-	  impl_blocked_address_obj_type
+	  impl_blocked_address_obj_type,
+	  impl_lockbalance_record_object_type
    };
 
    //typedef fc::unsigned_int            object_id_type;
@@ -282,6 +283,7 @@ namespace graphene { namespace chain {
    class history_transaction_object;
    class blocked_address_object;
    class trx_object;
+   class lockbalance_record_object;
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
    typedef object_id< implementation_ids, impl_asset_dynamic_data_type,      asset_dynamic_data_object>                 asset_dynamic_data_id_type;
@@ -306,6 +308,7 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_multisig_account_binding_object_type, multisig_account_pair_object >     multisig_account_pair_id_type;
    typedef object_id< implementation_ids, impl_guarantee_obj_type, guarantee_object >     guarantee_object_id_type;
    typedef object_id< implementation_ids, impl_blocked_address_obj_type, blocked_address_object >     blocked_address_id_type;
+   typedef object_id< implementation_ids, impl_lockbalance_record_object_type, lockbalance_record_object >     lockbalance_record_id_type;
    typedef fc::array<char, GRAPHENE_MAX_ASSET_SYMBOL_LENGTH>    symbol_type;
    typedef fc::ripemd160                                        block_id_type;
    typedef fc::ripemd160                                        checksum_type;
@@ -477,6 +480,7 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_fba_accumulator_object_type)
 	             (impl_multisig_account_binding_object_type)
 	             (impl_blocked_address_obj_type)
+	             (impl_lockbalance_record_object_type)
 	             (impl_guarantee_obj_type)
                )
 
@@ -526,6 +530,7 @@ FC_REFLECT_TYPENAME(graphene::chain::contract_event_notify_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::contract_history_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::eth_multi_account_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::blocked_address_id_type)
+FC_REFLECT_TYPENAME(graphene::chain::lockbalance_record_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::guarantee_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::bonus_object_id_type)
 FC_REFLECT_TYPENAME(graphene::chain::total_fees_object_id_type)
