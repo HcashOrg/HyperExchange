@@ -28,6 +28,7 @@
 #include <fc/exception/exception.hpp>
 #include <fstream>
 #include <map>
+#include <set>
 #include <graphene/db/serializable_undo_state.hpp>
 #include <leveldb/db.h>
 
@@ -36,17 +37,17 @@ namespace graphene {
 	namespace db {
 
 		using namespace boost::multi_index;
-		using std::unordered_map;
+		using std::map;
 		using fc::flat_set;
 		class object_database;
 		struct serializable_undo_state;
 		struct undo_state
 		{
 			undo_state() {}
-			unordered_map<object_id_type, unique_ptr<object> > old_values;
-			unordered_map<object_id_type, object_id_type>      old_index_next_ids;
-			std::unordered_set<object_id_type>                 new_ids;
-			unordered_map<object_id_type, unique_ptr<object> > removed;
+			map<object_id_type, unique_ptr<object> > old_values;
+			map<object_id_type, object_id_type>      old_index_next_ids;
+			std::set<object_id_type>                 new_ids;
+			map<object_id_type, unique_ptr<object> > removed;
 			serializable_undo_state get_serializable_undo_state() const;
 			undo_state(const serializable_undo_state& sta);
 			undo_state& operator=(const serializable_undo_state& sta);
@@ -165,7 +166,7 @@ namespace graphene {
 			 */
 			void pop_commit();
 
-			std::size_t size()const { return _stack.size(); }
+			std::size_t size()const { return _stack.size()+(active_back?1:0); }
 			void set_max_size(size_t new_max_size);
 			size_t max_size()const;
 

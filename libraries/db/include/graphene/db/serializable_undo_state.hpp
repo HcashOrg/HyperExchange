@@ -6,6 +6,8 @@
 #include <graphene/chain/protocol/types.hpp>
 #include <fstream>
 #include <leveldb/db.h>
+#include <map>
+#include <set>
 using namespace graphene::chain;
 namespace graphene {
 	namespace db {
@@ -27,10 +29,10 @@ namespace graphene {
 
 			serializable_undo_state() {}
 			serializable_undo_state(const serializable_undo_state& sta);
-			std::unordered_map<object_id_type, serializable_obj > old_values;
-			std::unordered_map<object_id_type, object_id_type>      old_index_next_ids;
-			std::unordered_set<object_id_type>                 new_ids;
-			std::unordered_map<object_id_type, serializable_obj> removed;
+			std::map<object_id_type, serializable_obj > old_values;
+			std::map<object_id_type, object_id_type>      old_index_next_ids;
+			std::set<object_id_type>                 new_ids;
+			std::map<object_id_type, serializable_obj> removed;
 			undo_state_id_type undo_id()const;
 		};
 
