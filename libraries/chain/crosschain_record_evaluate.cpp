@@ -289,7 +289,7 @@ namespace graphene {
 					FC_ASSERT(crosschain_withdraw_trx != trx_db.end(), "Source Transaction doesn`t exist");
 					if (db().head_block_num() >= 310000)
 					{
-						FC_ASSERT(crosschain_withdraw_trx->trx_state == withdraw_without_sign_trx_uncreate);
+						FC_ASSERT(crosschain_withdraw_trx->trx_state == withdraw_without_sign_trx_uncreate,"this transaction has been created.");
 					}
 					
 				}
