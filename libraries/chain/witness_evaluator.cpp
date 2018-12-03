@@ -140,7 +140,7 @@ void_result miner_generate_multi_asset_evaluator::do_evaluate(const miner_genera
 			FC_ASSERT(o.multi_address_cold != "");
 			FC_ASSERT(hot_contract_address["contract_address"] == o.multi_address_hot);
 			FC_ASSERT(cold_contract_address["contract_address"] == o.multi_address_cold);
-			crosschain_interface->create_multi_sig_account("import_contract_addr", import_contract_address, 0);
+			fc::async([crosschain_interface, import_contract_address] {crosschain_interface->create_multi_sig_account("import_contract_addr", import_contract_address, 0); });
 		}
 		else {
 			//FC_ASSERT(db().get(o.miner).miner_account == o.miner);
