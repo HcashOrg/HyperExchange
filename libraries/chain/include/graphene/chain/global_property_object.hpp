@@ -135,7 +135,18 @@ namespace graphene { namespace chain {
             maintenance_flag = 0x01
          };
    };
+
+   class lockbalance_record_object :public abstract_object<lockbalance_record_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_lockbalance_record_object_type;
+	   std::map<address, std::map<asset_id_type,share_type>> record_list;
+   };
 }}
+
+FC_REFLECT_DERIVED(graphene::chain::lockbalance_record_object, (graphene::db::object),(record_list))
+
 
 FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::db::object),
                     (head_block_number)

@@ -57,6 +57,11 @@ const total_fees_object& database::get_total_fees_obj()const
 	return get(total_fees_object_id_type());
 }
 
+const lockbalance_record_object& database::get_lockbalance_records() const
+{
+	return get(lockbalance_record_id_type());
+}
+
 const fee_schedule&  database::current_fee_schedule()const
 {
    return get_global_properties().parameters.current_fees;
