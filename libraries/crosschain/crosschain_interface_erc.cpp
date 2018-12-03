@@ -406,8 +406,8 @@ namespace graphene {
 				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << addr << "\"}}";
 					std::cout << req_body.str() << std::endl;
 					fc::http::connection_sync conn;
-					conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-					auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+					//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+					//auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 				}
 				std::map<std::string, std::string> mapa;
 				return mapa;
@@ -436,8 +436,8 @@ namespace graphene {
 				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << temp << "\"}}";
 						std::cout << req_body.str() << std::endl;
 						fc::http::connection_sync conn;
-						conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-						auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+						//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+						//auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 					}
 					catch (...) {
 

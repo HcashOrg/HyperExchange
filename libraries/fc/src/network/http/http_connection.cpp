@@ -217,7 +217,7 @@ namespace fc {
 
 		connection_sync::connection_sync() :_socket(fc::asio::default_io_service()) {}
 
-		connection_sync::~connection_sync() {}
+		connection_sync::~connection_sync() { _socket.close(); }
 
 		void connection_sync::connect_to(const fc::ip::endpoint& ep)
 		{
@@ -258,7 +258,9 @@ namespace fc {
 					//      fc::cerr.write( body.c_str() );
 				}
 				//  fc::cerr.flush();
-				return parse_reply();
+				const auto& ret = parse_reply();
+				_socket.close();
+				return ret;
 				//return parse_reply();
 			}
 			catch (...) {

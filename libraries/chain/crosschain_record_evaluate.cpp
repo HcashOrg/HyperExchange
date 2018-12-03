@@ -287,6 +287,11 @@ namespace graphene {
 				for (const auto& crosschain_withdraw_trx_id : o.ccw_trx_ids) {
 					auto crosschain_withdraw_trx = trx_db.find(crosschain_withdraw_trx_id);
 					FC_ASSERT(crosschain_withdraw_trx != trx_db.end(), "Source Transaction doesn`t exist");
+					if (db().head_block_num() >= 310000)
+					{
+						FC_ASSERT(crosschain_withdraw_trx->trx_state == withdraw_without_sign_trx_uncreate);
+					}
+					
 				}
 				if (trx_state->_trx == nullptr)
 					return void_result();
