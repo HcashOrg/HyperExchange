@@ -776,6 +776,47 @@ namespace graphene { namespace privatekey_management {
 		return addr;
 		//return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
 	}
+
+	std::string inter_get_address_by_pubkey(const libbitcoin::ec_uncompressed& pub)
+	{
+		std::vector<uint8_t> data;
+		libbitcoin::wallet::ec_public libbitcoin_pub(pub,true);
+		FC_ASSERT(libbitcoin_pub != libbitcoin::wallet::ec_public(), "the pubkey hex str is in valid!");
+		libbitcoin_pub.to_data(data);
+		FC_ASSERT(data.size() != 0, "get hc address fail");
+		hc_privatekey hc_manager;
+		std::string addr = "";
+		if (data.size() == 33)
+		{
+			bool compress = true;
+			auto version = hc_manager.get_pubkey_prefix();
+			fc::ecc::public_key_data pubkey_data;
+
+			for (auto i = 0; i < data.size(); i++)
+			{
+				pubkey_data.at(i) = data[i];
+			}
+			fc::ecc::public_key pub_key(pubkey_data);
+			graphene::chain::pts_address_extra btc_addr(pub_key, compress, version);
+			addr = btc_addr.operator fc::string();
+		}
+		else if (data.size() == 65) {
+			bool compress = false;
+			auto version = hc_manager.get_pubkey_prefix();
+			fc::ecc::public_key_point_data pubkey_data;
+
+			for (auto i = 0; i < data.size(); i++)
+			{
+				pubkey_data.at(i) = data[i];
+			}
+			fc::ecc::public_key pub_key(pubkey_data);
+			graphene::chain::pts_address_extra btc_addr(pub_key, compress, version);
+			addr = btc_addr.operator fc::string();
+		}
+		return addr;
+		//return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
+	}
+
 	std::string hc_privatekey::get_public_key()
 	{
 		fc::sha256 secret = get_private_key().get_secret();
@@ -845,6 +886,72 @@ namespace graphene { namespace privatekey_management {
 		auto result = libbitcoin::encode_base64(signature);
 		return result;
 	}
+
+	std::string hc_privatekey::verify_message(const std::string& msg,const std::string& signature)
+	{
+		//libbitcoin::wallet::message_signature sign;
+
+		/*fc::sha256 secret = get_private_key().get_secret();
+		int version = get_pubkey_prefix();
+		const size_t size_of_data_to_hash = sizeof(secret);
+		char data_a[size_of_data_to_hash];
+		memcpy(&data_a[0], (char*)&secret, sizeof(secret));
+
+		libbitcoin::ec_secret ecs;
+		for (int i = 0; i < size_of_data_to_hash; i++)
+		{
+			ecs.at(i) = data_a[i];
+		}
+		libbitcoin::wallet::ec_private libbitcoin_priv(ecs, version, true);*/
+		// 		libbitcoin::wallet::ec_private libbitcoin_priv("L13gvvM3TtL2EmfBdye8tp4tQhcbCG3xz3VPrBjSZL8MeJavLL8K");
+		//libbitcoin::data_chunk  data(msg.begin(), msg.end());
+		libbitcoin::recoverable_signature recoverable;
+		std::string prefix = "Hc Signed Message:\n";
+		libbitcoin::data_chunk  msg_data(msg.begin(), msg.end());
+		libbitcoin::data_slice msg_slice_data(msg_data);
+		libbitcoin::data_chunk data;
+		libbitcoin::data_sink ostream(data);
+		libbitcoin::ostream_writer sink(ostream);
+		sink.write_string(prefix);
+		sink.write_variable_little_endian(msg_slice_data.size());
+		sink.write_bytes(msg_slice_data.begin(), msg_slice_data.size());
+		ostream.flush();
+		uint256 messagehash = HashR14(data.begin(), data.end());
+		libbitcoin::data_chunk sig_data;
+		libbitcoin::decode_base64(sig_data,signature);
+		uint8_t magic_id = sig_data[0];
+		uint8_t out_recovery_id;
+		bool is_compressed = true;
+		libbitcoin::wallet::magic_to_recovery_id(out_recovery_id, is_compressed, magic_id);
+		recoverable.recovery_id = out_recovery_id;
+		for( int i = 0; i < 64; i++){
+			recoverable.signature[i] = sig_data[1 + i];
+		}
+		libbitcoin::hash_digest higest_bitcoin;
+	
+		for (int i = 0; i < 32; i++)
+		{
+			higest_bitcoin.at(i) = *(messagehash.begin() + i);
+		}
+		libbitcoin::ec_uncompressed out_pubkey;
+		if (!libbitcoin::recover_public(out_pubkey, recoverable, higest_bitcoin)) {
+			return "";
+		}
+		return inter_get_address_by_pubkey(out_pubkey);
+		/*
+		if (!libbitcoin::sign_recoverable(recoverable, libbitcoin_priv.secret(), higest_bitcoin))
+			return "";
+
+		uint8_t magic;
+		if (!libbitcoin::wallet::recovery_id_to_magic(magic, recoverable.recovery_id, true))
+			return "";
+
+		auto signature = libbitcoin::splice(libbitcoin::to_array(magic), recoverable.signature);
+
+		auto result = libbitcoin::encode_base64(signature);
+		return result;*/
+	}
+
 
 	fc::optional<fc::ecc::private_key> hc_wif_to_key(const std::string& wif_key) {
 		std::vector<char> wif_bytes;

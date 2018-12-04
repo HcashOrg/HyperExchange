@@ -117,20 +117,26 @@ int main(int argc, char** argv)
 // 	printf("%d\n", max_id);
 
 
-	btc_privatekey priv;
+	//btc_privatekey priv;
 
-	std::string script = "OP_HASH160 97f0c041b556fbb141364790b596cd9b3b2b403b OP_EQUAL";
-	std::string redeemscript = "552103045651fb6f856ce1b27fb173e44d8bd30842d4459fa586353a69cb276384e0522103caf30dcebba7c04e973b4afa394f0199e4c5a387faa5cec31b06dffe6592bd2e2103b5b29f6bba2c73fe7a3a0a2fa0f1aab23c5cf827686d605e9ab15cc281ac327221039a935048686f7bd83d8de10ec614b1b767ce74902e25c4a67632b225c64043162102b7730bb1aa8289f8028fe9315c5002860bc3578c87f26abb63c9ef2ca3fcfe5f210262b4fc622eb191a61f209cf890799fd141d003cc6ef721c192974120d5370a4e2102ca9c947b9a73f1819759aca131680aa0d0263c4130a2710d1a13b1d7755b9e9057ae";
-	std::string raw_trx = "020000000117749ee7407b9a0511b742f9510d047a5edccef7d102377e573d3757ce509c540100000000ffffffff02000e2707000000001976a91428e13ec311b8b377288d069a489a0136ef967ca788ac603572340000000017a914537b76690c6d13d89ebe5d0e029c8f1c346a9fe38700000000";
-	auto temp1 = graphene::privatekey_management::mutisign_trx("L2TtkoupXw4cYZebqUmSAEvnEh5K7pMAWEY9Tqih2CNdE7QcqR48",redeemscript, raw_trx);
-	//std::cout << "1:" << temp1<< std::endl;
-	auto temp2 = graphene::privatekey_management::mutisign_trx("KyJYWeAxYoxU5wCaGQKjqi73sK1QQBDsnvyGJB5LJP1XKahVj8mr", redeemscript, raw_trx);
-	//std::cout << "2:" << temp2 << std::endl;
+	//std::string script = "OP_HASH160 97f0c041b556fbb141364790b596cd9b3b2b403b OP_EQUAL";
+	//std::string redeemscript = "552103045651fb6f856ce1b27fb173e44d8bd30842d4459fa586353a69cb276384e0522103caf30dcebba7c04e973b4afa394f0199e4c5a387faa5cec31b06dffe6592bd2e2103b5b29f6bba2c73fe7a3a0a2fa0f1aab23c5cf827686d605e9ab15cc281ac327221039a935048686f7bd83d8de10ec614b1b767ce74902e25c4a67632b225c64043162102b7730bb1aa8289f8028fe9315c5002860bc3578c87f26abb63c9ef2ca3fcfe5f210262b4fc622eb191a61f209cf890799fd141d003cc6ef721c192974120d5370a4e2102ca9c947b9a73f1819759aca131680aa0d0263c4130a2710d1a13b1d7755b9e9057ae";
+	//std::string raw_trx = "020000000117749ee7407b9a0511b742f9510d047a5edccef7d102377e573d3757ce509c540100000000ffffffff02000e2707000000001976a91428e13ec311b8b377288d069a489a0136ef967ca788ac603572340000000017a914537b76690c6d13d89ebe5d0e029c8f1c346a9fe38700000000";
+	//auto temp1 = graphene::privatekey_management::mutisign_trx("L2TtkoupXw4cYZebqUmSAEvnEh5K7pMAWEY9Tqih2CNdE7QcqR48",redeemscript, raw_trx);
+	////std::cout << "1:" << temp1<< std::endl;
+	//auto temp2 = graphene::privatekey_management::mutisign_trx("KyJYWeAxYoxU5wCaGQKjqi73sK1QQBDsnvyGJB5LJP1XKahVj8mr", redeemscript, raw_trx);
+	////std::cout << "2:" << temp2 << std::endl;
 
-	if (temp1 == temp2)
-	{
-		std::cout << "same signature" << std::endl;
-	}
+	//if (temp1 == temp2)
+	//{
+	//	std::cout << "same signature" << std::endl;
+	//}
+
+	hc_privatekey priv;
+	std::string signature = "H5hDgKBVDhwWmuoK0vGRaKFp/Tatb/0WFufhL+36ZNd/DBx+xkZNUwoutsEzYi7Ojc/2VIzgpr53De47QsSRC44=";
+	std::string message = "HsPkLn69ENrLNiebesQsTEu6E4xvu4QXTYA";
+	auto res = priv.verify_message(message, signature);
+	std::cout << res << std::endl;
 	
 
 
