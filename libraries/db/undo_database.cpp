@@ -93,21 +93,31 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
    if( force_enable ) 
       _disabled = false;
 
+   back.emplace_back();
+   //如果back的计数大于back_size
+   while (back.size() >= max_back_size)
+   {
+	   //判断back的size是否大于max_size(),大于等于max_size，则直接将队首弹出
+	   //否则，将队首移入存储
+	  if (back.size()<max_size())
+	   {
+		   _stack.push_back(state_storage->store_undo_state(back.front()));
+	   }
+	   back.pop_front();
+   }
    while (size() > max_size())
    {
 	   //在pop将对应的db中的存储删掉
-	   state_storage->remove(_stack.front());
-	   _stack.pop_front();
+	   if (size() > max_back_size) {
+		   state_storage->remove(_stack.front());
+		   _stack.pop_front();
+	   }else
+	   {
+		   back.pop_front();
+	   }
    }
    //将当前back存入db,和stack,清空当前back
-   if (active_back)
-   {
-	   //auto da = back.get_serializable_undo_state();
-	   //std::cout << "pop commit" << "id:" << da.undo_id().str() << " " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
-	   _stack.push_back(state_storage->store_undo_state(back));
-   }
-   back.reset();
-   active_back = true;
+
    ++_active_sessions;
    return session(*this, disable_on_exit );
 }
@@ -115,7 +125,7 @@ void undo_database::on_create( const object& obj )
 {
    if( _disabled ) return;
 
-   auto& state = back;
+   auto& state = back.back();
    auto index_id = object_id_type( obj.id.space(), obj.id.type(), 0 );
    auto itr = state.old_index_next_ids.find( index_id );
    if( itr == state.old_index_next_ids.end() )
@@ -127,7 +137,7 @@ void undo_database::on_modify( const object& obj )
    if( _disabled ) return;
 
 
-   auto& state = back;
+   auto& state = back.back();
    if( state.new_ids.find(obj.id) != state.new_ids.end() )
       return;
    auto itr =  state.old_values.find(obj.id);
@@ -139,7 +149,7 @@ void undo_database::on_remove( const object& obj )
    if( _disabled ) return;
 
 
-   undo_state& state = back;
+   undo_state& state = back.back();
    if( state.new_ids.count(obj.id) )
    {
       state.new_ids.erase(obj.id);
@@ -159,11 +169,11 @@ void undo_database::undo()
 { 
 	try {
    FC_ASSERT(!_disabled);
-   FC_ASSERT(active_back);
+   FC_ASSERT(back.size()>0);
    FC_ASSERT( _active_sessions > 0 );
    disable();
 
-   auto& state = back;
+   auto& state = back.back();
    for( auto& item : state.old_values )
    {
       _db.modify( _db.get_object( item.second->id ), [&]( object& obj ){ obj.move_from( *item.second ); } );
@@ -184,19 +194,17 @@ void undo_database::undo()
    //将stack中最后一个id对应的state移入back;
    //stack中最后一个id以及对应的state移除
    //如果只有一个back active,将back重置,否则从stack中最后一个移除放入back
+
+   back.pop_back();
    if (_stack.size() > 0)
    {
-	   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+	   back.emplace_front();
+	   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()));
 	   //std::cout << "undo get " <<_stack.back().operator fc::string() <<back.new_ids.size() << " " << back.old_index_next_ids.size() << " " << back.old_values.size() << " " << back.removed.size() << std::endl;
 
 	   state_storage->remove(_stack.back());
 	   _stack.pop_back();
-   }
-   else
-   {
-
-	   active_back = false;
-	   back.reset();
+	   
    }
    enable();
    --_active_sessions;
@@ -205,12 +213,16 @@ void undo_database::undo()
 void undo_database::merge()
 {
    FC_ASSERT( _active_sessions > 0 );
-   FC_ASSERT( _stack.size() >=1 );
-   auto& state = back;
-   undo_state sta;
-   FC_ASSERT(state_storage->get_state(_stack.back(), sta));
-   //auto& prev_state = _stack[_stack.size()-2];
-   auto& prev_state = sta;
+   FC_ASSERT( back.size() >=2 );
+
+   auto& state = back.back();
+   auto& prev_state = back[back.size() - 2];
+
+   //auto& state = back.;
+   //undo_state sta;
+   //FC_ASSERT(state_storage->get_state(_stack.back(), sta));
+   ////auto& prev_state = _stack[_stack.size()-2];
+   //auto& prev_state = sta;
 
    // An object's relationship to a state can be:
    // in new_ids            : new
@@ -316,10 +328,15 @@ void undo_database::merge()
       // nop + del(was=Y) -> del(was=Y)
       prev_state.removed[obj.second->id] = std::move(obj.second);
    }
-   //将结果赋值给back,同时将stack的最后一个key以及对应的state移除
-   back = prev_state;
-   state_storage->remove(_stack.back());
-   _stack.pop_back();
+   back.pop_back();
+   if (_stack.size() > 0)
+   {
+	   back.emplace_front();
+	   state_storage->get_state(_stack.back(),back.front());
+	   state_storage->remove(_stack.back());
+	   _stack.pop_back();
+   }
+
    --_active_sessions;
 }
 void undo_database::commit()
@@ -333,12 +350,11 @@ void undo_database::commit()
 void undo_database::pop_commit()
 {
    FC_ASSERT( _active_sessions == 0 );
-   FC_ASSERT( !_stack.empty() );
-   FC_ASSERT(active_back);
+   FC_ASSERT( !back.empty() );
    disable();
    try {
 	   //将back中的操作回退，将stack中的最后一个作为back
-	   auto& state = back;
+	   auto& state = back.back();
 
 	   for (auto& item : state.old_values)
 	   {
@@ -357,19 +373,16 @@ void undo_database::pop_commit()
 
 	   for (auto& item : state.removed)
 		   _db.insert(std::move(*item.second));
+	   back.pop_back();
 	   //将stack中的最后一个取出设置为back
 	   if (_stack.size() > 0)
 	   {
-		   FC_ASSERT(state_storage->get_state(_stack.back(), back));
+		   back.emplace_front();
+		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()));
 		   //auto da = back.get_serializable_undo_state();
 		   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
 		   state_storage->remove(_stack.back());
 		   _stack.pop_back();
-	   }
-	   else
-	   {
-		   back.reset();
-		   active_back = false;
 	   }
    }
    catch ( const fc::exception& e )
@@ -389,14 +402,18 @@ size_t undo_database::max_size() const {
 }
 const undo_state& undo_database::head()const
 {
-   return back;
+   return back.back();
 }
 
  void undo_database::save_to_file(const fc::string & path)
 {
 	 if (state_storage == NULL||!state_storage->is_open())
 		 return;
-	 _stack.push_back(state_storage->store_undo_state(back));
+	 for (auto& sta : back)
+	 {
+	
+		 _stack.push_back(state_storage->store_undo_state(sta));
+	 }
 	if (_stack.size() > 0)
 	{
 		printf("undo size save:%d\n", _stack.size());
@@ -419,7 +436,6 @@ const undo_state& undo_database::head()const
 	 std::cout << "open db in remove storage" << std::endl;
 	 state_storage->open(storage_path + STORAGE_FILE_NAME);
 	 std::cout << "open db in ssssss" << std::endl;
-	 active_back = false;
  }
  void undo_database::from_file(const fc::string & path)
 {
@@ -427,7 +443,7 @@ const undo_state& undo_database::head()const
 	 std::cout << "from file" << std::endl;
 	 std::cout << "close in from file" << std::endl;
 	 state_storage->close();
-
+	
 	 std::cout << "open in from file" << std::endl;
 	 state_storage->open(path + STORAGE_FILE_NAME);
 	 storage_path = path;
@@ -437,12 +453,13 @@ const undo_state& undo_database::head()const
 		 //从文件中读出，将最后一个从db中取出置入back
          std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path+STACK_FILE_NAME).as<std::deque<undo_state_id_type>>();
          _stack=out_stack;
-		 if (_stack.size() > 0)
-		 {
-			 FC_ASSERT(state_storage->get_state(_stack.back(), back));
+		 int ssize = _stack.size();
+		 int back_size = ssize > max_back_size ? max_back_size : ssize;
+			 for (int i = 0; i < back_size;i++) {
+			 back.emplace_front();
+			 FC_ASSERT(state_storage->get_state(_stack.back(), back.front()));
 			 state_storage->remove(_stack.back());
 			 _stack.pop_back();
-			 active_back = true;
 		 }
 	 }
 	 catch (...)

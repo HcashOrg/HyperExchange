@@ -174,12 +174,12 @@ bool database::_push_block(const signed_block& new_block)
 					{
 						discard_count++;
 						if (discard_count >= 10)
-							_undo_db.discard();
+							_undo_db.set_max_size(8);
 					}
 					else
 					{
 						discard_count = 0;
-						_undo_db.enable();
+						_undo_db.set_max_size(1440);
 					}
                    undo_database::session session = _undo_db.start_undo_session();
                    apply_block( (*ritr)->data, skip );
@@ -209,12 +209,12 @@ bool database::_push_block(const signed_block& new_block)
 					   {
 						   discard_count++;
 						   if (discard_count >= 10)
-							   _undo_db.discard();
+							   _undo_db.set_max_size(8);
 					   }
 					   else
 					   {
 						   discard_count = 0;
-						   _undo_db.enable();
+						   _undo_db.set_max_size(1440);
 					   }
                       auto session = _undo_db.start_undo_session();
                       apply_block( (*ritr)->data, skip );
@@ -236,12 +236,12 @@ bool database::_push_block(const signed_block& new_block)
 	   {
 		   discard_count++;
 		   if (discard_count >= 10)
-			   _undo_db.discard();
+			   _undo_db.set_max_size(8);
 	   }
 	   else
 	   {
 		   discard_count = 0;
-		   _undo_db.enable();
+		   _undo_db.set_max_size(1440);
 	   }
       auto session = _undo_db.start_undo_session();
       apply_block(new_block, skip);

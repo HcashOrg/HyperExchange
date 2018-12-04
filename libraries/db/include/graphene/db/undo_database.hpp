@@ -166,7 +166,7 @@ namespace graphene {
 			 */
 			void pop_commit();
 
-			std::size_t size()const { return _stack.size()+(active_back?1:0); }
+			std::size_t size()const { return _stack.size()+back.size(); }
 			void set_max_size(size_t new_max_size);
 			size_t max_size()const;
 
@@ -191,9 +191,8 @@ namespace graphene {
 			//back保存当前活跃的state,不活跃的将id存入stack,数据存入db;
 			//在保存时需要将back现存入stack和db
 			//在初始化时，从文件恢复stack和storage，根据stack的尾部的id，从storage中找到对应state，反序列化赋值给back
-			undo_state              back;
-			bool active_back = false;
-
+			std::deque<undo_state>              back;
+			int max_back_size = 10;
 		};
 
 	}
