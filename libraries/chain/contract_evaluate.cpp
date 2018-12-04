@@ -14,6 +14,7 @@
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/witness_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -1261,6 +1262,7 @@ namespace graphene {
 				 FC_ASSERT(graphene::chain::address::is_valid(addr_str));
 				 const auto& account_idx = get_db().get_index_type<account_index>().indices();
 				 const auto& guard_idx = get_db().get_index_type<guard_member_index>().indices();
+				 const auto& miner_idx = get_db().get_index_type<miner_index>().indices();
 				 auto itr = account_idx.get<by_address>().find(address(addr_str));
 				 if (itr == account_idx.get<by_address>().end())
 				 {
@@ -1269,8 +1271,10 @@ namespace graphene {
 				 auto itr_senator = guard_idx.get<by_account>().find(itr->get_id());
 				 if (itr_senator != guard_idx.get<by_account>().end())
 					 return "senator";
+				 auto itr_citizen = miner_idx.get<by_account>().find(itr->get_id());
+				 if (itr_citizen != miner_idx.get<by_account>().end())
+					 return "citizen";
 				 return "address";
-				 
 			 }
 			 catch (...)
 			 {
