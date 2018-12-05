@@ -295,6 +295,10 @@ namespace graphene { namespace privatekey_management {
 		return result;
 	}
 
+	bool ltc_privatekey::verify_message(const std::string addr, const std::string& content, const std::string& encript)
+	{
+		return graphene::utxo::verify_message(addr, content, encript, "Litecoin Signed Message:\n");
+	}
 
 	std::string ltc_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx)
 	{
@@ -891,7 +895,7 @@ namespace graphene { namespace privatekey_management {
 		return result;
 	}
 
-	bool hc_privatekey::verify_message(const std::string& msg,const std::string& signature,const std::string& address)
+	bool hc_privatekey::verify_message(const std::string& address,const std::string& msg,const std::string& signature)
 	{
 		libbitcoin::recoverable_signature recoverable;
 		std::string prefix = "Hc Signed Message:\n";
@@ -1271,7 +1275,7 @@ namespace graphene { namespace privatekey_management {
 		return signs;
 	}
 
-	bool  eth_privatekey::verify_message(const std::string& msg,const std::string& signature,const std::string address) {
+	bool  eth_privatekey::verify_message(const std::string address,const std::string& msg,const std::string& signature) {
 		auto msgHash = msg.substr(2);
 		std::string prefix = "\x19";
 		prefix += "Ethereum Signed Message:\n";

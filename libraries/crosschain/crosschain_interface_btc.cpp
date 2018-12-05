@@ -453,7 +453,10 @@ namespace graphene {
 
 		bool crosschain_interface_btc::validate_signature(const std::string &account, const std::string &content, const std::string &signature)
 		{
-			std::ostringstream req_body;
+			graphene::privatekey_management::btc_privatekey btk;
+			return btk.verify_message(account, content, signature);
+
+			/*std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
 				\"method\" : \"Zchain.Crypt.VerifyMessage\" ,\
@@ -478,7 +481,7 @@ namespace graphene {
 				
 			}
 			else
-				FC_THROW(signature);
+				FC_THROW(signature);*/
 		}
 
 		bool crosschain_interface_btc::create_signature(graphene::privatekey_management::crosschain_privatekey_base*& sign_key, const std::string &content, std::string &signature)
