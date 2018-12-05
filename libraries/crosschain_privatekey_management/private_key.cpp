@@ -110,6 +110,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		return graphene::utxo::validateUtxoTransaction(addr,redeemscript,sig);
 	}
+	bool crosschain_privatekey_base::verify_message(const std::string addr, const std::string& content, const std::string& encript)
+	{
+		return true;
+	}
 
 	void btc_privatekey::init()
 	{
