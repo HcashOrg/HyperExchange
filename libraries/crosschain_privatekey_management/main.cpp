@@ -135,8 +135,16 @@ int main(int argc, char** argv)
 	hc_privatekey priv;
 	std::string signature = "H5hDgKBVDhwWmuoK0vGRaKFp/Tatb/0WFufhL+36ZNd/DBx+xkZNUwoutsEzYi7Ojc/2VIzgpr53De47QsSRC44=";
 	std::string message = "HsPkLn69ENrLNiebesQsTEu6E4xvu4QXTYA";
-	auto res = priv.verify_message(message, signature);
-	std::cout << res << std::endl;
+	auto res = priv.verify_message(message, signature,message);
+	std::cout<<"hc res: " << res << std::endl;
+
+
+	eth_privatekey priv1;
+
+	std::string signature1 = "0x8d4583a002a1ee21c9fbc688c51c960508fe4d68dac16f571a3a50b460c38b9d2acffe29ac065670a178aab140a57cb7d47791896fd8111ebdeecffcdc8cb5be1c";
+	std::string message1 = "0x476e8cb6e378ae523d4016babf53569654ed2fcc";
+	auto res1 = priv1.verify_message(message1, signature1, message1);
+	std::cout << "eth res: " << res1 << std::endl;
 	
 
 

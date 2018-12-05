@@ -132,6 +132,7 @@ namespace graphene {
 			virtual std::string get_public_key();
 			virtual std::string get_address_by_pubkey(const std::string& pub);
 			virtual std::string  sign_message(const std::string& msg);
+			virtual bool verify_message(const std::string& msg, const std::string& signature, const std::string address);
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
@@ -154,7 +155,7 @@ namespace graphene {
 			virtual std::string get_public_key();
 			virtual std::string get_address_by_pubkey(const std::string& pub);			
 			virtual std::string  sign_message(const std::string& msg);
-			virtual std::string  verify_message(const std::string& msg, const std::string& signature);
+			virtual bool  verify_message(const std::string& msg, const std::string& signature, const std::string& address);
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
