@@ -178,7 +178,7 @@ namespace graphene {
 			libbitcoin::data_chunk out;
 			FC_ASSERT( libbitcoin::decode_base64(out, encript) );
 			//libbitcoin::wallet::message_signature t_signature;
-			auto& t_signature =libbitcoin::to_array<libbitcoin::wallet::message_signature_size>(out);
+			auto t_signature =libbitcoin::to_array<libbitcoin::wallet::message_signature_size>(out);
 			const auto magic = t_signature.front();
 			const auto compact = libbitcoin::slice<1, libbitcoin::wallet::message_signature_size>(t_signature);
 
