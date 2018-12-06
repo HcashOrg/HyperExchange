@@ -110,6 +110,10 @@ namespace graphene { namespace privatekey_management {
 	{
 		return graphene::utxo::validateUtxoTransaction(addr,redeemscript,sig);
 	}
+	bool crosschain_privatekey_base::verify_message(const std::string addr, const std::string& content, const std::string& encript)
+	{
+		return true;
+	}
 
 	void btc_privatekey::init()
 	{
@@ -291,6 +295,10 @@ namespace graphene { namespace privatekey_management {
 		return result;
 	}
 
+	bool ltc_privatekey::verify_message(const std::string addr, const std::string& content, const std::string& encript)
+	{
+		return graphene::utxo::verify_message(addr, content, encript, "Litecoin Signed Message:\n");
+	}
 
 	std::string ltc_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx)
 	{
@@ -776,6 +784,47 @@ namespace graphene { namespace privatekey_management {
 		return addr;
 		//return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
 	}
+
+	std::string inter_get_address_by_pubkey(const libbitcoin::ec_uncompressed& pub)
+	{
+		std::vector<uint8_t> data;
+		libbitcoin::wallet::ec_public libbitcoin_pub(pub,true);
+		FC_ASSERT(libbitcoin_pub != libbitcoin::wallet::ec_public(), "the pubkey hex str is in valid!");
+		libbitcoin_pub.to_data(data);
+		FC_ASSERT(data.size() != 0, "get hc address fail");
+		hc_privatekey hc_manager;
+		std::string addr = "";
+		if (data.size() == 33)
+		{
+			bool compress = true;
+			auto version = hc_manager.get_pubkey_prefix();
+			fc::ecc::public_key_data pubkey_data;
+
+			for (auto i = 0; i < data.size(); i++)
+			{
+				pubkey_data.at(i) = data[i];
+			}
+			fc::ecc::public_key pub_key(pubkey_data);
+			graphene::chain::pts_address_extra btc_addr(pub_key, compress, version);
+			addr = btc_addr.operator fc::string();
+		}
+		else if (data.size() == 65) {
+			bool compress = false;
+			auto version = hc_manager.get_pubkey_prefix();
+			fc::ecc::public_key_point_data pubkey_data;
+
+			for (auto i = 0; i < data.size(); i++)
+			{
+				pubkey_data.at(i) = data[i];
+			}
+			fc::ecc::public_key pub_key(pubkey_data);
+			graphene::chain::pts_address_extra btc_addr(pub_key, compress, version);
+			addr = btc_addr.operator fc::string();
+		}
+		return addr;
+		//return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
+	}
+
 	std::string hc_privatekey::get_public_key()
 	{
 		fc::sha256 secret = get_private_key().get_secret();
@@ -845,6 +894,48 @@ namespace graphene { namespace privatekey_management {
 		auto result = libbitcoin::encode_base64(signature);
 		return result;
 	}
+
+	bool hc_privatekey::verify_message(const std::string& address,const std::string& msg,const std::string& signature)
+	{
+		libbitcoin::recoverable_signature recoverable;
+		std::string prefix = "Hc Signed Message:\n";
+		libbitcoin::data_chunk  msg_data(msg.begin(), msg.end());
+		libbitcoin::data_slice msg_slice_data(msg_data);
+		libbitcoin::data_chunk data;
+		libbitcoin::data_sink ostream(data);
+		libbitcoin::ostream_writer sink(ostream);
+		sink.write_string(prefix);
+		sink.write_variable_little_endian(msg_slice_data.size());
+		sink.write_bytes(msg_slice_data.begin(), msg_slice_data.size());
+		ostream.flush();
+		uint256 messagehash = HashR14(data.begin(), data.end());
+		libbitcoin::data_chunk sig_data;
+		libbitcoin::decode_base64(sig_data,signature);
+		uint8_t magic_id = sig_data[0];
+		uint8_t out_recovery_id;
+		bool is_compressed = true;
+		libbitcoin::wallet::magic_to_recovery_id(out_recovery_id, is_compressed, magic_id);
+		recoverable.recovery_id = out_recovery_id;
+		for( int i = 0; i < 64; i++){
+			recoverable.signature[i] = sig_data[1 + i];
+		}
+		libbitcoin::hash_digest higest_bitcoin;
+	
+		for (int i = 0; i < 32; i++)
+		{
+			higest_bitcoin.at(i) = *(messagehash.begin() + i);
+		}
+		libbitcoin::ec_uncompressed out_pubkey;
+		if (!libbitcoin::recover_public(out_pubkey, recoverable, higest_bitcoin)) {
+			return "";
+		}
+		if (address == inter_get_address_by_pubkey(out_pubkey)) {
+			return true;
+		}
+		return false;
+
+	}
+
 
 	fc::optional<fc::ecc::private_key> hc_wif_to_key(const std::string& wif_key) {
 		std::vector<char> wif_bytes;
@@ -1183,6 +1274,50 @@ namespace graphene { namespace privatekey_management {
 		
 		return signs;
 	}
+
+	bool  eth_privatekey::verify_message(const std::string address,const std::string& msg,const std::string& signature) {
+		auto msgHash = msg.substr(2);
+		std::string prefix = "\x19";
+		prefix += "Ethereum Signed Message:\n";
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(msgHash.data(), temp, msgHash.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		std::string msg_prefix = prefix + fc::to_string(temp.size()) + std::string(temp.begin(), temp.end());//std::string(temp.begin(), temp.end());
+		Keccak real_hash;
+		real_hash.add(msg_prefix.data(), msg_prefix.size());
+		dev::h256 hash;
+		msgHash = real_hash.getHash();
+		std::vector<char> temp1;
+		nDeplength = 0;
+		b_converse = from_hex(msgHash.data(), temp1, msgHash.size(), nDeplength);
+		FC_ASSERT(b_converse);
+		for (int i = 0; i < temp1.size(); ++i)
+		{
+			hash[i] = temp1[i];
+		}
+		dev::Signature sig{ signature };
+		sig[64] = sig[64] - 27;
+
+		const auto& publickey = dev::recover(sig,hash);
+		auto const& dev_addr = dev::toAddress(publickey);
+		if (address == "0x"+dev_addr.hex())
+			return true;
+		return false;
+
+		//formal eth sign v
+		/*if (signs.substr(signs.size() - 2) == "00")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '5';
+		}
+		else if (signs.substr(signs.size() - 2) == "01")
+		{
+			signs[signs.size() - 2] = '2';
+			signs[signs.size() - 1] = '6';
+		}*/
+	}
+
 	std::string  eth_privatekey::sign_trx(const std::string& raw_trx, int index) {
 		auto eth_trx = raw_trx;
 

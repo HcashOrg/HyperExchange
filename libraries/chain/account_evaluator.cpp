@@ -360,8 +360,8 @@ void_result account_bind_evaluator::do_evaluate(const account_bind_operation& o)
 	auto crosschain_interface = instance.get_crosschain_handle(o.crosschain_type);
 	if (!crosschain_interface->valid_config())
 		return void_result();
-	FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
-
+	if (fc::time_point::now() <= db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+		FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
 	auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 	auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));
 	FC_ASSERT(bind_itr == bind_idx.end());
@@ -397,7 +397,8 @@ void_result account_unbind_evaluator::do_evaluate(const account_unbind_operation
 		auto crosschain_interface = instance.get_crosschain_handle(o.crosschain_type);
 		if (!crosschain_interface->valid_config())
 			return void_result();
-		FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
+		if (fc::time_point::now() <= db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+			FC_ASSERT(crosschain_interface->validate_signature(o.tunnel_address, o.tunnel_address, o.tunnel_signature));
 
 		auto &bind_idx = db().get_index_type<account_binding_index>().indices().get<by_account_binding>();
 		auto bind_itr = bind_idx.find(boost::make_tuple(o.addr, o.crosschain_type));

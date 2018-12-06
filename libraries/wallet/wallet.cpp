@@ -694,6 +694,19 @@ public:
 	   FC_ASSERT(rec);
 	   return *rec;
    }
+   optional<account_object> get_account_by_addr(const address& addr) const 
+   {
+	   auto rec = _remote_db->get_accounts_addr({ addr });
+	   if (rec.size())
+	   {
+		   auto acc = rec.front();
+		   if (acc.valid())
+			   return *acc;
+	   }
+	   return optional<account_object>();
+   }
+
+
    account_object change_account_name(const string& oldname, const string& newname) 
    {
 	   FC_ASSERT(is_valid_account_name(newname),"not a correct account name.");
@@ -6820,6 +6833,12 @@ account_object wallet_api::get_account(string account_name_or_id) const
 {
    return my->get_account(account_name_or_id);
 }
+
+optional<account_object> wallet_api::get_account_by_addr(const address& addr) const
+{
+	return my->get_account_by_addr(addr);
+}
+
 account_object wallet_api::change_account_name(const string& oldname, const string& newname)
 {
 	return my->change_account_name(oldname, newname);

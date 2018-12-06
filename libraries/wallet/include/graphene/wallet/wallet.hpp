@@ -2046,6 +2046,7 @@ class wallet_api
 	  full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_referendum_for_senator(const string& citizen, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
+	   optional<account_object> get_account_by_addr(const address& addr) const;
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
@@ -2185,14 +2186,6 @@ FC_API( graphene::wallet::wallet_api,
         (list_senator_members)
 	    (list_all_senators)
         (create_citizen)
-        (update_witness)
-        (create_worker)
-        (update_worker_votes)
-        (get_vesting_balances)
-        (withdraw_vesting)
-        (vote_for_committee_member)
-        (vote_for_witness)
-        (set_voting_proxy)
         (set_desired_citizen_and_senator_member_count)
         (get_account)
 		(change_account_name)
@@ -2361,4 +2354,5 @@ FC_API( graphene::wallet::wallet_api,
 		(decrypt_coldkeys)
 	    (get_ntp_info)
 		(ntp_update_time)
+		(get_account_by_addr)
       )

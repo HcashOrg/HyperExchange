@@ -142,7 +142,62 @@ namespace graphene {
 			return obj.str();
 
 		}
+
+		static bool recover(libbitcoin::short_hash& out_hash, bool compressed,
+			const libbitcoin::ec_signature& compact, uint8_t recovery_id,
+			const libbitcoin::hash_digest& message_digest)
+		{
+			const libbitcoin::recoverable_signature recoverable
+			{
+				compact,
+				recovery_id
+			};
+
+			if (compressed)
+			{
+				libbitcoin::ec_compressed point;
+				if (!libbitcoin::recover_public(point, recoverable, message_digest))
+					return false;
+
+				out_hash = libbitcoin::bitcoin_short_hash(point);
+				return true;
+			}
+
+			libbitcoin::ec_uncompressed point;
+			if (!recover_public(point, recoverable, message_digest))
+				return false;
+
+			out_hash = libbitcoin::bitcoin_short_hash(point);
+			return true;
+		}
+
 		
+		bool verify_message(const std::string addr, const std::string& content, const std::string& encript, const std::string& prefix="Bitcoin Signed Message:\n")
+		{
+			libbitcoin::wallet::payment_address address(addr);
+			libbitcoin::data_chunk out;
+			FC_ASSERT( libbitcoin::decode_base64(out, encript) );
+			//libbitcoin::wallet::message_signature t_signature;
+			auto t_signature =libbitcoin::to_array<libbitcoin::wallet::message_signature_size>(out);
+			const auto magic = t_signature.front();
+			const auto compact = libbitcoin::slice<1, libbitcoin::wallet::message_signature_size>(t_signature);
+
+			bool compressed;
+			uint8_t recovery_id;
+			if (!libbitcoin::wallet::magic_to_recovery_id(recovery_id, compressed, magic))
+				return false;
+
+			libbitcoin::short_hash hash;
+
+			libbitcoin::data_chunk msg(content.begin(),content.end());
+			const auto message_digest = libbitcoin::wallet::hash_message(msg,prefix);
+			return recover(hash, compressed, compact, recovery_id, message_digest) &&
+				(hash == address.hash());
+
+
+		}
+
+
 		bool validateUtxoTransaction(const std::string& pubkey,const std::string& redeemscript,const std::string& sig)
 		{
 			libbitcoin::chain::transaction  tx;
