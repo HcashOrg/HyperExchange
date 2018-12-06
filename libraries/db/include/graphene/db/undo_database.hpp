@@ -31,7 +31,7 @@
 #include <set>
 #include <graphene/db/serializable_undo_state.hpp>
 #include <leveldb/db.h>
-
+#define GRAPHENE_UNDO_BUFF_MAX_SIZE 20
 
 namespace graphene {
 	namespace db {
@@ -192,7 +192,7 @@ namespace graphene {
 			//在保存时需要将back现存入stack和db
 			//在初始化时，从文件恢复stack和storage，根据stack的尾部的id，从storage中找到对应state，反序列化赋值给back
 			std::deque<undo_state>              back;
-			int max_back_size = 10;
+			int max_back_size = GRAPHENE_UNDO_BUFF_MAX_SIZE;
 		};
 
 	}

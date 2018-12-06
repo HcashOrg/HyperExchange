@@ -824,8 +824,8 @@ void undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 		leveldb::WriteOptions write_options;
 		leveldb::Status sta = db->Put(write_options, _id.str(), fc::json::to_string(b));
 		if (!sta.ok())
-		{
-			elog("Put error: ${key}", ("key", _id.str().c_str()));
+		{;
+			elog("Put error: ${error}", ("error", (_id.str()+":"+sta.ToString()).c_str()));
 			FC_ASSERT(false, "Put Data to undo_storage failed");
 		}
 

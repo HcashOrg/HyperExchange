@@ -174,7 +174,7 @@ bool database::_push_block(const signed_block& new_block)
 					{
 						discard_count++;
 						if (discard_count >= 10)
-							_undo_db.set_max_size(8);
+							_undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
 					}
 					else
 					{
@@ -209,7 +209,7 @@ bool database::_push_block(const signed_block& new_block)
 					   {
 						   discard_count++;
 						   if (discard_count >= 10)
-							   _undo_db.set_max_size(8);
+							   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
 					   }
 					   else
 					   {
@@ -236,7 +236,7 @@ bool database::_push_block(const signed_block& new_block)
 	   {
 		   discard_count++;
 		   if (discard_count >= 10)
-			   _undo_db.set_max_size(8);
+			   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
 	   }
 	   else
 	   {
