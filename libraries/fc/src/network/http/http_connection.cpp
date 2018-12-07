@@ -227,7 +227,7 @@ namespace fc {
 				_socket.connect(p);
 				
 			}
-			catch (fc::exception& e) {
+			catch (...) {
 				FC_THROW_EXCEPTION(exception, "Error Connecting HTTP Server."); 
 			}
 			
