@@ -154,7 +154,10 @@ namespace graphene {
 				ret += temp;
 			}
 			auto temp_pos = ret.find_first_not_of('0');
-			ret = ret.substr(temp_pos);
+			if (temp_pos != ret.npos) {
+				ret = ret.substr(temp_pos);
+			}
+			//ret = ret.substr(temp_pos);
 			std::cout << "Test log handle amount is " << ret << std::endl;
 			return ret;
 		}
