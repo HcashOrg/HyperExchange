@@ -532,11 +532,21 @@ namespace graphene {
 				double total_vin = 0.0;
 				double total_vout = 0.0;
 				// need to get the fee 
-				for (auto vin : tx["vin"].get_array())
+				std::vector<std::string> vec;
+				auto vins = tx["vin"].get_array();
+				for (auto vin : vins)
 				{
 					auto index = vin.get_object()["vout"].as_uint64();
 					auto from_trx_id = vin.get_object()["txid"].as_string();
-					auto from_trx = transaction_query(from_trx_id);
+					vec.push_back(from_trx_id);
+				}
+				FC_ASSERT(vec.size() == vins.size());
+				auto vins_ret = transaction_query(vec);
+				for (auto vin : vins)
+				{
+					auto index = vin.get_object()["vout"].as_uint64();
+					auto from_trx_id = vin.get_object()["txid"].as_string();
+					auto from_trx = vins_ret[from_trx_id].get_object();
 					const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
 					hdtx.from_account = from_addr;
 					total_vin += from_trx["vout"].get_array()[index].get_object()["value"].as_double();
