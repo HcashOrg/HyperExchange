@@ -368,6 +368,7 @@ namespace graphene { namespace app {
        miner_api(application& app):_app(app){};
        ~miner_api() {};
        void start_miner(bool start);
+	   void set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add);
 
    };
    /**
@@ -462,6 +463,7 @@ FC_API(graphene::app::block_api,
 	)
 FC_API(graphene::app::miner_api,
     (start_miner)
+	(set_miner)
     )
 FC_API(graphene::app::localnode_api,
     (witness_node_stop)

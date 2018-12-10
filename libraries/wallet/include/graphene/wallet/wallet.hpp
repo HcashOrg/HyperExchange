@@ -2065,6 +2065,8 @@ class wallet_api
       //citizen
       void start_citizen(bool);
 
+	  void start_mining(const vector<string>& accts);
+
       //localnode
       void witness_node_stop();
 
@@ -2355,4 +2357,5 @@ FC_API( graphene::wallet::wallet_api,
 	    (get_ntp_info)
 		(ntp_update_time)
 		(get_account_by_addr)
+		(start_mining)
       )

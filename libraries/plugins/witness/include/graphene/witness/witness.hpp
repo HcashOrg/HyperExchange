@@ -28,7 +28,7 @@
 #include <graphene/chain/protocol/types.hpp>
 
 #include <fc/thread/future.hpp>
-
+#include <mutex>
 namespace graphene { namespace miner_plugin {
 
 namespace block_production_condition
@@ -68,6 +68,7 @@ public:
       ) override;
 
    void set_block_production(bool allow) { _production_enabled = allow; }
+   void set_miner(const map<chain::miner_id_type, fc::ecc::private_key>&, bool add = false);
 
    virtual void plugin_initialize( const boost::program_options::variables_map& options ) override;
    virtual void plugin_startup() override;
@@ -80,7 +81,7 @@ private:
    fc::variant check_generate_multi_addr(chain::miner_id_type miner,fc::ecc::private_key prk);
    void check_eths_generate_multi_addr(chain::miner_id_type miner, fc::ecc::private_key prk);
    void check_multi_transfer(chain::miner_id_type miner, fc::ecc::private_key prk);
-   boost::program_options::variables_map _options;
+boost::program_options::variables_map _options;
    volatile bool _production_enabled = false;
    bool _consecutive_production_enabled = false;
    uint32_t _required_miner_participation = 33 * GRAPHENE_1_PERCENT;
@@ -88,6 +89,7 @@ private:
 
    std::map<chain::public_key_type, fc::ecc::private_key> _private_keys;
    std::set<chain::miner_id_type> _miners;
+   std::mutex _miner_lock;
    fc::future<void> _block_production_task;
    int min_gas_price;
 };
