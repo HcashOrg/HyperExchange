@@ -432,11 +432,6 @@ namespace graphene {
 							continue;
 						}
 					}
-					else
-					{
-						if (dest_info[withop.asset_id].size() >= 10)
-							continue;
-					}
 					std::map<std::string, std::string> temp_map;
 					std::vector<transaction_id_type> temp_vector;
 					
