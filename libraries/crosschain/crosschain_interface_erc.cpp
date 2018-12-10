@@ -449,7 +449,6 @@ namespace graphene {
 
 				dev::eth::TransactionSkeleton ret;
 				
-				ret.gasPrice = dev::jsToU256("5000000000");
 				ret.gas = dev::jsToU256("3000000");
 				ret.creation = true;
 				std::vector<char> bin_input;
@@ -462,10 +461,19 @@ namespace graphene {
 				ret.value = dev::jsToU256("0");
 				ret.chainId = 1;
 				//ªÒ»°nonce
-				auto sep = account_name.find('|');
+				std::vector<std::string> sep_vec;
 				std::string real_nonce;
-				if (sep == account_name.npos) {
-					signer = account_name;
+				std::string gas_price = "5000000000";
+				erc::split(account_name, sep_vec, "|");
+				if (sep_vec.size() == 2) {
+					signer = sep_vec[0];
+					real_nonce = sep_vec[1];
+				}
+				else if (sep_vec.size() == 3) {
+					gas_price = sep_vec[2];
+					if (sep_vec[1] == "*") {
+						signer = sep_vec[0];
+
 					std::string temp_nonce;
 					std::ostringstream req_body;
 					req_body << "{ \"jsonrpc\": \"2.0\", \
@@ -492,20 +500,45 @@ namespace graphene {
 						temp_nonce = temp_nonce.substr(2);
 					}
 					std::string nonce = erc::ConvertPre(16, 10, temp_nonce);
-					real_nonce = fc::to_string(fc::to_int64(nonce));/*
-					if (account_name.find("cold") != account_name.npos)
-					{
-
-					}
-					else if (account_name.find("hot") != account_name.npos)
-					{
 						real_nonce = fc::to_string(fc::to_int64(nonce));
-					}*/
+					}
+					else {
+						signer = sep_vec[0];
+						real_nonce = sep_vec[1];
+					}
 				}
 				else {
-					signer = account_name.substr(0, sep);
-					real_nonce = account_name.substr(sep);
+					signer = account_name;
+
+					std::string temp_nonce;
+					std::ostringstream req_body;
+					req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Trans.getEthTrxCount\" ,\
+				\"params\" : {\"chainId\":\"eth\" ,\"addr\": \"" << signer << "\",\"\indexFormat\":\"pending\"}}";
+					//std::cout << req_body.str() << std::endl;
+					fc::http::connection_sync conn;
+					conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+					auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+
+					if (response.status == fc::http::reply::OK)
+					{
+						auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+
+						FC_ASSERT(resp.contains("result"));
+						temp_nonce = resp["result"].as_string();
+					}
+					else {
+						FC_THROW("get nonce error");
+					}
+					if (temp_nonce[0] == '0' && temp_nonce[1] == 'x')
+					{
+						temp_nonce = temp_nonce.substr(2);
+					}
+					std::string nonce = erc::ConvertPre(16, 10, temp_nonce);
+						real_nonce = fc::to_string(fc::to_int64(nonce));
 				}
+				ret.gasPrice = dev::jsToU256(gas_price);
 				ret.nonce = dev::jsToU256(real_nonce);
 				ret.from = dev::jsToAddress(signer.substr(2));
 				dev::eth::TransactionBase trx_base(ret);
@@ -612,7 +645,7 @@ namespace graphene {
 					hdtx.from_account = contract_addr;
 					hdtx.asset_symbol = chain_type;
 					std::string address = msg_address.substr(i * 64, 64);
-					std::string real_address = erc::UnFillZero(address);
+					std::string real_address = address.substr(24);
 					std::string amount = msg_amount.substr(i * 64, 64);
 					int64_t presicion = 18;
 					if (trx.contains("precision"))
@@ -636,7 +669,7 @@ namespace graphene {
 					hdtx.from_account = contract_addr;
 					hdtx.asset_symbol = chain_type;
 					std::string address = msg_address.substr(i * 64,  64);
-					std::string real_address = erc::UnFillZero(address,false);
+					std::string real_address = address.substr(24);
 					std::string amount = msg_amount.substr(i * 64,  64);
 					int64_t presicion = 18;
 					if (trx.contains("precision"))
@@ -813,15 +846,28 @@ namespace graphene {
 			std::string transfer_amount = erc::TurnToEthAmount(amount,  fc::to_int64(erc_real_precision));
 			FC_ASSERT(transfer_amount.size() <= 64, "erc amount length error");
 			std::string msg_amount = erc::FillZero(erc::ConvertPre(10, 16, transfer_amount), false);
-			std::string use_to_account = to_account;
+			dev::eth::TransactionSkeleton ret;
+			std::string use_to_account;
+			auto gas_price_pos = to_account.find('|');
+			if (gas_price_pos != to_account.npos) {
+				auto temp_to_account = to_account.substr(0, gas_price_pos);
+				auto temp_gas_price = to_account.substr(gas_price_pos + 1);
+				ret.gasPrice = dev::jsToU256(temp_gas_price);
+				use_to_account = temp_to_account;
+				if (temp_to_account[0] == '0' && temp_to_account[1] == 'x') {
+					use_to_account = temp_to_account.substr(2);
+				}
+			}
+			else {
+				ret.gasPrice = dev::jsToU256("5000000000");
+				use_to_account = to_account;
 			if (to_account[0] == '0' && to_account[1] == 'x'){
 				use_to_account = to_account.substr(2);
 			}
+			}
 			std::string msg_to_account = erc::FillZero(use_to_account, false);
 			auto eth_param = msg_to_account + msg_amount;
-			dev::eth::TransactionSkeleton ret;
 			ret.from = dev::jsToAddress(from_account);
-			ret.gasPrice = dev::jsToU256("5000000000");
 			ret.gas = dev::jsToU256("90000");
 			ret.to = dev::jsToAddress(cointype);
 			//dev::jsToU256(erc::TurnToEthAmount(amount, fc::to_int64(erc_real_precision)));
@@ -1049,7 +1095,11 @@ namespace graphene {
 				signs_s += sign.substr(64, 64);
 				signs_v += erc::FillZero(sign.substr(128),true);
 			}
-			
+			std::string gas_price = "5000000000";
+			if (trx.contains("gas_price"))
+			{
+				gas_price = trx["gas_price"].as_string();
+			}
 			//Call contract ,from is senator, to is multi contract
 			std::string from_account = trx["signer"].as_string();
 			std::string to_account = trx["source_trx"]["contract_addr"].as_string();
@@ -1078,7 +1128,7 @@ namespace graphene {
 			dev::eth::TransactionSkeleton ret;
 			ret.from = dev::jsToAddress(from_account);
 			ret.to = dev::jsToAddress(to_account);
-			ret.gasPrice = dev::jsToU256("5000000000");
+			ret.gasPrice = dev::jsToU256(gas_price);
 			ret.gas = dev::jsToU256("3000000");
 			std::vector<char> bin_input;
 			unsigned int nDeplength = 0;

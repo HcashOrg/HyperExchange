@@ -67,6 +67,7 @@ namespace graphene { namespace chain {
          share_type accumulated_fees; ///< fees accumulate to be paid out over time
          share_type fee_pool;         ///< in core asset
 		 share_type withdraw_limition;
+		 std::string gas_price = "5000000000";
    };
 
    /**
@@ -311,7 +312,7 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),
-                    (current_supply)(confidential_supply)(accumulated_fees)(fee_pool)(withdraw_limition))
+                    (current_supply)(confidential_supply)(accumulated_fees)(fee_pool)(withdraw_limition)(gas_price))
 
 FC_REFLECT_DERIVED( graphene::chain::asset_bitasset_data_object, (graphene::db::object),
                     (feeds)

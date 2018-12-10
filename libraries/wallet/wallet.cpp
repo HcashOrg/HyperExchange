@@ -1932,14 +1932,27 @@ public:
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   FC_ASSERT(crosschain->validate_address(from));
 		   FC_ASSERT(crosschain->validate_address(to));
+		   auto gas_price_pos = amount.find('|');
+		   if (gas_price_pos != amount.npos)
+		   {
+			   FC_ASSERT(((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)),"only eth or erc asset need GasPrice");
+		   }
 		   map<string, string> dest;
 		   dest[to] = amount;
 		   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)) {
+			   std::string real_amount = amount;
+			   string gas_price = fc::to_string(5) + "000000000";
+			   if (gas_price_pos != amount.npos) {
+				   auto temp_gas_price = amount.substr(gas_price_pos + 1);
+				   auto int_gas_price = fc::to_uint64(temp_gas_price);
+				   gas_price = fc::to_string(int_gas_price) + "000000000";
+				   real_amount = amount.substr(0, gas_price_pos);
+			   }
 			   fc::optional<asset_object> asset_obj = get_asset(symbol);
 
 			   std::string from_acount = from;
-			   std::string to_account = to;
-			   std::string amount_to_trans = amount;
+			   std::string to_account = to+'|'+gas_price;
+			   std::string amount_to_trans = real_amount;
 			   std::string _symbol = symbol;
 			   std::string memo = asset_obj->options.description;
 			   return crosschain->create_multisig_transaction(from_acount, to_account,amount_to_trans,_symbol, memo,false);
@@ -3039,6 +3052,32 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(publisher)(symbol)(expiration_time)(broadcast))
    }
 
+	full_transaction senator_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   senator_change_eth_gas_price_operation op;
+		   auto guard_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.new_gas_price = gas_price;
+		   op.symbol = symbol;
+
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   //prop_op.type = vote_id_type::witness;
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(gas_price)(symbol)(expiration_time)(broadcast))
+   }
    full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -8440,6 +8479,10 @@ full_transaction wallet_api::senator_cancel_publisher(const string& account, con
 full_transaction wallet_api::senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->senator_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+}
+full_transaction wallet_api::senator_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast)
+{
+	return my->senator_change_eth_gas_price(account, gas_price, symbol, expiration_time, broadcast);
 }
 
 full_transaction wallet_api::senator_appointed_lockbalance_senator(const string& account, const std::map<string, asset>& lockbalance, int64_t expiration_time, bool broadcast)

@@ -163,7 +163,20 @@ namespace graphene {
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
 				const auto& dyn_ac = asset_itr->dynamic_data(db());
-				FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >= dyn_ac.withdraw_limition);
+				if (db().head_block_num() > 480000)
+				{
+					if (asset_itr->symbol.find("ERC") != asset_itr->symbol.npos)
+					{
+						FC_ASSERT(asset_itr->amount_from_string(o.amount).amount > dyn_ac.withdraw_limition);
+					}
+					else {
+						FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >= dyn_ac.withdraw_limition);
+					}
+				}
+				else {
+					FC_ASSERT(asset_itr->amount_from_string(o.amount).amount >= dyn_ac.withdraw_limition);
+				}
+				
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o));
 		}
@@ -426,6 +439,10 @@ namespace graphene {
 				for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 					auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 					FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
+					if (db().head_block_num() > 480000)
+					{
+						FC_ASSERT(tx_user_crosschain_iter->trx_state == withdraw_without_sign_trx_create);
+					}
 				}
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				FC_ASSERT(o.get_fee().valid(), "doenst set fee");

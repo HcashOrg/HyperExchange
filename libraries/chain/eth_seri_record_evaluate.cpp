@@ -82,9 +82,24 @@ namespace graphene {
 
 				const auto& guard_ids = db().get_global_properties().active_committee_members;
 				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
+				std::map<std::string, std::string> multi_addr_cold;
+				std::map<std::string, std::string> multi_addr_hot;
+				if (db().head_block_num() >= 480000){
+					std::string hot_nonce_temp = o.hot_nonce;
+					std::string gas_price = "5000000000";
+					auto sep_pos = o.hot_nonce.find('|');
+					if (sep_pos != o.hot_nonce.npos) {
+						gas_price = o.hot_nonce.substr(sep_pos + 1);
+						hot_nonce_temp = o.hot_nonce.substr(0, sep_pos);
+					}
+					multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold + '|' + o.cold_nonce+'|'+ gas_price, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+					multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot + '|' + hot_nonce_temp + '|' + gas_price, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+				}
+				else {
+					multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold + '|' + o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+					multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot + '|' + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+				}
 				
-				auto multi_addr_cold = crosschain_interface->create_multi_sig_account(temp_cold+'|'+o.cold_nonce, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
-				auto multi_addr_hot = crosschain_interface->create_multi_sig_account(temp_hot +'|' + o.hot_nonce, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 				FC_ASSERT(o.multi_account_tx_without_sign_cold != "","eth multi acocunt cold trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_hot != "", "eth multi acocunt ,hot trx error");
 				FC_ASSERT(o.multi_account_tx_without_sign_cold == multi_addr_cold[temp_cold]);
