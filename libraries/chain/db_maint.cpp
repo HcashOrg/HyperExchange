@@ -584,6 +584,7 @@ void database::process_bonus()
 		std::map<asset_id_type, double> rate;
 		const auto&  sys_obj = get(asset_id_type(0));
 		_total_fees_pool = get_total_fees_obj().fees_pool;
+		
 		for (auto& iter : _total_fees_pool)
 		{
 			if (iter.first == asset_id_type(0))
@@ -635,8 +636,6 @@ void database::process_bonus()
 
 				const auto& asset_obj = get(iter.first);
 				auto real_fee_pool = iter.second;
-				if (real_fee_pool <= 0)
-					continue;
 				if ((asset_obj.symbol == "ETH" || asset_obj.symbol.find("ERC") != asset_obj.symbol.npos) && permanent_senators.size() != 0) {
 					share_type bonus;
 					bonus = double(iter.second.value) * 0.8 / double(permanent_senators.size());
@@ -649,9 +648,15 @@ void database::process_bonus()
 					}
 					real_fee_pool = _total_fees_pool[iter.first];
 				}
+				auto temp = real_fee_pool * 0.2 / 15;
+				for (const auto& senator : senators)
+				{
+					auto addr = get(senator.guard_member_account).addr;
+					adjust_bonus_balance(addr, asset(temp, iter.first));
+				}
+				real_fee_pool -= (temp * 15);
 				if (real_fee_pool <= 0)
 					continue;
-
 				rate[iter.first] = double(real_fee_pool.value) / double(sum.value);
 
 			}
