@@ -499,8 +499,31 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 }
 
 
+void miner_plugin::set_miner(const map<graphene::chain::miner_id_type,fc::ecc::private_key>& keys, bool add )
+{
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
+	chain::database& db = database();
+	if (add == false)
+	{
+		_miners.clear();
+		_private_keys.clear();
+	}
+	for (auto key : keys)
+	{
+		auto prikey = key.second;
+		auto pubkey = public_key_type(prikey.get_public_key());
+		FC_ASSERT(key.first(db).signing_key == pubkey,"the key is not belong to any citizen");
+		_miners.insert(key.first);
+		_private_keys.insert(std::make_pair(pubkey,prikey));
+	}
+	if (!_block_production_task.valid())
+	{
+		schedule_production_loop();
+	}
+}
 block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
    chain::database& db = database();
    fc::time_point now_fine = fc::time_point::now();
    fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
