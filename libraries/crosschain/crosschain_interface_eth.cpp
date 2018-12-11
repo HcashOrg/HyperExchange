@@ -154,7 +154,10 @@ namespace graphene {
 				ret += temp;
 			}
 			auto temp_pos = ret.find_first_not_of('0');
-			ret = ret.substr(temp_pos);
+			if (temp_pos != ret.npos) {
+				ret = ret.substr(temp_pos);
+			}
+			//ret = ret.substr(temp_pos);
 			std::cout << "Test log handle amount is " << ret << std::endl;
 			return ret;
 		}
@@ -535,6 +538,7 @@ namespace graphene {
 				std::string without_sign_trx(without_sign_tx.begin(), without_sign_tx.end());//std::string(.begin(), trx_base.rlp(dev::eth::WithoutSignature).end());
 				mapa[signer] = to_hex(without_sign_trx.data(), without_sign_trx.size());
 				mapa["nonce"] = real_nonce;
+				mapa["gas_price"] = gas_price;
 				//FC_ASSERT(false);
 				return mapa;
 			}
