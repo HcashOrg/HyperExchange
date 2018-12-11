@@ -145,6 +145,10 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
+	   else if (op.op.which() == operation::tag<senator_change_eth_gas_price_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
 	   else if (op.op.which() == operation::tag<block_address_operation>::value)
 	   {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");

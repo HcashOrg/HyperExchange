@@ -631,9 +631,22 @@ namespace graphene { namespace chain {
 	   address fee_payer() const { return address(); }
 
    };
+   struct senator_change_eth_gas_price_operation:public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   string new_gas_price;
+	   string symbol;
+	   void    validate() const {}
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   address fee_payer() const { return address(); }
+   };
 
 } } // graphene::chain
-
+FC_REFLECT(graphene::chain::senator_change_eth_gas_price_operation, (fee)(new_gas_price)(symbol))
+FC_REFLECT(graphene::chain::senator_change_eth_gas_price_operation::fee_parameters_type, (fee))
 FC_REFLECT( graphene::chain::asset_claim_fees_operation, (fee)(issuer)(amount_to_claim)(extensions) )
 FC_REFLECT( graphene::chain::asset_claim_fees_operation::fee_parameters_type, (fee) )
 

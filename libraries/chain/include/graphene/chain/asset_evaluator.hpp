@@ -229,6 +229,11 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const senator_determine_block_payment_operation& o);
 	   void_result do_apply(const senator_determine_block_payment_operation& o);
    };
-   
+   class senator_change_eth_gas_price_evaluator :public evaluator<senator_change_eth_gas_price_evaluator> {
+   public:
+	   typedef senator_change_eth_gas_price_operation operation_type;
+	   void_result do_evaluate(const senator_change_eth_gas_price_operation& o);
+	   void_result do_apply(const senator_change_eth_gas_price_operation& o);
+   };
 
 } } // graphene::chain

@@ -594,10 +594,22 @@ namespace graphene {
 									break;
 								}
 							}
+							std::string gas_price = "5000000000";
+							try {
+								const auto& asset_indx = get_index_type<asset_index>().indices().get<by_symbol>();
+								const auto asset_iter = asset_indx.find(coldhot_op.asset_symbol);
+								FC_ASSERT(asset_iter != asset_indx.end());
+								gas_price = asset_iter->dynamic_data(*this).gas_price;
+							}
+							catch (...) {
+
+							}
+
 							FC_ASSERT(address_to_sign_eth_trx != "");
 							fc::mutable_variant_object multi_obj;
 							multi_obj.set("signer", address_to_sign_eth_trx);
 							multi_obj.set("source_trx", coldhot_op.coldhot_trx_original_chain);
+							multi_obj.set("gas_price", gas_price);
 							auto temp_obj = fc::variant_object(multi_obj);
 							trx_op.coldhot_trx_original_chain = crosschain_plugin->merge_multisig_transaction(temp_obj, guard_signs);
 						}	FC_CAPTURE_AND_LOG((0));

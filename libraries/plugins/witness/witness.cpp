@@ -407,8 +407,14 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						//FC_ASSERT(sign_guard_id != guard_member_id_type(), "sign guard doesnt exist");
 						FC_ASSERT(temp_hot != "","guard donst has hot address");
 						FC_ASSERT(temp_cold != "", "guard donst has cold address");
-						auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(temp_cold, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
-						auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(temp_hot, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+						std::string gas_price = "5000000000";
+						try{
+							gas_price = iter.dynamic_data(db).gas_price;
+						}catch (...){
+							
+						}
+						auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(temp_cold + "|*|"+ gas_price, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+						auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(temp_hot + "|*|" + gas_price, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 						std::string cold_without_sign = multi_addr_cold_obj[temp_cold];
 						std::string hot_without_sign = multi_addr_hot_obj[temp_hot];
 						eth_series_multi_sol_create_operation op;
@@ -422,7 +428,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						op.multi_account_tx_without_sign_cold = cold_without_sign;
 						op.multi_account_tx_without_sign_hot = hot_without_sign;
 						op.cold_nonce = multi_addr_cold_obj["nonce"];
-						op.hot_nonce = multi_addr_hot_obj["nonce"];
+						op.hot_nonce = multi_addr_hot_obj["nonce"]+"|"+ multi_addr_hot_obj["gas_price"];
 						op.guard_sign_cold_address = temp_cold;
 						op.guard_sign_hot_address = temp_hot;
 						op.guard_to_sign = sign_guard_id;

@@ -300,6 +300,7 @@ void database::initialize_evaluators()
    register_evaluator<coldhot_cancel_combined_trx_evaluate>();
    register_evaluator<senator_pass_success_trx_evaluate>();
    register_evaluator<coldhot_pass_combine_trx_evaluate>();
+   register_evaluator<senator_change_eth_gas_price_evaluator>();
 }
 
 void database::initialize_indexes()
