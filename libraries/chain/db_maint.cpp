@@ -656,8 +656,9 @@ void database::process_bonus()
 						auto addr = get(senator.guard_member_account).addr;
 						adjust_bonus_balance(addr, asset(temp, iter.first));
 					}
+					real_fee_pool -= (temp * 15);
 				}
-				real_fee_pool -= (temp * 15);
+				
 				if (real_fee_pool <= 0)
 					continue;
 				rate[iter.first] = double(real_fee_pool.value) / double(sum.value);
