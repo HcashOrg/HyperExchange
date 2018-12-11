@@ -9105,9 +9105,12 @@ void wallet_api::start_mining(const vector<string>& accts)
 {
 	vector<address> addrs;
 	map<miner_id_type, private_key> keys;
+	auto& idx = my->_wallet.my_accounts.get<by_name>();
 	for (auto acct : accts)
 	{
-		auto acc_obj = *(my->_wallet.my_accounts.get<by_name>().find(acct));
+		auto oac=idx.find(acct);
+		FC_ASSERT(oac!= idx.end(), "account not found!");
+		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
 		FC_ASSERT(witness.valid(),"only citizen can mine");
 		FC_ASSERT(my->_keys.find(acc_obj.addr)!=my->_keys.end(),"my key is not in keys");
