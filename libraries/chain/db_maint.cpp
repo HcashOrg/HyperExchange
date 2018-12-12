@@ -657,6 +657,7 @@ void database::process_bonus()
 						adjust_bonus_balance(addr, asset(temp, iter.first));
 					}
 					real_fee_pool -= (temp * 15);
+					_total_fees_pool[iter.first] -= (temp*15);
 				}
 				
 				if (real_fee_pool <= 0)
