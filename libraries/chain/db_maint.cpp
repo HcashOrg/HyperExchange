@@ -649,12 +649,16 @@ void database::process_bonus()
 					real_fee_pool = _total_fees_pool[iter.first];
 				}
 				auto temp = real_fee_pool * 0.2 / 15;
-				for (const auto& senator : senators)
+				if (temp > 0)
 				{
-					auto addr = get(senator.guard_member_account).addr;
-					adjust_bonus_balance(addr, asset(temp, iter.first));
+					for (const auto& senator : senators)
+					{
+						auto addr = get(senator.guard_member_account).addr;
+						adjust_bonus_balance(addr, asset(temp, iter.first));
+					}
+					real_fee_pool -= (temp * 15);
 				}
-				real_fee_pool -= (temp * 15);
+				
 				if (real_fee_pool <= 0)
 					continue;
 				rate[iter.first] = double(real_fee_pool.value) / double(sum.value);

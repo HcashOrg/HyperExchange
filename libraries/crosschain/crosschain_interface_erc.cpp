@@ -552,6 +552,7 @@ namespace graphene {
 				std::string without_sign_trx(without_sign_tx.begin(), without_sign_tx.end());//std::string(.begin(), trx_base.rlp(dev::eth::WithoutSignature).end());
 				mapa[signer] =erc::to_hex(without_sign_trx.data(), without_sign_trx.size());
 				mapa["nonce"] = real_nonce;
+				mapa["gas_price"] = gas_price;
 				//FC_ASSERT(false);
 				return mapa;
 			}
