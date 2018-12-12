@@ -3308,22 +3308,6 @@ public:
                FC_THROW("No account or witness named ${account}", ("account", owner_account));
             }
          }
-		 static fc::uint128_t total = 0;
-		 static uint32_t last_count = _remote_db->get_dynamic_global_properties().head_block_number;
-		 uint32_t cur_height = _remote_db->get_dynamic_global_properties().head_block_number;
-		 if (cur_height-(cur_height% GRAPHENE_PRODUCT_PER_ROUND)> last_count)
-		 {
-			 last_count = cur_height;
-			 auto ctzs = list_active_citizens();
-			 for (auto ctz = ctzs.begin(); ctz != ctzs.end(); ctz++)
-			 {
-				 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
-				 if (miner_objects.front())
-					 total += miner_objects.front()->pledge_weight;
-			 }
-		 }
-		 if (total!=fc::uint128_t())
-			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
 		 return obj;
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
