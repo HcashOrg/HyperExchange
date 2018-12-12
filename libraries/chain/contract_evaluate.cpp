@@ -884,13 +884,13 @@ namespace graphene {
                 return nullptr;
             if (contract_name.empty())
                 return nullptr;
-            auto contract_info = std::make_shared<UvmContractInfo>();
+            //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract_of_name(contract_name);
             // TODO: when contract is native contract
             const auto &code = contract.code;
-            for (const auto & api : code.abi) {
-                contract_info->contract_apis.push_back(api);
-            }
+            //for (const auto & api : code.abi) {
+            //    contract_info->contract_apis.push_back(api);
+            //}
             auto ccode = std::make_shared<uvm::blockchain::Code>();
             *ccode = code;
             return ccode;
@@ -1214,7 +1214,6 @@ namespace graphene {
          {
              FC_ASSERT(!contract_name.empty());
              FC_ASSERT(get_db().has_contract_of_name(contract_name));
-             auto contract_info = std::make_shared<UvmContractInfo>();
              const auto &contract = get_db().get_contract_of_name(contract_name);
              return contract;
          }

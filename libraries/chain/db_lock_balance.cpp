@@ -77,9 +77,14 @@ namespace graphene {
 					if (delta.amount < 0){
 						FC_ASSERT(asset(itr->lock_asset_amount, itr->lock_asset_id) >= -delta, "foreclose balance is not enough");
 					}
-					modify(*itr, [miner_account, lock_account, delta](lockbalance_object& b) {
-						b.lock_asset_amount += delta.amount;
-					});
+					if ((asset(itr->lock_asset_amount, itr->lock_asset_id) + delta).amount == 0)
+						remove(*itr);
+					else{
+						modify(*itr, [miner_account, lock_account, delta](lockbalance_object& b) {
+							b.lock_asset_amount += delta.amount;
+						});
+					}
+
 				}
 			}FC_CAPTURE_AND_RETHROW((miner_account)(lock_account)(delta))
 		}
