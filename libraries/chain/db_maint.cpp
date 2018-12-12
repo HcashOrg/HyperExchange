@@ -648,7 +648,7 @@ void database::process_bonus()
 					}
 					real_fee_pool = _total_fees_pool[iter.first];
 				}
-				auto temp = real_fee_pool * 0.2 / 15;
+				share_type temp = real_fee_pool.value * 0.2 / 15;
 				if (temp > 0)
 				{
 					for (const auto& senator : senators)
