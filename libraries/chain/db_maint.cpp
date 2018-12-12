@@ -648,7 +648,7 @@ void database::process_bonus()
 					}
 					real_fee_pool = _total_fees_pool[iter.first];
 				}
-				auto temp = real_fee_pool * 0.2 / 15;
+				share_type temp = real_fee_pool.value * 0.2 / 15;
 				if (temp > 0)
 				{
 					for (const auto& senator : senators)
@@ -657,6 +657,7 @@ void database::process_bonus()
 						adjust_bonus_balance(addr, asset(temp, iter.first));
 					}
 					real_fee_pool -= (temp * 15);
+					_total_fees_pool[iter.first] -= (temp*15);
 				}
 				
 				if (real_fee_pool <= 0)
