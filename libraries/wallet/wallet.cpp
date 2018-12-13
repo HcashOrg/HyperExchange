@@ -1098,75 +1098,99 @@ public:
 
    bool load_wallet_file(string wallet_filename = "")
    {
-      // TODO:  Merge imported wallet with existing wallet,
-      //        instead of replacing it
-      if( wallet_filename == "" )
-         wallet_filename = _wallet_filename;
+	   // TODO:  Merge imported wallet with existing wallet,
+	   //        instead of replacing it
+	   if (wallet_filename == "")
+		   wallet_filename = _wallet_filename;
 
-      if( ! fc::exists( wallet_filename ) )
-         return false;
+	   if (!fc::exists(wallet_filename))
+		   return false;
 
-      _wallet = fc::json::from_file( wallet_filename ).as< wallet_data >();
-      if( _wallet.chain_id != _chain_id )
-         FC_THROW( "Wallet chain ID does not match",
-            ("wallet.chain_id", _wallet.chain_id)
-            ("chain_id", _chain_id) );
+	   _wallet = fc::json::from_file(wallet_filename).as< wallet_data >();
+	   if (_wallet.chain_id != _chain_id)
+		   FC_THROW("Wallet chain ID does not match",
+		   ("wallet.chain_id", _wallet.chain_id)
+			   ("chain_id", _chain_id));
 
-      size_t account_pagination = 100;
-      vector< address > account_address_to_send;
-      size_t n = _wallet.my_accounts.size();
-	  account_address_to_send.reserve( std::min( account_pagination, n ) );
-      auto it = _wallet.my_accounts.begin();
+	   size_t account_pagination = 100;
+	   vector< address > account_address_to_send;
+	   size_t n = _wallet.my_accounts.size();
+	   account_address_to_send.reserve(std::min(account_pagination, n));
+	   auto it = _wallet.my_accounts.begin();
 
-      for( size_t start=0; start<n; start+=account_pagination )
-      {
-         size_t end = std::min( start+account_pagination, n );
-         assert( end > start );
-		 account_address_to_send.clear();
-         std::vector< account_object > old_accounts;
-         for( size_t i=start; i<end; i++ )
-         {
-            assert( it != _wallet.my_accounts.end() );
-            old_accounts.push_back( *it );
-			account_address_to_send.push_back( old_accounts.back().addr );
-            ++it;
-         }
-         std::vector< optional< account_object > > accounts = _remote_db->get_accounts_addr(account_address_to_send);
-         // server response should be same length as request
-         FC_ASSERT( accounts.size() == account_address_to_send.size() );
-         size_t i = 0;
-         for( optional< account_object >& acct : accounts )
-         {
-            account_object& old_acct = old_accounts[i];
-            if( !acct.valid() )
-            {
-               wlog( "Could not find account ${id} : \"${name}\" does not exist on the chain!", ("id", old_acct.id)("name", old_acct.name) );
-               i++;
-               continue;
-            }
-            // this check makes sure the server didn't send results
-            // in a different order, or accounts we didn't request
-            //FC_ASSERT( acct->id == old_acct.id );
-		/*	acct->addr = old_acct.addr;
-			if (acct->id == old_acct.id  || acct->addr == old_acct.addr)
-			{
-				acct->addr = old_acct.addr;
-			}*/
-            if( fc::json::to_string(*acct) != fc::json::to_string(old_acct) )
-            {
-               wlog( "Account ${id} : \"${name}\" updated on chain", ("id", acct->id)("name", acct->name) );
-            }
-            _wallet.update_account( *acct );
-            i++;
-         }
-      }
+	   for (size_t start = 0; start < n; start += account_pagination)
+	   {
+		   size_t end = std::min(start + account_pagination, n);
+		   assert(end > start);
+		   account_address_to_send.clear();
+		   std::vector< account_object > old_accounts;
+		   for (size_t i = start; i < end; i++)
+		   {
+			   assert(it != _wallet.my_accounts.end());
+			   old_accounts.push_back(*it);
+			   account_address_to_send.push_back(old_accounts.back().addr);
+			   ++it;
+		   }
+		   std::vector< optional< account_object > > accounts = _remote_db->get_accounts_addr(account_address_to_send);
+		   // server response should be same length as request
+		   FC_ASSERT(accounts.size() == account_address_to_send.size());
+		   size_t i = 0;
+		   for (optional< account_object >& acct : accounts)
+		   {
+			   account_object& old_acct = old_accounts[i];
+			   if (!acct.valid())
+			   {
+				   wlog("Could not find account ${id} : \"${name}\" does not exist on the chain!", ("id", old_acct.id)("name", old_acct.name));
+				   i++;
+				   continue;
+			   }
+			   // this check makes sure the server didn't send results
+			   // in a different order, or accounts we didn't request
+			   //FC_ASSERT( acct->id == old_acct.id );
+		   /*	acct->addr = old_acct.addr;
+			   if (acct->id == old_acct.id  || acct->addr == old_acct.addr)
+			   {
+				   acct->addr = old_acct.addr;
+			   }*/
+			   if (fc::json::to_string(*acct) != fc::json::to_string(old_acct))
+			   {
+				   wlog("Account ${id} : \"${name}\" updated on chain", ("id", acct->id)("name", acct->name));
+			   }
+			   _wallet.update_account(*acct);
+			   i++;
+		   }
+	   }
 
-      return true;
+	   return true;
+   }
+   bool check_keys_modified(string wallet_filename = "")
+   {
+	   // TODO:  Merge imported wallet with existing wallet,
+	   //        instead of replacing it
+	   if (wallet_filename == "")
+		   wallet_filename = _wallet_filename;
+
+	   if (!fc::exists(wallet_filename))
+		   return false;
+
+	   wallet_data tmp = fc::json::from_file(wallet_filename).as< wallet_data >();
+	   if (tmp.chain_id != _chain_id)
+		   false;
+	   if (tmp.cipher_keys != _wallet.cipher_keys)
+	   {
+		   std::cout << fc::json::to_string(tmp.cipher_keys) << std::endl<< fc::json::to_string(_wallet.cipher_keys) <<std::endl;
+		   return true;
+	   }
+		
+	   //if (tmp.my_accounts != _wallet.my_accounts)
+	//	   return true;
+	   return false;
    }
    fc::mutex save_mutex;
    void save_wallet_file(string wallet_filename = "")
    {
        fc::scoped_lock<fc::mutex> lock(save_mutex);
+
       //
       // Serialize in memory, then save to disk
       //
@@ -1174,11 +1198,15 @@ public:
       // if exceptions are thrown in serialization
       //
 
-      encrypt_keys();
+      
 
       if( wallet_filename == "" )
          wallet_filename = _wallet_filename;
-
+	  if (check_keys_modified(wallet_filename))
+	  {
+		  boost::filesystem::copy_file(wallet_filename, wallet_filename+"_backupAccordingKeychk@"+fc::json::to_string(fc::time_point::now().sec_since_epoch()));
+	  }
+	  encrypt_keys();
       wlog( "saving wallet to file ${fn}", ("fn", wallet_filename) );
 
       string data = fc::json::to_pretty_string( _wallet );
@@ -3308,22 +3336,6 @@ public:
                FC_THROW("No account or witness named ${account}", ("account", owner_account));
             }
          }
-		 static fc::uint128_t total = 0;
-		 static uint32_t last_count = _remote_db->get_dynamic_global_properties().head_block_number;
-		 uint32_t cur_height = _remote_db->get_dynamic_global_properties().head_block_number;
-		 if (cur_height-(cur_height% GRAPHENE_PRODUCT_PER_ROUND)> last_count)
-		 {
-			 last_count = cur_height;
-			 auto ctzs = list_active_citizens();
-			 for (auto ctz = ctzs.begin(); ctz != ctzs.end(); ctz++)
-			 {
-				 std::vector<fc::optional<miner_object>> miner_objects = _remote_db->get_miners(std::vector<miner_id_type>({ *ctz }));
-				 if (miner_objects.front())
-					 total += miner_objects.front()->pledge_weight;
-			 }
-		 }
-		 if (total!=fc::uint128_t())
-			 obj.pledge_rate = (obj.pledge_weight * 100 / total).to_integer();
 		 return obj;
       }
       FC_CAPTURE_AND_RETHROW( (owner_account) )
