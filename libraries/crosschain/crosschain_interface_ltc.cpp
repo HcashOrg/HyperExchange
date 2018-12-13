@@ -117,6 +117,43 @@ namespace graphene {
 			return std::vector<graphene::crosschain::hd_trx>();
 		}
 
+		fc::variant_object crosschain_interface_ltc::transaction_query(vector<std::string>& trx_ids)
+		{
+			try {
+				std::ostringstream req_body;
+				req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Trans.queryTransBatch\" ,\
+				\"params\" : {\"chainId\":\"ltc\" ,\"trxids\": [";
+				for (int i = 0; i < trx_ids.size(); ++i)
+				{
+					req_body << "\"" << trx_ids[i] << "\"";
+					if (i < trx_ids.size() - 1)
+					{
+						req_body << ",";
+					}
+				}
+				req_body << "]}}";
+				std::cout << req_body.str() << std::endl;
+				fc::http::connection_sync conn;
+				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+				if (response.status == fc::http::reply::OK)
+				{
+					auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
+
+					FC_ASSERT(resp.contains("result"));
+					FC_ASSERT(resp["result"].get_object().contains("data"));
+					return resp["result"].get_object()["data"].get_object();
+				}
+				else
+				{
+					FC_ASSERT(false);
+				}
+			}FC_CAPTURE_AND_RETHROW((trx_ids));
+
+		}
+
 		fc::variant_object crosschain_interface_ltc::transaction_query(std::string trx_id)
 		{
 			std::ostringstream req_body;
@@ -277,11 +314,18 @@ namespace graphene {
 			//get vin
 			bool checkfrom = false;
 			auto vins = tx["vin"].get_array();
+			std::vector<std::string> vin_trxs;
+			for (auto vin : vins)
+			{
+				FC_ASSERT(vin.get_object().contains("txid"));
+				vin_trxs.push_back(vin.get_object()["txid"].as_string());
+			}
+			const auto& vin_ret = transaction_query(vin_trxs);
+			FC_ASSERT(vin_ret.size() == vins.size());
 			for (auto vin : vins)
 			{
 				try {
-					FC_ASSERT(vin.get_object().contains("txid"));
-					auto vin_tx = transaction_query(vin.get_object()["txid"].as_string());
+					auto vin_tx = vin_ret[vin.get_object()["txid"].as_string()].get_object();
 					FC_ASSERT(vin_tx.contains("vout"));
 					auto vouts = vin_tx["vout"].get_array();
 					for (auto vout : vouts)
@@ -488,11 +532,21 @@ namespace graphene {
 				double total_vin = 0.0;
 				double total_vout = 0.0;
 				// need to get the fee 
-				for (auto vin : tx["vin"].get_array())
+				std::vector<std::string> vec;
+				auto vins = tx["vin"].get_array();
+				for (auto vin : vins)
 				{
 					auto index = vin.get_object()["vout"].as_uint64();
 					auto from_trx_id = vin.get_object()["txid"].as_string();
-					auto from_trx = transaction_query(from_trx_id);
+					vec.push_back(from_trx_id);
+				}
+				FC_ASSERT(vec.size() == vins.size());
+				auto vins_ret = transaction_query(vec);
+				for (auto vin : vins)
+				{
+					auto index = vin.get_object()["vout"].as_uint64();
+					auto from_trx_id = vin.get_object()["txid"].as_string();
+					auto from_trx = vins_ret[from_trx_id].get_object();
 					const std::string from_addr = from_trx["vout"].get_array()[index].get_object()["scriptPubKey"].get_object()["addresses"].get_array()[0].as_string();
 					hdtx.from_account = from_addr;
 					total_vin += from_trx["vout"].get_array()[index].get_object()["value"].as_double();

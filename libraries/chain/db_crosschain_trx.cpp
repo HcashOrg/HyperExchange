@@ -432,11 +432,6 @@ namespace graphene {
 							continue;
 						}
 					}
-					else
-					{
-						if (dest_info[withop.asset_id].size() >= 10)
-							continue;
-					}
 					std::map<std::string, std::string> temp_map;
 					std::vector<transaction_id_type> temp_vector;
 					
@@ -1024,10 +1019,21 @@ namespace graphene {
 									break;
 								}								
 							}
+							std::string gas_price = "5000000000";
+							try{
+								const auto& asset_indx = get_index_type<asset_index>().indices().get<by_symbol>();
+								const auto asset_iter = asset_indx.find(with_sign_op.asset_symbol);
+								FC_ASSERT(asset_iter != asset_indx.end());
+								gas_price = asset_iter->dynamic_data(*this).gas_price;
+							}
+							catch (...) {
+
+							}
 							FC_ASSERT(address_to_sign_eth_trx != "");
 							fc::mutable_variant_object multi_obj;
 							multi_obj.set("signer", address_to_sign_eth_trx);
 							multi_obj.set("source_trx", with_sign_op.withdraw_source_trx);
+							multi_obj.set("gas_price", gas_price);
 							auto temp_obj = fc::variant_object(multi_obj);
 							trx_op.cross_chain_trx = hdl->merge_multisig_transaction(temp_obj, guard_signed);
 						}	FC_CAPTURE_AND_LOG((0));					

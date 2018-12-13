@@ -166,6 +166,14 @@ namespace graphene { namespace app {
         pl->set_block_production(start);
 
     }
+	void miner_api::set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add)
+	{
+		auto plu = _app.get_plugin("miner");
+		FC_ASSERT(plu.get() != NULL);
+		miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
+		pl->set_miner(keys,add);
+		pl->set_block_production(true);
+	}
     // block_api
     block_api::block_api(graphene::chain::database& db) : _db(db) { }
     block_api::~block_api() { }

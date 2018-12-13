@@ -172,7 +172,8 @@ namespace graphene { namespace chain {
 			coldhot_cancel_combined_trx_operaion,
 			guard_cancel_combine_trx_operation,
 			senator_pass_success_trx_operation,
-			coldhot_pass_combine_trx_operation
+			coldhot_pass_combine_trx_operation,
+			senator_change_eth_gas_price_operation
          > operation;
 
    /// @} // operations group

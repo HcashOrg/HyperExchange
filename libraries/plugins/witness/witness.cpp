@@ -407,8 +407,14 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						//FC_ASSERT(sign_guard_id != guard_member_id_type(), "sign guard doesnt exist");
 						FC_ASSERT(temp_hot != "","guard donst has hot address");
 						FC_ASSERT(temp_cold != "", "guard donst has cold address");
-						auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(temp_cold, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
-						auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(temp_hot, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
+						std::string gas_price = "5000000000";
+						try{
+							gas_price = iter.dynamic_data(db).gas_price;
+						}catch (...){
+							
+						}
+						auto multi_addr_cold_obj = crosschain_interface->create_multi_sig_account(temp_cold + "|*|"+ gas_price, symbol_addrs_cold, (symbol_addrs_cold.size() * 2 / 3 + 1));
+						auto multi_addr_hot_obj = crosschain_interface->create_multi_sig_account(temp_hot + "|*|" + gas_price, symbol_addrs_hot, (symbol_addrs_hot.size() * 2 / 3 + 1));
 						std::string cold_without_sign = multi_addr_cold_obj[temp_cold];
 						std::string hot_without_sign = multi_addr_hot_obj[temp_hot];
 						eth_series_multi_sol_create_operation op;
@@ -422,7 +428,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						op.multi_account_tx_without_sign_cold = cold_without_sign;
 						op.multi_account_tx_without_sign_hot = hot_without_sign;
 						op.cold_nonce = multi_addr_cold_obj["nonce"];
-						op.hot_nonce = multi_addr_hot_obj["nonce"];
+						op.hot_nonce = multi_addr_hot_obj["nonce"]+"|"+ multi_addr_hot_obj["gas_price"];
 						op.guard_sign_cold_address = temp_cold;
 						op.guard_sign_hot_address = temp_hot;
 						op.guard_to_sign = sign_guard_id;
@@ -499,8 +505,31 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 }
 
 
+void miner_plugin::set_miner(const map<graphene::chain::miner_id_type,fc::ecc::private_key>& keys, bool add )
+{
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
+	chain::database& db = database();
+	if (add == false)
+	{
+		_miners.clear();
+		_private_keys.clear();
+	}
+	for (auto key : keys)
+	{
+		auto prikey = key.second;
+		auto pubkey = public_key_type(prikey.get_public_key());
+		FC_ASSERT(key.first(db).signing_key == pubkey,"the key is not belong to any citizen");
+		_miners.insert(key.first);
+		_private_keys.insert(std::make_pair(pubkey,prikey));
+	}
+	if (!_block_production_task.valid())
+	{
+		schedule_production_loop();
+	}
+}
 block_production_condition::block_production_condition_enum miner_plugin::maybe_produce_block( fc::mutable_variant_object& capture )
 {
+	fc::scoped_lock<std::mutex> lock(_miner_lock);
    chain::database& db = database();
    fc::time_point now_fine = fc::time_point::now();
    fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
