@@ -150,7 +150,7 @@ void database::update_last_irreversible_block()
          return a->last_confirmed_block_num < b->last_confirmed_block_num;
       } );
    //uint32_t new_last_irreversible_block_num = wit_objs[offset]->last_confirmed_block_num ;
-   int64_t new_last_irreversible_block_num = (int64_t)head_block_num() - GRAPHENE_REVERSIBLE_BLOCK_COUNT;
+   int64_t new_last_irreversible_block_num = (int64_t)head_block_num() - _undo_db.size();
    if( new_last_irreversible_block_num > dpo.last_irreversible_block_num )
    {
       modify( dpo, [&]( dynamic_global_property_object& _dpo )

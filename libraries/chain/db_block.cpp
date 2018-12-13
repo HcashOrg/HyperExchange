@@ -128,6 +128,7 @@ bool database::push_block(const signed_block& new_block, uint32_t skip)
 bool database::_push_block(const signed_block& new_block)
 { try {
    uint32_t skip = get_node_properties().skip_flags;
+   static int discard_count = 0;
    if( !(skip&skip_fork_db) )
    {
       /// TODO: if the block is greater than the head block and before the next maitenance interval
@@ -169,6 +170,17 @@ bool database::_push_block(const signed_block& new_block)
                 ilog( "pushing blocks from fork ${n} ${id}", ("n",(*ritr)->data.block_num())("id",(*ritr)->data.id()) );
                 optional<fc::exception> except;
                 try {
+					if ((*ritr)->data.timestamp < time_point::now() - fc::seconds(7200))
+					{
+						discard_count++;
+						if (discard_count >= 10)
+							_undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+					}
+					else
+					{
+						discard_count = 0;
+						_undo_db.set_max_size(1440);
+					}
                    undo_database::session session = _undo_db.start_undo_session();
                    apply_block( (*ritr)->data, skip );
                    _block_id_to_block.store( (*ritr)->id, (*ritr)->data );
@@ -193,6 +205,17 @@ bool database::_push_block(const signed_block& new_block)
                    // restore all blocks from the good fork
                    for( auto ritr = branches.second.rbegin(); ritr != branches.second.rend(); ++ritr )
                    {
+					   if ((*ritr)->data.timestamp < time_point::now()-fc::seconds(7200))
+					   {
+						   discard_count++;
+						   if (discard_count >= 10)
+							   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+					   }
+					   else
+					   {
+						   discard_count = 0;
+						   _undo_db.set_max_size(1440);
+					   }
                       auto session = _undo_db.start_undo_session();
                       apply_block( (*ritr)->data, skip );
                       _block_id_to_block.store( new_block.id(), (*ritr)->data );
@@ -208,6 +231,18 @@ bool database::_push_block(const signed_block& new_block)
    }
 
    try {
+
+	   if (new_block.timestamp < time_point::now() - fc::seconds(7200))
+	   {
+		   discard_count++;
+		   if (discard_count >= 10)
+			   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+	   }
+	   else
+	   {
+		   discard_count = 0;
+		   _undo_db.set_max_size(1440);
+	   }
       auto session = _undo_db.start_undo_session();
       apply_block(new_block, skip);
       _block_id_to_block.store(new_block.id(), new_block);
