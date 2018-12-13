@@ -221,6 +221,7 @@ void database::close()
    {
 	   boost::filesystem::remove(undo_data_dir);
 	   boost::filesystem::remove(fork_data_dir);
+	   _undo_db.discard();
    }
 
 
