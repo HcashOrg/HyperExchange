@@ -511,7 +511,7 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
         return create_obj_unique_ptr<pay_back_object>(var);
         break;
 	case bonus_object_type:
-		return create_obj_unique_ptr<pay_back_object>(var);
+		return create_obj_unique_ptr<bonus_object>(var);
 		break;
 	case eth_multi_account_trx_object_type:
 		return create_obj_unique_ptr<eth_multi_account_trx_object>(var);
@@ -579,6 +579,10 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
            return create_obj_unique_ptr< guarantee_object >(var);
        case impl_address_transaction_history_object_type:
            return create_obj_unique_ptr<address_transaction_history_object>(var);
+	   case impl_blocked_address_obj_type:
+		   return create_obj_unique_ptr<blocked_address_object>(var);
+	   case impl_lockbalance_record_object_type:
+		   return create_obj_unique_ptr<lockbalance_record_object>(var);
        default:
            break;
     }
