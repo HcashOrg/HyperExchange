@@ -1,5 +1,6 @@
 //#include <graphene/chain/protocol/types.hpp>
 #include <vector>
+#include <queue>
 #include <string>
 #include <graphene/crosschain/crosschain_impl.hpp>
 //#include <graphene/wallet/wallet.hpp>
@@ -63,6 +64,7 @@ namespace graphene {
 			std::string _rpc_url;
 			const std::string chain_type = std::string("BTC");
 			fc::http::headers _rpc_headers;
+			std::vector<std::tuple<std::string, fc::variant_object>> _trxs_queue;
 		};
 	}
 }

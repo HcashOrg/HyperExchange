@@ -136,6 +136,11 @@ namespace graphene {
 				}
 				req_body << "]}}";
 				std::cout << req_body.str() << std::endl;
+				for (const auto& q : _trxs_queue)
+				{
+					if (get<0>(q) == req_body.str())
+						return get<1>(q);
+				}
 				fc::http::connection_sync conn;
 				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
@@ -145,7 +150,9 @@ namespace graphene {
 
 					FC_ASSERT(resp.contains("result"));
 					FC_ASSERT(resp["result"].get_object().contains("data"));
-					return resp["result"].get_object()["data"].get_object();
+					const auto& result = resp["result"].get_object()["data"].get_object();
+					_trxs_queue.push_back(std::tuple<std::string, fc::variant_object>(req_body.str(), result));
+					return result;
 				}
 				else
 				{
@@ -163,6 +170,11 @@ namespace graphene {
 				\"method\" : \"Zchain.Trans.queryTrans\" ,\
 				\"params\" : {\"chainId\":\"btc\" ,\"trxid\": \"" << trx_id << "\"}}";
 			std::cout << req_body.str() << std::endl;
+			for (const auto& q : _trxs_queue)
+			{
+				if (get<0>(q) == req_body.str())
+					return get<1>(q);
+			}
 			fc::http::connection_sync conn;
 			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
@@ -172,7 +184,9 @@ namespace graphene {
 				
 				FC_ASSERT(resp.contains("result"));
 				FC_ASSERT(resp["result"].get_object().contains("data"));
-				return resp["result"].get_object()["data"].get_object();
+				const auto& result = resp["result"].get_object()["data"].get_object();
+				_trxs_queue.push_back(std::tuple<std::string, fc::variant_object>(req_body.str(), result));
+				return result;
 			}
 			else
 				FC_THROW(trx_id);
@@ -460,6 +474,8 @@ namespace graphene {
 			FC_ASSERT(trx->amount == );
 			FC_ASSERT(trx->block_num == );
 			*/
+			if (_trxs_queue.size() > 30)
+				_trxs_queue.clear();
 			return (checkfrom && checkto);
 		}
 
