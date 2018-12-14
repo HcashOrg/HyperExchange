@@ -26,6 +26,7 @@ namespace fc {
              done(false),
              current(0),
              pt_head(0),
+			 pt_size(0),
              blocked(0),
              next_unused_task_storage_slot(0)
 #ifndef NDEBUG
@@ -84,6 +85,7 @@ namespace fc {
            fc::context*             current;     // the currently-executing task in this thread
 
            fc::context*             pt_head;     // list of contexts that can be reused for new tasks
+		   int                      pt_size;
 
            std::vector<fc::context*> ready_heap; // priority heap of contexts that are ready to run
 
@@ -155,8 +157,35 @@ namespace fc {
 
            void pt_push_back(fc::context* c) 
            {
-              c->next = pt_head;
-              pt_head = c;
+			   if (pt_size > 20 && ((task_pqueue.size() + task_sch_queue.size() + sleep_pqueue.size() + ready_heap.size()) < pt_size / 4))
+			   {
+				   fc::context* n = pt_head;
+				   fc::context* del;
+				   for (int i = 0; i < pt_size / 2; i++)
+				   {
+					   n = n->next;
+				   }
+				   del = n->next;
+				   n->next = 0;
+
+				   while (del)
+				   {
+					   free_list.push_back(del);
+					   del = del->next;
+					   --pt_size;
+				   }
+				   free_list.push_back(c);
+			   }
+			   else
+			   {
+				   c->next = pt_head;
+				   pt_head = c;
+				   ++pt_size;
+			   }
+
+
+			   /* c->next = pt_head;
+				pt_head = c;*/
               /* 
               fc::context* n = pt_head;
               int i = 0;
@@ -425,6 +454,7 @@ namespace fc {
                   // grab cached context
                   next = pt_head;
                   pt_head = pt_head->next;
+				  --pt_size;
                   next->next = 0;
                   next->reinitialize();
                 } 
