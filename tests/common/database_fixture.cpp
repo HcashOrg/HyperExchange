@@ -104,7 +104,9 @@ database_fixture::database_fixture()
 		   name_key.get_public_key(),
 		   name_key.get_public_key(),
 		   true);
-	   genesis_state.initial_guard_candidates.push_back({ name });
+     graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
+     test_gaurd.owner_name=name;
+	   genesis_state.initial_guard_candidates.push_back(test_gaurd);
 
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();

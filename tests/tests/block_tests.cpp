@@ -57,7 +57,9 @@ genesis_state_type make_genesis() {
                                                   init_account_priv_key.get_public_key(),
                                                   init_account_priv_key.get_public_key(),
                                                   true);
-      genesis_state.initial_guard_candidates.push_back({name});
+      graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
+      test_gaurd.owner_name=name;
+      genesis_state.initial_guard_candidates.push_back(test_gaurd);
       genesis_state.initial_miner_candidates.push_back({name, init_account_priv_key.get_public_key()});
    }
    genesis_state.initial_parameters.current_fees->zero_all_fees();
@@ -78,7 +80,10 @@ genesis_state_type make_genesis_30() {
 			init_account_priv_key.get_public_key(),
 			init_account_priv_key.get_public_key(),
 			true);
-		genesis_state.initial_guard_candidates.push_back({ name });
+      
+		  graphene::chain::genesis_state_type::initial_committee_member_type test_gaurd;
+      test_gaurd.owner_name=name;
+      genesis_state.initial_guard_candidates.push_back(test_gaurd);
 		genesis_state.initial_miner_candidates.push_back({ name, init_account_priv_key.get_public_key() });
 	}
 	genesis_state.initial_parameters.current_fees->zero_all_fees();

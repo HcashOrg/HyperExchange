@@ -82,6 +82,19 @@ struct pending_transactions_restorer
             if( !_db.is_known_transaction( tx.id() ) ) {
                // since push_transaction() takes a signed_transaction,
                // the operation_results field will be ignored.
+				bool need_continue = false;
+				for (const auto & op : tx.operations)
+				{
+					if (op.which() == operation::tag<crosschain_withdraw_operation>::value ||
+						op.which() == operation::tag<crosschain_withdraw_without_sign_operation>::value ||
+						op.which() == operation::tag<crosschain_withdraw_combine_sign_operation>::value ||
+						op.which() == operation::tag<coldhot_transfer_without_sign_operation>::value    ||
+						op.which() == operation::tag<coldhot_transfer_combine_sign_operation>::value
+						)
+						need_continue = true;
+				}
+				if (need_continue)
+					continue;
                _db._push_transaction( tx );
             }
          } catch ( const fc::exception&  ) {
