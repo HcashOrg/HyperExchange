@@ -127,7 +127,6 @@ namespace graphene {
                 gas_count = gas_used_counts;	
 				new_contract.contract_address = origin_op.contract_id;
 				string fid_str = string(new_contract.contract_address);
-				std::cout << fid_str << "\n";
                 new_contract.code = o.contract_code;
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
@@ -874,7 +873,6 @@ namespace graphene {
          StorageDataType contract_common_evaluate::get_storage(const string & contract_id, const string & storage_name) const
         {
             database& d = get_db();
-            std::cout<<contract_id<<"___"<<storage_name<<std::endl;
             auto storage_data = d.get_contract_storage(address(contract_id), storage_name);
             return storage_data;
         }
