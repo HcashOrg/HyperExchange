@@ -654,6 +654,12 @@ class database_api
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
 
       vector<contract_invoke_result_object> get_contract_invoke_object(const string& trx_id)const ;
+	  //
+	  std::pair<asset, share_type> register_contract_testing(const string& pubkey_str, const string& contract_filepath);
+	  std::pair<asset, share_type> transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param);
+	  string invoke_contract_offline(const string& caller_pubkey, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
+
+
 	  vector<transaction_id_type> get_contract_history(const string& contract_id,uint64_t start,uint64_t end);
       vector<contract_event_notify_object> get_contract_events(const address&)const ;
 	  vector<contract_event_notify_object> get_contract_events_in_range(const address&, uint64_t start, uint64_t range)const;
@@ -838,7 +844,10 @@ FC_API(graphene::app::database_api,
 	(list_scheduled_citizens)
 	(get_referendum_object)
 	(get_eths_multi_create_account_trx)
+	(invoke_contract_offline)
+	(register_contract_testing)
 	(get_referendum_transactions_waiting)
+	(transfer_to_contract_testing)
 	(get_ntp_info)
 	(ntp_update_time)
 );

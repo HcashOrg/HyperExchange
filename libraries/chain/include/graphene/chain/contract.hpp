@@ -240,6 +240,7 @@ namespace graphene {
 			static std::string to_printable_hex(unsigned char chr);
 			static int save_code_to_file(const string& name, UvmModuleByteStream *stream, char* err_msg);
 			static uvm::blockchain::Code load_contract_from_file(const fc::path &path);
+			static uvm::blockchain::Code load_contract_from_hex(const string& hex);
 		};
 		
 

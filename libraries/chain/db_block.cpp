@@ -716,33 +716,34 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    const chain_parameters& chain_parameters = get_global_properties().parameters;
    eval_state._trx = &trx;
    eval_state.testing = testing;
-   if( !(skip & (skip_transaction_signatures | skip_authority_check) ) )
-   {
-	      auto get_addresses = [&](address addr) {
-		  const auto& bal_idx = get_index_type<balance_index>();
-		  const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
-		  auto iter = by_owner_idx.find(boost::make_tuple(addr, asset_id_type(0)));
-		  if (iter != by_owner_idx.end())
-		  {
-			  if (iter->multisignatures.valid())
-			  {
-				  auto required = iter->multisignatures->begin()->first;
-				  auto addresses = iter->multisignatures->begin()->second;
-				  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,required,addresses);
-			  }
-		  }
-		  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,0,fc::flat_set<public_key_type>());
-	      };
-		  auto is_blocked_address = [&](address addr) {
-			 // need to check
-			  const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
-			  if (blocked_idx.find(addr) != blocked_idx.end())
-				  return true;
-			  return false;
-		  };
-      trx.verify_authority( chain_id,get_addresses, is_blocked_address,get_global_properties().parameters.max_authority_depth );
+   if (!testing) {
+	   if (!(skip & (skip_transaction_signatures | skip_authority_check)))
+	   {
+		   auto get_addresses = [&](address addr) {
+			   const auto& bal_idx = get_index_type<balance_index>();
+			   const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+			   auto iter = by_owner_idx.find(boost::make_tuple(addr, asset_id_type(0)));
+			   if (iter != by_owner_idx.end())
+			   {
+				   if (iter->multisignatures.valid())
+				   {
+					   auto required = iter->multisignatures->begin()->first;
+					   auto addresses = iter->multisignatures->begin()->second;
+					   return std::tuple < address, int, fc::flat_set<public_key_type>>(addr, required, addresses);
+				   }
+			   }
+			   return std::tuple < address, int, fc::flat_set<public_key_type>>(addr, 0, fc::flat_set<public_key_type>());
+		   };
+		   auto is_blocked_address = [&](address addr) {
+			   // need to check
+			   const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
+			   if (blocked_idx.find(addr) != blocked_idx.end())
+				   return true;
+			   return false;
+		   };
+		   trx.verify_authority(chain_id, get_addresses, is_blocked_address, get_global_properties().parameters.max_authority_depth);
+	   }
    }
-
    //Skip all manner of expiration and TaPoS checking if we're on block 1; It's impossible that the transaction is
    //expired, and TaPoS makes no sense as no blocks exist.
    if( BOOST_LIKELY(head_block_num() > 0) )
