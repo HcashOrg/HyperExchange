@@ -547,7 +547,7 @@ class wallet_api
        * @param account_name_or_id the name or id of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      account_object                    get_account(string account_name_or_id) const;
+      fc::variant_object            get_account(string account_name_or_id) const;
 	  account_object change_account_name(const string& oldname, const string& newname);
 	  void remove_local_account(const string & account_name);
 

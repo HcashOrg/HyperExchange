@@ -6576,7 +6576,7 @@ vector<asset> wallet_api::list_account_balances(const string& id)
 {
    if( auto real_id = maybe_id<account_id_type>(id) )
       return my->_remote_db->get_account_balances(*real_id, flat_set<asset_id_type>());
-   return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
+   return my->_remote_db->get_account_balances(my->get_account(id).id, flat_set<asset_id_type>());
 }
 
 std::vector<guard_lock_balance_object> wallet_api::get_senator_lock_balance(const string& miner)const {
@@ -6658,7 +6658,7 @@ guard_member_object wallet_api::get_eth_signer(const string& symbol, const strin
 }
 vector<asset> wallet_api::get_account_balances(const string& account)
 {
-	auto acc = get_account(account);
+	auto acc = my->get_account(account);
 	auto add = acc.addr;
 	FC_ASSERT(address() != acc.addr, "account is not in the chain.");
 	vector<address> vec;
@@ -6681,7 +6681,7 @@ vector<asset_object> wallet_api::list_assets(const string& lowerbound, uint32_t 
 vector<operation_detail> wallet_api::get_account_history(string name, int limit)const
 {
    vector<operation_detail> result;
-   auto account_id = get_account(name).get_id();
+   auto account_id = my->get_account(name).get_id();
 
    while( limit > 0 )
    {
@@ -6713,7 +6713,7 @@ vector<operation_detail> wallet_api::get_relative_account_history(string name, u
    FC_ASSERT( start > 0 || limit <= 100 );
    
    vector<operation_detail> result;
-   auto account_id = get_account(name).get_id();
+   auto account_id = my->get_account(name).get_id();
 
    while( limit > 0 )
    {
@@ -6888,9 +6888,21 @@ void wallet_api::remove_builder_transaction(transaction_handle_type handle)
    return my->remove_builder_transaction(handle);
 }
 
-account_object wallet_api::get_account(string account_name_or_id) const
+fc::variant_object wallet_api::get_account(string account_name_or_id) const
 {
-   return my->get_account(account_name_or_id);
+   auto acc =  my->get_account(account_name_or_id);
+   if (acc.addr == address())
+	   return fc::variant_object();
+   const auto& obj = get_account_by_addr(acc.addr);
+   if (obj.valid())
+   {
+	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
+	   m_obj.set("online",fc::variant("true"));
+	   return m_obj;
+   }
+   fc::mutable_variant_object m_obj = fc::variant(acc).as<fc::mutable_variant_object>();
+   m_obj.set("online", fc::variant("false"));
+   return m_obj;
 }
 
 optional<account_object> wallet_api::get_account_by_addr(const address& addr) const
@@ -7044,7 +7056,7 @@ map<string, bool> wallet_api::import_accounts( string filename, string password 
        {
            try
            {
-               const account_object account = get_account( item.account_name );
+               const account_object account = my->get_account( item.account_name );
                const auto& owner_keys = account.owner.get_keys();
                const auto& active_keys = account.active.get_keys();
 
@@ -7257,7 +7269,7 @@ string wallet_api::transfer_from_to_address(string from, string to, string amoun
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
 	string asset_symbol, string memo, bool broadcast /* = false */)
 {
-	const auto acc = get_account(to);
+	const auto acc = my->get_account(to);
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
