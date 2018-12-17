@@ -5290,6 +5290,42 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((multi_account)(amount)(asset_symbol)(multi_to_account)(memo))
    }
+
+   full_transaction lock_balance_to_miners(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto& acct_iter = _wallet.my_accounts.get<by_name>();
+		   auto lock_acct = acct_iter.find(lock_account);
+		   FC_ASSERT(lock_acct != acct_iter.end(), "Could not find account name ${account}", ("account", lock_account));
+		   signed_transaction tx;
+		   for (const auto& iter : lockbalances)
+		   {
+			   const auto& miner_account = iter.first;
+			   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+			   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
+			   const auto& assets = iter.second;
+			   for (const auto& asset_vec : assets)
+			   {
+				   fc::optional<asset_object> asset_obj = get_asset(asset_vec.asset_id);
+				   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_vec));
+				   lockbalance_operation lb_op;
+				   lb_op.lock_asset_id = asset_vec.asset_id;
+				   lb_op.lock_asset_amount = asset_vec.amount;
+				   lb_op.lock_balance_account = lock_acct->get_id();
+				   lb_op.lock_balance_addr = lock_acct->addr;
+				   lb_op.lockto_miner_account = miner_obj->id;
+				   tx.operations.push_back(lb_op);
+			   }
+			   
+		   }
+		   FC_ASSERT(tx.operations.size() <= 100, "should less than 100 operations.");
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((lock_account)(lockbalances)(broadcast))
+   }
+
    full_transaction lock_balance_to_miner(string miner_account,
 	   string lock_account,
 	   string amount,
@@ -5346,6 +5382,42 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
+   full_transaction foreclose_balance_from_miners(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto& acct_iter = _wallet.my_accounts.get<by_name>();
+		   auto lock_acct = acct_iter.find(foreclose_account);
+		   FC_ASSERT(lock_acct != acct_iter.end(), "Could not find account name ${account}", ("account", foreclose_account));
+		   signed_transaction tx;
+		   for (const auto& iter : foreclose_balances)
+		   {
+			   const auto& miner_account = iter.first;
+			   fc::optional<miner_object> miner_obj = get_miner(miner_account);
+			   FC_ASSERT(miner_obj, "Could not find miner matching ${miner}", ("miner", miner_account));
+			   const auto& assets = iter.second;
+			   for (const auto& asset_vec : assets)
+			   {
+				   fc::optional<asset_object> asset_obj = get_asset(asset_vec.asset_id);
+				   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_vec));
+				   foreclose_balance_operation fcb_op;
+				   fcb_op.foreclose_asset_id = asset_vec.asset_id;
+				   fcb_op.foreclose_asset_amount = asset_vec.amount;
+				   fcb_op.foreclose_account = lock_acct->get_id();
+				   fcb_op.foreclose_addr = lock_acct->addr;
+				   fcb_op.foreclose_miner_account = miner_obj->id;
+				   tx.operations.push_back(fcb_op);
+			   }
+
+		   }
+		   FC_ASSERT(tx.operations.size() <= 100, "should less than 100 operations.");
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((foreclose_account)(foreclose_balances)(broadcast))
+   }
+
+
    full_transaction foreclose_balance_from_miner(string miner_account,
 	   string foreclose_account,
 	   string amount,
@@ -6576,7 +6648,7 @@ vector<asset> wallet_api::list_account_balances(const string& id)
 {
    if( auto real_id = maybe_id<account_id_type>(id) )
       return my->_remote_db->get_account_balances(*real_id, flat_set<asset_id_type>());
-   return my->_remote_db->get_account_balances(get_account(id).id, flat_set<asset_id_type>());
+   return my->_remote_db->get_account_balances(my->get_account(id).id, flat_set<asset_id_type>());
 }
 
 std::vector<guard_lock_balance_object> wallet_api::get_senator_lock_balance(const string& miner)const {
@@ -6658,7 +6730,7 @@ guard_member_object wallet_api::get_eth_signer(const string& symbol, const strin
 }
 vector<asset> wallet_api::get_account_balances(const string& account)
 {
-	auto acc = get_account(account);
+	auto acc = my->get_account(account);
 	auto add = acc.addr;
 	FC_ASSERT(address() != acc.addr, "account is not in the chain.");
 	vector<address> vec;
@@ -6681,7 +6753,7 @@ vector<asset_object> wallet_api::list_assets(const string& lowerbound, uint32_t 
 vector<operation_detail> wallet_api::get_account_history(string name, int limit)const
 {
    vector<operation_detail> result;
-   auto account_id = get_account(name).get_id();
+   auto account_id = my->get_account(name).get_id();
 
    while( limit > 0 )
    {
@@ -6713,7 +6785,7 @@ vector<operation_detail> wallet_api::get_relative_account_history(string name, u
    FC_ASSERT( start > 0 || limit <= 100 );
    
    vector<operation_detail> result;
-   auto account_id = get_account(name).get_id();
+   auto account_id = my->get_account(name).get_id();
 
    while( limit > 0 )
    {
@@ -6888,9 +6960,21 @@ void wallet_api::remove_builder_transaction(transaction_handle_type handle)
    return my->remove_builder_transaction(handle);
 }
 
-account_object wallet_api::get_account(string account_name_or_id) const
+fc::variant_object wallet_api::get_account(string account_name_or_id) const
 {
-   return my->get_account(account_name_or_id);
+   auto acc =  my->get_account(account_name_or_id);
+   if (acc.addr == address())
+	   return fc::variant_object();
+   const auto& obj = get_account_by_addr(acc.addr);
+   if (obj.valid())
+   {
+	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
+	   m_obj.set("online",fc::variant("true"));
+	   return m_obj;
+   }
+   fc::mutable_variant_object m_obj = fc::variant(acc).as<fc::mutable_variant_object>();
+   m_obj.set("online", fc::variant("false"));
+   return m_obj;
 }
 
 optional<account_object> wallet_api::get_account_by_addr(const address& addr) const
@@ -7044,7 +7128,7 @@ map<string, bool> wallet_api::import_accounts( string filename, string password 
        {
            try
            {
-               const account_object account = get_account( item.account_name );
+               const account_object account = my->get_account( item.account_name );
                const auto& owner_keys = account.owner.get_keys();
                const auto& active_keys = account.active.get_keys();
 
@@ -7257,7 +7341,7 @@ string wallet_api::transfer_from_to_address(string from, string to, string amoun
 full_transaction wallet_api::transfer_to_account(string from, string to, string amount,
 	string asset_symbol, string memo, bool broadcast /* = false */)
 {
-	const auto acc = get_account(to);
+	const auto acc = my->get_account(to);
 	FC_ASSERT(address() != acc.addr,"account should be in the chain.");
 	return my->transfer_to_address(from, string(acc.addr), amount, asset_symbol, memo, broadcast);
 }
@@ -7311,6 +7395,12 @@ full_transaction wallet_api::lock_balance_to_citizen(string miner_account,
 	bool broadcast/* = false*/) {
 	return my->lock_balance_to_miner(miner_account, lock_account,amount, asset_symbol, broadcast);
 }
+
+full_transaction wallet_api::lock_balance_to_citizens(string lock_account, map<string, vector<asset>> lockbalances, bool broadcast /* = false */)
+{
+	return my->lock_balance_to_miners(lock_account, lockbalances,broadcast);
+}
+
 full_transaction wallet_api::withdraw_cross_chain_transaction(string account_name,
 	string amount,
 	string asset_symbol,
@@ -7340,6 +7430,12 @@ full_transaction wallet_api::foreclose_balance_from_citizen(string miner_account
 	bool broadcast/* = false*/) {
 	return my->foreclose_balance_from_miner(miner_account, foreclose_account, amount, asset_symbol, broadcast);
 }
+
+full_transaction wallet_api::foreclose_balance_from_citizens(string foreclose_account, map<string, vector<asset>> foreclose_balances, bool broadcast /* = false */)
+{
+	return my->foreclose_balance_from_miners(foreclose_account,foreclose_balances,broadcast);
+}
+
 full_transaction wallet_api::senator_foreclose_balance(string guard_account,
 	string amount,
 	string asset_symbol,

@@ -547,7 +547,7 @@ class wallet_api
        * @param account_name_or_id the name or id of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      account_object                    get_account(string account_name_or_id) const;
+      fc::variant_object            get_account(string account_name_or_id) const;
 	  account_object change_account_name(const string& oldname, const string& newname);
 	  void remove_local_account(const string & account_name);
 
@@ -1039,6 +1039,9 @@ class wallet_api
 		  string amount,
 		  string asset_symbol,
 		  bool broadcast = false);
+	  full_transaction lock_balance_to_citizens(string lock_account, 
+		  map<string,vector<asset>> lockbalances,
+		  bool broadcast = false);
 	  full_transaction senator_lock_balance(string senator_account,
 		  string amount,
 		  string asset_symbol,
@@ -1047,6 +1050,9 @@ class wallet_api
 		  string foreclose_account,
 		  string amount,
 		  string asset_symbol,
+		  bool broadcast = false);
+	  full_transaction foreclose_balance_from_citizens(string foreclose_account, 
+		  map<string, vector<asset>> foreclose_balances,
 		  bool broadcast = false);
 	  full_transaction senator_foreclose_balance(string senator_account,
 		  string amount,
@@ -2254,7 +2260,7 @@ FC_API( graphene::wallet::wallet_api,
 		(refund_uncombined_transaction)
 		(refund_combined_transaction)
 		(cancel_coldhot_uncombined_transaction)
-			(cancel_coldhot_combined_transaction)
+		(cancel_coldhot_combined_transaction)
 		(eth_cancel_fail_transaction)
 		(cancel_coldhot_eth_fail_transaction)
 		(transfer_senator_multi_account)
@@ -2358,4 +2364,6 @@ FC_API( graphene::wallet::wallet_api,
 		(ntp_update_time)
 		(get_account_by_addr)
 		(start_mining)
+		(foreclose_balance_from_citizens)
+		(lock_balance_to_citizens)
       )
