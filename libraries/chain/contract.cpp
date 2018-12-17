@@ -11,6 +11,10 @@
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/contract_evaluate.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <fc/crypto/hex.hpp>
+#include <fc/thread/mutex.hpp>
+#include <fc/thread/scoped_lock.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -513,7 +517,105 @@ free(storage_buf); \
 }\
 }
 
+		static fc::mutex file_mutex;
+		uvm::blockchain::Code ContractHelper::load_contract_from_hex(const string& hex)
+		{
 
+			fc::scoped_lock<fc::mutex> lock(file_mutex);
+			char s[101] = {0};
+
+			char buf[1024] = { 0 };
+			int i;
+			srand(time(NULL));
+			std::vector<char> bytes;
+			bytes.resize(hex.length()/2);
+			fc::from_hex(hex, bytes.data(), bytes.size());
+			for (i = 0; i < 10; i++)
+			{
+				do
+				{
+					s[i] = 'a'+rand() % 26;
+				} while (!isprint(s[i]));
+			}
+			string file_string = s;
+			ofstream tmp(file_string,ios::trunc|ios::binary);
+			tmp.write(bytes.data(),bytes.size());
+			tmp.close();
+			Code code;
+			FILE* f = fopen(file_string.c_str(), "rb");
+
+			if (f==NULL)
+				FC_THROW_EXCEPTION(fc::file_not_found_exception, "Script file not found!");
+			fseek(f, 0, SEEK_END);
+			int fsize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			unsigned int digest[5];
+			int read_count = 0;
+			for (int i = 0; i < 5; ++i)
+			{
+				read_count = common_fread_int(f, (int*)&digest[i]);
+				if (read_count != 1)
+				{
+					fclose(f);
+					FC_THROW_EXCEPTION(blockchain::contract_engine::read_verify_code_fail, "Read verify code fail!");
+				}
+			}
+
+			int len = 0;
+			read_count = common_fread_int(f, &len);
+			if (read_count != 1 || len < 0 || (len >= (fsize - ftell(f))))
+			{
+				fclose(f);
+				FC_THROW_EXCEPTION(blockchain::contract_engine::read_bytescode_len_fail, "Read bytescode len fail!");
+			}
+
+			code.code.resize(len);
+			read_count = common_fread_octets(f, code.code.data(), len);
+			if (read_count != 1)
+			{
+				fclose(f);
+				FC_THROW_EXCEPTION(blockchain::contract_engine::read_bytescode_fail, "Read bytescode fail!");
+			}
+
+			boost::uuids::detail::sha1 sha;
+			unsigned int check_digest[5];
+			sha.process_bytes(code.code.data(), code.code.size());
+			sha.get_digest(check_digest);
+			if (memcmp((void*)digest, (void*)check_digest, sizeof(unsigned int) * 5))
+			{
+				fclose(f);
+				FC_THROW_EXCEPTION(blockchain::contract_engine::verify_bytescode_sha1_fail, "Verify bytescode SHA1 fail!");
+			}
+
+			for (int i = 0; i < 5; ++i)
+			{
+				unsigned char chr1 = (check_digest[i] & 0xFF000000) >> 24;
+				unsigned char chr2 = (check_digest[i] & 0x00FF0000) >> 16;
+				unsigned char chr3 = (check_digest[i] & 0x0000FF00) >> 8;
+				unsigned char chr4 = (check_digest[i] & 0x000000FF);
+
+				code.code_hash = code.code_hash + to_printable_hex(chr1) + to_printable_hex(chr2) +
+					to_printable_hex(chr3) + to_printable_hex(chr4);
+			}
+
+			int api_count = 0;
+			char* api_buf = nullptr;
+
+			INIT_API_FROM_FILE(code.abi, blockchain::contract_engine::read_api_count_fail, blockchain::contract_engine::read_api_len_fail, blockchain::contract_engine::read_api_fail);
+			INIT_API_FROM_FILE(code.offline_abi, blockchain::contract_engine::read_offline_api_count_fail, blockchain::contract_engine::read_offline_api_len_fail, blockchain::contract_engine::read_offline_api_fail);
+			INIT_API_FROM_FILE(code.events, blockchain::contract_engine::read_events_count_fail, blockchain::contract_engine::read_events_len_fail, blockchain::contract_engine::read_events_fail);
+
+			int storage_count = 0;
+			char* storage_buf = nullptr;
+			StorageValueTypes storage_type;
+
+			INIT_STORAGE_FROM_FILE(code.storage_properties, blockchain::contract_engine::read_storage_count_fail, blockchain::contract_engine::read_storage_name_len_fail, blockchain::contract_engine::read_storage_name_fail, blockchain::contract_engine::read_storage_type_fail);
+
+			fclose(f);
+			boost::filesystem::remove(file_string);
+			return code;
+		}
 		uvm::blockchain::Code ContractHelper::load_contract_from_file(const fc::path &path)
 		{
 			if (!fc::exists(path))

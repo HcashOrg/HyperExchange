@@ -965,7 +965,7 @@ asset_object database_api::get_asset(const string& asset_name_or_id) const
         // It's a symbol
         auto rec = lookup_asset_symbols({ asset_name_or_id }).front();
         FC_ASSERT(rec.valid());
-        FC_ASSERT(rec->symbol != asset_name_or_id);
+        FC_ASSERT(rec->symbol == asset_name_or_id);
         return *rec;
     }
     return asset_object();
@@ -2777,6 +2777,185 @@ optional<guarantee_object> database_api::get_gurantee_object(const guarantee_obj
 vector<contract_invoke_result_object> database_api::get_contract_invoke_object(const string& trx_id)const
 {
     return my->get_contract_invoke_object(transaction_id_type(trx_id));
+}
+std::pair<asset, share_type> database_api::register_contract_testing(const string& pubkey_str, const string& hex)
+{
+	try {
+
+
+		contract_register_operation contract_register_op;
+
+		//juge if the name has been registered in the chain
+		auto owner_pubkey = public_key_type(pubkey_str);
+
+		contract_register_op.gas_price = 0;
+		contract_register_op.init_cost = (GRAPHENE_CONTRACT_TESTING_GAS);
+		contract_register_op.owner_addr = address(owner_pubkey);
+		contract_register_op.owner_pubkey = owner_pubkey;
+
+		auto contract_code = ContractHelper::load_contract_from_hex(hex);
+		contract_register_op.contract_code = contract_code;
+		contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
+		contract_register_op.register_time = fc::time_point::now() + fc::seconds(1);
+		contract_register_op.contract_id = contract_register_op.calculate_contract_id();
+		contract_register_op.fee.amount = 0;
+		contract_register_op.fee.asset_id = asset_id_type(0);
+
+		signed_transaction tx;
+		tx.operations.push_back(contract_register_op);
+		auto current_fees = get_global_properties().parameters.current_fees;
+		for (auto& op : tx.operations)
+			current_fees->set_fee(op);
+		signed_transaction signed_tx(tx);
+		auto dyn_props = get_dynamic_global_properties();
+		signed_tx.set_reference_block(dyn_props.head_block_id);
+		signed_tx.set_expiration(dyn_props.time + fc::seconds(30));
+		signed_tx.validate();
+			auto trx_res = validate_transaction(signed_tx, true);
+
+		share_type gas_count = 0;
+		for (auto op_res : trx_res.operation_results)
+		{
+			try { gas_count += op_res.get<contract_operation_result_info>().gas_count; }
+			catch (...)
+			{
+
+			}
+		}
+
+		asset res_data_fee = signed_tx.operations[0].get<contract_register_operation>().fee;
+
+		std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+		return res;
+
+	}FC_CAPTURE_AND_RETHROW((pubkey_str)(hex))
+}
+std::pair<asset, share_type> database_api::transfer_to_contract_testing(string pubkey, string to, string amount, string asset_symbol, const string& param)
+{
+	transfer_contract_operation transfer_to_contract_op;
+	fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+	FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+	asset transfer_asset = asset_obj->amount_from_string(amount);
+	//juge if the name has been registered in the chain
+
+	public_key_type caller_pubkey = public_key_type(pubkey);
+
+	transfer_to_contract_op.gas_price = 0;
+	transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+	transfer_to_contract_op.caller_addr = address(caller_pubkey);
+	transfer_to_contract_op.caller_pubkey = caller_pubkey;
+	transfer_to_contract_op.contract_id = address(to);
+	transfer_to_contract_op.fee.amount = 0;
+	transfer_to_contract_op.fee.asset_id = asset_id_type(0);
+	transfer_to_contract_op.amount = transfer_asset;
+	transfer_to_contract_op.param = param;
+
+	signed_transaction tx;
+	tx.operations.push_back(transfer_to_contract_op);
+	auto current_fees = get_global_properties().parameters.current_fees;
+	for (auto& op : tx.operations)
+		current_fees->set_fee(op);
+
+
+	auto dyn_props = get_dynamic_global_properties();
+	tx.set_reference_block(dyn_props.head_block_id);
+	tx.set_expiration(dyn_props.time + fc::seconds(30));
+	tx.validate();
+	auto trx_res = validate_transaction(tx, true);
+	share_type gas_count = 0;
+	for (auto op_res : trx_res.operation_results)
+	{
+		try { gas_count += op_res.get<contract_operation_result_info>().gas_count; }
+		catch (...)
+		{
+
+		}
+	}
+	asset res_data_fee = tx.operations[0].get<transfer_contract_operation>().fee;
+	std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+	return res;
+}
+string database_api::invoke_contract_offline(const string & caller_pubkey_str, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+{
+	try {
+
+
+		contract_invoke_operation contract_invoke_op;
+
+		//juge if the name has been registered in the chain
+
+		public_key_type caller_pubkey(caller_pubkey_str);
+		contract_object cont;
+		std::string contract_address;
+		//try {
+		 //   auto temp = graphene::chain::address(contract_address_or_name);
+		 //   FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		//}
+		//catch (fc::exception& e)
+		//{
+		 //   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+		 //   contract_address = string(cont.contract_address);
+		//}
+		bool is_valid_address = true;
+		try {
+			auto temp = graphene::chain::address(contract_address_or_name);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		}
+		catch (fc::exception& e)
+		{
+			is_valid_address = false;
+		}
+		if (!is_valid_address)
+		{
+			cont = get_contract_object_by_name(contract_address_or_name);
+			contract_address = string(cont.contract_address);
+		}
+		else
+		{
+			cont = get_contract_object(contract_address_or_name);
+			contract_address = string(cont.contract_address);
+		}
+		auto& abi = cont.code.offline_abi;
+		if (abi.find(contract_api) == abi.end())
+			FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+
+		contract_invoke_op.gas_price = 0;
+		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		contract_invoke_op.caller_addr = caller_pubkey;
+		contract_invoke_op.caller_pubkey = caller_pubkey;
+		contract_invoke_op.contract_id = address(contract_address);
+		contract_invoke_op.contract_api = contract_api;
+		contract_invoke_op.contract_arg = contract_arg;
+		contract_invoke_op.fee.amount = 0;
+		contract_invoke_op.fee.asset_id = asset_id_type(0);
+		//contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		//contract_invoke_op.guarantee_id = get_guarantee_id();
+		signed_transaction tx;
+		tx.operations.push_back(contract_invoke_op);
+		auto current_fees = get_global_properties().parameters.current_fees;
+		for (auto& op : tx.operations)
+			current_fees->set_fee(op);
+
+		auto dyn_props = get_dynamic_global_properties();
+		tx.set_reference_block(dyn_props.head_block_id);
+		tx.set_expiration(dyn_props.time + fc::seconds(30));
+		tx.validate();
+		signed_transaction signed_tx(tx);
+		auto trx_res = validate_transaction(signed_tx, true);
+		share_type gas_count = 0;
+		string res = "some error happened, not api result get";
+		for (auto op_res : trx_res.operation_results)
+		{
+			try {
+				res = op_res.get<contract_operation_result_info>().api_result;
+			}
+			catch (...)
+			{
+				break;
+			}
+		}
+		return res;
+	}FC_CAPTURE_AND_RETHROW((caller_pubkey_str)(contract_address_or_name)(contract_api)(contract_arg))
 }
 
 graphene::chain::vector<graphene::chain::transaction_id_type> database_api::get_contract_history(const string& contract_id, uint64_t start, uint64_t end)
