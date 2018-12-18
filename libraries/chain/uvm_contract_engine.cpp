@@ -10,6 +10,9 @@ namespace uvm
 	UvmContractEngine::UvmContractEngine(bool use_contract)
 	{
 		_scope = std::make_shared<uvm::lua::lib::UvmStateScope>(use_contract);
+
+		_scope->L()->out = nullptr;
+		_scope->L()->err = nullptr;
 	}
 	UvmContractEngine::~UvmContractEngine()
 	{

@@ -128,6 +128,7 @@ bool database::push_block(const signed_block& new_block, uint32_t skip)
 bool database::_push_block(const signed_block& new_block)
 { try {
    uint32_t skip = get_node_properties().skip_flags;
+   static int discard_count = 0;
    if( !(skip&skip_fork_db) )
    {
       /// TODO: if the block is greater than the head block and before the next maitenance interval
@@ -169,6 +170,17 @@ bool database::_push_block(const signed_block& new_block)
                 ilog( "pushing blocks from fork ${n} ${id}", ("n",(*ritr)->data.block_num())("id",(*ritr)->data.id()) );
                 optional<fc::exception> except;
                 try {
+					if ((*ritr)->data.timestamp < time_point::now() - fc::seconds(7200))
+					{
+						discard_count++;
+						if (discard_count >= 10)
+							_undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+					}
+					else
+					{
+						discard_count = 0;
+						_undo_db.set_max_size(1440);
+					}
                    undo_database::session session = _undo_db.start_undo_session();
                    apply_block( (*ritr)->data, skip );
                    _block_id_to_block.store( (*ritr)->id, (*ritr)->data );
@@ -193,6 +205,17 @@ bool database::_push_block(const signed_block& new_block)
                    // restore all blocks from the good fork
                    for( auto ritr = branches.second.rbegin(); ritr != branches.second.rend(); ++ritr )
                    {
+					   if ((*ritr)->data.timestamp < time_point::now()-fc::seconds(7200))
+					   {
+						   discard_count++;
+						   if (discard_count >= 10)
+							   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+					   }
+					   else
+					   {
+						   discard_count = 0;
+						   _undo_db.set_max_size(1440);
+					   }
                       auto session = _undo_db.start_undo_session();
                       apply_block( (*ritr)->data, skip );
                       _block_id_to_block.store( new_block.id(), (*ritr)->data );
@@ -208,6 +231,18 @@ bool database::_push_block(const signed_block& new_block)
    }
 
    try {
+
+	   if (new_block.timestamp < time_point::now() - fc::seconds(7200))
+	   {
+		   discard_count++;
+		   if (discard_count >= 10)
+			   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+	   }
+	   else
+	   {
+		   discard_count = 0;
+		   _undo_db.set_max_size(1440);
+	   }
       auto session = _undo_db.start_undo_session();
       apply_block(new_block, skip);
       _block_id_to_block.store(new_block.id(), new_block);
@@ -681,33 +716,34 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    const chain_parameters& chain_parameters = get_global_properties().parameters;
    eval_state._trx = &trx;
    eval_state.testing = testing;
-   if( !(skip & (skip_transaction_signatures | skip_authority_check) ) )
-   {
-	      auto get_addresses = [&](address addr) {
-		  const auto& bal_idx = get_index_type<balance_index>();
-		  const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
-		  auto iter = by_owner_idx.find(boost::make_tuple(addr, asset_id_type(0)));
-		  if (iter != by_owner_idx.end())
-		  {
-			  if (iter->multisignatures.valid())
-			  {
-				  auto required = iter->multisignatures->begin()->first;
-				  auto addresses = iter->multisignatures->begin()->second;
-				  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,required,addresses);
-			  }
-		  }
-		  return std::tuple < address, int, fc::flat_set<public_key_type>>(addr,0,fc::flat_set<public_key_type>());
-	      };
-		  auto is_blocked_address = [&](address addr) {
-			 // need to check
-			  const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
-			  if (blocked_idx.find(addr) != blocked_idx.end())
-				  return true;
-			  return false;
-		  };
-      trx.verify_authority( chain_id,get_addresses, is_blocked_address,get_global_properties().parameters.max_authority_depth );
+   if (!testing) {
+	   if (!(skip & (skip_transaction_signatures | skip_authority_check)))
+	   {
+		   auto get_addresses = [&](address addr) {
+			   const auto& bal_idx = get_index_type<balance_index>();
+			   const auto& by_owner_idx = bal_idx.indices().get<by_owner>();
+			   auto iter = by_owner_idx.find(boost::make_tuple(addr, asset_id_type(0)));
+			   if (iter != by_owner_idx.end())
+			   {
+				   if (iter->multisignatures.valid())
+				   {
+					   auto required = iter->multisignatures->begin()->first;
+					   auto addresses = iter->multisignatures->begin()->second;
+					   return std::tuple < address, int, fc::flat_set<public_key_type>>(addr, required, addresses);
+				   }
+			   }
+			   return std::tuple < address, int, fc::flat_set<public_key_type>>(addr, 0, fc::flat_set<public_key_type>());
+		   };
+		   auto is_blocked_address = [&](address addr) {
+			   // need to check
+			   const auto& blocked_idx = get_index_type<blocked_index>().indices().get<by_address>();
+			   if (blocked_idx.find(addr) != blocked_idx.end())
+				   return true;
+			   return false;
+		   };
+		   trx.verify_authority(chain_id, get_addresses, is_blocked_address, get_global_properties().parameters.max_authority_depth);
+	   }
    }
-
    //Skip all manner of expiration and TaPoS checking if we're on block 1; It's impossible that the transaction is
    //expired, and TaPoS makes no sense as no blocks exist.
    if( BOOST_LIKELY(head_block_num() > 0) )

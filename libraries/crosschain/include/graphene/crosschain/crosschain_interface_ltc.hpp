@@ -58,6 +58,7 @@ namespace graphene {
 			std::string _rpc_url;
 			const std::string chain_type = "LTC";
 			fc::http::headers _rpc_headers;
+			std::vector<std::tuple<std::string, fc::variant_object>> _trxs_queue;
 		};
 	}
 }
