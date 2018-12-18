@@ -6,7 +6,9 @@
 * File: util.cpp
 * Date: 2018-03-19
 */
-
+#include <graphene/utilities/hash.hpp>
+#include "Keccak.hpp"
+#include <fc/crypto/base58.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <fc/variant.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
@@ -80,7 +82,7 @@ namespace graphene {
 		}
 		fc::variant_object hc_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction_hc(trx);
 			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object ltc_privatekey::decoderawtransaction(const std::string& trx)
@@ -94,7 +96,206 @@ namespace graphene {
 			return fc::json::from_string(decode).get_object();
 		}
     }
+
 	namespace utxo {
+		
+		void input_todata(libbitcoin::istream_reader& source, libbitcoin::ostream_writer& write, libbitcoin::ostream_writer& write_cache) {
+			auto InputCount = source.read_size_little_endian();
+			write.write_size_little_endian(uint64_t(InputCount));
+			write_cache.write_size_little_endian(uint64_t(InputCount));
+			//std::cout << InputCount << std::endl;
+			for (uint64_t i = 0; i < InputCount; ++i) {
+				auto Hash = source.read_hash();
+				auto Index = source.read_4_bytes_little_endian();
+				auto Tree = source.read_size_little_endian();
+				write.write_hash(Hash);
+				write.write_4_bytes_little_endian(Index);
+				write.write_size_little_endian(Tree);
+				write_cache.write_hash(Hash);
+				write_cache.write_4_bytes_little_endian(Index);
+				write_cache.write_size_little_endian(Tree);
+				auto Sequence = source.read_4_bytes_little_endian();
+				write.write_4_bytes_little_endian(Sequence);
+				write_cache.write_4_bytes_little_endian(Sequence);
+			}
+		}
+		void output_todata(libbitcoin::istream_reader& source, libbitcoin::ostream_writer& write, libbitcoin::ostream_writer& write_cache) {
+			auto OutputCount = source.read_size_little_endian();
+			write.write_size_little_endian((uint64_t)OutputCount);
+			write_cache.write_size_little_endian((uint64_t)OutputCount);
+			//std::cout << (uint64_t)OutputCount << std::endl;
+			for (uint64_t i = 0; i < OutputCount; ++i) {
+				auto Value = source.read_8_bytes_little_endian();
+				auto Version = source.read_2_bytes_little_endian();
+				auto output_count = source.read_size_little_endian();
+				auto PkScript = source.read_bytes(output_count);
+				write.write_8_bytes_little_endian(Value);
+				write.write_2_bytes_little_endian(Version);
+				write.write_size_little_endian(output_count);
+				write.write_bytes(PkScript);
+				write_cache.write_8_bytes_little_endian(Value);
+				write_cache.write_2_bytes_little_endian(Version);
+				write_cache.write_size_little_endian(output_count);
+				write_cache.write_bytes(PkScript);
+
+				//std::cout << PkScript.size() << "-" << output_count<<std::endl;
+			}
+		}
+		std::string decoderawtransaction_hc(const std::string& trx) {
+			std::ostringstream obj;
+			libbitcoin::data_chunk input_writ;
+			libbitcoin::data_sink input_ostream(input_writ);
+			libbitcoin::ostream_writer input_w(input_ostream);
+			libbitcoin::data_chunk output_writ;
+			libbitcoin::data_sink output_ostream(output_writ);
+			libbitcoin::ostream_writer output_w(output_ostream);
+			libbitcoin::data_chunk writ;
+			libbitcoin::data_sink ostream(writ);
+			libbitcoin::ostream_writer w(ostream);
+			libbitcoin::data_chunk aa = libbitcoin::config::base16(trx);
+			libbitcoin::data_source va(aa);
+			libbitcoin::istream_reader source(va);
+			//without witness 
+			uint32_t versiona = source.read_4_bytes_little_endian();
+			uint32_t version_prefix = versiona | (1 << 16);
+			uint32_t version_witness = versiona | (3 << 16);
+			w.write_4_bytes_little_endian(version_prefix);
+			input_todata(source, w, input_w);
+			output_todata(source, w, output_w);
+			uint32_t locktime = source.read_4_bytes_little_endian();
+			uint32_t expir = source.read_4_bytes_little_endian();
+			w.write_4_bytes_little_endian(locktime);
+			w.write_4_bytes_little_endian(expir);
+			ostream.flush();
+			input_ostream.flush();
+			output_ostream.flush();
+			uint256 higest1 = HashR14(writ.begin(), writ.end());
+			libbitcoin::hash_digest higest_bitcoin1;
+			for (int i = 0; i < higest_bitcoin1.size(); i++)
+			{
+				higest_bitcoin1.at(i) = *(higest1.begin() + i);
+			}
+			for(int i = 0; i < higest_bitcoin1.size() / 2; i++ ){
+				auto temp = higest_bitcoin1[i];
+				higest_bitcoin1[i] = higest_bitcoin1[higest_bitcoin1.size() - 1 - i];
+				higest_bitcoin1[higest_bitcoin1.size() - 1 - i] = temp;
+			}
+			libbitcoin::chain::transaction  tx;
+			tx.from_data(libbitcoin::config::base16(trx));
+			auto hash = tx.hash(false);
+			std::reverse(hash.begin(), hash.end());
+			obj << "{\"hash\": \"" << libbitcoin::encode_base16(higest_bitcoin1) << "\",\"inputs\": {";
+			
+			
+			//insert input:
+			libbitcoin::data_source input_reader(input_writ);
+			libbitcoin::istream_reader input_source(input_reader);
+			auto InputCount = input_source.read_size_little_endian();
+			auto witness_count = source.read_size_little_endian();
+			//std::cout << InputCount << std::endl;
+			for (uint64_t i = 0; i < InputCount; ++i) {
+				if (i > 0)
+					obj << ",";
+				obj << "\"input\": {";
+				auto Hash = input_source.read_hash();
+				for (int i = 0; i < Hash.size() / 2; i++) {
+					auto temp = Hash[i];
+					Hash[i] = Hash[Hash.size() - 1 - i];
+					Hash[Hash.size() - 1 - i] = temp;
+				}
+				auto Index = input_source.read_4_bytes_little_endian();
+				auto Tree = input_source.read_size_little_endian();
+				obj << "\"previous_output\": { \
+                       \"hash\": \"" << libbitcoin::encode_base16(Hash);
+				obj << "\",\"index\": " << Index;
+				obj << "},";
+				if (i < witness_count){
+					auto ValueIn = source.read_8_bytes_little_endian();
+					auto BlockHeight = source.read_4_bytes_little_endian();
+					auto BlockIndex = source.read_4_bytes_little_endian();
+					auto signtureCount = source.read_size_little_endian();
+					
+					auto SignatureScript = source.read_bytes(signtureCount);
+					obj << "\"script\": \"" << libbitcoin::encode_base16(libbitcoin::data_slice(SignatureScript)) << "\",";
+					obj << "\"ValueIn\": " << ValueIn << ",";
+					
+				}
+				auto Sequence = input_source.read_4_bytes_little_endian();
+				obj << "\"sequence\": " << Sequence << "}";
+			}
+			obj << "},\
+                \"lock_time\": " << locktime << ",\"outputs\": {";
+			//insert output:
+			libbitcoin::data_source output_reader(output_writ);
+			libbitcoin::istream_reader output_source(output_reader);
+			auto OutputCount = output_source.read_size_little_endian();
+			//std::cout << (uint64_t)OutputCount << std::endl;
+			for (uint64_t i = 0; i < OutputCount; ++i) {
+				auto Value = output_source.read_8_bytes_little_endian();
+				auto Version = output_source.read_2_bytes_little_endian();
+				auto output_count = output_source.read_size_little_endian();
+				auto PkScript = output_source.read_bytes(output_count);
+				libbitcoin::chain::script a(PkScript, false);
+				//std::cout << "out put script is " << a.to_string(libbitcoin::machine::all_rules) << std::endl;
+				if (i > 0)
+					obj << ",";
+				obj << "\"output\": {";
+				
+				if (a.size() == 5)
+				{
+					
+					if (a[0] == libbitcoin::machine::opcode::dup && 
+						a[1] == libbitcoin::machine::opcode::hash160 &&
+						a[3] == libbitcoin::machine::opcode::equalverify && 
+						a[4] == libbitcoin::machine::opcode::checksig) {
+						//auto pubkeyhash = a[2];
+						fc::array<char, 26> addr;
+						//test line
+						//int version = 0x0f21;
+						int version = 0x097f;
+						addr.data[0] = char(version >> 8);
+						addr.data[1] = (char)version;
+						for (int i = 0; i < a[2].data().size(); i++)
+						{
+							addr.data[i + 2] = a[2].data()[i];
+						}
+						//memcpy(addr.data + 2, (char*)&(a[2].data()), a[2].data().size());
+						auto check = HashR14(addr.data, addr.data + a[2].data().size() + 2);
+						check = HashR14((char*)&check, (char*)&check + sizeof(check));
+						memcpy(addr.data + 2 + a[2].data().size(), (char*)&check, 4);
+						obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
+					}
+				}
+				else if (a.size() == 3)
+				{
+					if (a[0] == libbitcoin::machine::opcode::hash160 &&
+						a[2] == libbitcoin::machine::opcode::equal)
+					{
+						//auto pubkeyhash = a[1];
+						fc::array<char, 26> addr;
+						//test line
+						//int version = 0x0efc;
+						int version = 0x095a;
+						addr.data[0] = char(version >> 8);
+						addr.data[1] = (char)version;
+						for (int i = 0; i < a[1].data().size(); i++)
+						{
+							addr.data[i + 2] = a[1].data()[i];
+						}
+						auto check = HashR14(addr.data, addr.data + a[1].data().size() + 2);
+						check = HashR14((char*)&check, (char*)&check + sizeof(check));
+						memcpy(addr.data + 2 + a[1].data().size(), (char*)&check, 4);
+						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
+						obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+					}
+				}
+				obj << "\"script\": \"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
+				obj << "\"value\": " << Value << "}";
+			}
+			obj << "}}";
+			return obj.str();
+		}
 		std::string decoderawtransaction(const std::string& trx)
 		{
 			std::ostringstream obj;
