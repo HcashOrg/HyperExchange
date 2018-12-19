@@ -22,7 +22,7 @@ namespace fc {
 		 void re_request_now();
          optional<time_point> get_time()const;
 
-         int64_t get_delta_microseconds()const;
+         static int64_t get_delta_microseconds();
 		 ntp_info get_ntp_info() const;
       private:
         std::unique_ptr<detail::ntp_impl> my;

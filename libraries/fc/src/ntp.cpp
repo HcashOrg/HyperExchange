@@ -97,8 +97,8 @@ namespace fc
       uint32_t                                         _retry_failed_request_interval_sec;
       fc::time_point                                   _last_valid_ntp_reply_received_time;
 
-      std::atomic_bool                                 _last_ntp_delta_initialized;
-      std::atomic<int64_t>                             _last_ntp_delta_microseconds;
+      static std::atomic_bool                                 _last_ntp_delta_initialized;
+      static std::atomic<int64_t>                             _last_ntp_delta_microseconds;
 
 
       fc::future<void>                                 _request_time_task_done;
@@ -106,9 +106,9 @@ namespace fc
       ntp_impl() :
       _ntp_thread("ntp"),
       _request_interval_sec( 60*60 /* 1 hr */),
-      _retry_failed_request_interval_sec(60 * 5),
-      _last_ntp_delta_microseconds(0)
+      _retry_failed_request_interval_sec(60 * 5)
       { 
+		_last_ntp_delta_microseconds = 0;
         _last_ntp_delta_initialized = false;
         _ntp_hosts.push_back(std::make_pair("pool.ntp.org", 123));
 		_ntp_hosts.push_back(std::make_pair("cn.ntp.org.cn", 123));
@@ -290,9 +290,9 @@ namespace fc
       } //end read_loop()
     }; //ntp_impl
 
+	std::atomic_bool                                 ntp_impl::_last_ntp_delta_initialized;
+	std::atomic<int64_t>                             ntp_impl::_last_ntp_delta_microseconds;
   } // namespace detail
-
-
   ntp::ntp()
   :my( new detail::ntp_impl() )
   {
@@ -361,9 +361,11 @@ namespace fc
     return optional<time_point>();
   }
 
-  int64_t ntp::get_delta_microseconds() const
+  int64_t ntp::get_delta_microseconds() 
   {
-      return my->_last_ntp_delta_microseconds;
+	  if(detail::ntp_impl::_last_ntp_delta_initialized)
+		return detail::ntp_impl::_last_ntp_delta_microseconds;
+	  return 0;
   }
   ntp_info ntp::get_ntp_info() const
   {
