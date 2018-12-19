@@ -104,7 +104,8 @@ namespace graphene {
 				for (const auto& bal : itr->bonus)
 				{
 					const auto& asset_obj = get(bal.first);
-					result[asset_obj.symbol] = bal.second;
+					if (bal.second > 0)
+						result[asset_obj.symbol] = bal.second;
 				}
 			}
 			return result;

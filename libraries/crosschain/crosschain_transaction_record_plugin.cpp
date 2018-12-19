@@ -133,15 +133,20 @@ namespace graphene {
 			}FC_LOG_AND_RETHROW()
 		}
 		void crosschain_record_plugin::plugin_startup(){
-			if (!_miners.empty() || !_guard.empty()){
-				auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
-				fut.wait();
-			}
-			else{
-				elog("No miner or guard in this client");
-			}
+			try {
+				if (!_miners.empty() || !_guard.empty()) {
+					auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
+					fut.wait();
+				}
+				else {
+					elog("No miner or guard in this client");
+				}
+			}FC_CAPTURE_AND_RETHROW()
 		}
 		void crosschain_record_plugin::plugin_shutdown(){
+			try {
+				_thread.quit();
+			}FC_CAPTURE_AND_RETHROW()
 			return;
 		}
 	}
