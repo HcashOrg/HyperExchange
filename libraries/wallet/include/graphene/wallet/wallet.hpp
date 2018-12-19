@@ -951,7 +951,8 @@ class wallet_api
 	  * @param broadcast true to broadcast the transaction on the network
 	  * @returns the signed transaction registering the account
 	  */
-	  address wallet_create_account(string account_name);
+	  address wallet_create_account(string account_name); 
+	  address wallet_create_sub_account(string account_name, const string& parent = "");
 
       /** Transfer an amount from one account to another.
        * @param from the name or id of the account sending the funds
@@ -2174,6 +2175,7 @@ FC_API( graphene::wallet::wallet_api,
         (upgrade_account)
         (create_account_with_brain_key)
 	    (wallet_create_account)
+		(wallet_create_sub_account)
         (senator_change_eth_gas_price)
         
         (get_eth_multi_account_trx)

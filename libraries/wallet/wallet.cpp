@@ -2534,7 +2534,45 @@ public:
 		   
 	   }FC_CAPTURE_AND_RETHROW((account_name))
    }
-   
+
+   address create_account(string account_name,string parent)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   if (!is_valid_account_name(account_name))
+			   FC_THROW("Invalid account name!");
+		   auto& itr = _wallet.my_accounts.get<by_name>();
+		   FC_ASSERT(itr.count(account_name) == 0, "Account with that name has exist!");
+		   auto pit = itr.find(parent);
+		   FC_ASSERT(pit != itr.end(), "parent account not found");
+		   auto key_it = this->_keys.find(pit->addr);
+		   FC_ASSERT(key_it != this->_keys.end(), "parent key not found");
+		   auto key = wif_to_key(key_it->second);
+		   auto get_private_key = [account_name, key, this]()->address
+		   {
+
+
+			   FC_ASSERT(key.valid(), "parent key not valid");
+
+			   auto result = key->child(account_name);
+			   auto addr = address(result.get_public_key());
+			   auto str_prk = key_to_wif(result);
+			   _keys[addr] = str_prk;
+
+			   account_object acc;
+			   acc.addr = addr;
+			   acc.name = account_name;
+			   _wallet.update_account(acc);
+
+			   save_wallet_file();
+			   return address(result.get_public_key());
+		   };
+		   auto addr = get_private_key();
+		   _remote_trx->set_tracked_addr(addr);
+		   return addr;
+
+	   }FC_CAPTURE_AND_RETHROW((account_name))
+   }
    full_transaction create_asset(string issuer,
                                    string symbol,
                                    uint8_t precision,
@@ -7283,7 +7321,13 @@ full_transaction wallet_api::create_account_with_brain_key(string brain_key, str
 
 address wallet_api::wallet_create_account(string account_name)
 {
-	return my->create_account(account_name);
+		return my->create_account(account_name);
+}
+address wallet_api::wallet_create_sub_account(string account_name, const string& parent)
+{
+	if (parent == "")
+		return my->create_account(account_name);
+	return my->create_account(account_name, parent);
 }
 full_transaction wallet_api::set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast)
 {
