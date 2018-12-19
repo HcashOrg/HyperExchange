@@ -136,7 +136,11 @@ namespace fc { namespace ecc {
        fc::raw::pack( enc, offset );
        return generate_from_seed( get_secret(), enc.result() );
     }
-
+	private_key private_key::child(const string& offset)const
+	{
+		auto hash=sha256::hash(offset.c_str(), offset.length());
+		return child(hash);
+	}
     std::string public_key::to_base58( const public_key_data &key )
     {
       uint32_t check = (uint32_t)sha256::hash(key.data, sizeof(key))._hash[0];

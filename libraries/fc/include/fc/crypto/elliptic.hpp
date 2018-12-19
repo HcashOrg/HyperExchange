@@ -103,7 +103,8 @@ namespace fc {
            static private_key generate();
            static private_key regenerate( const fc::sha256& secret );
 
-           private_key child( const fc::sha256& offset )const;
+		   private_key child(const fc::sha256& offset)const;
+		   private_key child(const string& offset)const;
 
            /**
             *  This method of generation enables creating a new private key in a deterministic manner relative to
