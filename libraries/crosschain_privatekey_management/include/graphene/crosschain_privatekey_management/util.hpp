@@ -34,6 +34,7 @@ namespace graphene {
 		std::string decoderawtransaction(const std::string& trx);
 		bool validateUtxoTransaction(const std::string& addr, const std::string& redeemscript, const std::string& sig);
 		bool verify_message(const std::string addr, const std::string& content, const std::string& encript,const std::string& prefix);
+		std::string combine_trx(const std::vector<std::string>& trxs);
 	}
 }
 

@@ -138,11 +138,16 @@ namespace graphene {
 				for (const auto& q : _trxs_queue)
 				{
 					if (get<0>(q) == req_body.str())
+					{
+						std::cout << "queryTransBatch success without middleware." << std::endl;
 						return get<1>(q);
+					}
+						
 				}
 				fc::http::connection_sync conn;
 				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+				std::cout <<"queryTransBatch success " << std::endl;
 				if (response.status == fc::http::reply::OK)
 				{
 					auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end())).get_object();
