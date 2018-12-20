@@ -171,6 +171,7 @@ struct wallet_data
    // script bindings
    fc::mutex script_lock;
    //
+   vector<string> mining_accounts;
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
    {
@@ -2097,6 +2098,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_scripts)
             (cipher_keys)
             (extra_keys)
+			(mining_accounts)
             (pending_account_registrations)(pending_miner_registrations)
 			(pending_account_updation)
             (labeled_keys)

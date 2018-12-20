@@ -8283,6 +8283,15 @@ void wallet_api::unlock(string password)
    my->_crosschain_keys = std::move(pk.crosschain_keys);
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
+   try
+   {
+	   start_mining(my->_wallet.mining_accounts);
+   }
+   catch (const fc::exception& e)
+   {
+	   std::cout << "start mining error:" << e.to_detail_string() << std::endl;
+   }
+
 } FC_CAPTURE_AND_RETHROW() }
 
 void wallet_api::set_password( string password )
@@ -9271,6 +9280,7 @@ void wallet_api::start_mining(const vector<string>& accts)
 		keys.insert(make_pair((*witness).id.as<miner_id_type>(),*optional_private_key));
 	}
 	my->start_mining(keys);
+	my->_wallet.mining_accounts = accts;
 }
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
