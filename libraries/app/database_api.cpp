@@ -362,7 +362,23 @@ contract_object database_api::get_contract_object(const string& contract_address
 {
     return my->get_contract_object(contract_address);
 }
-
+ContractEntryPrintable database_api::get_simple_contract_info(const string & contract_address_or_name) const
+{
+	std::string contract_address;
+	try {
+		auto temp = graphene::chain::address(contract_address_or_name);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		contract_address = temp.operator fc::string();
+	}
+	catch (fc::exception& e)
+	{
+		auto cont =get_contract_object_by_name(contract_address_or_name);
+		contract_address = string(cont.contract_address);
+	}
+	ContractEntryPrintable result = get_contract_object(contract_address);
+	result.code_printable.printable_code = "";
+	return result;
+}
 ContractEntryPrintable database_api::get_contract_info_by_name(const string& contract_name)const
 {
     return my->get_contract_object_by_name(contract_name);
