@@ -1266,7 +1266,7 @@ namespace graphene {
 					 return "address";
 				 }
 				 auto itr_senator = guard_idx.get<by_account>().find(itr->get_id());
-				 if (itr_senator != guard_idx.get<by_account>().end())
+				 if (itr_senator != guard_idx.get<by_account>().end() && itr_senator->formal == true)
 					 return "senator";
 				 auto itr_citizen = miner_idx.get<by_account>().find(itr->get_id());
 				 if (itr_citizen != miner_idx.get<by_account>().end())
