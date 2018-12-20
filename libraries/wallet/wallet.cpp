@@ -917,6 +917,36 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((symbol))
 	   
    }
+   crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol,const string& message,const string&parent)
+   {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   FC_ASSERT(ptr != nullptr, "plugin doesnt exist.");
+
+		   auto& itr = _wallet.my_accounts.get<by_name>();
+		   auto pit = itr.find(parent);
+		   FC_ASSERT(pit != itr.end(), "parent account not found");
+		   auto key_it = this->_keys.find(pit->addr);
+		   FC_ASSERT(key_it != this->_keys.end(), "parent key not found");
+		   auto key = wif_to_key(key_it->second);
+
+
+		   ptr->_key=key->child(message);
+		   auto addr = ptr->get_address();
+		   auto pubkey = ptr->get_public_key();
+		   crosschain_prkeys keys;
+		   keys.addr = addr;
+		   keys.pubkey = pubkey;
+		   keys.wif_key = ptr->get_wif_key();
+
+		   FC_ASSERT(_crosschain_keys.find(addr) == _crosschain_keys.end(),"Create Key has exsited");
+		   _crosschain_keys[addr] = keys;
+		   save_wallet_file();
+		   return keys;
+	   }FC_CAPTURE_AND_RETHROW((symbol))
+
+   }
 
    account_id_type get_account_id(string account_name_or_id) const
    {
@@ -9257,7 +9287,10 @@ crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symb
 {
 	return my->wallet_create_crosschain_symbol(symbol);
 }
-
+crosschain_prkeys wallet_api::wallet_create_crosschain_symbol_with_msg(const string& symbol,const string& message,const string& parent)
+{
+	return my->wallet_create_crosschain_symbol(symbol, message,parent);
+}
 order_book wallet_api::get_order_book( const string& base, const string& quote, unsigned limit )
 {
    return( my->_remote_db->get_order_book( base, quote, limit ) );

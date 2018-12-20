@@ -2021,6 +2021,8 @@ class wallet_api
 	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol, const string& out_key_file, const string& encrypt_key,bool broadcast=true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
+	  crosschain_prkeys wallet_create_crosschain_symbol_with_msg(const string& symbol, const string& message, const string& parent);
+
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
@@ -2321,6 +2323,7 @@ FC_API( graphene::wallet::wallet_api,
 		(dump_crosschain_private_key)
 		(dump_crosschain_private_keys)
 		(wallet_create_crosschain_symbol)
+		(wallet_create_crosschain_symbol_with_msg)
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)

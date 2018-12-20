@@ -116,7 +116,23 @@ namespace graphene {
 			save_wallet_file(_wallet_name);
 			return string(new_account.addr);
 		}
+		std::string crosschain_interface_emu::create_sub_account(std::string account_name, const fc::ecc::private_key &p)
+		{
+			auto& idx = _wallet.my_accounts.get<by_name>();
+			auto itr = idx.find(account_name);
+			FC_ASSERT(itr == idx.end());
 
+
+			auto owner_key = p.child(account_name);
+			account_object new_account;
+			new_account.addr = address(owner_key.get_public_key());
+			new_account.name = account_name;
+			_balances.insert(std::make_pair("account_name", 10000));
+			_wallet.my_accounts.emplace(new_account);
+			_keys.emplace(new_account.addr, key_to_wif(owner_key));
+			save_wallet_file(_wallet_name);
+			return string(new_account.addr);
+		}
 		std::map<std::string, std::string> crosschain_interface_emu::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			fc::sha256::encoder endcoder;

@@ -68,7 +68,25 @@ namespace graphene {
 			////std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 			return ptr->get_wif_key();
 		}
-		
+		std::string crosschain_interface_ltc::create_sub_account(std::string account_name, const fc::ecc::private_key &p)
+		{
+			auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(chain_type);
+			if (ptr == nullptr)
+				return "";
+			ptr->_key=p.child(account_name);
+
+			//std::ostringstream req_body;
+			//req_body << "{ \"jsonrpc\": \"2.0\", \
+            //    \"id\" : \"45\", \
+			//	\"method\" : \"Zchain.Addr.importAddr\" ,\
+			//	\"params\" : {\"chainId\":\"ltc\" ,\"addr\": \"" << ptr->get_address() << "\"}}";
+			//std::cout << req_body.str() << std::endl;
+			//fc::http::connection_sync conn;
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			//auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+			////std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
+			return ptr->get_wif_key();
+		}
 		std::map<std::string,std::string> crosschain_interface_ltc::create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired)
 		{
 			std::ostringstream req_body;
