@@ -77,6 +77,9 @@ namespace graphene {
 			// Create a new address.
 			virtual std::string create_normal_account(std::string account_name) =0;
 
+
+			virtual std::string create_sub_account(std::string account_name, const fc::ecc::private_key& parent)=0;
+
 			// Create a multi-signed account.
 			virtual std::map<std::string,std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
 

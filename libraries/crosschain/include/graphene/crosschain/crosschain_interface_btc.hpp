@@ -27,6 +27,7 @@ namespace graphene {
 			virtual void close_wallet() override;
 			virtual std::vector<std::string> wallet_list() override;
 			virtual std::string create_normal_account(std::string account_name) override;
+			virtual std::string create_sub_account(std::string account_name,const fc::ecc::private_key& parent) override;
 			virtual std::map<std::string,std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) override;
 			virtual std::vector<hd_trx> deposit_transaction_query(std::string user_account, uint32_t from_block, uint32_t limit) override;
 			virtual fc::variant_object transaction_query(std::string trx_id) override;
