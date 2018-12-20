@@ -636,6 +636,7 @@ class database_api
       //contract 
       contract_object get_contract_object(const string& contract_address)const;
 	  contract_object get_contract_object_by_name(const string& contract_name)const;
+	  ContractEntryPrintable get_simple_contract_info(const string & contract_address_or_name) const;
 
       ContractEntryPrintable get_contract_info(const string& contract_address)const;
 
@@ -822,6 +823,7 @@ FC_API(graphene::app::database_api,
     (get_contract_object)
 	(get_contract_object_by_name)
     (get_contract_info)
+	(get_simple_contract_info)
     (get_contract_info_by_name)
     (get_contract_balance)
     (get_contract_event_notify)
