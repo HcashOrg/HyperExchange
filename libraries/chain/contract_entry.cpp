@@ -125,6 +125,7 @@ namespace graphene {
             type_of_contract = obj.type_of_contract;
             code_printable = obj.code;
             registered_block = obj.registered_block;
+			registered_trx = obj.registered_trx;
             if (obj.inherit_from != address())
             {
                 inherit_from = obj.inherit_from.operator fc::string();

@@ -63,6 +63,7 @@ namespace graphene {
             bool exec_succeed = true;
             share_type acctual_fee;
             address invoker;
+			optional<address> contract_registed;
 			void reset();
             void set_failed(const share_type & fee);
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string

@@ -75,6 +75,8 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
+
+			invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			address fid = contract_register_operation::get_first_contract_id();
 
@@ -131,6 +133,7 @@ namespace graphene {
                 new_contract.owner_address = o.owner_addr;
                 new_contract.create_time = o.register_time;
                 new_contract.inherit_from = o.inherit_from;
+				new_contract.registered_trx = get_current_trx_id();
                 new_contract.registered_block = d.head_block_num() + 1;
                 if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
                     new_contract.type_of_contract = contract_based_on_template;
@@ -424,6 +427,8 @@ namespace graphene {
 			database& d = db();
 
             auto  trx_id = get_current_trx_id();
+
+			invoke_contract_result.contract_registed = new_contract.contract_address;
 			// commit contract result to db
             if (invoke_contract_result.exec_succeed)
             {
@@ -458,7 +463,7 @@ namespace graphene {
 			do_apply_contract_event_notifies();
 
             }
-
+			invoke_contract_result.contract_registed = new_contract.contract_address;
             db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}

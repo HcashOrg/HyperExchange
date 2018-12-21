@@ -16,6 +16,8 @@ namespace graphene {
             static const uint8_t space_id = protocol_ids;
             static const uint8_t type_id = contract_object_type;
             uint32_t  registered_block;
+
+			transaction_id_type registered_trx;
             uvm::blockchain::Code code;
             address owner_address;
             time_point_sec create_time;
@@ -23,6 +25,7 @@ namespace graphene {
             address contract_address;
 			string contract_name;
 			string contract_desc;
+
             contract_type type_of_contract = normal_contract;
 			string native_contract_key; // key to find native contract code
             vector<address> derived;
@@ -139,6 +142,7 @@ namespace graphene {
             bool exec_succeed = true;
             share_type acctual_fee;
             address invoker;
+			optional<address> contract_registed;
             std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
 
            std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
@@ -187,13 +191,13 @@ namespace graphene {
 
 }
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (registered_block)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
+    (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
     //(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
 

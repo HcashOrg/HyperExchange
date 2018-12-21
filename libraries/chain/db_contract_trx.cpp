@@ -244,6 +244,7 @@ namespace graphene {
                         obj.block_num = block_num+1;
                         obj.op_num = op_num;
                         obj.invoker = invoker;
+						obj.contract_registed = res.contract_registed;
                         for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
                         {
                             obj.contract_withdraw.insert( make_pair(it->first,it->second));
@@ -365,6 +366,7 @@ namespace graphene {
                     obj.inherit_from = contract.inherit_from;
                     obj.derived = contract.derived;
                     obj.registered_block = contract.registered_block;
+					obj.registered_trx = contract.registered_trx;
                 });
             }
             else
