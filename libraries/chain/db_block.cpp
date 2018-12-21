@@ -224,6 +224,7 @@ bool database::_push_block(const signed_block& new_block)
                    throw *except;
                 }
             }
+			std::cout << "push block success in if " << std::endl;
             return true;
          }
          else return false;
@@ -247,6 +248,7 @@ bool database::_push_block(const signed_block& new_block)
       apply_block(new_block, skip);
       _block_id_to_block.store(new_block.id(), new_block);
       session.commit();
+	  std::cout << "push block success out of if" << std::endl;
    } catch ( const fc::exception& e ) {
       elog("Failed to push new block:\n${e}", ("e", e.to_detail_string()));
       _fork_db.remove(new_block.id());
