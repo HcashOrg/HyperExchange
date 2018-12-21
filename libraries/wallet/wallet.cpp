@@ -8285,7 +8285,11 @@ void wallet_api::unlock(string password)
    my->self.lock_changed(false);
    try
    {
-	   start_mining(my->_wallet.mining_accounts);
+	   if (my->_wallet.mining_accounts.size())
+	   {
+		   start_mining(my->_wallet.mining_accounts);
+	   }
+	  
    }
    catch (const fc::exception& e)
    {
