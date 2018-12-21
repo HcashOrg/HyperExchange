@@ -441,6 +441,51 @@ namespace graphene {
 			uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
 			return libbitcoin::chain::script::generate_signature_hash(trx, index, libbitcoin_script, hash_type);
 		}
+
+		std::string combine_trx(const std::vector<std::string>& trxs)
+		{
+			std::map<int,fc::flat_set<std::string>> signatures;
+			libbitcoin::chain::transaction  tx;
+			std::string redeemscript;
+			int ins_size;
+			for (const auto trx : trxs)
+			{
+				tx.from_data(libbitcoin::config::base16(trx));
+				auto ins = tx.inputs();
+				ins_size = ins.size();
+				int vin_index = ins_size - 1;
+				for (; vin_index >= 0; vin_index--)
+				{
+					auto input = tx.inputs().at(vin_index);
+					std::string script_str = input.script().to_string(libbitcoin::machine::all_rules);
+					auto pos_first = script_str.find('[');
+					FC_ASSERT(pos_first != std::string::npos);
+					auto pos_end = script_str.find(']');
+					FC_ASSERT(pos_end != std::string::npos);
+					std::string hex = script_str.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
+					redeemscript.assign(script_str.begin()+pos_end+1,script_str.end());
+					signatures[vin_index].insert(hex);
+				}
+			}
+
+			for (auto index = 0; index < ins_size; index++)
+			{
+				std::string endorsement_script = "zero ";
+				for (const auto& sig : signatures[index])
+				{
+					endorsement_script += "[" + sig + "] ";
+				}
+				endorsement_script += "[" + redeemscript + "] ";
+				libbitcoin::chain::script   libbitcoin_script;
+				libbitcoin_script.from_string(endorsement_script);
+				tx.inputs()[index].set_script(libbitcoin_script);
+			}
+			return libbitcoin::encode_base16(tx.to_data());
+			
+		}
+
+
+
 	}
 }
 

@@ -13,6 +13,7 @@
 #include <string>
 #include "Keccak.hpp"
 #include <fc/variant_object.hpp>
+#include <fc/io/json.hpp>
 namespace graphene {
 	namespace privatekey_management {
 
@@ -42,6 +43,7 @@ namespace graphene {
 			bool set_script_prefix(int prefix = 0) { _script_prefix = prefix; return true; }
 			int get_script_prefix() { return _script_prefix; }
 			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx) =0;
+			virtual fc::variant_object combine_trxs(const std::vector<std::string>& trxs) ;
 			int get_privkey_prefix() { return _privkey_prefix; }
 			bool set_privkey_prefix(int prefix = 0)	{ _privkey_prefix = prefix; return true; }
 			void set_key(fc::ecc::private_key& key) { _key = key; }
