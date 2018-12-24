@@ -79,6 +79,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _fork_db.set_max_size(1440);
    _fork_db.reset();
    _undo_db.discard();
+   _undo_db.enable();
+   _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
    uint32_t undo_enable_num = last_block_num - 1440;
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
@@ -105,7 +107,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
       }
       _fork_db.push_block(*block);
 	  if (i >= undo_enable_num)
-		  _undo_db.enable();
+		  _undo_db.set_max_size(1440);
 	  auto session=_undo_db.start_undo_session();
       apply_block(*block, skip_miner_signature |
                           skip_transaction_signatures |

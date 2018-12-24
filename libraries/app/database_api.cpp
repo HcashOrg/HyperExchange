@@ -2891,6 +2891,75 @@ std::pair<asset, share_type> database_api::transfer_to_contract_testing(string p
 	std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
 	return res;
 }
+std::pair<asset, share_type> database_api::invoke_contract_testing(const string & pubkey, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+{
+	try {
+
+		public_key_type caller_pubkey = public_key_type(pubkey);
+		contract_invoke_operation contract_invoke_op;
+
+		//juge if the name has been registered in the chain
+
+
+
+		std::string contract_address;
+		contract_object cont;
+		bool is_valid_address = true;
+		try {
+			auto temp = graphene::chain::address(contract_address_or_name);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		}
+		catch (fc::exception& e)
+		{
+			is_valid_address = false;
+		}
+		if (!is_valid_address)
+		{
+			cont = get_contract_object_by_name(contract_address_or_name);
+			contract_address = string(cont.contract_address);
+		}
+		else
+		{
+			cont = get_contract_object(contract_address_or_name);
+			contract_address = string(cont.contract_address);
+		}
+		contract_invoke_op.gas_price = 0;
+		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		contract_invoke_op.caller_addr = caller_pubkey;
+		contract_invoke_op.caller_pubkey = caller_pubkey;
+		contract_invoke_op.contract_id = address(contract_address);
+		contract_invoke_op.contract_api = contract_api;
+		contract_invoke_op.contract_arg = contract_arg;
+		contract_invoke_op.fee.amount = 0;
+		contract_invoke_op.fee.asset_id = asset_id_type(0);
+
+		signed_transaction tx;
+		tx.operations.push_back(contract_invoke_op);
+		auto current_fees = get_global_properties().parameters.current_fees;
+		for (auto& op : tx.operations)
+			current_fees->set_fee(op);
+
+		auto dyn_props = get_dynamic_global_properties();
+		tx.set_reference_block(dyn_props.head_block_id);
+		tx.set_expiration(dyn_props.time + fc::seconds(30));
+		tx.validate();
+		signed_transaction signed_tx(tx);
+		auto trx_res = validate_transaction(signed_tx, true);
+		share_type gas_count = 0;
+		for (auto op_res : trx_res.operation_results)
+		{
+			try { gas_count += op_res.get<contract_operation_result_info>().gas_count; }
+			catch (...)
+			{
+
+			}
+		}
+		asset res_data_fee = signed_tx.operations[0].get<contract_invoke_operation>().fee;
+		std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+		return res;;
+	}FC_CAPTURE_AND_RETHROW((pubkey)(contract_address_or_name)(contract_api)(contract_arg))
+
+}
 string database_api::invoke_contract_offline(const string & caller_pubkey_str, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
 {
 	try {
