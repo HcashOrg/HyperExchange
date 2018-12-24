@@ -444,6 +444,8 @@ namespace graphene {
 					if (!opt_asset.valid()) {
 						continue;
 					}
+					if (!manager.contain_crosschain_handles(std::string(withop.asset_symbol)))
+						continue;
 					auto hdl = manager.get_crosschain_handle(std::string(withop.asset_symbol));
 					if (hdl == nullptr)
 						continue;
@@ -992,6 +994,8 @@ namespace graphene {
 					auto op = trx_itr->real_transaction.operations[0];
 					auto with_sign_op = op.get<crosschain_withdraw_without_sign_evaluate::operation_type>();
 					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					if (!manager.contain_crosschain_handles(std::string(with_sign_op.asset_symbol)))
+						continue;
 					auto hdl = manager.get_crosschain_handle(std::string(with_sign_op.asset_symbol));
 					crosschain_withdraw_combine_sign_operation trx_op;
 					vector<string> guard_signed(combine_signature.begin(), combine_signature.end());
