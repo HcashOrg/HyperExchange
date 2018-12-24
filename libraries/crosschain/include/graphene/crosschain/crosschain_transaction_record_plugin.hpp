@@ -20,6 +20,8 @@ namespace graphene {
 
 			virtual void plugin_initialize(const boost::program_options::variables_map& options) override;
 			virtual void plugin_startup() override;
+			void startup_whatever();
+			bool running();
 			virtual void plugin_shutdown() override;
 
 			void add_acquire_plugin(const std::string&);
@@ -32,6 +34,7 @@ namespace graphene {
 			std::set<chain::miner_id_type> _miners;
 			std::set<chain::guard_member_id_type> _guard;
 			fc::thread                            _thread;
+			bool started = false;
 		};
 	}
 }

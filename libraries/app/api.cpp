@@ -44,6 +44,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
+#include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
 #include <graphene/witness/witness.hpp>
 #include <signal.h>
 namespace graphene { namespace app {
@@ -168,6 +169,10 @@ namespace graphene { namespace app {
     }
 	void miner_api::set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add)
 	{
+		auto cplu = _app.get_plugin("crosschain record"); 
+		crosschain::crosschain_record_plugin* cpl = dynamic_cast<crosschain::crosschain_record_plugin*>(cplu.get());
+		if (!cpl->running()&&keys.size()>0)
+			cpl->startup_whatever();
 		auto plu = _app.get_plugin("miner");
 		FC_ASSERT(plu.get() != NULL);
 		miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
