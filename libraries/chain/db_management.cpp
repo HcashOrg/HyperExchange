@@ -76,7 +76,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    //_undo_db.reset();
    _undo_db.set_max_size(1440);
    _undo_db.enable();
-   _fork_db.set_max_size(1440);
+   _fork_db.set_max_size(1500);
    _fork_db.reset();
    _undo_db.discard();
    _undo_db.enable();

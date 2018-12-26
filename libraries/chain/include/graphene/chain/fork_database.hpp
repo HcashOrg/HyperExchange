@@ -152,7 +152,7 @@ namespace graphene { namespace chain {
          void _push_block(const item_ptr& b );
          void _push_next(const item_ptr& newly_inserted);
 
-         uint32_t                 _max_size = 1024;
+         uint32_t                 _max_size = 1500;
 
          fork_multi_index_type    _unlinked_index;
          fork_multi_index_type    _index;
