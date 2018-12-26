@@ -1436,6 +1436,7 @@ public:
 		   //juge if the name has been registered in the chain
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto owner_pubkey = privkey.get_public_key();
 		   
@@ -1486,6 +1487,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
@@ -1530,6 +1532,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
@@ -1589,6 +1592,7 @@ public:
 		   //juge if the name has been registered in the chain
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto owner_pubkey = privkey.get_public_key();
 
@@ -1633,6 +1637,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto owner_pubkey = privkey.get_public_key();
 
@@ -1686,6 +1691,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto caller_pubkey = privkey.get_public_key();
 
@@ -1759,6 +1765,7 @@ public:
 		   //juge if the name has been registered in the chain
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
 
@@ -1825,6 +1832,7 @@ public:
 		   //juge if the name has been registered in the chain
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
 		   contract_object cont;
@@ -1910,6 +1918,7 @@ public:
 		   //juge if the name has been registered in the chain
 		   auto acc_caller = get_account(caller_account_name);
 		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
 
@@ -2047,6 +2056,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
            auto privkey = *wif_to_key(_keys[acc_caller.addr]);
            auto caller_pubkey = privkey.get_public_key();
 
@@ -2108,6 +2118,7 @@ public:
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
        FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+	   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
        auto privkey = *wif_to_key(_keys[acc_caller.addr]);
        auto caller_pubkey = privkey.get_public_key();
 
@@ -2148,6 +2159,7 @@ public:
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
        FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+	   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
        auto privkey = *wif_to_key(_keys[acc_caller.addr]);
        auto caller_pubkey = privkey.get_public_key();
 
@@ -3954,6 +3966,7 @@ public:
 		   op.new_address_hot = hot_keys.addr;
 		   op.new_pubkey_hot = hot_keys.pubkey;
 		   op.crosschain_type = symbol;
+		   FC_ASSERT(_keys.find(op.addr) != _keys.end(),"there is no privatekey of ${addr}",("addr",op.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
 		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
 
@@ -4133,6 +4146,7 @@ public:
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   op.guarantee_id = get_guarantee_id();
@@ -4167,6 +4181,7 @@ public:
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
 		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
 		   op.guarantee_id = get_guarantee_id();
