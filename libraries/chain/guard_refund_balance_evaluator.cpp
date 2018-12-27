@@ -367,13 +367,14 @@ namespace graphene {
 					//	d.current_supply += asset_type.amount_from_string(source_op.amount).amount;
 					//});
 				}
-				d.remove(*iter);
+				
 				//d.modify(*iter, [&](crosschain_trx_object& obj) {
 				//	obj.trx_state = withdraw_canceled;
 				//});
 				d.modify(*without_iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_without_sign_trx_create;
 				});
+				d.remove(*iter);
 				//d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, without_sign_op](asset_dynamic_data_object& d) {
 				//	d.current_supply -= without_sign_op.crosschain_fee.amount;
 				//});
