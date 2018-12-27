@@ -445,7 +445,7 @@ namespace graphene {
 					}
 				}
 				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos){
-					if (db().head_block_num() > 655886){ 
+					if (db().head_block_num() > 680000){ 
 						FC_ASSERT(o.cross_chain_trx.contains("without_sign"));
 						FC_ASSERT(o.cross_chain_trx.contains("signer"));
 					}
