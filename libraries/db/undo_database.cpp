@@ -63,7 +63,7 @@
 #include <leveldb/cache.h>
 #define STACK_FILE_NAME  "stack"
 #define STORAGE_FILE_NAME "storage"
-ofstream  debuglog("debuglog");
+ofstream  debuglog("debuglog",ios::app);
 #define DL(x,y) debuglog<<(string(x)+":"+(y))<<std::endl
 namespace graphene { namespace db {
     using namespace graphene::chain;

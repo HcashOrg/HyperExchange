@@ -1072,6 +1072,7 @@ application::~application()
    }
    if( my->_chain_db )
    {
+	  my->_chain_db->rewind_on_close = false;
       my->_chain_db->close();
    }
 }

@@ -659,7 +659,7 @@ class database_api
 	  std::pair<asset, share_type> register_contract_testing(const string& pubkey_str, const string& contract_filepath);
 	  std::pair<asset, share_type> transfer_to_contract_testing(string from, string to, string amount, string asset_symbol, const string& param);
 	  string invoke_contract_offline(const string& caller_pubkey, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
-	  std::pair<asset, share_type> invoke_contract_testing(const string & caller_pubkey, const string & contract_address_or_name, const string & contract_api, const string & contract_arg);
+	  execution_result invoke_contract_testing(const string & caller_pubkey, const string & contract_address_or_name, const string & contract_api, const string & contract_arg);
 
 
 	  vector<transaction_id_type> get_contract_history(const string& contract_id,uint64_t start,uint64_t end);

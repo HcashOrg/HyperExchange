@@ -8,6 +8,12 @@
 namespace graphene {
     namespace chain {
 
+		struct execution_result
+		{
+			asset fee;
+			share_type gas_count;
+			string result;
+		};
         struct by_contract_id;
 
 		struct by_contract_name {};
@@ -190,6 +196,7 @@ namespace graphene {
     }
 
 }
+
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
@@ -198,8 +205,9 @@ FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db:
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
     (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
-    //(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
-FC_REFLECT(graphene::chain::contract_hash_entry,(contract_address)(hash))
+	//(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
+FC_REFLECT(graphene::chain::contract_hash_entry, (contract_address)(hash))
+FC_REFLECT(graphene::chain::execution_result, (fee)(gas_count)(result))
 
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_change_object, (graphene::db::object), (contract_address)(block_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_history_object, (graphene::db::object), (contract_id)(trx_id)(block_num))
