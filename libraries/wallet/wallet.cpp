@@ -3731,6 +3731,35 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
+	full_transaction cancel_eth_sign_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+		FC_ASSERT(!is_locked());
+		FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+		auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_eth_guard_need_sign, transaction_id_type(txid));
+		FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+		auto account = get_account(guard);
+		auto guard_obj = get_guard_member(guard);
+		auto addr = account.addr;
+		FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+		FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+		proposal_create_operation prop_op;
+		prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		prop_op.proposer = get_account(guard).get_id();
+		prop_op.fee_paying_account = addr;
+		prop_op.type = vote_id_type::vote_type::cancel_commit;
+		eths_cancel_unsigned_transaction_operation guard_refund_op;
+		guard_refund_op.cancel_trx_id = transaction_id_type(txid);
+		guard_refund_op.guard_address = addr;
+		guard_refund_op.guard_id = guard_obj.id;
+		const chain_parameters& current_params = get_global_properties().parameters;
+		prop_op.proposed_ops.emplace_back(guard_refund_op);
+		current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		signed_transaction trx;
+		trx.operations.emplace_back(prop_op);
+		set_operation_fees(trx, current_params.current_fees);
+		trx.validate();
+
+		return sign_transaction(trx, broadcast);
+	}
    full_transaction refund_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
@@ -8336,6 +8365,10 @@ full_transaction wallet_api::refund_uncombined_transaction(const string guard, c
 full_transaction wallet_api::refund_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->refund_combined_transaction(guard, txid, expiration_time, broadcast);
 }
+full_transaction wallet_api::cancel_eth_sign_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->cancel_eth_sign_transaction(guard, txid, expiration_time, broadcast);
+}
+
 full_transaction wallet_api::senator_pass_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->senator_pass_combined_transaction(guard, txid, expiration_time, broadcast);
 }
