@@ -301,6 +301,7 @@ void database::initialize_evaluators()
    register_evaluator<senator_pass_success_trx_evaluate>();
    register_evaluator<coldhot_pass_combine_trx_evaluate>();
    register_evaluator<senator_change_eth_gas_price_evaluator>();
+   register_evaluator<eths_cancel_unsigned_transaction_evaluator>();
 }
 
 void database::initialize_indexes()

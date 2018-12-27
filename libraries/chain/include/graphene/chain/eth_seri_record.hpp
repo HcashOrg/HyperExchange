@@ -129,6 +129,7 @@ namespace graphene {
 			}
 			share_type      calculate_fee(const fee_parameters_type& k)const;
 		};
+		
 		struct eths_guard_coldhot_change_signer_operation :public base_operation {
 			struct fee_parameters_type {
 				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
@@ -145,6 +146,19 @@ namespace graphene {
 				return guard_address;
 			}
 			share_type      calculate_fee(const fee_parameters_type& k)const;
+		};
+		struct eths_cancel_unsigned_transaction_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+			};
+			asset fee;
+			address    guard_address;
+			guard_member_id_type guard_id;
+			transaction_id_type cancel_trx_id;
+			address fee_payer()const {
+				return guard_address;
+			}
+			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
 		};
 		struct eths_coldhot_guard_sign_final_operation :public base_operation {
 			struct fee_parameters_type {
@@ -187,3 +201,6 @@ FC_REFLECT(graphene::chain::eths_guard_change_signer_operation::fee_parameters_t
 FC_REFLECT(graphene::chain::eths_guard_change_signer_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(new_signer)(chain_type)(signed_crosschain_trx)(guard_address))
 FC_REFLECT(graphene::chain::eths_guard_coldhot_change_signer_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eths_guard_coldhot_change_signer_operation, (fee)(guard_to_sign)(signed_crosschain_trx_id)(combine_trx_id)(new_signer)(chain_type)(signed_crosschain_trx)(guard_address))
+
+FC_REFLECT(graphene::chain::eths_cancel_unsigned_transaction_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::eths_cancel_unsigned_transaction_operation, (fee)(guard_address)(guard_id)(cancel_trx_id))

@@ -267,6 +267,11 @@ namespace graphene {
 					auto sign_iter = sign_ids.find(combine_trx_ids);
 					FC_ASSERT(sign_iter != sign_ids.end());
 				}
+				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos) {
+					
+						FC_ASSERT(o.coldhot_trx_original_chain.contains("without_sign"));
+						FC_ASSERT(o.coldhot_trx_original_chain.contains("signer"));
+				}
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 				if (!manager.contain_crosschain_handles(o.asset_symbol))
 					return void_result();
@@ -557,6 +562,10 @@ namespace graphene {
 				if (!hdl->valid_config())
 					return void_result();
 				auto eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id;
+				if (eths_guard_sign_final_op.signed_crosschain_trx_id.find('|') != eths_guard_sign_final_op.signed_crosschain_trx_id.npos) {
+					auto pos = eths_guard_sign_final_op.signed_crosschain_trx_id.find('|');
+					eth_fail_transaction_id = eths_guard_sign_final_op.signed_crosschain_trx_id.substr(0, pos);
+				}
 				auto eth_transaction = hdl->transaction_query(eth_fail_transaction_id);
 				FC_ASSERT(eth_transaction.contains("respit_trx"));
 				FC_ASSERT(eth_transaction.contains("source_trx"));
