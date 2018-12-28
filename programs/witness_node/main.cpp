@@ -82,17 +82,9 @@ LONG WINAPI UnhandledExceptionFilterEx(struct _EXCEPTION_POINTERS *pException)
 	::GetModuleFileName(NULL, szMbsFile, MAX_PATH);
 	TCHAR* pFind = _tcsrchr(szMbsFile, '\\');
 
-	std::cout << "in Cbk"<< std::endl;
-	if (pFind)
-	{
-		*(pFind + 1) = 0;
+	_tcscat(szMbsFile, _T(".dmp"));
 
-		_tcscat(szMbsFile, _T("witnessnode.dmp"));
-
-		CreateMiniDump(pException, szMbsFile);
-
-	}
-
+	CreateMiniDump(pException, szMbsFile);
 	// TODO: MiniDumpWriteDump 
 	return EXCEPTION_CONTINUE_SEARCH;
 }

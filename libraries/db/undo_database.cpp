@@ -807,10 +807,10 @@ void undo_storage::close()
 	std::cout << "try to close db" << std::endl;
 	if (db != NULL)
 	{
-
-		std::cout << "actualy close db" << std::endl;
+		std::cout << "actually close db" << std::endl;
 		delete db;
 		db = NULL;
+		std::cout << "db closed" << std::endl;
 	}
 }
 
