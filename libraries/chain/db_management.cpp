@@ -173,19 +173,21 @@ void database::open(
 
 void database::close()
 {
+
    // TODO:  Save pending tx's on close()
    clear_pending();
-
    // pop all of the blocks that we can given our undo history, this should
    // throw when there is no more undo history to pop
-   if( rewind_on_close )
+   if( rewind_on_close)
    {
       try
       {
          uint32_t cutoff = get_dynamic_global_properties().last_irreversible_block_num;
+		 auto i = head_block_num();
 
          while( head_block_num() > cutoff )
          {
+			 std::cout << "cutof=" << cutoff << "\t" << "pop:" << head_block_num() << "\t" << "to cutoff" << head_block_num() - cutoff << std::endl;
          //   elog("pop");
             block_id_type popped_block_id = head_block_id();
             pop_block();

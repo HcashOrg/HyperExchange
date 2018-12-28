@@ -26,7 +26,12 @@ namespace graphene {
 			void_result do_evaluate(const guard_cancel_combine_trx_operation& o);
 			void_result do_apply(const guard_cancel_combine_trx_operation& o);
 		};
-		
+		class eths_cancel_unsigned_transaction_evaluator :public evaluator<eths_cancel_unsigned_transaction_evaluator> {
+		public:
+			typedef eths_cancel_unsigned_transaction_operation operation_type;
+			void_result do_evaluate(const eths_cancel_unsigned_transaction_operation& o);
+			void_result do_apply(const eths_cancel_unsigned_transaction_operation& o);
+		};
 		class eth_cancel_fail_crosschain_trx_evaluate :public evaluator<eth_cancel_fail_crosschain_trx_evaluate> {
 		public:
 			typedef eth_cancel_fail_crosschain_trx_operation operation_type;

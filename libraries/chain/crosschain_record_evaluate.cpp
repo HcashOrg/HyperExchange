@@ -444,6 +444,12 @@ namespace graphene {
 						FC_ASSERT(tx_user_crosschain_iter->trx_state == withdraw_without_sign_trx_create);
 					}
 				}
+				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos){
+					if (db().head_block_num() > 680000){ 
+						FC_ASSERT(o.cross_chain_trx.contains("without_sign"));
+						FC_ASSERT(o.cross_chain_trx.contains("signer"));
+					}
+				}
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				FC_ASSERT(o.get_fee().valid(), "doenst set fee");
 				fee = *o.get_fee();

@@ -47,7 +47,56 @@
 #include <fstream>
 
 #ifdef WIN32
-# include <signal.h> 
+#include <tchar.h>
+#include <signal.h>
+#include <windows.h>
+#include <Dbghelp.h>
+
+inline void CreateMiniDump(EXCEPTION_POINTERS* pep, LPCTSTR strFileName)
+{
+
+	std::cout << "in Create dump" << std::endl;
+	HANDLE hFile = CreateFile(strFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
+	{
+		MINIDUMP_EXCEPTION_INFORMATION mdei;
+
+		mdei.ThreadId = GetCurrentThreadId();
+
+		mdei.ExceptionPointers = pep;
+
+		mdei.ClientPointers = FALSE;
+
+
+		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)0x0000ffff;
+
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, &mdei, NULL, NULL);
+
+		CloseHandle(hFile);
+	}
+}
+LONG WINAPI UnhandledExceptionFilterEx(struct _EXCEPTION_POINTERS *pException)
+{
+	TCHAR szMbsFile[MAX_PATH] = { 0 };
+	::GetModuleFileName(NULL, szMbsFile, MAX_PATH);
+	TCHAR* pFind = _tcsrchr(szMbsFile, '\\');
+
+	std::cout << "in Cbk"<< std::endl;
+	if (pFind)
+	{
+		*(pFind + 1) = 0;
+
+		_tcscat(szMbsFile, _T("witnessnode.dmp"));
+
+		CreateMiniDump(pException, szMbsFile);
+
+	}
+
+	// TODO: MiniDumpWriteDump 
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
 #else
 # include <csignal>
 #endif
@@ -59,6 +108,9 @@ void write_default_logging_config_to_stream(std::ostream& out);
 fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename);
 
 int main(int argc, char** argv) {
+#ifdef WIN32
+	SetUnhandledExceptionFilter(UnhandledExceptionFilterEx);
+#endif
    fc::time_point::start_ntp();
    app::application* node = new app::application();
    fc::oexception unhandled_exception;

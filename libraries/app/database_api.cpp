@@ -2891,7 +2891,7 @@ std::pair<asset, share_type> database_api::transfer_to_contract_testing(string p
 	std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
 	return res;
 }
-std::pair<asset, share_type> database_api::invoke_contract_testing(const string & pubkey, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
+execution_result database_api::invoke_contract_testing(const string & pubkey, const string & contract_address_or_name, const string & contract_api, const string & contract_arg)
 {
 	try {
 
@@ -2946,16 +2946,22 @@ std::pair<asset, share_type> database_api::invoke_contract_testing(const string 
 		signed_transaction signed_tx(tx);
 		auto trx_res = validate_transaction(signed_tx, true);
 		share_type gas_count = 0;
+		string api_result = "";
 		for (auto op_res : trx_res.operation_results)
 		{
-			try { gas_count += op_res.get<contract_operation_result_info>().gas_count; }
+			try { gas_count += op_res.get<contract_operation_result_info>().gas_count; 
+			api_result = op_res.get<contract_operation_result_info>().api_result;
+			}
 			catch (...)
 			{
 
 			}
 		}
-		asset res_data_fee = signed_tx.operations[0].get<contract_invoke_operation>().fee;
-		std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
+		asset res_data_fee = signed_tx.operations[0].get<contract_invoke_operation>().fee;	
+		execution_result res;
+		res.fee = res_data_fee;
+		res.gas_count = gas_count;
+		res.result = api_result;
 		return res;;
 	}FC_CAPTURE_AND_RETHROW((pubkey)(contract_address_or_name)(contract_api)(contract_arg))
 
