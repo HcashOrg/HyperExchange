@@ -62,9 +62,9 @@ namespace graphene {
 			void flush();
 			void close();
 			~undo_storage() { close(); };
-			void store(const undo_state_id_type & _id, const serializable_undo_state& b);
+			bool store(const undo_state_id_type & _id, const serializable_undo_state& b);
 			undo_state_id_type store_undo_state(const undo_state& b);
-			void remove(const undo_state_id_type& id);
+			bool remove(const undo_state_id_type& id);
 			bool get_state(const undo_state_id_type& id,undo_state& state) const ;
 			bool                   contains(const undo_state_id_type& id)const;
 			block_id_type          fetch_block_id(uint32_t block_num)const;
