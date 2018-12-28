@@ -3017,7 +3017,6 @@ public:
 	   try {
 		   FC_ASSERT(!is_locked());
 		   get_miner(citizen);
-		   FC_ASSERT(get_dynamic_global_properties().head_block_number > 180000);
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   citizen_referendum_senator_operation op;
 		   for (const auto& iter : replacement)
