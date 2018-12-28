@@ -33,7 +33,7 @@ namespace graphene {
 					bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
 				}
 				else {
-					if (db().head_block_num() >= 220000)
+					if (db().head_block_num() >= CROSSCHAIN_RECORD_EVALUATE_220000)
 					{
 						bCheckTransactionValid = hdl->validate_link_trx_v1(o.cross_chain_trx);
 					}
@@ -163,7 +163,7 @@ namespace graphene {
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				//FC_ASSERT(asset_itr->symbol == o.asset_symbol);
 				const auto& dyn_ac = asset_itr->dynamic_data(db());
-				if (db().head_block_num() > 480000)
+				if (db().head_block_num() > CROSSCHAIN_RECORD_EVALUATE_480000)
 				{
 					if (asset_itr->symbol.find("ERC") != asset_itr->symbol.npos)
 					{
@@ -300,7 +300,7 @@ namespace graphene {
 				for (const auto& crosschain_withdraw_trx_id : o.ccw_trx_ids) {
 					auto crosschain_withdraw_trx = trx_db.find(crosschain_withdraw_trx_id);
 					FC_ASSERT(crosschain_withdraw_trx != trx_db.end(), "Source Transaction doesn`t exist");
-					if (db().head_block_num() >= 310000)
+					if (db().head_block_num() >= CROSSCHAIN_RECORD_EVALUATE_310000)
 					{
 						FC_ASSERT(crosschain_withdraw_trx->trx_state == withdraw_without_sign_trx_uncreate,"this transaction has been created.");
 					}
@@ -439,13 +439,13 @@ namespace graphene {
 				for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 					auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 					FC_ASSERT(tx_user_crosschain_iter != tx_db_objs.end(), "user cross chain tx exist error");
-					if (db().head_block_num() > 480000)
+					if (db().head_block_num() > CROSSCHAIN_RECORD_EVALUATE_480000)
 					{
 						FC_ASSERT(tx_user_crosschain_iter->trx_state == withdraw_without_sign_trx_create);
 					}
 				}
 				if (o.asset_symbol == "ETH" || o.asset_symbol.find("ERC") != o.asset_symbol.npos){
-					if (db().head_block_num() > 680000){ 
+					if (db().head_block_num() > CROSSCHAIN_RECORD_EVALUATE_680000){ 
 						FC_ASSERT(o.cross_chain_trx.contains("without_sign"));
 						FC_ASSERT(o.cross_chain_trx.contains("signer"));
 					}

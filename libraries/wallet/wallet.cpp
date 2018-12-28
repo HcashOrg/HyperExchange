@@ -479,7 +479,8 @@ public:
         _remote_hist(rapi->history()),
 	   _crosschain_manager(rapi->crosschain_config()),
 	   _guarantee_id(optional<guarantee_object_id_type>()),
-	   _remote_trx(rapi->transaction())
+	   _remote_trx(rapi->transaction()),
+	   _remote_local_node(rapi->localnode())
    {
       chain_id_type remote_chain_id = _remote_db->get_chain_id();
       if( remote_chain_id != _chain_id )
@@ -621,8 +622,11 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
+	  result["version"] = "1.2.4";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
+	  result["data_dir"] = (*_remote_local_node)->get_data_dir();
+	  
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
 	  result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);
 	  auto scheduled_citizens = _remote_db->list_scheduled_citizens();

@@ -577,7 +577,7 @@ namespace graphene {
 				get_index_type<acquired_crosschain_index>().inspect_all_objects([&](const object& o) {
 					const acquired_crosschain_trx_object& p = static_cast<const acquired_crosschain_trx_object&>(o);
 					if (p.acquired_transaction_state == acquired_trx_uncreate && manager.contain_crosschain_handles(p.handle_trx.asset_symbol)){
-						if (head_block_num() >= 220000)
+						if (head_block_num() >= DB_CROSSCHAIN_TRX_220000)
 						{
 							acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
 						}
