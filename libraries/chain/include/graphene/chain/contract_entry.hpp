@@ -18,7 +18,7 @@ namespace blockchain
 
 		FC_DECLARE_EXCEPTION(uvm_exception, 34000, "uvm error");
 		FC_DECLARE_DERIVED_EXCEPTION(contract_run_out_of_money, blockchain::contract_engine::uvm_exception, 34004, "contract run out of money error");
-		FC_DECLARE_DERIVED_EXCEPTION(uvm_executor_internal_error, blockchain::contract_engine::uvm_exception, 34005, "uvm internal error %s");
+		FC_DECLARE_DERIVED_EXCEPTION(uvm_executor_internal_error, blockchain::contract_engine::uvm_exception, 34005, "uvm internal error ${error}");
 		FC_DECLARE_DERIVED_EXCEPTION(read_verify_code_fail, blockchain::contract_engine::uvm_exception, 34006, "read verify contract bytecode error");
 		FC_DECLARE_DERIVED_EXCEPTION(read_bytescode_len_fail, blockchain::contract_engine::uvm_exception, 34007, "read contract bytecode length error");
 		FC_DECLARE_DERIVED_EXCEPTION(read_bytescode_fail, blockchain::contract_engine::uvm_exception, 34008, "read cotnract bytecode error");
@@ -37,7 +37,7 @@ namespace blockchain
 		FC_DECLARE_DERIVED_EXCEPTION(read_storage_name_fail, blockchain::contract_engine::uvm_exception, 34021, "read storage name fail");
 		FC_DECLARE_DERIVED_EXCEPTION(read_storage_type_fail, blockchain::contract_engine::uvm_exception, 34022, "read storage type fail");
 
-		FC_DECLARE_EXCEPTION(contract_error, 35000, "contract error");
+		FC_DECLARE_EXCEPTION(contract_error, 35000, "contract error ${error}");
         FC_DECLARE_DERIVED_EXCEPTION(contract_insufficient_balance, blockchain::contract_engine::contract_error, 35001, "contract insufficient balance");
 		FC_DECLARE_DERIVED_EXCEPTION(contract_api_not_found, blockchain::contract_engine::contract_error, 35002, "contract api not found");
         FC_DECLARE_DERIVED_EXCEPTION(contract_not_exsited, blockchain::contract_engine::contract_error, 35003, "contract not exsited");
