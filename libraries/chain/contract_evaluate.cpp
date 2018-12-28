@@ -118,7 +118,7 @@ namespace graphene {
 				}
 				catch (std::exception &e)
 				{
-					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+					FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 				}
 
 				gas_used_counts = engine->gas_used();
@@ -149,11 +149,11 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
@@ -216,11 +216,11 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
 
@@ -290,7 +290,7 @@ namespace graphene {
 					}
 					catch (std::exception &e)
 					{
-						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 					}
 
 					gas_used_counts = engine->gas_used();
@@ -311,11 +311,11 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
 
@@ -388,7 +388,7 @@ namespace graphene {
 					}
 					catch (std::exception &e)
 					{
-						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 					}
 
 					gas_used_counts = engine->gas_used();
@@ -408,11 +408,11 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
             }
             else
@@ -795,7 +795,7 @@ namespace graphene {
 						}
 						catch (std::exception &e)
 						{
-							FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+							FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 						}
 
 						gas_used_counts = engine->gas_used();
@@ -820,11 +820,11 @@ namespace graphene {
             }
             catch (const ::blockchain::contract_engine::contract_error& e)
             {
-                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, ("error", e.what()));
+                FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
             }
 			catch (std::exception &e)
 			{
-				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, ("error", e.what()));
+				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
