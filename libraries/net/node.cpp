@@ -5009,6 +5009,7 @@ namespace graphene { namespace net { namespace detail {
       info["node_public_key"] = _node_public_key;
       info["node_id"] = _node_id;
       info["firewalled"] = _is_firewalled;
+	  info["connections"] = _active_connections.size();
       return info;
     }
     fc::variant_object node_impl::network_get_usage_stats() const
