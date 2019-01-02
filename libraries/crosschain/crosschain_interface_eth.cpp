@@ -409,17 +409,30 @@ namespace graphene {
 				std::string hex_realaddr_size = FillZero(ConvertPre(10, 16, fc::to_string(addresses.size())), false);
 				std::string hex_address = "";
 				auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(chain_type);
-				
+				std::vector<std::string> temp_addresses;
 				for (const auto & addr : addresses)
 				{
 					std::string temp = ptr->get_address_by_pubkey(addr);
 					FC_ASSERT(temp.find("0x") != temp.npos, "ETH address type error");
+					temp_addresses.push_back(temp);
+					temp = temp.substr(2);
+					hex_address += FillZero(temp, false);
+				}
 					try {
 						std::ostringstream req_body;
 						req_body << "{ \"jsonrpc\": \"2.0\", \
                 \"id\" : \"45\", \
-				\"method\" : \"Zchain.Addr.importAddr\" ,\
-				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addr\": \"" << temp << "\"}}";
+				\"method\" : \"Zchain.Addr.importAddrs\" ,\
+				\"params\" : {\"chainId\":\"" << chain_type << "\" ,\"addrs\": [";
+					for (auto itr = temp_addresses.begin(); itr != temp_addresses.end(); ++itr)
+					{
+						req_body << "\"" << *itr << "\"";
+						if (itr != temp_addresses.end() - 1)
+						{
+							req_body << ",";
+						}
+					}
+					req_body << "]}}";
 						std::cout << req_body.str() << std::endl;
 						fc::http::connection_sync conn;
 						conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
@@ -427,9 +440,6 @@ namespace graphene {
 					}
 					catch (...) {
 
-					}
-					temp = temp.substr(2);
-					hex_address += FillZero(temp, false);
 				}
 				std::string to_data = multi_contract_sol_code + address_offset + hex_required + hex_realaddr_size + hex_address;
 

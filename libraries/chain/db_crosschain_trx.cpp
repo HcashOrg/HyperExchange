@@ -79,6 +79,8 @@ namespace graphene {
 						obj.real_transaction = real_transaction;
 						obj.without_link_account = string(withdraw_op.withdraw_account);
 						obj.trx_state = withdraw_without_sign_trx_uncreate;
+						obj.block_num = head_block_num();
+						obj.symbol = withdraw_op.asset_symbol;
 					});
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_without_sign_evaluate::operation_type>::value) {
@@ -90,6 +92,7 @@ namespace graphene {
 					//std::cout << (trx_iter_new == trx_db_new.end()) << std::endl;
 					modify(*trx_crosschain_withdraw_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_without_sign_trx_create;
+						obj.block_num = head_block_num();
 					});
 					if (trx_without_sign_trx_iter == trx_db.end())
 					{
@@ -99,6 +102,8 @@ namespace graphene {
 							obj.real_transaction = real_transaction;
 							obj.transaction_id = transaction_id;
 							obj.all_related_origin_transaction_ids = relate_transaction_ids;
+							obj.block_num = head_block_num();
+							obj.symbol = trx_crosschain_withdraw_iter->symbol;
 							obj.trx_state = withdraw_without_sign_trx_create;
 						});
 					}
@@ -126,12 +131,14 @@ namespace graphene {
 					}
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = trx_st;
+						obj.block_num = head_block_num();
 					});
 					for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 						modify(*tx_user_crosschain_iter, [&](crosschain_trx_object& obj) {
 							obj.trx_state = trx_st;
 							obj.crosschain_trx_id = combine_op.crosschain_trx_id;
+							obj.block_num = head_block_num();
 						});
 					}
 // 					auto& sign_trx_db = get_index_type< crosschain_trx_index >().indices().get<by_trx_relate_type_stata>();
@@ -151,6 +158,7 @@ namespace graphene {
 						if (sign_iter->trx_state == withdraw_sign_trx) {
 							modify(*sign_iter, [&](crosschain_trx_object& obj) {
 								obj.trx_state = trx_st;
+								obj.block_num = head_block_num();
 							});
 						}
 					});
@@ -171,11 +179,13 @@ namespace graphene {
 						obj.transaction_id = transaction_id;
 						obj.crosschain_trx_id = combine_op.crosschain_trx_id;
 						obj.trx_state = trx_st;
+						obj.block_num = head_block_num();
+						obj.symbol = combine_op.asset_symbol;
 					});
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_with_sign_evaluate::operation_type>::value) {
-// 					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
-// 					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
+					auto& trx_db_relate = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+					auto trx_itr_relate = trx_db_relate.find(relate_transaction_id);
 // 					FC_ASSERT(trx_itr_relate != trx_db_relate.end(), "Source trx doesnt exist");
 // 
 // 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -187,6 +197,8 @@ namespace graphene {
 						obj.real_transaction = real_transaction;
 						obj.transaction_id = transaction_id;
 						obj.trx_state = withdraw_sign_trx;
+						obj.block_num = head_block_num();
+						obj.symbol = trx_itr_relate->symbol;
 					});
 				}
 				else if (op_type == operation::tag<crosschain_withdraw_result_evaluate::operation_type>::value) {
@@ -199,11 +211,13 @@ namespace graphene {
 					}
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
+						obj.block_num = head_block_num();
 					});
 					for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 						modify(*tx_user_crosschain_iter, [&](crosschain_trx_object& obj) {
 							obj.trx_state = withdraw_transaction_confirm;
+							obj.block_num = head_block_num();
 						});
 					}
 
@@ -215,6 +229,7 @@ namespace graphene {
 						if (sign_iter->trx_state == withdraw_combine_trx_create || sign_iter->trx_state == withdraw_eth_guard_sign) {
 							modify(*sign_iter, [&](crosschain_trx_object& obj) {
 								obj.trx_state = withdraw_transaction_confirm;
+								obj.block_num = head_block_num();
 							});
 						}
 					});
@@ -234,15 +249,18 @@ namespace graphene {
 					modify(*tx_combine_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_eth_guard_sign;
 						obj.crosschain_trx_id = signed_trxid;
+						obj.block_num = head_block_num();
 					});
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_eth_guard_sign;
+						obj.block_num = head_block_num();
 					});
 					for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 						modify(*tx_user_crosschain_iter, [&](crosschain_trx_object& obj) {
 							obj.trx_state = withdraw_eth_guard_sign;
 							obj.crosschain_trx_id = signed_trxid;
+							obj.block_num = head_block_num();
 						});
 					}
 					const auto& sign_range = get_index_type< crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(tx_combine_sign_iter->relate_transaction_id);
@@ -254,6 +272,7 @@ namespace graphene {
 							modify(*sign_iter, [&](crosschain_trx_object& obj) {
 								obj.trx_state = withdraw_eth_guard_sign;
 								obj.crosschain_trx_id = signed_trxid;
+								obj.block_num = head_block_num();
 							});
 						}
 					});
@@ -265,6 +284,8 @@ namespace graphene {
 						obj.transaction_id = transaction_id;
 						obj.crosschain_trx_id = signed_trxid;
 						obj.trx_state = withdraw_eth_guard_sign;
+						obj.block_num = head_block_num();
+						obj.symbol = eth_signed_op.chain_type;
 					});
 				}
 				else if (op_type == operation::tag<eths_guard_change_signer_operation>::value) {
@@ -281,15 +302,18 @@ namespace graphene {
 					modify(*tx_combine_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_eth_guard_sign;
 						obj.crosschain_trx_id = signed_trxid;
+						obj.block_num = head_block_num();
 					});
 					modify(*tx_without_sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_eth_guard_sign;
+						obj.block_num = head_block_num();
 					});
 					for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 						auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);
 						modify(*tx_user_crosschain_iter, [&](crosschain_trx_object& obj) {
 							obj.trx_state = withdraw_eth_guard_sign;
 							obj.crosschain_trx_id = signed_trxid;
+							obj.block_num = head_block_num();
 						});
 					}
 					const auto& sign_range = get_index_type< crosschain_trx_index >().indices().get<by_relate_trx_id>().equal_range(tx_combine_sign_iter->relate_transaction_id);
@@ -301,6 +325,7 @@ namespace graphene {
 							modify(*sign_iter, [&](crosschain_trx_object& obj) {
 								obj.trx_state = withdraw_eth_guard_sign;
 								obj.crosschain_trx_id = signed_trxid;
+								obj.block_num = head_block_num();
 							});
 						}
 					});
@@ -312,6 +337,8 @@ namespace graphene {
 						obj.transaction_id = transaction_id;
 						obj.crosschain_trx_id = signed_trxid;
 						obj.trx_state = withdraw_eth_guard_sign;
+						obj.block_num = head_block_num();
+						obj.symbol = eth_signed_op.chain_type;
 					});
 				}
 			}FC_CAPTURE_AND_RETHROW((relate_transaction_id)(transaction_id))

@@ -9,7 +9,6 @@ namespace bpo = boost::program_options;
 namespace graphene {
 	namespace crosschain {
 		using namespace graphene::chain;
-		crosschain_record_plugin::crosschain_record_plugin() :_thread("crosschain_trasacntion") {}
 		void crosschain_record_plugin::schedule_acquired_record_loop() {
 			fc::time_point now = fc::time_point::now();
 			int64_t time_to_next_second = 20000000 - (now.time_since_epoch().count() % 20000000);

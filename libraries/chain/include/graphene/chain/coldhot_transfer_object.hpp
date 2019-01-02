@@ -30,6 +30,8 @@ namespace graphene {
 			string				original_trx_id;
 			uint64_t			op_type;
 			coldhot_trx_state	curret_trx_state;
+			uint32_t block_num;
+			string symbol;
 			coldhot_transfer_object() {}
 		};
 		struct by_optype;
@@ -39,6 +41,8 @@ namespace graphene {
 		struct by_relate_trxidstate;
 		struct by_current_trxidstate;
 		struct by_original_trxid_optype;
+		struct by_symbol_block_num_state;
+		struct by_block_num_state;
 		using coldhot_transfer_multi_index_type = multi_index_container <
 			coldhot_transfer_object,
 			indexed_by <
@@ -56,6 +60,23 @@ namespace graphene {
 			>,
 			ordered_unique< tag<by_current_trx_id>,
 			member<coldhot_transfer_object, transaction_id_type, &coldhot_transfer_object::current_id>
+			>,
+			ordered_unique<	tag<by_block_num_state>,
+			composite_key<
+			coldhot_transfer_object,
+			member<coldhot_transfer_object, coldhot_trx_state, &coldhot_transfer_object::curret_trx_state>,
+			member<coldhot_transfer_object, uint32_t, &coldhot_transfer_object::block_num>,
+			member<coldhot_transfer_object, transaction_id_type, &coldhot_transfer_object::current_id>
+			>
+			>,
+			ordered_unique<	tag<by_symbol_block_num_state>,
+			composite_key<
+			coldhot_transfer_object,
+			member<coldhot_transfer_object, std::string, &coldhot_transfer_object::symbol>,
+			member<coldhot_transfer_object, coldhot_trx_state, &coldhot_transfer_object::curret_trx_state>,
+			member<coldhot_transfer_object, uint32_t, &coldhot_transfer_object::block_num>,
+			member<coldhot_transfer_object, transaction_id_type, &coldhot_transfer_object::current_id>
+			>
 			>,
 			ordered_non_unique<	tag<by_original_trxid_optype>,
 			composite_key<
@@ -110,4 +131,7 @@ FC_REFLECT_DERIVED(graphene::chain::coldhot_transfer_object, (graphene::db::obje
 	(current_trx)
 	(op_type)
 	(curret_trx_state)
+	(symbol)
+	(block_num)
+
 )
