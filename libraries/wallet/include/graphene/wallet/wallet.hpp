@@ -1813,8 +1813,16 @@ class wallet_api
                                                                 uint16_t desired_number_of_committee_members,
                                                                 bool broadcast = false);
 	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type);
+	  std::map<transaction_id_type, signed_transaction> get_crosschain_transaction_by_block_num(const string& symbol,
+		  const uint32_t& start_block_num, 
+		  const uint32_t& stop_block_num, 
+		  int crosschain_trx_state);
 	  std::vector<crosschain_trx_object> get_account_crosschain_transaction(string account_address, string trx_id);
 	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction(const int& type);
+	  std::map<transaction_id_type, signed_transaction> get_coldhot_transaction_by_blocknum(const string& symbol,
+		  const uint32_t& start_block_num,
+		  const uint32_t& stop_block_num,
+		  int crosschain_trx_state);
 	  std::map<transaction_id_type, signed_transaction> get_withdraw_crosschain_without_sign_transaction();
 	  void senator_sign_crosschain_transaction(const string& trx_id,const string& senator);
 	  void senator_sign_coldhot_transaction(const string& tx_id, const string& senator, const string& keyfile, const string& decryptkey);
@@ -2270,6 +2278,8 @@ FC_API( graphene::wallet::wallet_api,
 		(get_withdraw_crosschain_without_sign_transaction)
 		(get_coldhot_transaction)
 		(get_crosschain_transaction)
+		(get_crosschain_transaction_by_block_num)
+		(get_coldhot_transaction_by_blocknum)
 		(get_multi_address_obj)
 		(wallet_create_asset)
 		(wallet_create_erc_asset)

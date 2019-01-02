@@ -4591,12 +4591,36 @@ public:
 	   }
 	   return results;
    }
+   std::map<transaction_id_type, signed_transaction> get_coldhot_transaction_by_blocknum(const string& symbol,
+	   const uint32_t& start_block_num,
+	   const uint32_t& stop_block_num,
+	   int crosschain_trx_state) {
+	   std::map<transaction_id_type, signed_transaction> results;
+	   std::vector<optional<coldhot_transfer_object>> coldhot_txs = _remote_db->get_coldhot_transaction_by_blocknum(symbol,start_block_num, stop_block_num, (coldhot_trx_state)crosschain_trx_state);
+	   for (const auto& coldhot_tx : coldhot_txs) {
+		   results[coldhot_tx->current_id] = coldhot_tx->current_trx;
+	   }
+	   return results;
+   }
    std::map<transaction_id_type, signed_transaction> get_crosschain_transaction(int type) {
 	   std::map<transaction_id_type, signed_transaction> result;
 	   std::vector<crosschain_trx_object> cct_objs = _remote_db->get_crosschain_transaction((transaction_stata)type, transaction_id_type());
 	   for (const auto& cct : cct_objs) {
 		   auto id = cct.transaction_id;
 		   result[id] = cct.real_transaction;
+	   }
+	   return result;
+   }
+   std::map<transaction_id_type, signed_transaction> get_crosschain_transaction_by_block_num(const string& symbol,
+	   const string& account,
+	   const uint32_t& start_block_num,
+	   const uint32_t& stop_block_num,
+	   int crosschain_trx_state) {
+	   std::map<transaction_id_type, signed_transaction> result;
+	   std::vector<optional<crosschain_trx_object>> cct_objs = _remote_db->get_crosschain_transaction_by_blocknum(symbol, account, start_block_num, stop_block_num,(transaction_stata)crosschain_trx_state);
+	   for (const auto& cct : cct_objs) {
+		   auto id = cct->transaction_id;
+		   result[id] = cct->real_transaction;
 	   }
 	   return result;
    }
@@ -7398,8 +7422,21 @@ std::vector<crosschain_trx_object> wallet_api::get_account_crosschain_transactio
 std::map<transaction_id_type, signed_transaction> wallet_api::get_coldhot_transaction(const int& type) {
 	return my->get_coldhot_transaction(type);
 }
+std::map<transaction_id_type, signed_transaction> wallet_api::get_coldhot_transaction_by_blocknum(const string& symbol,
+	const uint32_t& start_block_num,
+	const uint32_t& stop_block_num,
+	int crosschain_trx_state) {
+	return my->get_coldhot_transaction_by_blocknum(symbol, start_block_num, stop_block_num, crosschain_trx_state);
+}
 std::map<transaction_id_type, signed_transaction> wallet_api::get_crosschain_transaction(int type) {
 	return my->get_crosschain_transaction(type);
+}
+std::map<transaction_id_type, signed_transaction> wallet_api::get_crosschain_transaction_by_block_num(const string& symbol, 
+	const uint32_t& start_block_num,
+	const uint32_t& stop_block_num,
+	int crosschain_trx_state) {
+	std::string account = "";
+	return my->get_crosschain_transaction_by_block_num(symbol, account, start_block_num, stop_block_num, crosschain_trx_state);
 }
 std::map<transaction_id_type, signed_transaction> wallet_api::get_withdraw_crosschain_without_sign_transaction(){
 	

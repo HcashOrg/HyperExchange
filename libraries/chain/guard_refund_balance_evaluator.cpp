@@ -22,6 +22,7 @@ namespace graphene {
 				d.adjust_balance(refund_addr, obj.amount_from_string(amount));
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(d.get(asset_id_type(asset_id)).dynamic_asset_data_id(d), [=](asset_dynamic_data_object& d) {
 					d.current_supply += obj.amount_from_string(amount).amount;
@@ -97,6 +98,7 @@ namespace graphene {
 					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
 					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 				}
 				auto op = iter->real_transaction.operations[0];
@@ -109,6 +111,7 @@ namespace graphene {
 					d.adjust_balance(source_op.withdraw_account, asset(asset_type.amount_from_string(source_op.amount).amount, source_op.asset_id));
 					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 					d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type,source_op](asset_dynamic_data_object& d) {
 						d.current_supply += asset_type.amount_from_string(source_op.amount).amount;
@@ -116,6 +119,7 @@ namespace graphene {
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type,without_sign_op](asset_dynamic_data_object& d) {
 					d.current_supply -= without_sign_op.crosschain_fee.amount;
@@ -176,6 +180,7 @@ namespace graphene {
 					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
 					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 				}
 				auto op = without_iter->real_transaction.operations[0];
@@ -188,6 +193,7 @@ namespace graphene {
 					d.adjust_balance(source_op.withdraw_account, asset(asset_type.amount_from_string(source_op.amount).amount, source_op.asset_id));
 					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 					d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, source_op](asset_dynamic_data_object& d) {
 						d.current_supply += asset_type.amount_from_string(source_op.amount).amount;
@@ -195,9 +201,11 @@ namespace graphene {
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(*without_iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, without_sign_op](asset_dynamic_data_object& d) {
 					d.current_supply -= without_sign_op.crosschain_fee.amount;
@@ -263,6 +271,7 @@ namespace graphene {
 					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
 					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
+						obj.block_num = d.head_block_num();
 					});
 				}
 				auto op = without_iter->real_transaction.operations[0];
@@ -275,6 +284,7 @@ namespace graphene {
 					//d.adjust_balance(source_op.withdraw_account, asset(asset_type.amount_from_string(source_op.amount).amount, source_op.asset_id));
 					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_transaction_confirm;
+						obj.block_num = d.head_block_num();
 					});
 					/*
 					d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, source_op](asset_dynamic_data_object& d) {
@@ -283,9 +293,11 @@ namespace graphene {
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_transaction_confirm;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(*without_iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_transaction_confirm;
+					obj.block_num = d.head_block_num();
 				});
 				
 				/*
@@ -456,6 +468,7 @@ namespace graphene {
 					auto sign_iter = crosschain_trxs.find(sign_trx.transaction_id);
 					d.modify(*sign_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 				}
 				auto op = without_sign_iter->real_transaction.operations[0];
@@ -468,6 +481,7 @@ namespace graphene {
 					d.adjust_balance(source_op.withdraw_account, asset(asset_type.amount_from_string(source_op.amount).amount, source_op.asset_id));
 					d.modify(*source_iter, [&](crosschain_trx_object& obj) {
 						obj.trx_state = withdraw_canceled;
+						obj.block_num = d.head_block_num();
 					});
 					d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, source_op](asset_dynamic_data_object& d) {
 						d.current_supply += asset_type.amount_from_string(source_op.amount).amount;
@@ -475,9 +489,11 @@ namespace graphene {
 				}
 				d.modify(*iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(*without_sign_iter, [&](crosschain_trx_object& obj) {
 					obj.trx_state = withdraw_canceled;
+					obj.block_num = d.head_block_num();
 				});
 				d.modify(asset_type.dynamic_asset_data_id(d), [&asset_type, without_sign_op](asset_dynamic_data_object& d) {
 					d.current_supply -= without_sign_op.crosschain_fee.amount;
