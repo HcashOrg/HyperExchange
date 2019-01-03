@@ -455,7 +455,12 @@ namespace graphene {
 					auto op = cross_chain_trx.real_transaction.operations[0];
 					auto withop = op.get<crosschain_withdraw_evaluate::operation_type>();
 					if (withop.asset_symbol == "ETH"|| withop.asset_symbol.find("ERC") != withop.asset_symbol.npos){
-						if (dest_info[withop.asset_id].size() > 100){
+						if (dest_info[withop.asset_id].size() > 20){
+							continue;
+						}
+					}
+					else {
+						if (dest_info[withop.asset_id].size() > 20) {
 							continue;
 						}
 					}
