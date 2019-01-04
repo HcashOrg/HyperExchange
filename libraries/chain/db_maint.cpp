@@ -525,7 +525,7 @@ void database::process_bonus()
 		}
 		// check all lock balance obj
 		const auto& guard_lock_bal_idx = get_index_type<lockbalance_index>().indices();
-		if (head_block_num() < 190000)
+		if (head_block_num() < DB_MAINT_190000)
 		{
 			for (const auto& obj : guard_lock_bal_idx)
 			{
@@ -578,7 +578,7 @@ void database::process_bonus()
 				}
 			}
 		}
-		if (head_block_num() < 480000)
+		if (head_block_num() < DB_MAINT_480000)
 		{
 		//after waiting_list and sum, need to calculate rate 
 		std::map<asset_id_type, double> rate;

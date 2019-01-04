@@ -358,6 +358,7 @@ namespace graphene { namespace app {
        localnode_api(application& app) :_app(app) {};
        ~localnode_api() {};
        void witness_node_stop();
+	   string get_data_dir();
    };
    class miner_api
    {
@@ -467,6 +468,7 @@ FC_API(graphene::app::miner_api,
     )
 FC_API(graphene::app::localnode_api,
     (witness_node_stop)
+	(get_data_dir)
     )
 FC_API(graphene::app::transaction_api,
 	(get_transaction)

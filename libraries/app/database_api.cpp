@@ -161,10 +161,12 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  optional<multisig_asset_transfer_object> lookup_multisig_asset(multisig_asset_transfer_id_type id) const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state,const transaction_id_type& id)const;
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const;
+	  vector<optional<crosschain_trx_object>> get_crosschain_transaction_by_blocknum(const string& symbol,const string& account,const uint32_t& start_block_num,const uint32_t& stop_block_num,const transaction_stata& crosschain_trx_state)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
 	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
+	  vector<optional<coldhot_transfer_object>> get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const;
 	  vector<optional<multisig_account_pair_object>> get_multisig_account_pair(const string& symbol) const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 
@@ -3085,7 +3087,13 @@ share_type database_api::get_miner_pay_per_block(uint32_t block_num) const
 {
 	return my->_db.get_miner_pay_per_block(block_num);
 }
-
+vector<optional<crosschain_trx_object>> database_api::get_crosschain_transaction_by_blocknum(const string& symbol,
+	const string& account,
+	const uint32_t& start_block_num,
+	const uint32_t& stop_block_num,
+	const transaction_stata& crosschain_trx_state)const {
+	return my->get_crosschain_transaction_by_blocknum(symbol, account, start_block_num, stop_block_num, crosschain_trx_state);
+}
 vector<graphene::chain::crosschain_trx_object> database_api::get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const{
 	return my->get_crosschain_transaction(crosschain_trx_state,id);
 }
@@ -3106,6 +3114,37 @@ std::map<string,asset> database_api::get_address_pay_back_balance(const address&
 }
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
+}
+vector<optional<coldhot_transfer_object>> database_api::get_coldhot_transaction_by_blocknum(const string& symbol,
+	const uint32_t& start_block_num,
+	const uint32_t& stop_block_num,
+	const coldhot_trx_state& crosschain_trx_state)const {
+	return my->get_coldhot_transaction_by_blocknum(symbol, start_block_num, stop_block_num, crosschain_trx_state);
+}
+vector<optional<coldhot_transfer_object>> database_api_impl::get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const {
+	vector<optional<coldhot_transfer_object>> ret;
+	FC_ASSERT(stop_block_num >= start_block_num, "End num must bigger than start num");
+	auto start_trx_id = transaction_id_type("0000000000000000000000000000000000000000");
+	auto stop_trx_id = transaction_id_type("ffffffffffffffffffffffffffffffffffffffff");
+	//struct by_symbol_block_num_state;
+	//struct by_block_num_state;
+	if ("" == symbol) {
+		const auto& coldhot_tx_db = _db.get_index_type<coldhot_transfer_index>().indices().get<by_block_num_state>();
+		auto itr = coldhot_tx_db.upper_bound(boost::make_tuple(crosschain_trx_state, start_block_num,  start_trx_id));
+		auto itr_stop = coldhot_tx_db.lower_bound(boost::make_tuple(crosschain_trx_state, stop_block_num, stop_trx_id));
+		for (; itr != itr_stop; itr++) {
+			ret.push_back(*itr);
+		}
+	}
+	else {
+		const auto& coldhot_tx_db = _db.get_index_type<coldhot_transfer_index>().indices().get<by_symbol_block_num_state>();
+		auto itr = coldhot_tx_db.upper_bound(boost::make_tuple(symbol, crosschain_trx_state, start_block_num,  start_trx_id));
+		auto itr_stop = coldhot_tx_db.lower_bound(boost::make_tuple(symbol, crosschain_trx_state, stop_block_num, stop_trx_id));
+		for (; itr != itr_stop; itr++) {
+			ret.push_back(*itr);
+		}
+	}
+	return ret;
 }
 vector<coldhot_transfer_object> database_api_impl::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	if (id == transaction_id_type()){
@@ -3157,6 +3196,53 @@ vector<crosschain_trx_object> database_api_impl::get_crosschain_transaction(cons
 	}
 	
 	return result;
+}
+vector<optional<crosschain_trx_object>> database_api_impl::get_crosschain_transaction_by_blocknum(const string& symbol, 
+	const string& account, 
+	const uint32_t& start_block_num, 
+	const uint32_t& stop_block_num, 
+	const transaction_stata& crosschain_trx_state)const {
+	vector<optional<crosschain_trx_object>> ret;
+	FC_ASSERT(stop_block_num >= start_block_num, "End num must bigger than start num");
+	auto start_trx_id = transaction_id_type("0000000000000000000000000000000000000000");
+	auto stop_trx_id = transaction_id_type("ffffffffffffffffffffffffffffffffffffffff");
+	if ("" == symbol) {
+		if ("" == account) {
+			const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_block_num_state>();
+			auto itr = cct_db.upper_bound(boost::make_tuple(crosschain_trx_state, start_block_num,  start_trx_id));
+			auto itr_stop = cct_db.lower_bound(boost::make_tuple(crosschain_trx_state, stop_block_num, stop_trx_id));
+			for (; itr != itr_stop;itr++){
+				ret.push_back(*itr);
+			}
+		}
+		else {
+			const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_account_block_num_state>();
+			auto itr = cct_db.upper_bound(boost::make_tuple(account, crosschain_trx_state, start_block_num, start_trx_id));
+			auto itr_stop = cct_db.lower_bound(boost::make_tuple(account, crosschain_trx_state, stop_block_num,  stop_trx_id));
+			for (; itr != itr_stop; itr++) {
+				ret.push_back(*itr);
+			}
+		}
+	}
+	else{
+		if ("" == account) {
+			const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_symbol_block_num_state>();
+			auto itr = cct_db.upper_bound(boost::make_tuple(symbol, crosschain_trx_state, start_block_num,  start_trx_id));
+			auto itr_stop = cct_db.lower_bound(boost::make_tuple(symbol, crosschain_trx_state, stop_block_num,  stop_trx_id));
+			for (; itr != itr_stop; itr++) {
+				ret.push_back(*itr);
+			}
+		}
+		else {
+			const auto & cct_db = _db.get_index_type<crosschain_trx_index>().indices().get<by_account_symbol_block_num_state>();
+			auto itr = cct_db.upper_bound(boost::make_tuple(account, symbol, crosschain_trx_state, start_block_num,  start_trx_id));
+			auto itr_stop = cct_db.lower_bound(boost::make_tuple(account, symbol, crosschain_trx_state, stop_block_num,  stop_trx_id));
+			for (; itr != itr_stop; itr++) {
+				ret.push_back(*itr);
+			}
+		}
+	}
+	return ret;
 }
 
 std::map<std::string, share_type> database_api_impl::get_bonus_balances(const address& owner) const {

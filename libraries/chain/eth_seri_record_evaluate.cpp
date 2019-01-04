@@ -84,7 +84,7 @@ namespace graphene {
 				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
 				std::map<std::string, std::string> multi_addr_cold;
 				std::map<std::string, std::string> multi_addr_hot;
-				if (db().head_block_num() >= 480000){
+				if (db().head_block_num() >= ETH_SERI_RECORD_EVALUATE_480000){
 					std::string hot_nonce_temp = o.hot_nonce;
 					std::string gas_price = "5000000000";
 					auto sep_pos = o.hot_nonce.find('|');

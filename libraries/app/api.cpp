@@ -158,6 +158,11 @@ namespace graphene { namespace app {
     {
         raise(SIGINT);
     }
+	string localnode_api::get_data_dir()
+	{
+		return _app.get_data_dir();
+	}
+
     void miner_api::start_miner(bool start)
     {
 

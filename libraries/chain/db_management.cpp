@@ -182,7 +182,7 @@ void database::close()
    {
       try
       {
-         uint32_t cutoff = get_dynamic_global_properties().last_irreversible_block_num;
+         uint32_t cutoff = head_block_num()-_undo_db.size();
 		 auto i = head_block_num();
 
          while( head_block_num() > cutoff )

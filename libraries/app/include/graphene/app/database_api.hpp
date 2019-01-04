@@ -627,7 +627,9 @@ class database_api
 	  share_type get_miner_pay_per_block(uint32_t block_num) const;
 	  vector<crosschain_trx_object> get_account_crosschain_transaction(const string& account,const transaction_id_type& id)const;
 	  vector<crosschain_trx_object> get_crosschain_transaction(const transaction_stata& crosschain_trx_state, const transaction_id_type& id)const;
+	  vector<optional<crosschain_trx_object>> get_crosschain_transaction_by_blocknum(const string& symbol, const string& account, const uint32_t& start_block_num,const uint32_t& stop_block_num, const transaction_stata& crosschain_trx_state)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
+	  vector<optional<coldhot_transfer_object>> get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const;
 	  optional<multisig_account_pair_object> lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
@@ -809,7 +811,9 @@ FC_API(graphene::app::database_api,
 	(get_binding_account)
 	(get_crosschain_transaction)
 	(get_account_crosschain_transaction)
+	(get_crosschain_transaction_by_blocknum)
 	(get_coldhot_transaction)
+	(get_coldhot_transaction_by_blocknum)
 	(get_multi_account_guard)
 	(get_multisig_address_obj)
 	(get_multisig_account_pair)

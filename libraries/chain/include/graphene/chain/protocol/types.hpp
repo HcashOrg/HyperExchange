@@ -45,6 +45,7 @@
 #include <graphene/chain/protocol/address.hpp>
 #include <graphene/db/object_id.hpp>
 #include <graphene/chain/protocol/config.hpp>
+#include <graphene/chain/forks.hpp>
 
 namespace graphene { namespace chain {
    using namespace graphene::db;

@@ -158,6 +158,8 @@ namespace graphene {
 			transaction_stata trx_state;
 			string crosschain_trx_id;
 			asset crosschain_fee ;
+			uint32_t block_num;
+			string symbol;
 			crosschain_trx_object() {}
 		};
 		struct by_relate_trx_id;
@@ -168,6 +170,10 @@ namespace graphene {
 		struct by_trx_type_state;
 		struct by_original_id_optype;
 		struct by_withdraw_link_account;
+		struct by_symbol_block_num_state;
+		struct by_account_symbol_block_num_state;
+		struct by_block_num_state;
+		struct by_account_block_num_state;
 		using crosschain_multi_index_type = multi_index_container <
 			crosschain_trx_object,
 			indexed_by <
@@ -213,6 +219,46 @@ namespace graphene {
 			member<crosschain_trx_object, uint64_t, &crosschain_trx_object::op_type>
 			>
 			>,
+			ordered_unique<
+			tag<by_symbol_block_num_state>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, string, &crosschain_trx_object::symbol>,
+			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>,
+			member<crosschain_trx_object, uint32_t, &crosschain_trx_object::block_num>,
+			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>
+			>
+			>,
+			ordered_unique<
+			tag<by_account_symbol_block_num_state>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, string, &crosschain_trx_object::without_link_account>,
+			member<crosschain_trx_object, string, &crosschain_trx_object::symbol>,
+			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>,
+			member<crosschain_trx_object, uint32_t, &crosschain_trx_object::block_num>,
+			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>
+			>
+			>,
+			ordered_unique<
+			tag<by_block_num_state>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>,
+			member<crosschain_trx_object, uint32_t, &crosschain_trx_object::block_num>,
+			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>
+			>
+			>,
+			ordered_unique<
+			tag<by_account_block_num_state>,
+			composite_key<
+			crosschain_trx_object,
+			member<crosschain_trx_object, string, &crosschain_trx_object::without_link_account>,
+			member<crosschain_trx_object, transaction_stata, &crosschain_trx_object::trx_state>,
+			member<crosschain_trx_object, uint32_t, &crosschain_trx_object::block_num>,
+			member<crosschain_trx_object, transaction_id_type, &crosschain_trx_object::transaction_id>
+			>
+			>,
 			ordered_non_unique<
 			tag<by_trx_type_state>,
 			composite_key<
@@ -251,6 +297,8 @@ FC_REFLECT_DERIVED(graphene::chain::crosschain_trx_object,(graphene::db::object)
 	(without_link_account)
 	(all_related_origin_transaction_ids)
 	(op_type)
+	(block_num)
+	(symbol)
 	(trx_state)
 )
 
