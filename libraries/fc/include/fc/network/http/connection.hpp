@@ -3,6 +3,8 @@
 #include <fc/string.hpp>
 #include <memory>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 namespace fc { 
   namespace ip { class endpoint; }
   class tcp_socket;
@@ -87,7 +89,14 @@ namespace fc {
 
 		 //http::request    read_request()const;
 		 http::reply parse_reply();
+		 void handle_reply();
+		 void check_deadline();
+		 void close_socket();
 	 private:
+		 boost::mutex read_lock;
+		 boost::asio::streambuf line;
+		 bool is_timeout = false;
+		 boost::asio::deadline_timer _deadline;
 		 boost::asio::ip::tcp::socket _socket;
 	 };
 
