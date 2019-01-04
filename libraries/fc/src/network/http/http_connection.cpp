@@ -215,15 +215,14 @@ namespace fc {
 			return h;
 		}
 
-		connection_sync::connection_sync() :_socket(fc::asio::default_io_service()) {}
+		connection_sync::connection_sync() :_socket(fc::asio::default_io_service()),_deadline(fc::asio::default_io_service()) {}
 
-		connection_sync::~connection_sync() { _socket.close(); }
+		connection_sync::~connection_sync() { close_socket(); }
 
 		void connection_sync::connect_to(const fc::ip::endpoint& ep)
 		{
 			try {
 				boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
-				_socket.close();
 				_socket.connect(p);
 				
 			}
@@ -249,7 +248,7 @@ namespace fc {
 				if (body.size()) req << "Content-Length: " << body.size() << "\r\n";
 				req << "\r\n";
 				fc::string head = req.str();
-
+		
 				_socket.write_some(boost::asio::buffer(head), ec);
 				//  fc::cerr.write( head.c_str() );
 
@@ -259,22 +258,67 @@ namespace fc {
 				}
 				//  fc::cerr.flush();
 				const auto& ret = parse_reply();
-				_socket.close();
+				close_socket();
 				return ret;
 				//return parse_reply();
 			}
 			catch (...) {
-				_socket.close();
+				close_socket();
 				FC_THROW_EXCEPTION(exception, "Error Sending HTTP Request"); // TODO: provide more info
 			}
 
 		}
 
+
+
+		void connection_sync::close_socket() {
+			try {
+				_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+				_socket.close();
+				
+			}
+			catch (...) {
+				
+			}
+		}
+
+		void connection_sync::check_deadline()
+		{
+			if (is_timeout)
+				return;
+
+			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+			{
+				
+				is_timeout = true;
+				read_lock.unlock();
+				close_socket();
+
+
+			}
+			
+
+			
+		}
+
+
 		http::reply connection_sync::parse_reply() {
 			fc::http::reply rep;
 			try {
-				boost::asio::streambuf line;
-				int s = boost::asio::read_until(_socket, line,"\r\n\r\n"); // HTTP/1.1
+				read_lock.lock();
+				_deadline.expires_from_now(boost::posix_time::seconds(100));
+				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
+				boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
+				
+
+				read_lock.lock();
+				read_lock.unlock();
+				if (is_timeout) {
+					std::cout << "query timeout" << std::endl;
+					rep.status = reply::status_code::InternalServerError;
+					return rep;
+				}
+				_deadline.cancel();
 				//line.consume(s);
 				//s = boost::asio::read_until(_socket, line, ' '); // COD
 				std::istream response_stream(&line);
@@ -293,7 +337,7 @@ namespace fc {
 					key.assign(head.c_str(), pos);
 					string val;
 					val.assign(head.c_str(), pos + 1, std::string::npos);
-					header h(key,val);
+					header h(key, val);
 					///rep.headers.push_back();
 					rep.headers.push_back(h);
 				}
@@ -309,52 +353,111 @@ namespace fc {
 					std::istream response_stream1(&line);
 					std::istreambuf_iterator<char> eos;
 					auto reponse_data = string(std::istreambuf_iterator<char>(response_stream1), eos);
-					rep.body.assign(reponse_data.begin(),reponse_data.end());
+					rep.body.assign(reponse_data.begin(), reponse_data.end());
 				}
+				
 				return rep;
-			    /*
-				//response_stream>> status ;
-				line.consume(s);
-				rep.status = static_cast<int>(to_int64("200"));
-				std::cout << rep.status << std::endl;
-				s = boost::asio::read_until(_socket, line, '\n'); // DESCRIPTION
-				line.consume(s);
-				while ((s = boost::asio::read_until(_socket, line, '\n')) > 1) {
-					fc::http::header h;
-					string line_str;
-					std::istream line_stream(&line);
-					line_stream >> line_str;
-					std::cout << line_str << std::endl;
-					line.consume(s);
-					const char* begin = line_str.c_str();
-					const char* end = begin;
-					while (*end != ':')++end;
-					h.key = fc::string(begin, end);
-					++end; // skip ':'
-					++end; // skip space
-					const char* skey = end;
-					while (*end != '\r') ++end;
-					h.val = fc::string(skey, end);
-					rep.headers.push_back(h);
-					if (boost::iequals(h.key, "Content-Length")) {
-						rep.body.resize(static_cast<size_t>(to_uint64(fc::string(h.val))));
-					}
-				}
-				if (rep.body.size()) {
-					//sock.read(rep.body.data(), rep.body.size());
-					_socket.read_some(boost::asio::buffer( rep.body.data(), rep.body.size()));
-
-				}
-				return rep;
-				*/
+				
 			}
 			catch (fc::exception& e) {
 				elog("${exception}", ("exception", e.to_detail_string()));
-				_socket.close();
+				close_socket();
 				rep.status = http::reply::InternalServerError;
 				return rep;
 			}
 		}
+		void connection_sync::handle_reply() {
+			is_timeout = false;
+			read_lock.unlock();
+		}
+
+
+		//http::reply connection_sync::parse_reply() {
+		//	fc::http::reply rep;
+		//	try {
+		//		boost::asio::streambuf line;
+		//		
+		//		int s = boost::asio::read_until(_socket, line,"\r\n\r\n"); // HTTP/1.1
+		//		//line.consume(s);
+		//		//s = boost::asio::read_until(_socket, line, ' '); // COD
+		//		std::istream response_stream(&line);
+		//		std::string http_version;
+		//		response_stream >> http_version;
+		//		unsigned int status_code;
+		//		response_stream >> status_code;
+		//		std::string status_message;
+		//		std::getline(response_stream, status_message);
+		//		rep.status = status_code;
+		//		std::string head;
+		//		while (std::getline(response_stream, head) && head != "\r")
+		//		{
+		//			auto pos = head.find(':');
+		//			string key;
+		//			key.assign(head.c_str(), pos);
+		//			string val;
+		//			val.assign(head.c_str(), pos + 1, std::string::npos);
+		//			header h(key,val);
+		//			///rep.headers.push_back();
+		//			rep.headers.push_back(h);
+		//		}
+		//		boost::system::error_code error;
+		//		while (boost::asio::read(_socket, line,
+		//			boost::asio::transfer_at_least(1), error))
+		//		{
+		//		}
+
+
+		//		if (line.size())
+		//		{
+		//			std::istream response_stream1(&line);
+		//			std::istreambuf_iterator<char> eos;
+		//			auto reponse_data = string(std::istreambuf_iterator<char>(response_stream1), eos);
+		//			rep.body.assign(reponse_data.begin(),reponse_data.end());
+		//		}
+		//		return rep;
+		//	    /*
+		//		//response_stream>> status ;
+		//		line.consume(s);
+		//		rep.status = static_cast<int>(to_int64("200"));
+		//		std::cout << rep.status << std::endl;
+		//		s = boost::asio::read_until(_socket, line, '\n'); // DESCRIPTION
+		//		line.consume(s);
+		//		while ((s = boost::asio::read_until(_socket, line, '\n')) > 1) {
+		//			fc::http::header h;
+		//			string line_str;
+		//			std::istream line_stream(&line);
+		//			line_stream >> line_str;
+		//			std::cout << line_str << std::endl;
+		//			line.consume(s);
+		//			const char* begin = line_str.c_str();
+		//			const char* end = begin;
+		//			while (*end != ':')++end;
+		//			h.key = fc::string(begin, end);
+		//			++end; // skip ':'
+		//			++end; // skip space
+		//			const char* skey = end;
+		//			while (*end != '\r') ++end;
+		//			h.val = fc::string(skey, end);
+		//			rep.headers.push_back(h);
+		//			if (boost::iequals(h.key, "Content-Length")) {
+		//				rep.body.resize(static_cast<size_t>(to_uint64(fc::string(h.val))));
+		//			}
+		//		}
+		//		if (rep.body.size()) {
+		//			//sock.read(rep.body.data(), rep.body.size());
+		//			_socket.read_some(boost::asio::buffer( rep.body.data(), rep.body.size()));
+
+		//		}
+		//		return rep;
+		//		*/
+		//	}
+		//	catch (fc::exception& e) {
+		//		elog("${exception}", ("exception", e.to_detail_string()));
+		//		_socket.close();
+		//		rep.status = http::reply::InternalServerError;
+		//		return rep;
+		//	}
+		//}
 	} // fc::http
 }
 

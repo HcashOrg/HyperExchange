@@ -18,7 +18,9 @@
 #include <fc/crypto/elliptic.hpp>
 #include <string> 
 #include <vector> 
-#include <iostream> 
+#include <iostream>
+#include <graphene/crosschain/crosschain_interface_hc.hpp>
+#include <fc/thread/thread.hpp>
 
 
 
@@ -135,7 +137,7 @@ int main(int argc, char** argv)
 	hc_privatekey priv;
 	std::string signature = "H5hDgKBVDhwWmuoK0vGRaKFp/Tatb/0WFufhL+36ZNd/DBx+xkZNUwoutsEzYi7Ojc/2VIzgpr53De47QsSRC44=";
 	std::string message = "HsPkLn69ENrLNiebesQsTEu6E4xvu4QXTYA";
-	auto res = priv.verify_message(message, signature,message);
+	auto res = priv.verify_message(message, message, signature);
 	std::cout<<"hc res: " << res << std::endl;
 
 
@@ -143,8 +145,33 @@ int main(int argc, char** argv)
 
 	std::string signature1 = "0x8d4583a002a1ee21c9fbc688c51c960508fe4d68dac16f571a3a50b460c38b9d2acffe29ac065670a178aab140a57cb7d47791896fd8111ebdeecffcdc8cb5be1c";
 	std::string message1 = "0x476e8cb6e378ae523d4016babf53569654ed2fcc";
-	auto res1 = priv1.verify_message(message1, signature1, message1);
+	auto res1 = priv1.verify_message(message1,  message1, signature1);
 	std::cout << "eth res: " << res1 << std::endl;
+	fc::thread my_thread;
+
+	fc::variant_object config = fc::json::from_string("{\"ip\":\"127.0.0.1\",\"port\":5005}").get_object();
+	
+	
+	my_thread.async([&]() {
+		for (int i = 0; i < 10; i++) {
+		try {
+			
+				graphene::crosschain::crosschain_interface_hc inter;
+
+				inter.initialize_config(config);
+				auto ressss = inter.transaction_query("123456789");
+				std::cout << fc::json::to_string(ressss) << std::endl;
+			
+			
+		}
+		catch (fc::exception &ex) {
+			std::cout << "ex!  " << ex.what() << std::endl;
+		}
+		}
+
+	});
+
+	
 	
 
 
