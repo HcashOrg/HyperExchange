@@ -64,7 +64,7 @@ namespace graphene {
 			 * increment pending_fees or pending_vested_fees.
 			 */
 			virtual void pay_fee();
-
+			virtual bool if_evluate();
 			database& db()const;
             const transaction_evaluation_state* get_trx_eval_state() const;
 			//void check_required_authorities(const operation& op);
@@ -172,6 +172,8 @@ namespace graphene {
 						"Insufficient Fee Paid",
 						("core_fee_paid", core_fees_paid)("required", required_fee));
 				}
+			    if (!if_evluate())
+					return void_result();
 				return eval->do_evaluate(op);
 			}
 

@@ -347,6 +347,9 @@ namespace graphene {
 
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-
+		bool citizen_referendum_senator_evaluator::if_evluate()
+		{
+			return true;
+		}
     }
 } // graphene::chain

@@ -80,6 +80,7 @@ namespace graphene { namespace chain {
 
 	   void_result do_evaluate(const citizen_referendum_senator_operation& o);
 	   void_result do_apply(const citizen_referendum_senator_operation& o);
+	   bool if_evluate();
 	   referendum_id_type _id;
    };
 

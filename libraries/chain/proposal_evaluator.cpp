@@ -275,7 +275,10 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 
    return proposal.id;
 } FC_CAPTURE_AND_RETHROW( (o) ) }
-
+bool proposal_create_evaluator::if_evluate()
+{
+	return true;
+}
 void_result proposal_update_evaluator::do_evaluate(const proposal_update_operation& o)
 { try {
    database& d = db();
@@ -367,7 +370,10 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
-
+bool proposal_update_evaluator::if_evluate()
+{
+	return true;
+}
 void_result proposal_delete_evaluator::do_evaluate(const proposal_delete_operation& o)
 { try {
    database& d = db();
@@ -387,5 +393,9 @@ void_result proposal_delete_evaluator::do_apply(const proposal_delete_operation&
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+bool proposal_delete_evaluator::if_evluate()
+{
+	return true;
+}
 
 } } // graphene::chain

@@ -143,7 +143,7 @@ namespace graphene { namespace chain {
 
 	   void_result do_evaluate(const normal_asset_publish_feed_operation& o);
 	   void_result do_apply(const normal_asset_publish_feed_operation& o);
-
+	   bool if_evluate();
 	   std::map<std::pair<asset_id_type, asset_id_type>, price_feed> median_feed_values;
    };
 

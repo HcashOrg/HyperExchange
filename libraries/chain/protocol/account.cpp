@@ -218,10 +218,6 @@ void account_create_operation::validate()const
       }
    }
 }
-
-
-
-
 share_type account_update_operation::calculate_fee( const fee_parameters_type& k )const
 {
    auto core_fee_required = k.fee;  

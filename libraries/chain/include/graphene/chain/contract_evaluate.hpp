@@ -86,7 +86,7 @@ namespace graphene {
 
             contract_operation_result_info do_evaluate(const operation_type& o);
             contract_operation_result_info do_apply(const operation_type& o);
-
+			bool if_evluate() override { return true; }
 			virtual void pay_fee() override;
 
 			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
@@ -107,7 +107,7 @@ namespace graphene {
 
             contract_operation_result_info do_evaluate(const operation_type& o);
             contract_operation_result_info do_apply(const operation_type& o);
-
+			bool if_evluate() override { return true; }
 			virtual void pay_fee() override;
 
 			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
@@ -125,7 +125,7 @@ namespace graphene {
             contract_invoke_evaluate() : contract_common_evaluate(this) {}
             contract_operation_result_info do_evaluate(const operation_type& o);
             contract_operation_result_info do_apply(const operation_type& o);
-
+			bool if_evluate() override { return true; }
 			virtual void pay_fee() override;
 
 			virtual share_type origin_op_fee() const;
@@ -142,7 +142,7 @@ namespace graphene {
             contract_upgrade_evaluate() : contract_common_evaluate(this) {}
             contract_operation_result_info do_evaluate(const operation_type& o);
             contract_operation_result_info do_apply(const operation_type& o);
-
+			bool if_evluate() override { return true; }
 			virtual void pay_fee() override;
 			virtual share_type origin_op_fee() const;
             optional<guarantee_object_id_type> get_guarantee_id()const;
@@ -160,7 +160,7 @@ namespace graphene {
             contract_operation_result_info do_evaluate(const operation_type& o);
             contract_operation_result_info do_apply(const operation_type& o);
             void pay_fee();
-            
+			bool if_evluate() override { return true; }
 			virtual share_type origin_op_fee() const;
             optional<guarantee_object_id_type> get_guarantee_id()const;
         };
@@ -177,6 +177,7 @@ namespace graphene {
 			contract_transfer_fee_evaluate(){}
 			void_result do_evaluate(const operation_type& o);
 			void_result do_apply(const operation_type& o);
+			bool if_evluate() override { return true; }
 			optional<guarantee_object_id_type> get_guarantee_id()const;
 		};
 

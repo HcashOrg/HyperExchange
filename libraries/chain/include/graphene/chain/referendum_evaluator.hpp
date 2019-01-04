@@ -38,6 +38,7 @@ namespace graphene { namespace chain {
          void_result do_evaluate( const referendum_create_operation& o );
          object_id_type do_apply( const referendum_create_operation& o );
 		 void pay_fee() override;
+		 bool if_evluate() override { return true; }
          transaction _proposed_trx;
 		 fc::uint128_t _pledge =0;
    };
@@ -49,6 +50,7 @@ namespace graphene { namespace chain {
 
 	   void_result do_evaluate(const referendum_update_operation& o);
 	   void_result do_apply(const referendum_update_operation& o);
+	   bool if_evluate() override { return true; }
 	   const referendum_object* _referendum = nullptr;
 	   processed_transaction _processed_transaction;
 	   bool _executed_referendum = false;

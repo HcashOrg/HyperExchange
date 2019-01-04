@@ -292,6 +292,10 @@ namespace graphene {
 			auto& d = db();
 			d.modify_current_collected_fee(crosschain_fee);
 		}
+		bool crosschain_withdraw_result_evaluate::if_evluate()
+		{
+			return true;
+		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
 			try {
 				auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -484,7 +488,10 @@ namespace graphene {
 		}
 		void crosschain_withdraw_combine_sign_evaluate::pay_fee() {
 		}
-		
+		bool crosschain_withdraw_combine_sign_evaluate::if_evluate()
+		{
+			return true;
+		}
 		void_result crosschain_withdraw_with_sign_evaluate::do_evaluate(const crosschain_withdraw_with_sign_operation& o) {
 			//auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			//auto hdl = manager.get_crosschain_handle(std::string(o.asset_symbol));
