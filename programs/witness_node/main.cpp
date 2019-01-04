@@ -249,7 +249,10 @@ int main(int argc, char** argv) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
    }
-
+   catch (const std::exception&e)
+   {
+	   elog("Exiting with std::exception:\n${e}", ("e", e.what()));
+   }
    if (unhandled_exception)
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));

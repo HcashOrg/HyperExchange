@@ -57,7 +57,11 @@ struct crosschain_prkeys
 	string wif_key;
 	bool operator==(const crosschain_prkeys& key) const;
 };
-
+struct brain_key_usage_info
+{
+	string key;
+	int next;
+};
 struct plain_keys
 {
    //map<public_key_type, string>  keys;
@@ -330,6 +334,7 @@ struct wallet_data
    }
    /** encrypted keys */
    vector<char>              cipher_keys;
+   optional<vector<char>>              cipher_keys_extend;
 
    /** map an account to a set of extra keys that have been imported for that account */
    map<account_id_type, set<public_key_type> >  extra_keys;
@@ -2082,6 +2087,11 @@ class wallet_api
 	  //ntp
 	  std::map<std::string,fc::ntp_info> get_ntp_info();
 	  void ntp_update_time();
+
+	  //master_key
+	  bool set_master_key(const string& key,const int next);
+	  brain_key_usage_info dump_current_brain_key(const string& password);
+	  address wallet_create_sub_account(const string& name);
 };
 
 } }
@@ -2098,6 +2108,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_accounts)
             (my_scripts)
             (cipher_keys)
+	        (cipher_keys_extend)
             (extra_keys)
 			(mining_accounts)
             (pending_account_registrations)(pending_miner_registrations)
@@ -2108,7 +2119,10 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (ws_user)
             (ws_password)
           )
-
+FC_REFLECT(graphene::wallet::brain_key_usage_info,
+			(key)
+			(next)
+)
 FC_REFLECT( graphene::wallet::brain_key_info,
             (brain_priv_key)
             (wif_priv_key)
@@ -2369,5 +2383,7 @@ FC_API( graphene::wallet::wallet_api,
 		(start_mining)
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
-			(cancel_eth_sign_transaction)
+		(cancel_eth_sign_transaction)
+		(dump_current_brain_key)
+		(wallet_create_sub_account)
       )

@@ -97,24 +97,27 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
 
    back.emplace_back();
    //如果back的计数大于back_size
-   while (back.size() >= max_back_size)
+   while (back.size() >= max_back_size+10)
    {
 	   //判断back的size是否大于max_size(),大于等于max_size，则直接将队首弹出
 	   //否则，将队首移入存储
-	  if (back.size()<max_size())
+	   while (back.size() >= max_back_size)
 	   {
+		   if (back.size() < max_size())
+		   {
 
-		  DL("start_undo_session: move back.front to db:", "id unknown");
-		  auto id = state_storage->store_undo_state(back.front());
-		  DL("start_undo_session: move back.front to db:", id.str());
-		   _stack.push_back(id);
+			   DL("start_undo_session: move back.front to db:", "id unknown");
+			   auto id = state_storage->store_undo_state(back.front());
+			   DL("start_undo_session: move back.front to db:", id.str());
+			   _stack.push_back(id);
+		   }
+		   back.pop_front();
 	   }
-	   back.pop_front();
    }
    while (size() > max_size())
    {
 	   //在pop将对应的db中的存储删掉
-	   if (size() > max_back_size) {
+	   if (size() > max_back_size&&_stack.size()>0) {
 		   DL("start_undo_session: remove state tool old:", _stack.front().str());
 		   FC_ASSERT(state_storage->remove(_stack.front()));
 		   _stack.pop_front();
@@ -203,16 +206,19 @@ void undo_database::undo()
    //如果只有一个back active,将back重置,否则从stack中最后一个移除放入back
 
    back.pop_back();
-   if (_stack.size() > 0)
+   if (_stack.size() > 0 && back.size() <= 5)
    {
-	   back.emplace_front();
+	   while (_stack.size() > 0 && back.size() < max_back_size)
+	   {
+		   back.emplace_front();
 
-	   DL("undo_database::undo get_state" , _stack.back().str());
-	   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()),"undo load stack back failed");
-	   DL("undo_database::undo remove  " , _stack.back().str());
-	   FC_ASSERT(state_storage->remove(_stack.back()),"undo remove stack back failed");
-	   DL("undo_database::undo pop     " ,_stack.back().str());
-	   _stack.pop_back();
+		   DL("undo_database::undo get_state", _stack.back().str());
+		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "undo load stack back failed");
+		   DL("undo_database::undo remove  ", _stack.back().str());
+		   FC_ASSERT(state_storage->remove(_stack.back()), "undo remove stack back failed");
+		   DL("undo_database::undo pop     ", _stack.back().str());
+		   _stack.pop_back();
+	   }
    }
    enable();
    --_active_sessions;
@@ -337,17 +343,20 @@ void undo_database::merge()
       prev_state.removed[obj.second->id] = std::move(obj.second);
    }
    back.pop_back();
-   if (_stack.size() > 0)
+   if (_stack.size() > 0&&back.size()<=5)
    {
+	   while (_stack.size() > 0 && back.size() < max_back_size)
+	   {
+		   DL("undo_database::merge   get", _stack.back().str());
+		   back.emplace_front();
+		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "merge load stack back");
+		   DL("undo_database::merge   remove", _stack.back().str());
+		   FC_ASSERT(state_storage->remove(_stack.back()), "merge remove stack back failed");
 
-	   DL("undo_database::merge   get" ,_stack.back().str());
-	   back.emplace_front();
-	   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "merge load stack back");
-	   DL("undo_database::merge   remove" , _stack.back().str());
-	   FC_ASSERT(state_storage->remove(_stack.back()),"merge remove stack back failed");
+		   DL("undo_database::merge   popback", _stack.back().str());
+		   _stack.pop_back();
+	   }
 
-	   DL("undo_database::merge   popback" , _stack.back().str());
-	   _stack.pop_back();
    }
 
    --_active_sessions;
@@ -388,23 +397,25 @@ void undo_database::pop_commit()
 		   _db.insert(std::move(*item.second));
 	   back.pop_back();
 	   //将stack中的最后一个取出设置为back
-	   if (_stack.size() > 0)
+	   if (_stack.size() > 0 && back.size() <= 5)
 	   {
-		   back.emplace_front();
+		   while (_stack.size() > 0 && back.size() < max_back_size)
+		   {
+			   back.emplace_front();
 
-		   DL("undo_storage::popcommit   get" , _stack.back().str());
-		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()),"pop_commit load stack back failed");
-		   //auto da = back.get_serializable_undo_state();
-		   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
+			   DL("undo_storage::popcommit   get", _stack.back().str());
+			   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "pop_commit load stack back failed");
+			   //auto da = back.get_serializable_undo_state();
+			   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
 
-		   DL("undo_storage::popcommit   remove" , _stack.back().str());
-		   FC_ASSERT(state_storage->remove(_stack.back()),"pop_commit remove stack back failed");
+			   DL("undo_storage::popcommit   remove", _stack.back().str());
+			   FC_ASSERT(state_storage->remove(_stack.back()), "pop_commit remove stack back failed");
 
-		   DL("undo_storage::popcommit   popback", _stack.back().str());
-		   DL("back_size:", _stack.size());
-		   std::cout << "stack_size:" << _stack.size() << std::endl;
-		   _stack.pop_back();
-
+			   DL("undo_storage::popcommit   popback", _stack.back().str());
+			   DL("back_size:", _stack.size());
+			   std::cout << "stack_size:" << _stack.size() << std::endl;
+			   _stack.pop_back();
+		   }
 	   }
 	   DL("back_size:", back.size());
 	   std::cout << "back_size:" << back.size() << std::endl;

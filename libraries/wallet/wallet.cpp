@@ -550,6 +550,8 @@ public:
          data.keys = _keys;
 		 data.crosschain_keys = _crosschain_keys;
          data.checksum = _checksum;
+		 if (_current_brain_key.valid())
+			 _wallet.cipher_keys_extend = fc::aes_encrypt(_checksum,fc::raw::pack(*_current_brain_key));
          auto plain_txt = fc::raw::pack(data);
          _wallet.cipher_keys = fc::aes_encrypt( data.checksum, plain_txt );
       }
@@ -2518,7 +2520,7 @@ public:
    void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum) {
 	  _remote_db->set_acquire_block_num(symbol, blocknum);
    }
-   address create_account(string account_name)
+   address create_account(string account_name,bool from_master_key=false)
    {
 	   try{
 		   FC_ASSERT(!self.is_locked());
@@ -6456,6 +6458,7 @@ public:
 
    //map<public_key_type,string> _keys;
    map<address, string> _keys;
+   optional<brain_key_usage_info> _current_brain_key;
    fc::sha512                  _checksum;
 
    chain_id_type           _chain_id;
@@ -7328,10 +7331,15 @@ full_transaction wallet_api::create_account_with_brain_key(string brain_key, str
             );
 }
 
+address wallet_api::wallet_create_sub_account(const string& name)
+{
+	return my->create_account(name,true);
+}
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
 }
+
 full_transaction wallet_api::set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast)
 {
 	return my->set_citizen_pledge_pay_back_rate(citizen, pledge_pay_back_rate, broadcast);
@@ -8328,6 +8336,14 @@ void wallet_api::unlock(string password)
    FC_ASSERT(pk.checksum == pw);
    my->_keys = std::move(pk.keys);
    my->_crosschain_keys = std::move(pk.crosschain_keys);
+   if (my->_wallet.cipher_keys_extend.valid())
+   {
+	   vector<char> decrypted_brain_key = fc::aes_decrypt(pw,*(my->_wallet.cipher_keys_extend));
+	   auto bkey = fc::raw::unpack<brain_key_usage_info>(decrypted_brain_key);
+	   my->_current_brain_key = bkey;
+	   
+   }
+
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
    try
@@ -8347,9 +8363,15 @@ void wallet_api::unlock(string password)
 
 void wallet_api::set_password( string password )
 {
+	bool bnew = false;
+	if (is_new())
+		bnew = true;
    if( !is_new() )
       FC_ASSERT( !is_locked(), "The wallet must be unlocked before the password can be set" );
    my->_checksum = fc::sha512::hash( password.c_str(), password.size() );
+   auto bkey_info=suggest_brain_key();
+   if(bnew)
+	   set_master_key(bkey_info.brain_priv_key, 0);
    lock();
 }
 
@@ -9348,6 +9370,26 @@ void wallet_api::ntp_update_time()
 {
 	time_point::ntp_update_time();
 	my->_remote_db->ntp_update_time();
+}
+
+bool wallet_api::set_master_key(const string & key, const int next)
+{
+	FC_ASSERT(!is_locked(),"");
+	brain_key_usage_info info;
+	info.key = key;
+	info.next = next;
+	my->_current_brain_key = info;
+	save_wallet_file();
+}
+
+graphene::wallet::brain_key_usage_info wallet_api::dump_current_brain_key(const string& password)
+{
+	FC_ASSERT(!is_locked(), "");
+	FC_ASSERT(password.size() > 0);
+	auto pw = fc::sha512::hash(password.c_str(), password.size());
+	FC_ASSERT(pw==my->_checksum);
+	FC_ASSERT(my->_current_brain_key.valid());
+	return *my->_current_brain_key;
 }
 
 void wallet_api::witness_node_stop()
