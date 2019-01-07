@@ -412,8 +412,11 @@ namespace graphene {
 			std::vector<std::string> vin_trxs;
 			for (auto vin : vins)
 			{
+				auto sztx = vin.get_object()["txid"].as_string();
 				FC_ASSERT(vin.get_object().contains("txid"));
-				vin_trxs.push_back(vin.get_object()["txid"].as_string());
+				auto itr = std::find(vin_trxs.begin(), vin_trxs.end(), sztx);
+				if (itr == vin_trxs.end())
+					vin_trxs.push_back(sztx);
 			}
 			const auto& vin_ret = transaction_query(vin_trxs);
 			FC_ASSERT(vin_ret.size() == vins.size());
