@@ -366,10 +366,10 @@ namespace graphene {
 		fc::variant_object crosschain_interface_btc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
 
-			/*graphene::privatekey_management::btc_privatekey btk;
-			return btk.combine_trxs(signatures);*/
+			graphene::privatekey_management::btc_privatekey btk;
+			return btk.combine_trxs(signatures);
 
-			std::ostringstream req_body;
+			/*std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
 				\"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.CombineTrx\" ,\
@@ -396,7 +396,7 @@ namespace graphene {
 			}
 			else
 				FC_THROW(std::string(response.body.begin(),response.body.end()));
-			return fc::variant_object();
+			return fc::variant_object();*/
 		}
 
 		bool crosschain_interface_btc::validate_link_trx(const hd_trx &trx)

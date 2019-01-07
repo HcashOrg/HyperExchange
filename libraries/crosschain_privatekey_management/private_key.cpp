@@ -113,7 +113,8 @@ namespace graphene { namespace privatekey_management {
 	fc::variant_object crosschain_privatekey_base::combine_trxs(const std::vector<std::string>& trxs)
 	{
 		auto trx = graphene::utxo::combine_trx(trxs);
-		return fc::json::from_string(trx).get_object();
+		std::cout << "trx is "<< trx << std::endl;
+		return fc::json::from_string(graphene::utxo::decoderawtransaction(trx)).get_object();
 	}
 
 	bool crosschain_privatekey_base::verify_message(const std::string addr, const std::string& content, const std::string& encript)
