@@ -306,7 +306,7 @@ namespace fc {
 			fc::http::reply rep;
 			try {
 				read_lock.lock();
-				_deadline.expires_from_now(boost::posix_time::seconds(100));
+				_deadline.expires_from_now(boost::posix_time::seconds(50));
 				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
 				boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
 				
@@ -337,17 +337,32 @@ namespace fc {
 					key.assign(head.c_str(), pos);
 					string val;
 					val.assign(head.c_str(), pos + 1, std::string::npos);
+					val.erase(0, val.find_first_not_of(" "));
+					val.erase(val.find_last_not_of("\r") + 1);
 					header h(key, val);
+					if (boost::iequals(h.key, "Content-Length")) {
+						rep.body.resize(static_cast<size_t>(to_uint64(fc::string(h.val))));
+					}
 					///rep.headers.push_back();
 					rep.headers.push_back(h);
 				}
 				boost::system::error_code error;
-				while (boost::asio::read(_socket, line,
-					boost::asio::transfer_at_least(1), error))
-				{
+				read_lock.lock();
+				_deadline.expires_from_now(boost::posix_time::seconds(50));
+				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
+				boost::asio::async_read(_socket, line,boost::asio::transfer_at_least(rep.body.size()), boost::bind(&connection_sync::handle_reply, this,
+					boost::asio::placeholders::error,
+					boost::asio::placeholders::bytes_transferred));
+				
+				read_lock.lock();
+				read_lock.unlock();
+				
+				if (is_timeout) {
+					std::cout << "query timeout read body" << std::endl;
+					rep.status = reply::status_code::InternalServerError;
+					return rep;
 				}
-
-
+				_deadline.cancel();
 				if (line.size())
 				{
 					std::istream response_stream1(&line);
@@ -355,7 +370,6 @@ namespace fc {
 					auto reponse_data = string(std::istreambuf_iterator<char>(response_stream1), eos);
 					rep.body.assign(reponse_data.begin(), reponse_data.end());
 				}
-				
 				return rep;
 				
 			}
@@ -368,6 +382,11 @@ namespace fc {
 		}
 		void connection_sync::handle_reply() {
 			is_timeout = false;
+			read_lock.unlock();
+		}
+		void connection_sync::handle_reply(const boost::system::error_code & error, size_t bytes_transferred) {
+			is_timeout = false;
+			/*std::cout << error.message() << "          " << bytes_transferred << std::endl;*/
 			read_lock.unlock();
 		}
 
