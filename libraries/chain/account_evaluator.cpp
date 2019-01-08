@@ -221,6 +221,11 @@ void_result account_update_evaluator::do_evaluate( const account_update_operatio
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+bool account_update_evaluator::if_evluate()
+{
+	return true;
+}
+
 void_result account_update_evaluator::do_apply( const account_update_operation& o )
 { try {
    database& d = db();

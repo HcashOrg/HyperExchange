@@ -3956,6 +3956,14 @@ public:
 		   //outfile.flush();
 		   //outfile.close();
 		   string tmpf=out_key_file+".tmp";
+		   try {
+			   boost::filesystem::remove(tmpf);
+		   }
+		   catch (boost::filesystem::filesystem_error& )
+		   {
+
+		   }
+		   
 		   boost::system::error_code ercode;
 		   map<string, crosschain_prkeys> keys;
 		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);

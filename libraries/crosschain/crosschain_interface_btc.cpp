@@ -366,10 +366,10 @@ namespace graphene {
 		fc::variant_object crosschain_interface_btc::merge_multisig_transaction(fc::variant_object &trx, std::vector<std::string> signatures)
 		{
 
-			/*graphene::privatekey_management::btc_privatekey btk;
-			return btk.combine_trxs(signatures);*/
+			graphene::privatekey_management::btc_privatekey btk;
+			return btk.combine_trxs(signatures);
 
-			std::ostringstream req_body;
+			/*std::ostringstream req_body;
 			req_body << "{ \"jsonrpc\": \"2.0\", \
 				\"id\" : \"45\", \
 				\"method\" : \"Zchain.Trans.CombineTrx\" ,\
@@ -396,7 +396,7 @@ namespace graphene {
 			}
 			else
 				FC_THROW(std::string(response.body.begin(),response.body.end()));
-			return fc::variant_object();
+			return fc::variant_object();*/
 		}
 
 		bool crosschain_interface_btc::validate_link_trx(const hd_trx &trx)
@@ -412,8 +412,11 @@ namespace graphene {
 			std::vector<std::string> vin_trxs;
 			for (auto vin : vins)
 			{
+				auto sztx = vin.get_object()["txid"].as_string();
 				FC_ASSERT(vin.get_object().contains("txid"));
-				vin_trxs.push_back(vin.get_object()["txid"].as_string());
+				auto itr = std::find(vin_trxs.begin(), vin_trxs.end(), sztx);
+				if (itr == vin_trxs.end())
+					vin_trxs.push_back(sztx);
 			}
 			const auto& vin_ret = transaction_query(vin_trxs);
 			FC_ASSERT(vin_ret.size() == vins.size());

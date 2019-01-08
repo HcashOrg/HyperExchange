@@ -43,7 +43,7 @@ public:
 
    void_result do_evaluate( const account_update_operation& o );
    void_result do_apply( const account_update_operation& o );
-
+   bool if_evluate();
    const account_object* acnt;
 };
 
@@ -54,7 +54,7 @@ public:
 
    void_result do_evaluate(const operation_type& o);
    void_result do_apply(const operation_type& o);
-
+   bool if_evluate() { return true; }
    const account_object* account;
 };
 
@@ -65,7 +65,7 @@ public:
 
    void_result do_evaluate( const account_whitelist_operation& o);
    void_result do_apply( const account_whitelist_operation& o);
-
+   bool if_evluate() { return true; }
    const account_object* listed_account;
 };
 

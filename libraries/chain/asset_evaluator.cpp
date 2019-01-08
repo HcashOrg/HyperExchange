@@ -535,9 +535,10 @@ void_result normal_asset_publish_feeds_evaluator::do_apply(const normal_asset_pu
 	} FC_CAPTURE_AND_RETHROW((o))
 }
 
-
-
-
+bool normal_asset_publish_feeds_evaluator::if_evluate()
+{
+	return true;
+}
 
 void_result asset_claim_fees_evaluator::do_evaluate( const asset_claim_fees_operation& o )
 { try {

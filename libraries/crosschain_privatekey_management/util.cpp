@@ -446,8 +446,8 @@ namespace graphene {
 		{
 			std::map<int,fc::flat_set<std::string>> signatures;
 			libbitcoin::chain::transaction  tx;
-			std::string redeemscript;
 			int ins_size;
+			std::string redeemscript;
 			for (const auto trx : trxs)
 			{
 				tx.from_data(libbitcoin::config::base16(trx));
@@ -462,7 +462,9 @@ namespace graphene {
 					FC_ASSERT(pos_first != std::string::npos);
 					auto pos_end = script_str.find(']');
 					FC_ASSERT(pos_end != std::string::npos);
-					std::string hex = script_str.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
+					
+					std::string hex;
+					hex.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
 					redeemscript.assign(script_str.begin()+pos_end+1,script_str.end());
 					signatures[vin_index].insert(hex);
 				}
@@ -475,7 +477,7 @@ namespace graphene {
 				{
 					endorsement_script += "[" + sig + "] ";
 				}
-				endorsement_script += "[" + redeemscript + "] ";
+				endorsement_script += redeemscript ;
 				libbitcoin::chain::script   libbitcoin_script;
 				libbitcoin_script.from_string(endorsement_script);
 				tx.inputs()[index].set_script(libbitcoin_script);
