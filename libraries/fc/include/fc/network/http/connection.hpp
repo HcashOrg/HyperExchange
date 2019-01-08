@@ -90,6 +90,7 @@ namespace fc {
 		 //http::request    read_request()const;
 		 http::reply parse_reply();
 		 void handle_reply();
+		 void handle_reply(const boost::system::error_code & error, size_t bytes_transferred);
 		 void check_deadline();
 		 void close_socket();
 	 private:

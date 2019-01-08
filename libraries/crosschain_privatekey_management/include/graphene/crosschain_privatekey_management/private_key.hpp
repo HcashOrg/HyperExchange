@@ -163,6 +163,7 @@ namespace graphene {
 			static  fc::variant_object  decoderawtransaction(const std::string& trx);
 			virtual std::string  sign_trx(const std::string& raw_trx, int index);
 			virtual bool validate_address(const std::string& addr);
+			std::string hc_combine_trx(const std::vector<std::string>& trxs);
 		private:
 			void init();
 			

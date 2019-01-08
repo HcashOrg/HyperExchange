@@ -1112,6 +1112,184 @@ namespace graphene { namespace privatekey_management {
 		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());*/
 		return signed_trx;
 	}
+
+
+	
+
+
+	std::string hc_privatekey::hc_combine_trx(const std::vector<std::string>& trxs)
+	{
+		if (trxs.size() < 2) {
+			FC_ASSERT(false, "trx count is least than min required");
+		}
+		auto trx = trxs[0];
+		std::map<int, std::vector<libbitcoin::chain::script::operation>> bak_signature;
+		std::ostringstream obj;
+		libbitcoin::data_chunk writ;
+		libbitcoin::data_sink ostream(writ);
+		libbitcoin::ostream_writer w(ostream);
+		libbitcoin::data_chunk aa = libbitcoin::config::base16(trx);
+		libbitcoin::data_source va(aa);
+		libbitcoin::istream_reader source(va);
+		//without witness 
+		uint32_t versiona = source.read_4_bytes_little_endian();
+		w.write_4_bytes_little_endian(versiona);
+		input_todata(source, w);
+		output_todata(source, w);
+		uint32_t locktime = source.read_4_bytes_little_endian();
+		uint32_t expir = source.read_4_bytes_little_endian();
+		w.write_4_bytes_little_endian(locktime);
+		w.write_4_bytes_little_endian(expir);
+		
+		for (int i = 0; i < trxs.size(); i++) {
+			auto inter_trx = trxs[i];
+			std::ostringstream inter_obj;
+			libbitcoin::data_chunk inter_writ;
+			libbitcoin::data_sink inter_ostream(inter_writ);
+			libbitcoin::ostream_writer inter_w(inter_ostream);
+			libbitcoin::data_chunk inter_aa = libbitcoin::config::base16(inter_trx);
+			libbitcoin::data_source inter_va(inter_aa);
+			libbitcoin::istream_reader inter_source(inter_va);
+			//without witness 
+			uint32_t inter_versiona = inter_source.read_4_bytes_little_endian();
+			uint32_t inter_version_prefix = inter_versiona | (1 << 16);
+			uint32_t inter_version_witness = inter_versiona | (3 << 16);
+		
+			input_todata(inter_source, inter_w);
+			output_todata(inter_source, inter_w);
+			uint32_t inter_locktime = inter_source.read_4_bytes_little_endian();
+			uint32_t inter_expir = inter_source.read_4_bytes_little_endian();
+			inter_ostream.flush();
+			auto witness_count = inter_source.read_size_little_endian();
+
+			//insert input:
+
+			for (int i = 0; i < witness_count; i++) {
+				auto ValueIn = inter_source.read_8_bytes_little_endian();
+				auto BlockHeight = inter_source.read_4_bytes_little_endian();
+				auto BlockIndex = inter_source.read_4_bytes_little_endian();
+				auto signtureCount = inter_source.read_size_little_endian();
+
+				auto SignatureScript = inter_source.read_bytes(signtureCount);
+				libbitcoin::chain::script a(SignatureScript, false);
+
+				if (a.size() >= 2) {
+					bak_signature[i].push_back(a[0]);
+				}
+				
+
+
+			}
+
+		}
+		auto witness_count = source.read_size_little_endian();
+		w.write_size_little_endian(witness_count);
+		//insert input:
+
+		for (int i = 0; i < witness_count;i++) {
+			auto ValueIn = source.read_8_bytes_little_endian();
+			
+			auto BlockHeight = source.read_4_bytes_little_endian();
+			auto BlockIndex = source.read_4_bytes_little_endian();
+			auto signtureCount = source.read_size_little_endian();
+			w.write_8_bytes_little_endian(ValueIn);
+			w.write_4_bytes_little_endian(BlockHeight);
+			w.write_4_bytes_little_endian(BlockIndex);
+			auto SignatureScript = source.read_bytes(signtureCount);
+			libbitcoin::chain::script a(SignatureScript, false);
+			libbitcoin::chain::script::operation::list new_op_list;
+			
+			for (const auto& one_data : bak_signature[i]) {	
+				new_op_list.push_back(one_data);
+			}
+			new_op_list.push_back(a[1]);
+			libbitcoin::chain::script new_script(new_op_list);
+
+			w.write_size_little_endian(new_script.to_data(false).size());
+			w.write_bytes(new_script.to_data(false));
+
+
+			std::cout << "\"script\": \"" << new_script.to_string(0) << "\"," << std::endl;
+			
+
+		}
+
+		ostream.flush();
+		std::string signed_trx = libbitcoin::encode_base16(libbitcoin::data_slice(writ));
+		return signed_trx;
+		
+		////insert output:
+		//libbitcoin::data_source output_reader(output_writ);
+		//libbitcoin::istream_reader output_source(output_reader);
+		//auto OutputCount = output_source.read_size_little_endian();
+		////std::cout << (uint64_t)OutputCount << std::endl;
+		//for (uint64_t i = 0; i < OutputCount; ++i) {
+		//	auto Value = output_source.read_8_bytes_little_endian();
+		//	auto Version = output_source.read_2_bytes_little_endian();
+		//	auto output_count = output_source.read_size_little_endian();
+		//	auto PkScript = output_source.read_bytes(output_count);
+		//	libbitcoin::chain::script a(PkScript, false);
+		//	//std::cout << "out put script is " << a.to_string(libbitcoin::machine::all_rules) << std::endl;
+		//	if (i > 0)
+		//		obj << ",";
+		//	obj << "\"output\": {";
+
+		//	if (a.size() == 5)
+		//	{
+
+		//		if (a[0] == libbitcoin::machine::opcode::dup &&
+		//			a[1] == libbitcoin::machine::opcode::hash160 &&
+		//			a[3] == libbitcoin::machine::opcode::equalverify &&
+		//			a[4] == libbitcoin::machine::opcode::checksig) {
+		//			//auto pubkeyhash = a[2];
+		//			fc::array<char, 26> addr;
+		//			//test line
+		//			//int version = 0x0f21;
+		//			int version = 0x097f;
+		//			addr.data[0] = char(version >> 8);
+		//			addr.data[1] = (char)version;
+		//			for (int i = 0; i < a[2].data().size(); i++)
+		//			{
+		//				addr.data[i + 2] = a[2].data()[i];
+		//			}
+		//			//memcpy(addr.data + 2, (char*)&(a[2].data()), a[2].data().size());
+		//			auto check = HashR14(addr.data, addr.data + a[2].data().size() + 2);
+		//			check = HashR14((char*)&check, (char*)&check + sizeof(check));
+		//			memcpy(addr.data + 2 + a[2].data().size(), (char*)&check, 4);
+		//			obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+		//			//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
+		//		}
+		//	}
+		//	else if (a.size() == 3)
+		//	{
+		//		if (a[0] == libbitcoin::machine::opcode::hash160 &&
+		//			a[2] == libbitcoin::machine::opcode::equal)
+		//		{
+		//			//auto pubkeyhash = a[1];
+		//			fc::array<char, 26> addr;
+		//			//test line
+		//			//int version = 0x0efc;
+		//			int version = 0x095a;
+		//			addr.data[0] = char(version >> 8);
+		//			addr.data[1] = (char)version;
+		//			for (int i = 0; i < a[1].data().size(); i++)
+		//			{
+		//				addr.data[i + 2] = a[1].data()[i];
+		//			}
+		//			auto check = HashR14(addr.data, addr.data + a[1].data().size() + 2);
+		//			check = HashR14((char*)&check, (char*)&check + sizeof(check));
+		//			memcpy(addr.data + 2 + a[1].data().size(), (char*)&check, 4);
+		//			//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
+		//			obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+		//		}
+		//	}
+		//	obj << "\"script\": \"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
+		//	obj << "\"value\": " << Value << "}";
+		//}
+		//obj << "}}";
+
+	}
+
 	bool hc_privatekey::validate_address(const std::string& addr) {
 		try {
 			graphene::chain::pts_address_extra pts(addr);
