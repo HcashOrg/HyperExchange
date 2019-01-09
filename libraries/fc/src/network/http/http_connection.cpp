@@ -376,6 +376,7 @@ namespace fc {
 			}
 			catch (...) {
 				//elog("${exception}", ("exception", e.to_detail_string()));
+				read_lock.try_lock();
 				read_lock.unlock();
 				close_socket();
 				rep.status = http::reply::InternalServerError;
