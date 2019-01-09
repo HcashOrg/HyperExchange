@@ -1256,6 +1256,7 @@ namespace graphene {
 			}
 			else {
 				FC_ASSERT(trx_input == source_trx_input);
+				FC_ASSERT(trx_index != "");
 				//eth withdraw
 				FC_ASSERT(respit_trx.contains("logs"));
 				auto receipt_logs = respit_trx["logs"].get_array();
@@ -1270,7 +1271,13 @@ namespace graphene {
 					FC_ASSERT(topics.get_array()[0].as_string() == success_topic);
 					FC_ASSERT(receipt_log.get_object().contains("data"));
 					std::string data = receipt_log.get_object()["data"].as_string();
-					std::string logindex = receipt_log.get_object()["logIndex"].as_string();
+					//std::string logindex = receipt_log.get_object()["logIndex"].as_string();
+					auto source_index = fc::to_uint64(ConvertPre(16, 10, receipt_log["logIndex"].as_string().substr(2)));
+					std::cout <<"source_index is "<<source_index << std::endl;
+					auto trx_index_num = fc::to_uint64(ConvertPre(16, 10, trx_index));
+					std::cout << "trx_index_num is " << trx_index_num << std::endl;
+					if (source_index == trx_index_num)
+					{
 					std::string eth_address = "0000000000000000000000000000000000000000000000000000000000000000";
 					std::vector<std::string> datas;
 					for (int i = 0; i < (data.size() - 2) / 64;++i) {
@@ -1291,6 +1298,8 @@ namespace graphene {
 					FC_ASSERT(source_to_account == trx_to_account);
 					FC_ASSERT(source_from_account == trx.from_account);
 					FC_ASSERT(source_amount == trx.amount);
+					break;
+					}
 				}
 			}
 			return true;
