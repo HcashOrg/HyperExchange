@@ -1697,8 +1697,8 @@ namespace graphene {
 				\"method\" : \"Zchain.Transaction.GuardCall.History\" ,\
 				\"params\" : {\"chainId\":\"" << local_symbol << "\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": " << start_block << "}}";
 			fc::http::connection_sync conn2;
-			conn1.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-			auto response2 = conn1.request(_rpc_method, _rpc_url, req_body2.str(), _rpc_headers);
+			conn2.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			auto response2 = conn2.request(_rpc_method, _rpc_url, req_body2.str(), _rpc_headers);
 			if (response2.status == fc::http::reply::OK)
 			{
 				auto resp = fc::json::from_string(std::string(response2.body.begin(), response2.body.end()));
