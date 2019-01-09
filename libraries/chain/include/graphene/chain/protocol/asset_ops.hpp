@@ -278,17 +278,18 @@ namespace graphene { namespace chain {
       asset_update_operation(){}
 
       asset           fee;
-      account_id_type issuer;
+      address issuer;
       asset_id_type   asset_to_update;
 
-      /// If the asset is to be given a new issuer, specify his ID here.
-      optional<account_id_type>   new_issuer;
-      asset_options               new_options;
+      string                description;
       extensions_type             extensions;
 
-      account_id_type fee_payer()const { return issuer; }
+      address fee_payer()const { return issuer; }
       void            validate()const;
       share_type      calculate_fee(const fee_parameters_type& k)const;
+	  void get_required_authorities(vector<authority>& a)const {
+		  a.push_back(authority(1, issuer, 1));
+	  }
    };
 
    /**
@@ -711,8 +712,7 @@ FC_REFLECT( graphene::chain::asset_update_operation,
             (fee)
             (issuer)
             (asset_to_update)
-            (new_issuer)
-            (new_options)
+            (description)
             (extensions)
           )
 FC_REFLECT( graphene::chain::asset_update_bitasset_operation,

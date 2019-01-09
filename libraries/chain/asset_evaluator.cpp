@@ -209,75 +209,17 @@ void_result asset_fund_fee_pool_evaluator::do_apply(const asset_fund_fee_pool_op
 void_result asset_update_evaluator::do_evaluate(const asset_update_operation& o)
 { try {
    database& d = db();
-
    const asset_object& a = o.asset_to_update(d);
-   auto a_copy = a;
-   a_copy.options = o.new_options;
-   a_copy.validate();
-
-   if( o.new_issuer )
-   {
-      FC_ASSERT(d.find_object(*o.new_issuer));
-      if( a.is_market_issued() && *o.new_issuer == GRAPHENE_GUARD_ACCOUNT )
-      {
-         const asset_object& backing = a.bitasset_data(d).options.short_backing_asset(d);
-         if( backing.is_market_issued() )
-         {
-            const asset_object& backing_backing = backing.bitasset_data(d).options.short_backing_asset(d);
-            FC_ASSERT( backing_backing.get_id() == asset_id_type(),
-                       "May not create a blockchain-controlled market asset which is not backed by CORE.");
-         } else
-            FC_ASSERT( backing.get_id() == asset_id_type(),
-                       "May not create a blockchain-controlled market asset which is not backed by CORE.");
-      }
-   }
-
-   if( a.dynamic_asset_data_id(d).current_supply != 0) 
-   {
-      // new issuer_permissions must be subset of old issuer permissions
-      FC_ASSERT(!(o.new_options.issuer_permissions & ~a.options.issuer_permissions),
-                "Cannot reinstate previously revoked issuer permissions on an asset.");
-   }
-
-   // changed flags must be subset of old issuer permissions
-   FC_ASSERT(!((o.new_options.flags ^ a.options.flags) & ~a.options.issuer_permissions),
-             "Flag change is forbidden by issuer permissions");
-
-   asset_to_update = &a;
-   FC_ASSERT( o.issuer == a.issuer, "", ("o.issuer", o.issuer)("a.issuer", a.issuer) );
-
-   const auto& chain_parameters = d.get_global_properties().parameters;
-
-   FC_ASSERT( o.new_options.whitelist_authorities.size() <= chain_parameters.maximum_asset_whitelist_authorities );
-   for( auto id : o.new_options.whitelist_authorities )
-      d.get_object(id);
-   FC_ASSERT( o.new_options.blacklist_authorities.size() <= chain_parameters.maximum_asset_whitelist_authorities );
-   for( auto id : o.new_options.blacklist_authorities )
-      d.get_object(id);
-
+   FC_ASSERT(d.get(a.issuer).addr == o.issuer ,"must be same issuer.");
    return void_result();
 } FC_CAPTURE_AND_RETHROW((o)) }
 
 void_result asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
-
-   // If we are now disabling force settlements, cancel all open force settlement orders
-   if( o.new_options.flags & disable_force_settle && asset_to_update->can_force_settle() )
-   {
-      const auto& idx = d.get_index_type<force_settlement_index>().indices().get<by_expiration>();
-      // Funky iteration code because we're removing objects as we go. We have to re-initialize itr every loop instead
-      // of simply incrementing it.
-      for( auto itr = idx.lower_bound(o.asset_to_update);
-           itr != idx.end() && itr->settlement_asset_id() == o.asset_to_update;
-           itr = idx.lower_bound(o.asset_to_update) )
-         d.cancel_order(*itr);
-   }
-
-   d.modify(*asset_to_update, [&](asset_object& a) {
-      if( o.new_issuer )
-         a.issuer = *o.new_issuer;
-      a.options = o.new_options;
+   const asset_object& a = o.asset_to_update(d);
+   d.modify(a, [&](asset_object& obj) {
+	   obj.options.description = o.description;
    });
 
    return void_result();

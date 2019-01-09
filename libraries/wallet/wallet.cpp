@@ -2644,26 +2644,20 @@ public:
 	   } FC_CAPTURE_AND_RETHROW((issuer)(symbol)(precision)(max_supply)(broadcast)(erc_address))
    }
 
-   full_transaction update_asset(string symbol,
-                                   optional<string> new_issuer,
-                                   asset_options new_options,
-                                   bool broadcast /* = false */)
+   full_transaction update_asset(const string& account, const std::string& symbol,
+	                             const std::string& description,
+	                             bool broadcast = false)
    { try {
       optional<asset_object> asset_to_update = find_asset(symbol);
       if (!asset_to_update)
         FC_THROW("No asset with that symbol exists!");
-      optional<account_id_type> new_issuer_account_id;
-      if (new_issuer)
-      {
-        account_object new_issuer_account = get_account(*new_issuer);
-        new_issuer_account_id = new_issuer_account.id;
-      }
-
+	  const auto& addr = get_account_addr(account);
+	  const auto& acc_id = get_account_id(account);
+	  FC_ASSERT(acc_id == asset_to_update->issuer, "only issuer can be modified.");
       asset_update_operation update_op;
-      update_op.issuer = asset_to_update->issuer;
+      update_op.issuer = addr;
       update_op.asset_to_update = asset_to_update->id;
-      update_op.new_issuer = new_issuer_account_id;
-      update_op.new_options = new_options;
+	  update_op.description = description;
 
       signed_transaction tx;
       tx.operations.push_back( update_op );
@@ -2671,7 +2665,7 @@ public:
       tx.validate();
 
       return sign_transaction( tx, broadcast );
-   } FC_CAPTURE_AND_RETHROW( (symbol)(new_issuer)(new_options)(broadcast) ) }
+   } FC_CAPTURE_AND_RETHROW( (account)(symbol)(description)(broadcast) ) }
 
    signed_transaction update_bitasset(string symbol,
                                       bitasset_options new_options,
@@ -7567,12 +7561,11 @@ full_transaction wallet_api::wallet_create_erc_asset(string issuer,
 	return my->wallet_create_erc_asset(issuer, symbol, precision, max_supply, core_fee_paid, erc_address, broadcast);
 
 }
-full_transaction wallet_api::update_asset(string symbol,
-                                            optional<string> new_issuer,
-                                            asset_options new_options,
-                                            bool broadcast /* = false */)
+full_transaction wallet_api::update_asset(const string& account, const std::string& symbol,
+	const std::string& description,
+	bool broadcast)
 {
-   return my->update_asset(symbol, new_issuer, new_options, broadcast);
+   return my->update_asset(account,symbol, description, broadcast);
 }
 
 full_transaction wallet_api::update_bitasset(string symbol,

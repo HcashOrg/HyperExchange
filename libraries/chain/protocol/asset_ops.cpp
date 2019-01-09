@@ -115,17 +115,12 @@ void  asset_create_operation::validate()const
 void asset_update_operation::validate()const
 {
    FC_ASSERT( fee.amount >= 0 );
-   if( new_issuer )
-      FC_ASSERT(issuer != *new_issuer);
-   new_options.validate();
-
-   asset dummy = asset(1, asset_to_update) * new_options.core_exchange_rate;
-   FC_ASSERT(dummy.asset_id == asset_id_type());
+   FC_ASSERT(description.size());
 }
 
 share_type asset_update_operation::calculate_fee(const asset_update_operation::fee_parameters_type& k)const
 {
-   return k.fee + calculate_data_fee( fc::raw::pack_size(*this), k.price_per_kbyte );
+   return share_type(0);
 }
 
 

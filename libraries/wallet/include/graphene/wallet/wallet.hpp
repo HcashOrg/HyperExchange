@@ -1379,9 +1379,8 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction updating the asset
        */
-      full_transaction update_asset(string symbol,
-                                      optional<string> new_issuer,
-                                      asset_options new_options,
+      full_transaction update_asset(const string& account, const std::string& symbol,
+                                    const std::string& description,
                                       bool broadcast = false);
 
       /** Update the options specific to a BitAsset.

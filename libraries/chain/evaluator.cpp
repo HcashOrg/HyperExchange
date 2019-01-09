@@ -46,9 +46,13 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 bool generic_evaluator::if_evluate()
 {
 	database& d = db();
-	if (fc::time_point::now() > d.head_block_time() + fc::seconds(HX_CHECK_POINT))
-		return false;
-	return true;
+	if (d.head_block_num() >= HX_CHECK_POINT_BLOCK)
+	{
+		FC_ASSERT(d.fetch_block_by_id(block_id_type(HX_CHECK_POINT)).valid());
+		return true;
+	}
+		
+	return false;
 }
    operation_result generic_evaluator::start_evaluate( transaction_evaluation_state& eval_state, const operation& op, bool apply )
    { try {
