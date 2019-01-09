@@ -218,8 +218,8 @@ void_result asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
    const asset_object& a = o.asset_to_update(d);
-   d.modify(*asset_to_update, [&](asset_object& a) {
-	   a.options.description = o.description;
+   d.modify(a, [&](asset_object& obj) {
+	   obj.options.description = o.description;
    });
 
    return void_result();
