@@ -273,6 +273,7 @@ namespace fc {
 
 		void connection_sync::close_socket() {
 			try {
+				
 				_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 				_socket.close();
 				
@@ -373,8 +374,9 @@ namespace fc {
 				return rep;
 				
 			}
-			catch (fc::exception& e) {
-				elog("${exception}", ("exception", e.to_detail_string()));
+			catch (...) {
+				//elog("${exception}", ("exception", e.to_detail_string()));
+				read_lock.unlock();
 				close_socket();
 				rep.status = http::reply::InternalServerError;
 				return rep;
