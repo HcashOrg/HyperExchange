@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
    }
    catch (...)
    {
-	   std::cout << "there are some exceptions existed." << std::endl;
+	   unhandled_exception = fc::exception();
     }
 
    if (unhandled_exception)
