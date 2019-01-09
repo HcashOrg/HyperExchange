@@ -73,9 +73,17 @@ namespace graphene { namespace privatekey_management {
 		return signed_trx;
 	}
 
-	void crosschain_privatekey_base::generate()
+	void crosschain_privatekey_base::generate(fc::optional<fc::ecc::private_key> k)
 	{
-		_key = fc::ecc::private_key::generate();
+		if (!k.valid())
+		{
+
+			_key = fc::ecc::private_key::generate();
+		}
+		else
+		{
+			_key = *k;
+		}
 	}
 
 	std::string crosschain_privatekey_base::sign_message(const std::string& msg)

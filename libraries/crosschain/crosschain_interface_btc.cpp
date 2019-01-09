@@ -49,12 +49,12 @@ namespace graphene {
 			return false;
 		}
 
-		std::string crosschain_interface_btc::create_normal_account(std::string account_name)
+		std::string crosschain_interface_btc::create_normal_account(std::string account_name, const fc::optional<fc::ecc::private_key> key/*=fc::optional<fc::ecc::private_key>()*/)
 		{
 			auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(chain_type);
 			if (ptr == nullptr)
 				return "";
-			ptr->generate();
+			ptr->generate(key);
 			
 			//std::ostringstream req_body;
 			//req_body << "{ \"jsonrpc\": \"2.0\", \

@@ -33,8 +33,8 @@ namespace graphene {
 			virtual std::string get_wif_key() = 0;
 			virtual std::string get_address() = 0;
 			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key) = 0;
-			void generate();
-			bool is_empty() const {	return _key == fc::ecc::private_key(); }
+			void generate(fc::optional<fc::ecc::private_key> k= fc::optional<fc::ecc::private_key>());
+			bool is_empty() const { return _key == fc::ecc::private_key(); }
 			virtual std::string get_public_key() = 0;
 			virtual std::string get_address_by_pubkey(const std::string& pub) = 0;
 			virtual bool validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig) ;
