@@ -932,11 +932,11 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering the account
        */
-      full_transaction create_account_with_brain_key(string brain_key,
-                                                       string account_name,
-                                                       string registrar_account,
-                                                       string referrer_account,
-                                                       bool broadcast = false);
+      //full_transaction create_account_with_brain_key(string brain_key,
+      //                                                 string account_name,
+      //                                                 string registrar_account,
+      //                                                 string referrer_account,
+      //                                                 bool broadcast = false);
 
 
 
@@ -2029,9 +2029,9 @@ class wallet_api
 	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
-	  crosschain_prkeys wallet_create_crosschain_symbol_with_brainkey(const string& symbol);
+	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
-	  crosschain_prkeys create_crosschain_symbol_with_brainkey(const string& symbol);
+	  crosschain_prkeys create_crosschain_symbol_with_brain_key(const string& symbol);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
@@ -2093,10 +2093,10 @@ class wallet_api
 	  void ntp_update_time();
 
 	  //master_key
-	  bool set_brain_key(const string& key,const int next);
+	  bool set_brain_key( string key,const int next=1);
 	  brain_key_usage_info dump_current_brain_key(const string& password);
-	  address wallet_create_sub_account(const string& name);
-	  map<string, int>  list_address_indexes();
+	  address wallet_create_account_with_brain_key(const string& name);
+	  map<string, int> list_address_indexes(string& password);
 	  string derive_wif_key(const string& brain_key, int index, const string& symbol);
 
 };
@@ -2197,7 +2197,6 @@ FC_API( graphene::wallet::wallet_api,
         (derive_owner_keys_from_brain_key)
         (register_account)
         (upgrade_account)
-        (create_account_with_brain_key)
 	    (wallet_create_account)
         (senator_change_eth_gas_price)
         
@@ -2341,7 +2340,7 @@ FC_API( graphene::wallet::wallet_api,
 		(dump_crosschain_private_key)
 		(dump_crosschain_private_keys)
 		(wallet_create_crosschain_symbol)
-		(wallet_create_crosschain_symbol_with_brainkey)
+		(wallet_create_crosschain_symbol_with_brain_key)
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)
@@ -2391,7 +2390,7 @@ FC_API( graphene::wallet::wallet_api,
 		(lock_balance_to_citizens)
 		(cancel_eth_sign_transaction)
 		(dump_current_brain_key)
-		(wallet_create_sub_account)
+		(wallet_create_account_with_brain_key)
 		(list_address_indexes)
 		(derive_wif_key)
 		(set_brain_key)

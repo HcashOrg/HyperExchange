@@ -859,13 +859,7 @@ public:
    }
    string derive_wif_key(string brain_key, int index, const string& symbol="HX")
    {
-	   if (brain_key == "")
-	   {
-		   FC_ASSERT(!is_locked());
 
-		   FC_ASSERT(_current_brain_key.valid(),"brain_key not set");
-		   brain_key = _current_brain_key->key;
-	   }
 	   auto bk = graphene::wallet::detail::normalize_brain_key(brain_key);
 	   fc::ecc::private_key priv_key = graphene::wallet::detail::derive_private_key(bk, index);
 	   if (symbol == "HX")
@@ -7393,23 +7387,26 @@ full_transaction wallet_api::register_account(string name, bool broadcast)
 
 
 
-full_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
-                                                             string registrar_account, string referrer_account,
-                                                             bool broadcast /* = false */)
-{
-   return my->create_account_with_brain_key(
-            brain_key, account_name, registrar_account,
-            referrer_account, broadcast
-            );
-}
+//full_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
+//                                                             string registrar_account, string referrer_account,
+//                                                             bool broadcast /* = false */)
+//{
+//   return my->create_account_with_brain_key(
+//            brain_key, account_name, registrar_account,
+//            referrer_account, broadcast
+//            );
+//}
 
-address wallet_api::wallet_create_sub_account(const string& name)
+address wallet_api::wallet_create_account_with_brain_key(const string& name)
 {
 	return my->create_account(name,true);
 }
 
-map<std::string, int> wallet_api::list_address_indexes()
+graphene::chain::map<std::string, int> wallet_api::list_address_indexes(string& password)
 {
+	FC_ASSERT(!is_locked());
+    auto pw = fc::sha512::hash(password.c_str(), password.size());
+    FC_ASSERT(_wallet.checksum == pw,"password is not correct");
 	return my->_wallet.used_indexes;
 }
 
@@ -8454,7 +8451,7 @@ void wallet_api::set_password( string password )
    my->_checksum = fc::sha512::hash( password.c_str(), password.size() );
    auto bkey_info=suggest_brain_key();
    if(bnew)
-	   set_brain_key(bkey_info.brain_priv_key, 0);
+	   set_brain_key(bkey_info.brain_priv_key, 1);
    lock();
 }
 
@@ -9390,7 +9387,7 @@ crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symb
 {
 	return my->wallet_create_crosschain_symbol(symbol);
 }
-crosschain_prkeys wallet_api::wallet_create_crosschain_symbol_with_brainkey(const string& symbol)
+crosschain_prkeys wallet_api::wallet_create_crosschain_symbol_with_brain_key(const string& symbol)
 {
 	return my->wallet_create_crosschain_symbol(symbol,true);
 }
@@ -9467,13 +9464,21 @@ void wallet_api::ntp_update_time()
 	my->_remote_db->ntp_update_time();
 }
 
-bool wallet_api::set_brain_key(const string & key, const int next)
+bool wallet_api::set_brain_key(string  key, const int next)
 {
 	FC_ASSERT(!is_locked(),"");
 	FC_ASSERT(!my->_current_brain_key.valid(), "brain key already set");
+	FC_ASSERT(next>0, "next should bigger than 0");
+	if (key == "")
+	{
+		key = suggest_brain_key()->brain_priv_key;
+	}
+	auto pk = normalize_brain_key(key);
+	FC_ASSERT(pk.length() < BRAIN_KEY_WORD_COUNT, "Invalid brain key");
 	brain_key_usage_info info;
 	info.key = key;
 	info.next = next;
+
 	my->_current_brain_key = info;
 	save_wallet_file();
 	return true;
