@@ -3,6 +3,7 @@
 #include <fc/string.hpp>
 #include <memory>
 #include <boost/asio.hpp>
+#include <mutex>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 namespace fc { 
@@ -94,7 +95,7 @@ namespace fc {
 		 void check_deadline();
 		 void close_socket();
 	 private:
-		 boost::mutex read_lock;
+		 std::mutex read_lock;
 		 boost::asio::streambuf line;
 		 bool is_timeout = false;
 		 boost::asio::deadline_timer _deadline;

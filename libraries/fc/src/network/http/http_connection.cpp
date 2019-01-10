@@ -1,3 +1,4 @@
+
 #include <fc/network/http/connection.hpp>
 #include <fc/network/tcp_socket.hpp>
 #include <fc/io/sstream.hpp>
@@ -12,7 +13,6 @@
 #include <fc/asio.hpp>
 
 #include <iostream>
-
 class fc::http::connection::impl 
 {
   public:
@@ -356,6 +356,7 @@ namespace fc {
 					boost::asio::placeholders::bytes_transferred));
 				
 				read_lock.lock();
+				_deadline.cancel();
 				read_lock.unlock();
 				
 				if (is_timeout) {
@@ -363,7 +364,7 @@ namespace fc {
 					rep.status = reply::status_code::InternalServerError;
 					return rep;
 				}
-				_deadline.cancel();
+				
 				if (line.size())
 				{
 					std::istream response_stream1(&line);
