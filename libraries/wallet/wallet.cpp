@@ -65,7 +65,6 @@
 #endif
 #include "graphene/chain/contract_entry.hpp"
 #include "boost/filesystem/operations.hpp"
-
 #define BRAIN_KEY_WORD_COUNT 16
 
 namespace graphene { namespace wallet {
@@ -550,6 +549,8 @@ public:
          data.keys = _keys;
 		 data.crosschain_keys = _crosschain_keys;
          data.checksum = _checksum;
+		 if (_current_brain_key.valid())
+			 _wallet.cipher_keys_extend = fc::aes_encrypt(_checksum,fc::raw::pack(*_current_brain_key));
          auto plain_txt = fc::raw::pack(data);
          _wallet.cipher_keys = fc::aes_encrypt( data.checksum, plain_txt );
       }
@@ -622,7 +623,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.6";
+	  result["version"] = "1.2.7";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -856,8 +857,28 @@ public:
 	   _guarantee_id = optional<guarantee_object_id_type>();
 	   return id;
    }
+   string derive_wif_key(string brain_key, int index, const string& symbol="HX")
+   {
 
-   crosschain_prkeys create_crosschain_symbol(const string& symbol, bool cold=false)
+	   auto bk = graphene::wallet::detail::normalize_brain_key(brain_key);
+	   fc::ecc::private_key priv_key = graphene::wallet::detail::derive_private_key(bk, index);
+	   if (symbol == "HX")
+	   {
+		   return  key_to_wif(priv_key);
+	   }
+	   auto pos = symbol.find("|etguard");
+	   auto real_symbol = symbol;
+	   if (pos != symbol.npos) {
+		   real_symbol = symbol.substr(0, pos);
+	   }
+	   string config = (*_crosschain_manager)->get_config();
+	   FC_ASSERT((*_crosschain_manager)->contain_symbol(real_symbol), "no this plugin");
+	   auto prk = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(real_symbol);
+	   prk->generate(priv_key);
+	   return prk->get_wif_key();
+
+   }
+   crosschain_prkeys create_crosschain_symbol(const string& symbol, bool cold=false,bool use_brain_key=false)
    {
 	   try {
 		   auto pos = symbol.find("|etguard");
@@ -874,11 +895,20 @@ public:
 		   auto fd = instance.get_crosschain_handle(real_symbol);
 		   fd->initialize_config(fc::json::from_string(config).get_object());
 		   std::string wif_key;
+		   fc::scoped_lock<fc::mutex> lock();
+		   optional<fc::ecc::private_key> key= optional<fc::ecc::private_key>();
+		   if (use_brain_key)
+		   {
+			   FC_ASSERT(this->_current_brain_key.valid(), "brain_key not set");
+			   auto brain_key = graphene::wallet::detail::normalize_brain_key(_current_brain_key->key);
+			   fc::ecc::private_key priv_key = graphene::wallet::detail::derive_private_key(brain_key, _current_brain_key->next);
+			   key = priv_key;
+		   }
 		   if (bGuard){
-			   wif_key = fd->create_normal_account("guard");
+			   wif_key = fd->create_normal_account("guard",key);
 		   }
 		   else {
-			   wif_key = fd->create_normal_account("");
+			   wif_key = fd->create_normal_account("",key);
 		   }
 		   FC_ASSERT(wif_key != "");
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(real_symbol);
@@ -895,21 +925,39 @@ public:
 		   if (!cold)
 		   {
 			   _crosschain_keys[addr] = keys;
-			   save_wallet_file();
 		   }
+		   if (use_brain_key)
+		   {
+			   _current_brain_key->used_indexes[addr]=_current_brain_key->next++;
+		   }
+		   save_wallet_file();
 		   return keys;
 	   }FC_CAPTURE_AND_RETHROW((symbol))
 
    }
 
-   crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol)
+   crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol,bool use_brain_key=false)
    {
 	   try {
 		   FC_ASSERT(!self.is_locked());
+		   fc::scoped_lock<fc::mutex> lock(brain_key_index_lock);
 		   auto ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   FC_ASSERT(ptr != nullptr ,"plugin doesnt exist.");
-		   ptr->generate();
+		   if(!use_brain_key)
+			   ptr->generate();
+		   else
+		   {
+			   FC_ASSERT(this->_current_brain_key.valid(), "brain_key not set");
+			   auto brain_key = graphene::wallet::detail::normalize_brain_key(_current_brain_key->key);
+			   fc::ecc::private_key priv_key = graphene::wallet::detail::derive_private_key(brain_key, _current_brain_key->next);
+			   ptr->generate(priv_key);
+			   _current_brain_key->next++;
+		   }
 		   auto addr = ptr->get_address();
+		   if (use_brain_key)
+		   {
+			   _current_brain_key->used_indexes[addr] = _current_brain_key->next - 1;
+		   }
 		   auto pubkey = ptr->get_public_key();
 		   crosschain_prkeys keys;
 		   keys.addr = addr;
@@ -2518,7 +2566,8 @@ public:
    void change_acquire_plugin_num(const string&symbol, const uint32_t& blocknum) {
 	  _remote_db->set_acquire_block_num(symbol, blocknum);
    }
-   address create_account(string account_name)
+   fc::mutex brain_key_index_lock;
+   address create_account(string account_name,bool from_master_key=false)
    {
 	   try{
 		   FC_ASSERT(!self.is_locked());
@@ -2544,9 +2593,28 @@ public:
 			   save_wallet_file();
 			   return address(result.get_public_key());
 		   };
-		   auto addr = get_private_key();
+		   auto get_private_key_from_brain_key = [account_name, this]()->address
+		   {
+			   fc::scoped_lock<fc::mutex> lock(brain_key_index_lock);
+			   FC_ASSERT(this->_current_brain_key.valid(), "brain_key not set");
+			   auto brain_key = graphene::wallet::detail::normalize_brain_key(_current_brain_key->key);
+			   fc::ecc::private_key priv_key = graphene::wallet::detail::derive_private_key(brain_key, _current_brain_key->next);
+			   auto addr = address(priv_key.get_public_key());
+			   auto str_prk = key_to_wif(priv_key);
+			   _keys[addr] = str_prk;
+			   _current_brain_key->used_indexes[addr.address_to_string()] = _current_brain_key->next;
+			   account_object acc;
+			   acc.addr = addr;
+			   acc.name = account_name;
+			   _wallet.update_account(acc);
+			   _current_brain_key->next += 1;
+			   save_wallet_file();
+			   return address(priv_key.get_public_key());
+		   };
+		   auto addr = from_master_key? get_private_key_from_brain_key ():get_private_key();
 		   _remote_trx->set_tracked_addr(addr);
 		   return addr;
+
 		   
 	   }FC_CAPTURE_AND_RETHROW((account_name))
    }
@@ -3931,7 +3999,7 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
-   full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast)
+   full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast,bool use_brain_key=false)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -3939,9 +4007,9 @@ public:
 		   auto guard_account = get_guard_member(from_account);
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(),"only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
-		   auto  hot_keys =create_crosschain_symbol(symbol+"|etguard");
+		   auto  hot_keys =create_crosschain_symbol(symbol+"|etguard",false,use_brain_key);
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
-		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard",true);
+		   auto cold_keys = create_crosschain_symbol(symbol + "|etguard",true, use_brain_key);
 
 		   //auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
 		   //
@@ -6482,6 +6550,7 @@ public:
 
    //map<public_key_type,string> _keys;
    map<address, string> _keys;
+   optional<brain_key_usage_info> _current_brain_key;
    fc::sha512                  _checksum;
 
    chain_id_type           _chain_id;
@@ -7344,20 +7413,40 @@ full_transaction wallet_api::register_account(string name, bool broadcast)
 
 
 
-full_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
-                                                             string registrar_account, string referrer_account,
-                                                             bool broadcast /* = false */)
+//full_transaction wallet_api::create_account_with_brain_key(string brain_key, string account_name,
+//                                                             string registrar_account, string referrer_account,
+//                                                             bool broadcast /* = false */)
+//{
+//   return my->create_account_with_brain_key(
+//            brain_key, account_name, registrar_account,
+//            referrer_account, broadcast
+//            );
+//}
+
+address wallet_api::wallet_create_account_with_brain_key(const string& name)
 {
-   return my->create_account_with_brain_key(
-            brain_key, account_name, registrar_account,
-            referrer_account, broadcast
-            );
+	return my->create_account(name,true);
+}
+
+graphene::chain::map<std::string, int> wallet_api::list_address_indexes(string& password)
+{
+	return graphene::chain::map<std::string, int>();
+	//FC_ASSERT(!is_locked());
+    //auto pw = fc::sha512::hash(password.c_str(), password.size());
+    //FC_ASSERT(_wallet.checksum == pw,"password is not correct");
+	//return my->_wallet.used_indexes;
+}
+
+std::string wallet_api::derive_wif_key(const string& brain_key, int index, const string& symbol)
+{
+	return my->derive_wif_key(brain_key, index, symbol);
 }
 
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
 }
+
 full_transaction wallet_api::set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast)
 {
 	return my->set_citizen_pledge_pay_back_rate(citizen, pledge_pay_back_rate, broadcast);
@@ -8366,6 +8455,14 @@ void wallet_api::unlock(string password)
    FC_ASSERT(pk.checksum == pw);
    my->_keys = std::move(pk.keys);
    my->_crosschain_keys = std::move(pk.crosschain_keys);
+   if (my->_wallet.cipher_keys_extend.valid())
+   {
+	   vector<char> decrypted_brain_key = fc::aes_decrypt(pw,*(my->_wallet.cipher_keys_extend));
+	   auto bkey = fc::raw::unpack<brain_key_usage_info>(decrypted_brain_key);
+	   my->_current_brain_key = bkey;
+	   
+   }
+
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
    try
@@ -8385,9 +8482,15 @@ void wallet_api::unlock(string password)
 
 void wallet_api::set_password( string password )
 {
+	bool bnew = false;
+	if (is_new())
+		bnew = true;
    if( !is_new() )
       FC_ASSERT( !is_locked(), "The wallet must be unlocked before the password can be set" );
    my->_checksum = fc::sha512::hash( password.c_str(), password.size() );
+   auto bkey_info=suggest_brain_key();
+   if(bnew)
+	   set_brain_key(bkey_info.brain_priv_key, 1);
    lock();
 }
 
@@ -8435,6 +8538,10 @@ full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& 
 graphene::chain::full_transaction wallet_api::update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast/*=true*/)
 {
 	return my->update_asset_private_keys(from_account,symbol,out_key_file,encrypt_key,broadcast);
+}
+graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast/*=true*/)
+{
+	return my->update_asset_private_keys(from_account, symbol, out_key_file, encrypt_key, broadcast,true);
 }
 
 
@@ -9310,10 +9417,18 @@ crosschain_prkeys wallet_api::create_crosschain_symbol(const string& symbol)
 {
 	return my->create_crosschain_symbol(symbol);
 }
+//crosschain_prkeys wallet_api::cupdate_asset_private_keysreate_crosschain_symbol_with_brainkey(const string& symbol)
+//{
+//	return my->create_crosschain_symbol(symbol);
+//}
 
 crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symbol)
 {
 	return my->wallet_create_crosschain_symbol(symbol);
+}
+crosschain_prkeys wallet_api::wallet_create_crosschain_symbol_with_brain_key(const string& symbol)
+{
+	return my->wallet_create_crosschain_symbol(symbol,true);
 }
 
 order_book wallet_api::get_order_book( const string& base, const string& quote, unsigned limit )
@@ -9386,6 +9501,35 @@ void wallet_api::ntp_update_time()
 {
 	time_point::ntp_update_time();
 	my->_remote_db->ntp_update_time();
+}
+
+bool wallet_api::set_brain_key(string  key, const int next)
+{
+	FC_ASSERT(!is_locked(),"");
+	FC_ASSERT(!my->_current_brain_key.valid(), "brain key already set");
+	FC_ASSERT(next>0, "next should bigger than 0");
+	if (key == "")
+	{
+		key = suggest_brain_key().brain_priv_key;
+	}
+	auto pk = normalize_brain_key(key);
+	brain_key_usage_info info;
+	info.key = key;
+	info.next = next;
+
+	my->_current_brain_key = info;
+	save_wallet_file();
+	return true;
+}
+
+graphene::wallet::brain_key_usage_info wallet_api::dump_brain_key_usage_info(const string& password)
+{
+	FC_ASSERT(!is_locked(), "");
+	FC_ASSERT(password.size() > 0);
+	auto pw = fc::sha512::hash(password.c_str(), password.size());
+	FC_ASSERT(pw==my->_checksum);
+	FC_ASSERT(my->_current_brain_key.valid());
+	return *my->_current_brain_key;
 }
 
 void wallet_api::witness_node_stop()

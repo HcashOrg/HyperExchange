@@ -12,6 +12,7 @@ namespace graphene {
 			void_result do_evaluate(const eth_series_multi_sol_create_operation& o);
 			object_id_type do_apply(const eth_series_multi_sol_create_operation& o);
 			void pay_fee() override;
+			bool if_evluate() { return true; }
 		};
 		class eth_series_multi_sol_guard_sign_evaluator : public evaluator<eth_series_multi_sol_guard_sign_evaluator>
 		{

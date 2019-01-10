@@ -57,7 +57,12 @@ struct crosschain_prkeys
 	string wif_key;
 	bool operator==(const crosschain_prkeys& key) const;
 };
-
+struct brain_key_usage_info
+{
+	string key;
+	int next;
+	map<string, int> used_indexes;
+};
 struct plain_keys
 {
    //map<public_key_type, string>  keys;
@@ -330,6 +335,8 @@ struct wallet_data
    }
    /** encrypted keys */
    vector<char>              cipher_keys;
+   optional<vector<char>>              cipher_keys_extend;
+
 
    /** map an account to a set of extra keys that have been imported for that account */
    map<account_id_type, set<public_key_type> >  extra_keys;
@@ -926,11 +933,11 @@ class wallet_api
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction registering the account
        */
-      full_transaction create_account_with_brain_key(string brain_key,
-                                                       string account_name,
-                                                       string registrar_account,
-                                                       string referrer_account,
-                                                       bool broadcast = false);
+      //full_transaction create_account_with_brain_key(string brain_key,
+      //                                                 string account_name,
+      //                                                 string registrar_account,
+      //                                                 string referrer_account,
+      //                                                 bool broadcast = false);
 
 
 
@@ -2026,10 +2033,13 @@ class wallet_api
 	  vector<optional<account_binding_object>> get_binding_account(const string& account,const string& symbol) const;
 	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
-	  full_transaction update_asset_private_keys(const string& from_account,const string& symbol, const string& out_key_file, const string& encrypt_key,bool broadcast=true);
+	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
+	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
+	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
+	  crosschain_prkeys create_crosschain_symbol_with_brain_key(const string& symbol);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
@@ -2089,6 +2099,14 @@ class wallet_api
 	  //ntp
 	  std::map<std::string,fc::ntp_info> get_ntp_info();
 	  void ntp_update_time();
+
+	  //master_key
+	  bool set_brain_key( string key,const int next=1);
+	  brain_key_usage_info dump_brain_key_usage_info(const string& password);
+	  address wallet_create_account_with_brain_key(const string& name);
+	  map<string, int> list_address_indexes(string& password);
+	  string derive_wif_key(const string& brain_key, int index, const string& symbol);
+
 };
 
 } }
@@ -2105,6 +2123,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_accounts)
             (my_scripts)
             (cipher_keys)
+	        (cipher_keys_extend)
             (extra_keys)
 			(mining_accounts)
             (pending_account_registrations)(pending_miner_registrations)
@@ -2115,7 +2134,11 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (ws_user)
             (ws_password)
           )
-
+FC_REFLECT(graphene::wallet::brain_key_usage_info,
+			(key)
+			(next)
+			(used_indexes)
+)
 FC_REFLECT( graphene::wallet::brain_key_info,
             (brain_priv_key)
             (wif_priv_key)
@@ -2182,7 +2205,6 @@ FC_API( graphene::wallet::wallet_api,
         (derive_owner_keys_from_brain_key)
         (register_account)
         (upgrade_account)
-        (create_account_with_brain_key)
 	    (wallet_create_account)
         (senator_change_eth_gas_price)
         
@@ -2213,9 +2235,7 @@ FC_API( graphene::wallet::wallet_api,
 		(change_acquire_plugin_num)
         (get_account_count)
         (get_account_history)
-        (get_relative_account_history)
         (is_public_key_registered)
-        (get_market_history)
         (get_global_properties)
         (get_dynamic_global_properties)
         (get_object)
@@ -2245,8 +2265,6 @@ FC_API( graphene::wallet::wallet_api,
 	    (transfer_to_account)
         (blind_transfer)
         (blind_history)
-        (receive_blind_transfer)
-        (get_order_book)
 		(get_account_addr)
 		(get_proposal)
 		(get_proposal_for_voter)
@@ -2286,6 +2304,7 @@ FC_API( graphene::wallet::wallet_api,
 		(bind_tunnel_account)
 		(unbind_tunnel_account)
 		(update_asset_private_keys)
+		(update_asset_private_keys_with_brain_key)
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)
@@ -2331,6 +2350,7 @@ FC_API( graphene::wallet::wallet_api,
 		(dump_crosschain_private_key)
 		(dump_crosschain_private_keys)
 		(wallet_create_crosschain_symbol)
+		(wallet_create_crosschain_symbol_with_brain_key)
 	    (import_crosschain_key)
 		(decoderawtransaction)
 		(createrawtransaction)
@@ -2378,5 +2398,9 @@ FC_API( graphene::wallet::wallet_api,
 		(start_mining)
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
-			(cancel_eth_sign_transaction)
+		(cancel_eth_sign_transaction)
+		(dump_brain_key_usage_info)
+		(wallet_create_account_with_brain_key)
+		(derive_wif_key)
+		(set_brain_key)
       )

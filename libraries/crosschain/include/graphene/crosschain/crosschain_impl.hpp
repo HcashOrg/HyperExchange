@@ -75,7 +75,7 @@ namespace graphene {
 			virtual std::vector<std::string> wallet_list() = 0;
 
 			// Create a new address.
-			virtual std::string create_normal_account(std::string account_name) =0;
+			virtual std::string create_normal_account(std::string account_name, const fc::optional<fc::ecc::private_key> key = fc::optional<fc::ecc::private_key>())=0;
 
 			// Create a multi-signed account.
 			virtual std::map<std::string,std::string> create_multi_sig_account(std::string account_name, std::vector<std::string> addresses, uint32_t nrequired) = 0;
