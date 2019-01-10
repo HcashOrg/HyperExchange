@@ -98,14 +98,14 @@ namespace graphene {
 			return wallets;
 		}
 
-		std::string crosschain_interface_emu::create_normal_account(std::string account_name)
+		std::string crosschain_interface_emu::create_normal_account(std::string account_name, const fc::optional<fc::ecc::private_key> key/*=fc::optional<fc::ecc::private_key>()*/)
 		{
 			auto& idx = _wallet.my_accounts.get<by_name>();
 			auto itr = idx.find(account_name);
 			FC_ASSERT(itr == idx.end());
 
 
-			auto user_key = fc::ecc::extended_private_key::generate();
+			auto user_key = key.valid()?*key: fc::ecc::extended_private_key::generate();
 			auto owner_key = derive_private_key(key_to_wif(user_key), 0);
 			account_object new_account;
 			new_account.addr = address(owner_key.get_public_key());
