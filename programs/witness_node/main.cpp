@@ -249,6 +249,10 @@ int main(int argc, char** argv) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
    }
+   catch (...)
+   {
+	   unhandled_exception = fc::exception();
+    }
 
    if (unhandled_exception)
    {
