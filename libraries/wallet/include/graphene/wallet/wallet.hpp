@@ -2095,7 +2095,7 @@ class wallet_api
 
 	  //master_key
 	  bool set_brain_key( string key,const int next=1);
-	  brain_key_usage_info dump_current_brain_key(const string& password);
+	  brain_key_usage_info dump_brain_key_usage_info(const string& password);
 	  address wallet_create_account_with_brain_key(const string& name);
 	  map<string, int> list_address_indexes(string& password);
 	  string derive_wif_key(const string& brain_key, int index, const string& symbol);
@@ -2390,7 +2390,7 @@ FC_API( graphene::wallet::wallet_api,
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
 		(cancel_eth_sign_transaction)
-		(dump_current_brain_key)
+		(dump_brain_key_usage_info)
 		(wallet_create_account_with_brain_key)
 		(derive_wif_key)
 		(set_brain_key)

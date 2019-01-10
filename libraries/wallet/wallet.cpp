@@ -9484,7 +9484,7 @@ bool wallet_api::set_brain_key(string  key, const int next)
 	return true;
 }
 
-graphene::wallet::brain_key_usage_info wallet_api::dump_current_brain_key(const string& password)
+graphene::wallet::brain_key_usage_info wallet_api::dump_brain_key_usage_info(const string& password)
 {
 	FC_ASSERT(!is_locked(), "");
 	FC_ASSERT(password.size() > 0);
