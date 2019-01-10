@@ -928,7 +928,7 @@ public:
 		   }
 		   if (use_brain_key)
 		   {
-			   _wallet.used_indexes[addr]=_current_brain_key->next++;
+			   _current_brain_key->used_indexes[addr]=_current_brain_key->next++;
 		   }
 		   save_wallet_file();
 		   return keys;
@@ -956,7 +956,7 @@ public:
 		   auto addr = ptr->get_address();
 		   if (use_brain_key)
 		   {
-			   _wallet.used_indexes[addr] = _current_brain_key->next - 1;
+			   _current_brain_key->used_indexes[addr] = _current_brain_key->next - 1;
 		   }
 		   auto pubkey = ptr->get_public_key();
 		   crosschain_prkeys keys;
@@ -2602,7 +2602,7 @@ public:
 			   auto addr = address(priv_key.get_public_key());
 			   auto str_prk = key_to_wif(priv_key);
 			   _keys[addr] = str_prk;
-			   _wallet.used_indexes[addr.address_to_string()] = _current_brain_key->next;
+			   _current_brain_key->used_indexes[addr.address_to_string()] = _current_brain_key->next;
 			   account_object acc;
 			   acc.addr = addr;
 			   acc.name = account_name;
@@ -7404,10 +7404,11 @@ address wallet_api::wallet_create_account_with_brain_key(const string& name)
 
 graphene::chain::map<std::string, int> wallet_api::list_address_indexes(string& password)
 {
-	FC_ASSERT(!is_locked());
-    auto pw = fc::sha512::hash(password.c_str(), password.size());
-    FC_ASSERT(_wallet.checksum == pw,"password is not correct");
-	return my->_wallet.used_indexes;
+	return graphene::chain::map<std::string, int>();
+	//FC_ASSERT(!is_locked());
+    //auto pw = fc::sha512::hash(password.c_str(), password.size());
+    //FC_ASSERT(_wallet.checksum == pw,"password is not correct");
+	//return my->_wallet.used_indexes;
 }
 
 std::string wallet_api::derive_wif_key(const string& brain_key, int index, const string& symbol)
@@ -9471,10 +9472,9 @@ bool wallet_api::set_brain_key(string  key, const int next)
 	FC_ASSERT(next>0, "next should bigger than 0");
 	if (key == "")
 	{
-		key = suggest_brain_key()->brain_priv_key;
+		key = suggest_brain_key().brain_priv_key;
 	}
 	auto pk = normalize_brain_key(key);
-	FC_ASSERT(pk.length() < BRAIN_KEY_WORD_COUNT, "Invalid brain key");
 	brain_key_usage_info info;
 	info.key = key;
 	info.next = next;

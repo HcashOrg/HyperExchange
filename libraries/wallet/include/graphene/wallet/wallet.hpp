@@ -61,6 +61,7 @@ struct brain_key_usage_info
 {
 	string key;
 	int next;
+	map<string, int> used_indexes;
 };
 struct plain_keys
 {
@@ -336,7 +337,7 @@ struct wallet_data
    vector<char>              cipher_keys;
    optional<vector<char>>              cipher_keys_extend;
 
-   map<string, int> used_indexes;
+
    /** map an account to a set of extra keys that have been imported for that account */
    map<account_id_type, set<public_key_type> >  extra_keys;
 
@@ -2116,7 +2117,6 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (my_scripts)
             (cipher_keys)
 	        (cipher_keys_extend)
-			(used_indexes)
             (extra_keys)
 			(mining_accounts)
             (pending_account_registrations)(pending_miner_registrations)
@@ -2130,6 +2130,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
 FC_REFLECT(graphene::wallet::brain_key_usage_info,
 			(key)
 			(next)
+			(used_indexes)
 )
 FC_REFLECT( graphene::wallet::brain_key_info,
             (brain_priv_key)
@@ -2391,7 +2392,6 @@ FC_API( graphene::wallet::wallet_api,
 		(cancel_eth_sign_transaction)
 		(dump_current_brain_key)
 		(wallet_create_account_with_brain_key)
-		(list_address_indexes)
 		(derive_wif_key)
 		(set_brain_key)
       )
