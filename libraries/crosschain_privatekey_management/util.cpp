@@ -251,8 +251,8 @@ namespace graphene {
 						//auto pubkeyhash = a[2];
 						fc::array<char, 26> addr;
 						//test line
-						//int version = 0x0f21;
-						int version = 0x097f;
+						int version = 0x0f21;
+						//int version = 0x097f;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[2].data().size(); i++)
@@ -275,8 +275,8 @@ namespace graphene {
 						//auto pubkeyhash = a[1];
 						fc::array<char, 26> addr;
 						//test line
-						//int version = 0x0efc;
-						int version = 0x095a;
+						int version = 0x0efc;
+						//int version = 0x095a;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[1].data().size(); i++)
