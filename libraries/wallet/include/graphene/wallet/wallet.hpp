@@ -2107,6 +2107,11 @@ class wallet_api
 	  map<string, int> list_address_indexes(string& password);
 	  string derive_wif_key(const string& brain_key, int index, const string& symbol);
 
+
+	  //
+	  void send_coldhot_transfer_with_sign(const string& tx_id, const string& guard, const string& siging);
+	  string get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey);
+
 };
 
 } }
@@ -2259,8 +2264,8 @@ FC_API( graphene::wallet::wallet_api,
         (get_my_blind_accounts)
         (get_blind_balances)
         (create_blind_account)
-        (transfer_to_blind)
-        (transfer_from_blind)
+	    (send_coldhot_transfer_with_sign)
+	    (get_coldhot_trx_sig)
 		(transfer_to_address)
 	    (transfer_to_account)
         (blind_transfer)
