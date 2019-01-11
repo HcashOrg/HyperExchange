@@ -4,6 +4,7 @@
 #include <memory>
 #include <boost/asio.hpp>
 #include <mutex>
+#include <condition_variable>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 namespace fc { 
@@ -96,10 +97,12 @@ namespace fc {
 		 void close_socket();
 	 private:
 		 std::mutex read_lock;
-		 boost::asio::streambuf line;
+		 std::condition_variable m_cond;
+		 bool is_done = false;
 		 bool is_timeout = false;
 		 boost::asio::deadline_timer _deadline;
 		 boost::asio::ip::tcp::socket _socket;
+		 boost::asio::streambuf line;
 	 };
 
 } } // fc::http
