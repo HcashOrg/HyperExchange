@@ -466,7 +466,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
 				FC_ASSERT(source_trx != coldhot_db.end(), "source trx exist error");
 				if (trx_state->_trx == nullptr)
@@ -483,7 +483,7 @@ namespace graphene {
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-#define PASS_HX_BLOCK_NUM 220000
+#define PASS_HX_BLOCK_NUM 100
 		void_result coldhot_pass_combine_trx_evaluate::do_evaluate(const coldhot_pass_combine_trx_operation& o) {
 			try {
 				database & d = db();
@@ -550,7 +550,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto op = coldhot_iter->current_trx.operations[0];
 				FC_ASSERT(op.which() == operation::tag<eths_coldhot_guard_sign_final_operation>::value, "operation type error");
 				auto eths_guard_sign_final_op = op.get<eths_coldhot_guard_sign_final_operation>();

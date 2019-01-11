@@ -2035,11 +2035,14 @@ class wallet_api
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
 	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
+	  full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast);
+
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol_with_brain_key(const string& symbol);
+	  crosschain_prkeys create_crosschain_symbol_cold(const string& symbol);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
@@ -2182,17 +2185,11 @@ FC_REFLECT( graphene::wallet::operation_detail,
 
 FC_API( graphene::wallet::wallet_api,
         (help)
-        (gethelp)
         (info)
         (about)
-        (begin_builder_transaction)
-        (add_operation_to_builder_transaction)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
 	    (obtain_bonus_balance)
-        (remove_builder_transaction)
-        (is_new)
-        (is_locked)
 		(senator_pass_combined_transaction)
 		(senator_pass_coldhot_combined_transaction)
         (lock)(unlock)(set_password)
@@ -2205,9 +2202,6 @@ FC_API( graphene::wallet::wallet_api,
         (list_assets)
         (import_key)
         (import_accounts)
-        (import_account_keys)
-        (suggest_brain_key)
-        (derive_owner_keys_from_brain_key)
         (register_account)
         (upgrade_account)
 	    (wallet_create_account)
@@ -2306,10 +2300,12 @@ FC_API( graphene::wallet::wallet_api,
 		(wallet_create_asset)
 		(wallet_create_erc_asset)
 		(create_crosschain_symbol)
+		(create_crosschain_symbol_cold)
 		(bind_tunnel_account)
 		(unbind_tunnel_account)
 		(update_asset_private_keys)
 		(update_asset_private_keys_with_brain_key)
+		(update_asset_private_with_coldkeys)
 		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)

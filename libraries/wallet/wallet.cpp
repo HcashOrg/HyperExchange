@@ -3999,6 +3999,113 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
+   crosschain_prkeys create_crosschain_symbol_cold(const string &real_symbol,const string& out_key_file, const string& encrypt_key) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   bool bGuard = false;
+		   if (real_symbol == "ETH" || real_symbol.find("ERC") != real_symbol.npos)
+		   {
+			   bGuard = true;
+		   }
+		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(real_symbol), "no this plugin");
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   auto fd = instance.get_crosschain_handle(real_symbol);
+		   fd->initialize_config(fc::json::from_string(config).get_object());
+		   std::string wif_key;
+		   if (bGuard) {
+			   wif_key = fd->create_normal_account("guard");
+		   }
+		   else {
+			   wif_key = fd->create_normal_account("");
+		   }
+		   FC_ASSERT(wif_key != "");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(real_symbol);
+		   auto pk = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(pk.valid());
+		   prk_ptr->set_key(*pk);
+
+		   auto addr = prk_ptr->get_address();
+		   auto pubkey = prk_ptr->get_public_key();
+		   crosschain_prkeys cold_keys;
+		   cold_keys.addr = addr;
+		   cold_keys.pubkey = pubkey;
+		   cold_keys.wif_key = wif_key;
+		   string tmpf = out_key_file + ".tmp";
+		   try {
+			   boost::filesystem::remove(tmpf);
+		   }
+		   catch (boost::filesystem::filesystem_error&)
+		   {
+
+		   }
+		   boost::system::error_code ercode;
+		   map<string, crosschain_prkeys> keys;
+		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
+		   if (in.is_open())
+		   {
+
+			   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+			   boost::filesystem::copy_file(out_key_file, tmpf);
+			   if (key_file_data.size() > 0)
+			   {
+				   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
+				   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+			   }
+		   }
+		   keys[real_symbol + cold_keys.addr] = cold_keys;
+		   std::ifstream out_chk(out_key_file, std::ios::in | std::ios::binary);
+		   FC_ASSERT(out_chk.is_open(), "keyfile check failed!Open key file  failed!");
+		   std::vector<char> key_file_data_chk((std::istreambuf_iterator<char>(out_chk)),
+			   (std::istreambuf_iterator<char>()));
+		   FC_ASSERT(key_file_data_chk.size() > 0, "key file shuld not be empty");
+		   const auto plain_text_chk = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data_chk);
+		   map<string, crosschain_prkeys> keys_chk = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text_chk);
+		   FC_ASSERT(keys == keys_chk, "Key file check faild!");
+		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary | std::ios::trunc);
+		   auto plain_txt = fc::raw::pack(keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   out.write(encrypted.data(), encrypted.size());
+		   out.flush();
+		   out.close();
+		   cold_keys.wif_key = "";
+		   return cold_keys;
+	   }FC_CAPTURE_AND_RETHROW((real_symbol))
+   }
+   full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(), "only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+		   auto  hot_keys = create_crosschain_symbol(symbol + "|etguard");
+		   //string hot_pri = cross_interface->export_private_key(symbol, "");
+		  
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+		   op.new_address_cold = cold_address;
+		   op.new_pubkey_cold = cold_pubkey;
+		   op.new_address_hot = hot_keys.addr;
+		   op.new_pubkey_hot = hot_keys.pubkey;
+		   op.crosschain_type = symbol;
+		   FC_ASSERT(_keys.find(op.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", op.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
+		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   auto res = sign_transaction(trx, broadcast);
+		   boost::filesystem::remove(tmpf);
+		   return res;
+
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast)(cold_address)(cold_pubkey))
+   }
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast,bool use_brain_key=false)
    {
 	   try {
@@ -8675,7 +8782,9 @@ graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_bra
 {
 	return my->update_asset_private_keys(from_account, symbol, out_key_file, encrypt_key, broadcast,true);
 }
-
+graphene::chain::full_transaction wallet_api::update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
+	my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
+}
 
 full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
 {
@@ -9553,6 +9662,9 @@ crosschain_prkeys wallet_api::create_crosschain_symbol(const string& symbol)
 //{
 //	return my->create_crosschain_symbol(symbol);
 //}
+crosschain_prkeys wallet_api::create_crosschain_symbol_cold(const string& symbol) {
+	return my->create_crosschain_symbol_cold(symbol);
+}
 
 crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symbol)
 {

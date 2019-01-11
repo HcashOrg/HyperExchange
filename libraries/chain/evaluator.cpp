@@ -45,6 +45,7 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 }
 bool generic_evaluator::if_evluate()
 {
+	return true;
 	database& d = db();
 	if (d.head_block_num() >= HX_CHECK_POINT_BLOCK)
 	{

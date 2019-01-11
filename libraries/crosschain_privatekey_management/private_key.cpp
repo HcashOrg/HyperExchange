@@ -569,10 +569,10 @@ namespace graphene { namespace privatekey_management {
 	}
 	void hc_privatekey::init() {
 		set_id(0);
-		//set_pubkey_prefix(0x0f21);
-		//set_privkey_prefix(0x230e);
-		set_pubkey_prefix(0x097f);
-		set_privkey_prefix(0x19ab);
+		set_pubkey_prefix(0x0f21);
+		set_privkey_prefix(0x230e);
+		//set_pubkey_prefix(0x097f);
+		//set_privkey_prefix(0x19ab);
 	}
 	std::string hc_privatekey::get_wif_key() {
 		FC_ASSERT(is_empty() == false, "private key is empty!");
