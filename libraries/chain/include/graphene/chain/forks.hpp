@@ -22,12 +22,12 @@
  * THE SOFTWARE.
  */
 #pragma once
-#define ACCOUN_EVALUATE_150000                  150000
-#define DB_MAINT_190000                         190000
-#define DB_MAINT_480000                         480000
-#define ETH_SERI_RECORD_EVALUATE_480000         480000
-#define DB_CROSSCHAIN_TRX_220000                220000
-#define CROSSCHAIN_RECORD_EVALUATE_220000       220000
-#define CROSSCHAIN_RECORD_EVALUATE_480000       480000
-#define CROSSCHAIN_RECORD_EVALUATE_310000       310000
-#define CROSSCHAIN_RECORD_EVALUATE_680000       680000
+#define ACCOUN_EVALUATE_150000                  1
+#define DB_MAINT_190000                         1
+#define DB_MAINT_480000                         1
+#define ETH_SERI_RECORD_EVALUATE_480000         1
+#define DB_CROSSCHAIN_TRX_220000                1
+#define CROSSCHAIN_RECORD_EVALUATE_220000       1
+#define CROSSCHAIN_RECORD_EVALUATE_480000       1
+#define CROSSCHAIN_RECORD_EVALUATE_310000       1
+#define CROSSCHAIN_RECORD_EVALUATE_680000       1

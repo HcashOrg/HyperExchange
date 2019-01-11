@@ -45,12 +45,12 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 }
 bool generic_evaluator::if_evluate()
 {
-	database& d = db();
+	/*database& d = db();
 	if (d.head_block_num() >= HX_CHECK_POINT_BLOCK)
 	{
 		FC_ASSERT(d.fetch_block_by_id(block_id_type(HX_CHECK_POINT)).valid());
 		return true;
-	}
+	}*/
 		
 	return false;
 }
