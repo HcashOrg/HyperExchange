@@ -1111,9 +1111,11 @@ void application::set_program_options(boost::program_options::options_descriptio
    configuration_file_options.add(_cfg_options);
 }
 
-string application::get_data_dir() const 
+vector<char> application::get_data_dir() const 
 {
-	return my->_data_dir.generic_string();
+    auto ret = my->_data_dir.wstring();
+	std::cout << ret.c_str() << std::endl;
+	return vector<char>(ret.begin(),ret.end());
 }
 
 void application::initialize(const fc::path& data_dir, const boost::program_options::variables_map& options)
