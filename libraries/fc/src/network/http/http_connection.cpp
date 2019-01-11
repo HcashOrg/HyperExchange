@@ -274,18 +274,32 @@ namespace fc {
 		void connection_sync::close_socket() {
 			try {
 				_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-				_socket.cancel();
-				_socket.close();
-				
 			}
 			catch (...) {
 				
 			}
+			try {
+				_socket.cancel();
+
+
+			}
+			catch (...) {
+
+			}
+			try {
+				_socket.close();
+
+
+			}
+			catch (...) {
+
+			}
+			
 		}
 
 		void connection_sync::check_deadline()
 		{
-			if (is_timeout)
+			if (is_timeout||is_done)
 				return;
 
 			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
@@ -308,11 +322,9 @@ namespace fc {
 			try {
 				{
 					std::unique_lock<std::mutex> lk(read_lock);
-
 					_deadline.expires_from_now(boost::posix_time::seconds(50));
 					_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
 					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
-
 					while (!(is_done || is_timeout)) {
 						m_cond.wait(lk);
 					}
@@ -381,20 +393,23 @@ namespace fc {
 				return rep;
 				
 			}
-			catch (std::exception& ex) {
-				std::cout << ex.what() << std::endl;
-				//close_socket();
-				rep.status = http::reply::InternalServerError;
-				return rep;
-			}
+			//catch (std::exception& ex) {
+			//	std::cout << ex.what() << std::endl;
+			//	//close_socket();
+			//	rep.status = http::reply::InternalServerError;
+			//	return rep;
+			//}
 			catch (...) {
 				
 				//close_socket();
+				_deadline.cancel();
 				rep.status = http::reply::InternalServerError;
 				return rep;
 			}
 		}
 		void connection_sync::handle_reply() {
+			if (is_timeout)
+				return;
 			std::lock_guard<std::mutex> lk(read_lock);
 			//is_timeout = false;
 			is_done = true;
@@ -402,6 +417,8 @@ namespace fc {
 			
 		}
 		void connection_sync::handle_reply(const boost::system::error_code & error, size_t bytes_transferred) {
+			if (is_timeout)
+				return;
 			std::lock_guard<std::mutex> lk(read_lock);
 			//is_timeout = false;
 			/*std::cout << error.message() << "          " << bytes_transferred << std::endl;*/
