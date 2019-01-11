@@ -4101,7 +4101,6 @@ public:
 		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
 		   trx.validate();
 		   auto res = sign_transaction(trx, broadcast);
-		   boost::filesystem::remove(tmpf);
 		   return res;
 
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast)(cold_address)(cold_pubkey))
@@ -9662,8 +9661,8 @@ crosschain_prkeys wallet_api::create_crosschain_symbol(const string& symbol)
 //{
 //	return my->create_crosschain_symbol(symbol);
 //}
-crosschain_prkeys wallet_api::create_crosschain_symbol_cold(const string& symbol) {
-	return my->create_crosschain_symbol_cold(symbol);
+crosschain_prkeys wallet_api::create_crosschain_symbol_cold(const string &symbol, const string& out_key_file, const string& encrypt_key) {
+	return my->create_crosschain_symbol_cold(symbol, out_key_file, encrypt_key);
 }
 
 crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symbol)

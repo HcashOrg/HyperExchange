@@ -2042,7 +2042,7 @@ class wallet_api
 	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol_with_brain_key(const string& symbol);
-	  crosschain_prkeys create_crosschain_symbol_cold(const string& symbol);
+	  crosschain_prkeys create_crosschain_symbol_cold(const string &symbol, const string& out_key_file, const string& encrypt_key);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
