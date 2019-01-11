@@ -2034,6 +2034,7 @@ class wallet_api
 	  full_transaction account_change_for_crosschain(const string& proposer, const string& symbol, const string& hot, const string& cold, int64_t expiration_time, bool broadcast= false);
 	  full_transaction withdraw_from_link(const string& account, const string& symbol, int64_t amount, bool broadcast = true);
 	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
+	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
@@ -2177,17 +2178,11 @@ FC_REFLECT( graphene::wallet::operation_detail,
 
 FC_API( graphene::wallet::wallet_api,
         (help)
-        (gethelp)
         (info)
         (about)
-        (begin_builder_transaction)
-        (add_operation_to_builder_transaction)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
 	    (obtain_bonus_balance)
-        (remove_builder_transaction)
-        (is_new)
-        (is_locked)
 		(senator_pass_combined_transaction)
 		(senator_pass_coldhot_combined_transaction)
         (lock)(unlock)(set_password)
@@ -2200,9 +2195,6 @@ FC_API( graphene::wallet::wallet_api,
         (list_assets)
         (import_key)
         (import_accounts)
-        (import_account_keys)
-        (suggest_brain_key)
-        (derive_owner_keys_from_brain_key)
         (register_account)
         (upgrade_account)
 	    (wallet_create_account)
