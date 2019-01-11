@@ -623,10 +623,10 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.7";
+	  result["version"] = "1.2.8";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
-	  result["data_dir"] = (*_remote_local_node)->get_data_dir();
+	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
 	  
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
 	  result["round_participation"] =100.0 * dynamic_props.round_produced_miners.size() / (GRAPHENE_PRODUCT_PER_ROUND *1.0);

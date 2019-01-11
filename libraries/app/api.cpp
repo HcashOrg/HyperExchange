@@ -160,7 +160,8 @@ namespace graphene { namespace app {
     }
 	string localnode_api::get_data_dir()
 	{
-		return _app.get_data_dir();
+		auto ret = _app.get_data_dir();
+		return string(ret.begin(),ret.end());
 	}
 
     void miner_api::start_miner(bool start)

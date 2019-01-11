@@ -273,28 +273,42 @@ namespace fc {
 
 		void connection_sync::close_socket() {
 			try {
-				
 				_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-				_socket.close();
-				
 			}
 			catch (...) {
 				
 			}
+			try {
+				_socket.cancel();
+
+
+			}
+			catch (...) {
+
+			}
+			try {
+				_socket.close();
+
+
+			}
+			catch (...) {
+
+			}
+			
 		}
 
 		void connection_sync::check_deadline()
 		{
-			if (is_timeout)
+			if (is_timeout||is_done)
 				return;
 
 			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 			{
-				
+				std::lock_guard<std::mutex> lk(read_lock);
 				is_timeout = true;
-				read_lock.unlock();
+				
 				close_socket();
-
+				m_cond.notify_all();
 
 			}
 			
@@ -306,20 +320,23 @@ namespace fc {
 		http::reply connection_sync::parse_reply() {
 			fc::http::reply rep;
 			try {
-				read_lock.lock();
-				_deadline.expires_from_now(boost::posix_time::seconds(50));
-				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
-				boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
-				
-
-				read_lock.lock();
-				read_lock.unlock();
-				if (is_timeout) {
-					std::cout << "query timeout" << std::endl;
-					rep.status = reply::status_code::InternalServerError;
-					return rep;
+				{
+					std::unique_lock<std::mutex> lk(read_lock);
+					_deadline.expires_from_now(boost::posix_time::seconds(50));
+					_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
+					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
+					while (!(is_done || is_timeout)) {
+						m_cond.wait(lk);
+					}
+					if (is_timeout) {
+						std::cout << "query timeout" << std::endl;
+						rep.status = reply::status_code::InternalServerError;
+						return rep;
+					}
+					_deadline.cancel();
 				}
-				_deadline.cancel();
+				
+				
 				//line.consume(s);
 				//s = boost::asio::read_until(_socket, line, ' '); // COD
 				std::istream response_stream(&line);
@@ -347,24 +364,25 @@ namespace fc {
 					///rep.headers.push_back();
 					rep.headers.push_back(h);
 				}
+				is_done = false;
+				is_timeout = false;
 				boost::system::error_code error;
-				read_lock.lock();
+				std::unique_lock<std::mutex> lk(read_lock);
 				_deadline.expires_from_now(boost::posix_time::seconds(50));
 				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
-				boost::asio::async_read(_socket, line,boost::asio::transfer_at_least(rep.body.size()), boost::bind(&connection_sync::handle_reply, this,
-					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred));
+				boost::asio::async_read(_socket, line,boost::asio::transfer_at_least(rep.body.size()), boost::bind(&connection_sync::handle_reply, this));
 				
-				read_lock.lock();
-				_deadline.cancel();
-				read_lock.unlock();
-				
-				if (is_timeout) {
-					std::cout << "query timeout read body" << std::endl;
-					rep.status = reply::status_code::InternalServerError;
-					return rep;
+				while (!(is_done || is_timeout)) {
+					m_cond.wait(lk);
 				}
 				
+				if (is_timeout) {
+					fc::http::reply rep1;
+					std::cout << "query timeout read body" << std::endl;
+					rep1.status = reply::status_code::InternalServerError;
+					return rep1;
+				}
+				_deadline.cancel();
 				if (line.size())
 				{
 					std::istream response_stream1(&line);
@@ -375,23 +393,37 @@ namespace fc {
 				return rep;
 				
 			}
+			//catch (std::exception& ex) {
+			//	std::cout << ex.what() << std::endl;
+			//	//close_socket();
+			//	rep.status = http::reply::InternalServerError;
+			//	return rep;
+			//}
 			catch (...) {
-				//elog("${exception}", ("exception", e.to_detail_string()));
-				read_lock.try_lock();
-				read_lock.unlock();
-				close_socket();
+				
+				//close_socket();
+				_deadline.cancel();
 				rep.status = http::reply::InternalServerError;
 				return rep;
 			}
 		}
 		void connection_sync::handle_reply() {
-			is_timeout = false;
-			read_lock.unlock();
+			if (is_timeout)
+				return;
+			std::lock_guard<std::mutex> lk(read_lock);
+			//is_timeout = false;
+			is_done = true;
+			m_cond.notify_all();
+			
 		}
 		void connection_sync::handle_reply(const boost::system::error_code & error, size_t bytes_transferred) {
-			is_timeout = false;
+			if (is_timeout)
+				return;
+			std::lock_guard<std::mutex> lk(read_lock);
+			//is_timeout = false;
 			/*std::cout << error.message() << "          " << bytes_transferred << std::endl;*/
-			read_lock.unlock();
+			is_done = true;
+			m_cond.notify_all();
 		}
 
 
