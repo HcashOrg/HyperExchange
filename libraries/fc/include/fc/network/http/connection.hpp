@@ -95,7 +95,10 @@ namespace fc {
 		 void handle_reply(const boost::system::error_code & error, size_t bytes_transferred);
 		 void check_deadline();
 		 void close_socket();
+		 void ToClose();
+		 void DoClose();
 	 private:
+		 boost::asio::io_service& default_io_service;
 		 std::mutex read_lock;
 		 std::condition_variable m_cond;
 		 bool is_done = false;
@@ -103,6 +106,7 @@ namespace fc {
 		 boost::asio::deadline_timer _deadline;
 		 boost::asio::ip::tcp::socket _socket;
 		 boost::asio::streambuf line;
+		 boost::asio::strand m_strand;
 	 };
 
 } } // fc::http

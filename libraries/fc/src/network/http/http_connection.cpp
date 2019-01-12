@@ -215,7 +215,8 @@ namespace fc {
 			return h;
 		}
 
-		connection_sync::connection_sync() :_socket(fc::asio::default_io_service()),_deadline(fc::asio::default_io_service()) {}
+		connection_sync::connection_sync():default_io_service(fc::asio::default_io_service()), _socket(default_io_service), _deadline(default_io_service), m_strand(default_io_service){
+		}
 
 		connection_sync::~connection_sync() { close_socket(); }
 
@@ -269,6 +270,14 @@ namespace fc {
 
 		}
 
+		void connection_sync::ToClose() {
+			m_strand.post(boost::bind(&connection_sync::DoClose, this));
+		}
+
+		void connection_sync::DoClose() {
+			close_socket();
+		}
+
 
 
 		void connection_sync::close_socket() {
@@ -288,6 +297,8 @@ namespace fc {
 			}
 			try {
 				_socket.close();
+				
+				
 
 
 			}
@@ -323,8 +334,8 @@ namespace fc {
 				{
 					std::unique_lock<std::mutex> lk(read_lock);
 					_deadline.expires_from_now(boost::posix_time::seconds(50));
-					_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
-					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this));
+					_deadline.async_wait(m_strand.wrap(boost::bind(&connection_sync::check_deadline, this)) );
+					boost::asio::async_read_until(_socket, line, "\r\n\r\n", m_strand.wrap(boost::bind(&connection_sync::handle_reply, this)));
 					while (!(is_done || is_timeout)) {
 						m_cond.wait(lk);
 					}
@@ -370,7 +381,7 @@ namespace fc {
 				std::unique_lock<std::mutex> lk(read_lock);
 				_deadline.expires_from_now(boost::posix_time::seconds(50));
 				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this));
-				boost::asio::async_read(_socket, line,boost::asio::transfer_at_least(rep.body.size()), boost::bind(&connection_sync::handle_reply, this));
+				boost::asio::async_read(_socket, line,boost::asio::transfer_at_least(rep.body.size()), m_strand.wrap(boost::bind(&connection_sync::handle_reply, this)));
 				
 				while (!(is_done || is_timeout)) {
 					m_cond.wait(lk);
