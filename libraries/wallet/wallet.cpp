@@ -4096,7 +4096,7 @@ public:
 			   FC_ASSERT(mutlisig_obj.valid());
 			   FC_ASSERT(mutlisig_obj->multisig_account_pair_object_id == obj->id);
 			   hot_keys.addr = mutlisig_obj->new_address_hot;
-			   hot_keys.addr = mutlisig_obj->new_pubkey_hot;
+			   hot_keys.pubkey = mutlisig_obj->new_pubkey_hot;
 		   }
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
 		  
@@ -8798,7 +8798,7 @@ graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_bra
 	return my->update_asset_private_keys(from_account, symbol, out_key_file, encrypt_key, broadcast,true);
 }
 graphene::chain::full_transaction wallet_api::update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
-	my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
+	return my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
 }
 
 full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
