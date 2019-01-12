@@ -447,7 +447,19 @@ void_result account_multisig_create_evaluator::do_evaluate(const account_multisi
 	auto address_cold = prk_ptr->get_address_by_pubkey(o.new_pubkey_cold);
 	FC_ASSERT(address_hot == o.new_address_hot);
 	FC_ASSERT(address_cold == o.new_address_cold);
-
+	const auto& multisig_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
+	vector<guard_member_object>guards = db().get_guard_members();
+	for (const auto& guard : guards)
+	{
+		if (guard.guard_member_account == o.account_id)
+			continue;
+		auto iter = multisig_idx.find(boost::make_tuple(o.crosschain_type,guard.guard_member_account,multisig_account_pair_id_type()));
+		if (iter != multisig_idx.end())
+		{
+			FC_ASSERT(iter->new_address_hot != o.new_address_hot && iter->new_address_hot != o.new_address_cold);
+			FC_ASSERT(iter->new_address_cold != o.new_address_cold && iter->new_address_cold != o.new_address_hot);
+		}
+	}
 	return void_result();
 } FC_CAPTURE_AND_RETHROW((o))
 }
