@@ -4056,6 +4056,13 @@ public:
 			   }
 		   }
 		   keys[real_symbol + cold_keys.addr] = cold_keys;
+		   
+		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary | std::ios::trunc);
+		   auto plain_txt = fc::raw::pack(keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   out.write(encrypted.data(), encrypted.size());
+		   out.flush();
+		   out.close();
 		   std::ifstream out_chk(out_key_file, std::ios::in | std::ios::binary);
 		   FC_ASSERT(out_chk.is_open(), "keyfile check failed!Open key file  failed!");
 		   std::vector<char> key_file_data_chk((std::istreambuf_iterator<char>(out_chk)),
@@ -4064,12 +4071,6 @@ public:
 		   const auto plain_text_chk = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data_chk);
 		   map<string, crosschain_prkeys> keys_chk = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text_chk);
 		   FC_ASSERT(keys == keys_chk, "Key file check faild!");
-		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary | std::ios::trunc);
-		   auto plain_txt = fc::raw::pack(keys);
-		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
-		   out.write(encrypted.data(), encrypted.size());
-		   out.flush();
-		   out.close();
 		   cold_keys.wif_key = "";
 		   return cold_keys;
 	   }FC_CAPTURE_AND_RETHROW((real_symbol))
