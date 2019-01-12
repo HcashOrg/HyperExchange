@@ -3999,6 +3999,119 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
+   crosschain_prkeys create_crosschain_symbol_cold(const string &real_symbol,const string& out_key_file, const string& encrypt_key) {
+	   try {
+		   FC_ASSERT(!self.is_locked());
+		   bool bGuard = false;
+		   if (real_symbol == "ETH" || real_symbol.find("ERC") != real_symbol.npos)
+		   {
+			   bGuard = true;
+		   }
+		   string config = (*_crosschain_manager)->get_config();
+		   FC_ASSERT((*_crosschain_manager)->contain_symbol(real_symbol), "no this plugin");
+		   auto& instance = graphene::crosschain::crosschain_manager::get_instance();
+		   auto fd = instance.get_crosschain_handle(real_symbol);
+		   fd->initialize_config(fc::json::from_string(config).get_object());
+		   std::string wif_key;
+		   if (bGuard) {
+			   wif_key = fd->create_normal_account("guard");
+		   }
+		   else {
+			   wif_key = fd->create_normal_account("");
+		   }
+		   FC_ASSERT(wif_key != "");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(real_symbol);
+		   auto pk = prk_ptr->import_private_key(wif_key);
+		   FC_ASSERT(pk.valid());
+		   prk_ptr->set_key(*pk);
+		   auto addr = prk_ptr->get_address();
+		   auto pubkey = prk_ptr->get_public_key();
+		   crosschain_prkeys cold_keys;
+		   cold_keys.addr = addr;
+		   cold_keys.pubkey = pubkey;
+		   cold_keys.wif_key = wif_key;
+		   string tmpf = out_key_file + ".tmp";
+		   try {
+			   boost::filesystem::remove(tmpf);
+		   }
+		   catch (boost::filesystem::filesystem_error&)
+		   {
+		   }
+		   boost::system::error_code ercode;
+		   map<string, crosschain_prkeys> keys;
+		   std::ifstream in(out_key_file, std::ios::in | std::ios::binary);
+		   if (in.is_open())
+		   {
+			   std::vector<char> key_file_data((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+			   boost::filesystem::copy_file(out_key_file, tmpf);
+			   if (key_file_data.size() > 0)
+			   {
+				   const auto plain_text = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data);
+				   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+			   }
+		   }
+		   keys[real_symbol + cold_keys.addr] = cold_keys;
+		   std::ofstream out(out_key_file, std::ios::out | std::ios::binary | std::ios::trunc);
+		   auto plain_txt = fc::raw::pack(keys);
+		   auto encrypted = fc::aes_encrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), plain_txt);
+		   out.write(encrypted.data(), encrypted.size());
+		   out.flush();
+		   out.close();
+		   std::ifstream out_chk(out_key_file, std::ios::in | std::ios::binary);
+		   FC_ASSERT(out_chk.is_open(), "keyfile check failed!Open key file  failed!");
+		   std::vector<char> key_file_data_chk((std::istreambuf_iterator<char>(out_chk)),
+			   (std::istreambuf_iterator<char>()));
+		   FC_ASSERT(key_file_data_chk.size() > 0, "key file shuld not be empty");
+		   const auto plain_text_chk = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data_chk);
+		   map<string, crosschain_prkeys> keys_chk = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text_chk);
+		   FC_ASSERT(keys == keys_chk, "Key file check faild!");
+		   boost::filesystem::remove(tmpf);
+		   cold_keys.wif_key = "";
+		   return cold_keys;
+	   }FC_CAPTURE_AND_RETHROW((real_symbol))
+   }
+   full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(), "only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+		   crosschain_prkeys hot_keys;
+		   if (symbol == "ETH" || symbol.find("ERC") != symbol.npos)
+		   {
+			   hot_keys = create_crosschain_symbol(symbol + "|etguard");
+		   }
+		   else
+		   {
+			   auto obj = get_current_multi_address(symbol);
+			   FC_ASSERT(obj.valid());
+			   auto mutlisig_obj = get_current_multi_address_obj(symbol, guard_account.guard_member_account);
+			   FC_ASSERT(mutlisig_obj.valid());
+			   FC_ASSERT(mutlisig_obj->multisig_account_pair_object_id == obj->id);
+			   hot_keys.addr = mutlisig_obj->new_address_hot;
+			   hot_keys.pubkey = mutlisig_obj->new_pubkey_hot;
+		   }
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+		   op.new_address_cold = cold_address;
+		   op.new_pubkey_cold = cold_pubkey;
+		   op.new_address_hot = hot_keys.addr;
+		   op.new_pubkey_hot = hot_keys.pubkey;
+		   op.crosschain_type = symbol;
+		   FC_ASSERT(_keys.find(op.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", op.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
+		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   auto res = sign_transaction(trx, broadcast);
+		   return res;
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast)(cold_address)(cold_pubkey))
+   }
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast,bool use_brain_key=false)
    {
 	   try {
@@ -4825,7 +4938,120 @@ public:
 		transaction.validate();
 		sign_transaction(transaction, true);
    }
+   string get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey)
+   {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(), "not correct transction.");
+	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
+	   FC_ASSERT(trx.size() == 1, "Transaction find error");
+	   FC_ASSERT(trx[0].op_type == operation::tag<graphene::chain::coldhot_transfer_without_sign_operation>::value, "Transaction find error");
+	   auto op = trx[0].current_trx.operations[0];
+	   auto coldhot_op = op.get<graphene::chain::coldhot_transfer_without_sign_operation>();
+	   auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+	   auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
+	   string config = (*_crosschain_manager)->get_config();
+	   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+	   string temp_guard(guard);
+	   crosschain_trx handled_trx;
+	   if ((coldhot_op.asset_symbol == "ETH") || (coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos)) {
+		   handled_trx = crosschain_plugin->turn_trxs(fc::variant_object("eth_trx", coldhot_op.coldhot_trx_original_chain));
+	   }
+	   else {
+		   handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
+	   }
 
+	   FC_ASSERT(handled_trx.trxs.size() == 1, "Transcation turn error in guard sign cold hot transaction");
+	   auto multi_objs = _remote_db->get_multisig_account_pair(coldhot_op.asset_symbol);
+	   string redeemScript = "";
+	   string guard_address = "";
+	   bool cold = false;
+	   const account_object & account_obj = get_account(guard);
+	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
+	   for (auto multi_obj : multi_objs) {
+		   if (multi_obj->bind_account_hot == handled_trx.trxs.begin()->second.from_account) {
+			   redeemScript = multi_obj->redeemScript_hot;
+			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
+				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+					   guard_address = guard_multi_address_obj->new_address_hot;
+					   break;
+				   }
+			   }
+			   break;
+		   }
+		   if (multi_obj->bind_account_cold == handled_trx.trxs.begin()->second.from_account) {
+			   redeemScript = multi_obj->redeemScript_cold;
+			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
+				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
+					   guard_address = guard_multi_address_obj->new_address_cold;
+					   cold = true;
+					   break;
+				   }
+			   }
+			   break;
+		   }
+	   }
+	   FC_ASSERT((redeemScript != "") && (guard_address != ""), "redeemScript exist error");
+	   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(coldhot_op.asset_symbol);
+	   if (!cold)
+	   {
+		   FC_ASSERT(_crosschain_keys.count(guard_address) > 0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[guard_address].wif_key;
+		   auto key_ptr = prk_ptr->import_private_key(wif_key);
+		   prk_ptr->set_key(*key_ptr);
+	   }
+	   else
+	   {
+		   std::ifstream in(keyfile, std::ios::in | std::ios::binary);
+		   std::vector<char> key_file_data;
+		   if (in.is_open())
+		   {
+			   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+				   (std::istreambuf_iterator<char>()));
+			   in.close();
+		   }
+		   map<string, crosschain_prkeys> keys;
+		   if (key_file_data.size() > 0)
+		   {
+			   const auto plain_text = fc::aes_decrypt(fc::sha512(decryptkey.c_str(), decryptkey.length()), key_file_data);
+			   keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+		   }
+		   FC_ASSERT(keys.find(coldhot_op.asset_symbol + guard_address) != keys.end(), "cold key can't be found in keyfile");
+		   auto key_ptr = prk_ptr->import_private_key(keys[coldhot_op.asset_symbol + guard_address].wif_key);
+		   prk_ptr->set_key(*key_ptr);
+	   }
+	   string siging;
+	   if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos) {
+		   siging = crosschain_plugin->sign_multisig_transaction(fc::variant_object("get_param_hash", coldhot_op.coldhot_trx_original_chain), prk_ptr, redeemScript, false);
+	   }
+	   else {
+		   siging = crosschain_plugin->sign_multisig_transaction(coldhot_op.coldhot_trx_original_chain, prk_ptr, redeemScript, false);
+	   }
+	   return siging;
+   }
+   void send_coldhot_transfer_with_sign(const string& tx_id, const string& guard, const string& siging) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(), "not correct transction.");
+	   auto trx = _remote_db->get_coldhot_transaction(coldhot_trx_state::coldhot_without_sign_trx_create, transaction_id_type(tx_id));
+	   FC_ASSERT(trx.size() == 1, "Transaction find error");
+	   FC_ASSERT(trx[0].op_type == operation::tag<graphene::chain::coldhot_transfer_without_sign_operation>::value, "Transaction find error");
+	   auto op = trx[0].current_trx.operations[0];
+	   auto coldhot_op = op.get<graphene::chain::coldhot_transfer_without_sign_operation>();
+	   const account_object & account_obj = get_account(guard);
+	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
+	   coldhot_transfer_with_sign_operation tx_op;
+	   tx_op.coldhot_trx_id = trx[0].current_id;
+	   tx_op.coldhot_trx_original_chain = coldhot_op.coldhot_trx_original_chain;
+	   tx_op.sign_guard = guard_obj->id;
+	   tx_op.asset_symbol = coldhot_op.asset_symbol;
+	   tx_op.guard_address = account_obj.addr;
+	   tx_op.coldhot_transfer_sign = siging;
+	   signed_transaction transaction;
+	   transaction.operations.push_back(tx_op);
+	   set_operation_fees(transaction, _remote_db->get_global_properties().parameters.current_fees);
+	   transaction.validate();
+	   sign_transaction(transaction, true);
+   }
    void guard_sign_coldhot_transaction(const string& tx_id, const string& guard,const string& keyfile,const string& decryptkey) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(tx_id) != transaction_id_type(),"not correct transction.");
@@ -7442,6 +7668,14 @@ std::string wallet_api::derive_wif_key(const string& brain_key, int index, const
 	return my->derive_wif_key(brain_key, index, symbol);
 }
 
+void wallet_api::send_coldhot_transfer_with_sign(const string& tx_id, const string& guard, const string& siging)
+{
+	return my->send_coldhot_transfer_with_sign(tx_id, guard, siging);
+}
+std::string wallet_api::get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey)
+{
+	return my->get_coldhot_trx_sig(tx_id, guard, keyfile, decryptkey);
+}
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
@@ -8543,7 +8777,9 @@ graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_bra
 {
 	return my->update_asset_private_keys(from_account, symbol, out_key_file, encrypt_key, broadcast,true);
 }
-
+graphene::chain::full_transaction wallet_api::update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
+	return my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
+}
 
 full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
 {
@@ -9421,6 +9657,9 @@ crosschain_prkeys wallet_api::create_crosschain_symbol(const string& symbol)
 //{
 //	return my->create_crosschain_symbol(symbol);
 //}
+crosschain_prkeys wallet_api::create_crosschain_symbol_cold(const string &symbol, const string& out_key_file, const string& encrypt_key) {
+	return my->create_crosschain_symbol_cold(symbol, out_key_file, encrypt_key);
+}
 
 crosschain_prkeys wallet_api::wallet_create_crosschain_symbol(const string& symbol)
 {
