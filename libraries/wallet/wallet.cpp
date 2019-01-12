@@ -4081,7 +4081,21 @@ public:
 		   auto guard_account = get_guard_member(from_account);
 		   FC_ASSERT(guard_account.guard_member_account != account_id_type(), "only guard member can do this operation.");
 		   auto asset_id = get_asset_id(symbol);
-		   auto  hot_keys = create_crosschain_symbol(symbol + "|etguard");
+		   crosschain_prkeys hot_keys;
+		   if (symbol == "ETH" || symbol.find("ERC") != symbol.npos)
+		   {
+			   hot_keys = create_crosschain_symbol(symbol + "|etguard");
+		   }
+		   else
+		   {
+			   auto obj = get_current_multi_address(symbol);
+			   FC_ASSERT(obj.valid());
+			   auto mutlisig_obj = get_current_multi_address_obj(symbol, guard_account.guard_member_account);
+			   FC_ASSERT(mutlisig_obj.valid());
+			   FC_ASSERT(mutlisig_obj->multisig_account_pair_object_id == obj->id);
+			   hot_keys.addr = mutlisig_obj->new_address_hot;
+			   hot_keys.addr = mutlisig_obj->new_pubkey_hot;
+		   }
 		   //string hot_pri = cross_interface->export_private_key(symbol, "");
 		  
 		   account_multisig_create_operation op;
