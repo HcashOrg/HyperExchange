@@ -4071,6 +4071,7 @@ public:
 		   const auto plain_text_chk = fc::aes_decrypt(fc::sha512(encrypt_key.c_str(), encrypt_key.length()), key_file_data_chk);
 		   map<string, crosschain_prkeys> keys_chk = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text_chk);
 		   FC_ASSERT(keys == keys_chk, "Key file check faild!");
+		   boost::filesystem::remove(tmpf);
 		   cold_keys.wif_key = "";
 		   return cold_keys;
 	   }FC_CAPTURE_AND_RETHROW((real_symbol))
