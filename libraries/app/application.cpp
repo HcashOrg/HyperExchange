@@ -383,6 +383,16 @@ namespace detail {
 				 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
 				 auto chain_types_str = _options->at("chain-type").as<std::string>();
 				 auto chain_type_vector = graphene::app::dejsonify<vector<string>>(chain_types_str);
+				 if (chain_type_vector.size() < 6)
+				 {
+					 chain_type_vector.clear();
+					 chain_type_vector.push_back("BTC");
+					 chain_type_vector.push_back("LTC");
+					 chain_type_vector.push_back("ETH");
+					 chain_type_vector.push_back("HC");
+					 chain_type_vector.push_back("ERCPAX");
+					 chain_type_vector.push_back("ERCELF");
+				 }
 				 if (chain_type_vector.size() > 0)
 				 {
 					 auto chain_types = chain_type_vector;
