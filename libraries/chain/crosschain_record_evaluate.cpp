@@ -48,17 +48,7 @@ namespace graphene {
 
 				if (multisig_obj->effective_block_num != current_obj->effective_block_num)
 				{
-					if (db().head_block_num() >= CROSSCHAIN_RECORD_EVALUATE_967000)
-					{
-						if (multisig_obj->bind_account_hot != current_obj->bind_account_hot)
-						{
-							FC_ASSERT(db().head_block_num() - multisig_obj->end_block <= 20000, "this multi addr has expired");
-						}
-					}
-					else
-					{
-						FC_ASSERT(db().head_block_num() - multisig_obj->end_block <= 20000, "this multi addr has expired");
-					}
+					FC_ASSERT(db().head_block_num() - multisig_obj->end_block <= 20000, "this multi addr has expired");
 
 				}
 				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
