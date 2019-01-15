@@ -625,6 +625,8 @@ void database::_apply_block( const signed_block& next_block )
    uint32_t next_block_num = next_block.block_num();
    uint32_t skip = get_node_properties().skip_flags;
    _applied_ops.clear();
+   if (next_block.block_num() <= HX_CHECK_POINT_BLOCK)
+	   skip = 0;
    reset_current_collected_fee();
    FC_ASSERT( (skip & skip_merkle_check) || next_block.transaction_merkle_root == next_block.calculate_merkle_root(), "", ("next_block.transaction_merkle_root",next_block.transaction_merkle_root)("calc",next_block.calculate_merkle_root())("next_block",next_block)("id",next_block.id()) );
 
@@ -827,7 +829,8 @@ const miner_object& database::validate_block_header( uint32_t skip, const signed
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
    const miner_object& witness = next_block.miner(*this);
-
+   if (next_block.block_num() < HX_CHECK_POINT_BLOCK)
+	   return witness;
    if( !(skip&skip_miner_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
 

@@ -165,15 +165,36 @@ vector<multisig_address_object> database::get_multi_account_senator(const string
 	vector<multisig_address_object> result;
 	auto& hot_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
 	auto& cold_db = get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
-	auto hot_iter = hot_db.find(boost::make_tuple(multi_address, symbol));
-	auto cold_iter = cold_db.find(boost::make_tuple(multi_address, symbol));
+	auto hot_iterange = hot_db.equal_range(boost::make_tuple(multi_address, symbol));
+	auto cold_iterange = cold_db.equal_range(boost::make_tuple(multi_address, symbol));
 	multisig_account_pair_id_type multi_id;
-	if (hot_iter != hot_db.end()) {
-		multi_id = hot_iter->id;
+	vector<multisig_account_pair_object> multisig_objs;
+	if (hot_iterange.first != hot_iterange.second) {
+		multisig_objs.assign(hot_iterange.first, hot_iterange.second);
+		while (multisig_objs.size())
+		{
+			if (multisig_objs.back().effective_block_num)
+			{
+				multi_id = multisig_objs.rbegin()->id;
+				break;
+			}
+				
+			else
+				multisig_objs.pop_back();
+		}
 	}
-	if (cold_iter != cold_db.end()) {
-		FC_ASSERT(multi_id == multisig_account_pair_id_type(), "this address exist in both cold and hot address");
-		multi_id = cold_iter->id;
+	if (cold_iterange.first != cold_iterange.second) {
+		multisig_objs.assign(cold_iterange.first, cold_iterange.second);
+		while (multisig_objs.size())
+		{
+			if (multisig_objs.back().effective_block_num)
+			{
+				multi_id = multisig_objs.rbegin()->id;
+				break;
+			}
+			else
+				multisig_objs.pop_back();
+		}
 	}
 	FC_ASSERT(multi_id != multisig_account_pair_id_type(), "Can`t find coldhot multiaddress");
 	auto guard_range = get_index_type<multisig_address_index>().indices().get<by_multisig_account_pair_id>().equal_range(multi_id);
