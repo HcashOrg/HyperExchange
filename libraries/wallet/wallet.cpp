@@ -3941,6 +3941,35 @@ public:
 
 	   return sign_transaction(trx, broadcast);
    }
+   full_transaction senator_change_acquire_trx(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false) {
+	   FC_ASSERT(!is_locked());
+	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
+	   auto without_sign_trx = _remote_db->get_crosschain_transaction(transaction_stata::withdraw_eth_guard_sign, transaction_id_type(txid));
+	   FC_ASSERT(without_sign_trx.size() == 1, "Transaction find error");
+	   auto account = get_account(senator);
+	   auto guard_obj = get_guard_member(senator);
+	   FC_ASSERT(guard_obj.senator_type == PERMANENT, "Only Permanent senator can use this proposal");
+	   auto addr = account.addr;
+	   FC_ASSERT(addr != address(), "wallet doesnt has this account.");
+	   FC_ASSERT(guard_obj.guard_member_account == account.id, "guard account error");
+	   proposal_create_operation prop_op;
+	   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+	   prop_op.proposer = get_account(senator).get_id();
+	   prop_op.fee_paying_account = addr;
+	   prop_op.type = vote_id_type::vote_type::cancel_commit;
+	   senator_change_acquire_trx_operation change_op;
+	   change_op.change_transaction_id = transaction_id_type(txid);
+	   change_op.guard_address = addr;
+	   change_op.guard_id = guard_obj.id;
+	   const chain_parameters& current_params = get_global_properties().parameters;
+	   prop_op.proposed_ops.emplace_back(change_op);
+	   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+	   signed_transaction trx;
+	   trx.operations.emplace_back(prop_op);
+	   set_operation_fees(trx, current_params.current_fees);
+	   trx.validate();
+	   return sign_transaction(trx, broadcast);
+   }
 	full_transaction senator_pass_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast = false) {
 	   FC_ASSERT(!is_locked());
 	   FC_ASSERT(transaction_id_type(txid) != transaction_id_type(), "txid is not legal");
@@ -8765,7 +8794,9 @@ full_transaction wallet_api::cancel_coldhot_combined_transaction(const string gu
 full_transaction wallet_api::senator_pass_coldhot_combined_transaction(const string guard, const string txid, const int64_t& expiration_time, bool broadcast) {
 	return my->senator_pass_coldhot_combined_transaction(guard, txid, expiration_time, broadcast);
 }
-
+full_transaction wallet_api::senator_change_acquire_trx(const string senator, const string txid, const int64_t& expiration_time, bool broadcast) {
+	return my->senator_change_acquire_trx(senator, txid, expiration_time, broadcast);
+}
 full_transaction wallet_api::cancel_cold_hot_uncreate_transaction(const string& proposer, const string& trxid, const int64_t& exception_time, bool broadcast) {
 	return my->cancel_cold_hot_uncreate_transaction(proposer, trxid, exception_time, broadcast);
 }

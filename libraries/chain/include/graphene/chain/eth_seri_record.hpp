@@ -180,9 +180,23 @@ namespace graphene {
 				a.push_back(authority(1, guard_address, 1));
 			}
 		};
-		
+		struct senator_change_acquire_trx_operation :public base_operation {
+			struct fee_parameters_type {
+				uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+			};
+			asset fee;
+			address    guard_address;
+			guard_member_id_type guard_id;
+			transaction_id_type change_transaction_id;
+			address fee_payer()const {
+				return guard_address;
 	}
+			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
+		};
 }
+}
+FC_REFLECT(graphene::chain::senator_change_acquire_trx_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::senator_change_acquire_trx_operation, (guard_address)(guard_id)(change_transaction_id))
 FC_REFLECT(graphene::chain::eth_seri_guard_sign_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::eth_seri_guard_sign_operation, (fee)(eth_guard_sign_trx)(guard_address)(guard_to_sign))
 FC_REFLECT(graphene::chain::eth_series_multi_sol_create_operation::fee_parameters_type, (fee))

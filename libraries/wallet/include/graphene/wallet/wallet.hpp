@@ -2022,6 +2022,7 @@ class wallet_api
 	  full_transaction refund_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_eth_sign_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction senator_pass_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_change_acquire_trx(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction senator_pass_coldhot_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction eth_cancel_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_eth_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
@@ -2237,6 +2238,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_private_key)
         (load_wallet_file)
         (save_wallet_file)
+		(senator_change_acquire_trx)
         (serialize_transaction)
         (sign_transaction)
         (get_prototype_operation)
