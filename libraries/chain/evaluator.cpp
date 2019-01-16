@@ -49,7 +49,6 @@ bool generic_evaluator::if_evluate()
 	if (d.head_block_num() == HX_CHECK_POINT_BLOCK)
 	{
 		FC_ASSERT(d.head_block_id() == block_id_type(HX_CHECK_POINT),"other chain.");
-		return true;
 	}
 	else if (d.head_block_num() > HX_CHECK_POINT_BLOCK)
 	{
