@@ -156,7 +156,7 @@ namespace graphene { namespace app {
     }
     void localnode_api::witness_node_stop()
     {
-        raise(SIGINT);
+        raise(SIGTERM);
     }
 	string localnode_api::get_data_dir()
 	{
