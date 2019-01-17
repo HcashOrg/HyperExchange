@@ -159,7 +159,7 @@ namespace graphene {
 		}
 		void crosschain_record_plugin::plugin_shutdown(){
 			try {
-				_thread.quit();
+				//_thread.quit();
 			}FC_CAPTURE_AND_RETHROW()
 			return;
 		}
