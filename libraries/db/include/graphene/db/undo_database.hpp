@@ -73,7 +73,7 @@ namespace graphene {
 			optional<serializable_undo_state> last()const;
 			optional<undo_state_id_type> last_id()const;
 		private:
-			leveldb::DB* db = false;;
+			leveldb::DB* db = NULL;;
 			leveldb::Status open_status;
 		};
 

@@ -856,6 +856,7 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 {
 	try {
 		undo_state_id_type id = _id;
+		FC_ASSERT(db, "undo_storage closed");
 		if (id == undo_state_id_type())
 		{
 			id = b.undo_id();
@@ -883,7 +884,9 @@ bool undo_storage::remove(const undo_state_id_type& id)
 		FC_ASSERT(id != undo_state_id_type());
 		leveldb::WriteOptions write_options;
 		//write_options.sync = true;
+		FC_ASSERT(db, "undo_storage closed");
 		leveldb::Status sta = db->Delete(write_options, id.str());
+
 		if (!sta.ok())
 		{
 
@@ -902,6 +905,7 @@ optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_
 	{
 		string out;
 		leveldb::ReadOptions read_options;
+		FC_ASSERT(db, "undo_storage closed");
 		leveldb::Status sta = db->Get(read_options, id.str(), &out);
 		if (!sta.ok())
 		{
