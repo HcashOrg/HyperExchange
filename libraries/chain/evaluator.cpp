@@ -46,9 +46,12 @@ const transaction_evaluation_state * generic_evaluator::get_trx_eval_state() con
 bool generic_evaluator::if_evluate()
 {
 	database& d = db();
-	if (d.head_block_num() >= HX_CHECK_POINT_BLOCK)
+	if (d.head_block_num() == HX_CHECK_POINT_BLOCK)
 	{
-		FC_ASSERT(d.fetch_block_by_id(block_id_type(HX_CHECK_POINT)).valid());
+		FC_ASSERT(d.head_block_id() == block_id_type(HX_CHECK_POINT),"other chain.");
+	}
+	else if (d.head_block_num() > HX_CHECK_POINT_BLOCK)
+	{
 		return true;
 	}
 		

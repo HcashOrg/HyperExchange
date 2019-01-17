@@ -827,7 +827,6 @@ const miner_object& database::validate_block_header( uint32_t skip, const signed
    FC_ASSERT( head_block_id() == next_block.previous, "", ("head_block_id",head_block_id())("next.prev",next_block.previous) );
    FC_ASSERT( head_block_time() < next_block.timestamp, "", ("head_block_time",head_block_time())("next",next_block.timestamp)("blocknum",next_block.block_num()) );
    const miner_object& witness = next_block.miner(*this);
-
    if( !(skip&skip_miner_signature) ) 
       FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
 

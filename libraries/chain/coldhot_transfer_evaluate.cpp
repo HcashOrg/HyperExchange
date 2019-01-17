@@ -2,7 +2,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
-
+#include <fc/smart_ref_impl.hpp>
 namespace graphene {
 	namespace chain {
 		void_result coldhot_transfer_evaluate::do_evaluate(const coldhot_transfer_operation& o) {
@@ -334,6 +334,10 @@ namespace graphene {
 				auto combine_trx_iter = originaldb.find(boost::make_tuple(crosschain_trx_id, combine_op_number));
 				FC_ASSERT(combine_trx_iter != originaldb.end(), "combine sign trx doesn`t exist");
 				auto& coldhot_db_objs = d.get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
+				if (o.coldhot_trx_original_chain.asset_symbol == "ETH" || o.coldhot_trx_original_chain.asset_symbol.find("ERC") != o.coldhot_trx_original_chain.asset_symbol.npos)
+				{
+					FC_ASSERT(combine_trx_iter->curret_trx_state == coldhot_eth_guard_sign);
+				}
 				auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(combine_trx_iter->relate_trx_id);
 				FC_ASSERT(tx_coldhot_without_sign_iter != coldhot_db_objs.end(), "without sign trx doesn`t exist");
 				auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);

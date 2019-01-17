@@ -336,8 +336,8 @@ namespace graphene {
 				\"params\" : {\"chainId\":\""<<chain_type<<"\" ,\"addr\": \"" << ptr->get_address() << "\"}}";
 				std::cout << req_body.str() << std::endl;
 				fc::http::connection_sync conn;
-				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
-				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+				//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+				//auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 				//std::cout << std::string(response.body.begin(), response.body.end()) << std::endl;
 			}
 			/*
@@ -1243,6 +1243,7 @@ namespace graphene {
 			auto respit_trx = tx["respit_trx"].get_object();
 			FC_ASSERT(source_trx.contains("input"));
 			auto source_trx_input = source_trx["input"].as_string();
+			bool bcheck = false;
 			if (trx_input == "0x"){
 				//eth deposit
 				auto temp_amount = ConvertPre(16, 10, source_trx["value"].as_string().substr(2));
@@ -1253,6 +1254,7 @@ namespace graphene {
 				FC_ASSERT(source_from_account == trx.from_account);
 				FC_ASSERT(source_amount == trx.amount);
 				FC_ASSERT(trx_input == source_trx_input);
+				bcheck = true;
 			}
 			else {
 				FC_ASSERT(trx_input == source_trx_input);
@@ -1272,12 +1274,7 @@ namespace graphene {
 					FC_ASSERT(receipt_log.get_object().contains("data"));
 					std::string data = receipt_log.get_object()["data"].as_string();
 					//std::string logindex = receipt_log.get_object()["logIndex"].as_string();
-					auto source_index = fc::to_uint64(ConvertPre(16, 10, receipt_log["logIndex"].as_string().substr(2)));
-					std::cout <<"source_index is "<<source_index << std::endl;
-					auto trx_index_num = fc::to_uint64(ConvertPre(16, 10, trx_index));
-					std::cout << "trx_index_num is " << trx_index_num << std::endl;
-					if (source_index == trx_index_num)
-					{
+					
 					std::string eth_address = "0000000000000000000000000000000000000000000000000000000000000000";
 					std::vector<std::string> datas;
 					for (int i = 0; i < (data.size() - 2) / 64;++i) {
@@ -1295,14 +1292,21 @@ namespace graphene {
 					std::string source_from_account = source_trx["to"].as_string();
 					//TODO check index
 					//auto source_index = datas[4]
+					auto source_index = fc::to_uint64(ConvertPre(16, 10, datas[4]));
+					std::cout << "source_index is " << source_index << std::endl;
+					auto trx_index_num = fc::to_uint64(ConvertPre(16, 10, trx_index));
+					std::cout << "trx_index_num is " << trx_index_num << std::endl;
+					if (source_index == trx_index_num)
+					{
 					FC_ASSERT(source_to_account == trx_to_account);
 					FC_ASSERT(source_from_account == trx.from_account);
 					FC_ASSERT(source_amount == trx.amount);
+						bcheck = true;
 					break;
 					}
 				}
 			}
-			return true;
+			return bcheck;
 		}
 
 		bool crosschain_interface_eth::validate_link_trx(const std::vector<hd_trx> &trx)

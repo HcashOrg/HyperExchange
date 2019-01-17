@@ -2022,6 +2022,7 @@ class wallet_api
 	  full_transaction refund_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_eth_sign_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction senator_pass_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
+	  full_transaction senator_change_acquire_trx(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction senator_pass_coldhot_combined_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction eth_cancel_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
 	  full_transaction cancel_coldhot_eth_fail_transaction(const string senator, const string txid, const int64_t& expiration_time, bool broadcast = false);
@@ -2183,6 +2184,8 @@ FC_API( graphene::wallet::wallet_api,
         (help)
         (info)
         (about)
+	    (is_locked)
+	    (is_new)
 	    (get_address_pay_back_balance)
 	    (obtain_pay_back_balance)
 	    (obtain_bonus_balance)
@@ -2192,12 +2195,10 @@ FC_API( graphene::wallet::wallet_api,
         (dump_private_keys)
 	    (dump_private_key)
         (list_my_accounts)
-        (list_account_balances)
 	    (get_addr_balances)
 	    (get_account_balances)
         (list_assets)
         (import_key)
-        (import_accounts)
         (register_account)
         (upgrade_account)
 	    (wallet_create_account)
@@ -2237,6 +2238,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_private_key)
         (load_wallet_file)
         (save_wallet_file)
+		(senator_change_acquire_trx)
         (serialize_transaction)
         (sign_transaction)
         (get_prototype_operation)
@@ -2246,7 +2248,6 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
-        (flood_network)
         (network_add_nodes)
         (network_get_connected_peers)
         (get_public_key)
@@ -2258,8 +2259,6 @@ FC_API( graphene::wallet::wallet_api,
 	    (get_coldhot_trx_sig)
 		(transfer_to_address)
 	    (transfer_to_account)
-        (blind_transfer)
-        (blind_history)
 		(get_account_addr)
 		(get_proposal)
 		(get_proposal_for_voter)
@@ -2275,7 +2274,6 @@ FC_API( graphene::wallet::wallet_api,
 		(cancel_cold_hot_uncreate_transaction)
 		(transfer_from_cold_to_hot)
 		(get_multi_account_senator)
-		(withdraw_from_link)
 		(get_multisig_asset_tx)
 		(sign_multi_asset_trx)
 		(get_binding_account)

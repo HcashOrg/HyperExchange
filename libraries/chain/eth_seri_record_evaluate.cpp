@@ -2,6 +2,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/transaction_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -406,6 +407,69 @@ namespace graphene {
 			return object_id_type();
 		}
 		void eth_multi_account_create_record_evaluator::pay_fee() {
+
+		}
+		void_result senator_change_acquire_trx_evaluator::do_evaluate(const senator_change_acquire_trx_operation& o) {
+			const database& d = db();
+
+			const auto& guard_db = d.get_index_type<guard_member_index>().indices().get<by_id>();
+			auto guard_iter = guard_db.find(o.guard_id);
+			FC_ASSERT(guard_iter->senator_type == PERMANENT);
+			FC_ASSERT(guard_iter != guard_db.end(), "cant find this guard");
+			const auto& account_db = d.get_index_type<account_index>().indices().get<by_id>();
+			auto account_iter = account_db.find(guard_iter->guard_member_account);
+			FC_ASSERT(account_iter != account_db.end(), "cant find this account");
+			FC_ASSERT(account_iter->addr == o.guard_address, "guard address error");
+			const auto& trx_db = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			const auto sign_final_iter = trx_db.find(o.change_transaction_id);
+			FC_ASSERT(sign_final_iter != trx_db.end(), "transaction not exist.");
+			FC_ASSERT(sign_final_iter->trx_state == withdraw_eth_guard_sign, "cross chain trx state error");
+			FC_ASSERT(sign_final_iter->real_transaction.operations.size() == 1, "operation size error");
+			const auto& trx_history_db = d.get_index_type<trx_index>().indices().get<by_trx_id>();
+			const auto trx_history_iter = trx_history_db.find(o.change_transaction_id);
+			FC_ASSERT(trx_history_iter != trx_history_db.end());
+			auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
+			FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+
+			auto op = sign_final_iter->real_transaction.operations[0];
+			FC_ASSERT(op.which() == operation::tag<eths_guard_sign_final_operation>::value, "operation type error");
+			auto sign_final_op = op.get<eths_guard_sign_final_operation>();
+			string crosschain_trx_id = sign_final_op.signed_crosschain_trx_id;
+			if (sign_final_op.chain_type == "ETH" || sign_final_op.chain_type.find("ERC") != sign_final_op.chain_type.npos)
+			{
+				if (crosschain_trx_id.find('|') != crosschain_trx_id.npos)
+				{
+					auto pos = crosschain_trx_id.find('|');
+					crosschain_trx_id = crosschain_trx_id.substr(pos + 1);
+				}
+			}
+			auto & deposit_db = db().get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
+			auto deposit_to_link_trx = deposit_db.find(crosschain_trx_id);
+			FC_ASSERT(deposit_to_link_trx != deposit_db.end());
+			auto multisig_obj = db().get_multisgi_account(deposit_to_link_trx->handle_trx.from_account, sign_final_op.chain_type);
+			FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
+			FC_ASSERT(multisig_obj->effective_block_num > 0, "multisig address has not worked yet.");
+		}
+		object_id_type senator_change_acquire_trx_evaluator::do_apply(const senator_change_acquire_trx_operation& o) {
+			const auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
+			const auto sign_final_iter = trx_db.find(o.change_transaction_id);
+			auto sign_final_op = sign_final_iter->real_transaction.operations[0].get<eths_guard_sign_final_operation>();
+			string crosschain_trx_id = sign_final_op.signed_crosschain_trx_id;
+			if (sign_final_op.chain_type == "ETH" || sign_final_op.chain_type.find("ERC") != sign_final_op.chain_type.npos)
+			{
+				if (crosschain_trx_id.find('|') != crosschain_trx_id.npos)
+				{
+					auto pos = crosschain_trx_id.find('|');
+					crosschain_trx_id = crosschain_trx_id.substr(pos + 1);
+				}
+			}
+			auto & deposit_db = db().get_index_type<acquired_crosschain_index>().indices().get<by_acquired_trx_id>();
+			auto deposit_to_link_trx = deposit_db.find(crosschain_trx_id);
+			db().modify(*deposit_to_link_trx, [&](acquired_crosschain_trx_object& obj) {
+				obj.acquired_transaction_state = acquired_trx_uncreate;
+			});
+		}
+		void senator_change_acquire_trx_evaluator::pay_fee() {
 
 		}
 	}

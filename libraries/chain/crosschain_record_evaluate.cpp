@@ -15,34 +15,7 @@ namespace graphene {
 						FC_ASSERT(false, "deposit transaction exist");
 					}
 				}
-				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
-				if (!manager.contain_crosschain_handles(o.cross_chain_trx.asset_symbol))
-					return void_result();
-				auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
-				if (!hdl->valid_config())
-					return void_result();
-				auto obj = db().get_asset(o.cross_chain_trx.asset_symbol);
-				FC_ASSERT(obj.valid());
-				auto descrip = obj->options.description;
-				bool bCheckTransactionValid = false;
-				if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
-					return void_result();
-				if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
-					auto temp_hdtx = o.cross_chain_trx;
-					temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
-					bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
-				}
-				else {
-					if (db().head_block_num() >= CROSSCHAIN_RECORD_EVALUATE_220000)
-					{
-						bCheckTransactionValid = hdl->validate_link_trx_v1(o.cross_chain_trx);
-					}
-					else {
-						bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
-					}
-					
-				}
-				FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
+
 				auto &tunnel_idx = db().get_index_type<account_binding_index>().indices().get<by_tunnel_binding>();
 				auto tunnel_itr = tunnel_idx.find(boost::make_tuple(o.cross_chain_trx.from_account, o.cross_chain_trx.asset_symbol));
 				FC_ASSERT(tunnel_itr != tunnel_idx.end());
@@ -76,8 +49,37 @@ namespace graphene {
 				if (multisig_obj->effective_block_num != current_obj->effective_block_num)
 				{
 					FC_ASSERT(db().head_block_num() - multisig_obj->end_block <= 20000, "this multi addr has expired");
-				}
 
+				}
+				auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+				if (!manager.contain_crosschain_handles(o.cross_chain_trx.asset_symbol))
+					return void_result();
+				auto hdl = manager.get_crosschain_handle(std::string(o.cross_chain_trx.asset_symbol));
+				if (!hdl->valid_config())
+					return void_result();
+				auto obj = db().get_asset(o.cross_chain_trx.asset_symbol);
+				FC_ASSERT(obj.valid());
+				auto descrip = obj->options.description;
+				bool bCheckTransactionValid = false;
+				if (fc::time_point::now() > db().head_block_time() + fc::seconds(db().get_global_properties().parameters.validate_time_period))
+					return void_result();
+				if (o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos) {
+					auto temp_hdtx = o.cross_chain_trx;
+					temp_hdtx.asset_symbol = temp_hdtx.asset_symbol + '|' + descrip;
+					bCheckTransactionValid = hdl->validate_link_trx(temp_hdtx);
+				}
+				else {
+					if (db().head_block_num() >= CROSSCHAIN_RECORD_EVALUATE_220000)
+					{
+						bCheckTransactionValid = hdl->validate_link_trx_v1(o.cross_chain_trx);
+					}
+					else {
+						bCheckTransactionValid = hdl->validate_link_trx(o.cross_chain_trx);
+					}
+					
+				}
+				FC_ASSERT(bCheckTransactionValid, "This transaction doesnt valid");
+				
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o));
 			
@@ -219,6 +221,14 @@ namespace graphene {
 				auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto tx_without_sign_iter = tx_db_objs.find(combine_trx_iter->relate_transaction_id);
 				FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "user cross chain tx exist error");
+				auto current_blockNum = db().get_dynamic_global_properties().head_block_number; 
+				if(current_blockNum > CROSSCHAIN_RECORD_EVALUATE_1000000)
+				{
+					if (o.cross_chain_trx.asset_symbol == "ETH" || o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)
+					{
+						FC_ASSERT(combine_trx_iter->trx_state == withdraw_eth_guard_sign);
+					}
+				}
 				crosschain_fee = tx_without_sign_iter->crosschain_fee;
 				for (auto tx_user_transaciton_id : tx_without_sign_iter->all_related_origin_transaction_ids) {
 					auto tx_user_crosschain_iter = tx_db_objs.find(tx_user_transaciton_id);

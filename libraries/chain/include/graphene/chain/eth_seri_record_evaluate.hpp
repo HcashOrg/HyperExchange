@@ -59,5 +59,12 @@ namespace graphene {
 			object_id_type do_apply(const eths_guard_coldhot_change_signer_operation& o);
 			void pay_fee() override;
 		};
+		class senator_change_acquire_trx_evaluator : public evaluator<senator_change_acquire_trx_evaluator> {
+		public:
+			typedef senator_change_acquire_trx_operation operation_type;
+			void_result do_evaluate(const senator_change_acquire_trx_operation& o);
+			object_id_type do_apply(const senator_change_acquire_trx_operation& o);
+			void pay_fee() override;
+		};
 	}
 }

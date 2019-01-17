@@ -311,18 +311,43 @@ optional<multisig_account_pair_object> database::get_multisgi_account(const stri
 {
 	optional<multisig_account_pair_object> result;
 	const auto& index_h = get_index_type<multisig_account_pair_index>().indices().get<by_bindhot_chain_type>();
-	const auto iter = index_h.find(std::make_tuple(multisig_account,symbol));
-	if (iter != index_h.end())
+	const auto iter_range = index_h.equal_range(std::make_tuple(multisig_account,symbol));
+	vector<multisig_account_pair_object> ret;
+	if (iter_range.first != iter_range.second)
 	{
-		result = *iter;
-		return result;
+		ret.assign(iter_range.first, iter_range.second);
+		while (ret.size())
+		{
+			if (ret.rbegin()->effective_block_num > 0)
+			{
+				result = *ret.rbegin();
+				return result;
+			}
+			else
+			{
+				ret.pop_back();
+			}
+		}
+		
 	}
 
 	const auto& index_c = get_index_type<multisig_account_pair_index>().indices().get<by_bindcold_chain_type>();
-	auto iter_c = index_c.find(std::make_tuple(multisig_account, symbol));
-	if (iter_c != index_c.end())
+	const auto& iter_range_cold = index_c.equal_range(std::make_tuple(multisig_account, symbol));
+	if (iter_range_cold.first != iter_range_cold.second)
 	{
-		result = *iter_c;
+		ret.assign(iter_range_cold.first, iter_range_cold.second);
+		while (ret.size())
+		{
+			if (ret.rbegin()->effective_block_num > 0)
+			{
+				result = *ret.rbegin();
+				return result;
+			}
+			else
+			{
+				ret.pop_back();
+			}
+		}
 	}
 	return result;
 }
