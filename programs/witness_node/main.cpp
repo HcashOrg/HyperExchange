@@ -252,6 +252,12 @@ int main(int argc, char** argv) {
    catch (const std::exception&e)
    {
 	   elog("Exiting with std::exception:\n${e}", ("e", e.what()));
+	   unhandled_exception = fc::exception();
+   }
+   catch (...)
+   {
+	   elog("Exiting with uncertain exception");
+	   unhandled_exception = fc::exception();
    }
    if (unhandled_exception)
    {
