@@ -684,8 +684,8 @@ public:
    }
    account_object get_account(account_id_type id) const
    {
-      if( _wallet.my_accounts.get<by_id>().count(id) )
-         return *_wallet.my_accounts.get<by_id>().find(id);
+      //if( _wallet.my_accounts.get<by_id>().count(id) )
+      //   return *_wallet.my_accounts.get<by_id>().find(id);
       auto rec = _remote_db->get_accounts({id}).front();
       FC_ASSERT(rec);
       return *rec;
@@ -1163,7 +1163,6 @@ public:
 		   FC_THROW("Wallet chain ID does not match",
 		   ("wallet.chain_id", _wallet.chain_id)
 			   ("chain_id", _chain_id));
-
 	   size_t account_pagination = 100;
 	   vector< address > account_address_to_send;
 	   size_t n = _wallet.my_accounts.size();
@@ -1212,7 +1211,6 @@ public:
 			   i++;
 		   }
 	   }
-
 	   return true;
    }
    bool check_keys_modified(string wallet_filename = "")
@@ -7362,7 +7360,9 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    auto acc =  my->get_account(account_name_or_id);
    if (acc.addr == address())
 	   return fc::variant_object();
-   const auto& obj = get_account_by_addr(acc.addr);
+   fc::optional<account_object> obj = acc;
+   if (!maybe_id<account_id_type>(account_name_or_id))
+	   obj = get_account_by_addr(acc.addr);
    if (obj.valid())
    {
 	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
