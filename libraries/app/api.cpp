@@ -206,7 +206,8 @@ namespace graphene { namespace app {
 	optional<graphene::chain::full_transaction> transaction_api::get_transaction(transaction_id_type id)
 	{
 		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
-		FC_ASSERT(trx_ids.find(id) != trx_ids.end());
+		if (trx_ids.find(id) == trx_ids.end())
+			return optional<graphene::chain::full_transaction>();
 		auto res_ids = trx_ids.find(id);
 		full_transaction res= res_ids->trx;
 		res.block_num = res_ids->block_num;
