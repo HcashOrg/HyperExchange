@@ -240,6 +240,7 @@ int main(int argc, char** argv) {
       ilog("Chain ID is ${id}", ("id", node->chain_database()->get_chain_id()) );
 
       int signal = exit_promise->wait();
+	  node->stop_block_processing();
       ilog("Exiting from signal ${n}", ("n", signal));
       node->shutdown_plugins();
       node->shutdown();
