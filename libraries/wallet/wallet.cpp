@@ -418,6 +418,30 @@ private:
           }
           save_wallet_file();
       }
+	  if (!_wallet.pending_transactions.empty())
+	  {
+		  for (vector<signed_transaction>::iterator iter = _wallet.pending_transactions.begin(); 
+			                            iter != _wallet.pending_transactions.end() ; )
+		  {
+			  try {
+				  if (_remote_trx->get_transaction(iter->id()).valid())
+				  {
+					  iter = _wallet.pending_transactions.erase(iter);
+					  continue;
+				  }
+				  else
+				  {
+					  _remote_net_broadcast->broadcast_transaction(*iter);
+				  }
+			  }
+			  catch (const fc::exception&)
+			  {
+				  iter = _wallet.pending_transactions.erase(iter);
+				  continue;
+			  }
+			  ++iter;
+		  }
+	  }
    }
    void enable_umask_protection()
    {
@@ -684,8 +708,8 @@ public:
    }
    account_object get_account(account_id_type id) const
    {
-      if( _wallet.my_accounts.get<by_id>().count(id) )
-         return *_wallet.my_accounts.get<by_id>().find(id);
+      //if( _wallet.my_accounts.get<by_id>().count(id) )
+      //   return *_wallet.my_accounts.get<by_id>().find(id);
       auto rec = _remote_db->get_accounts({id}).front();
       FC_ASSERT(rec);
       return *rec;
@@ -1163,7 +1187,6 @@ public:
 		   FC_THROW("Wallet chain ID does not match",
 		   ("wallet.chain_id", _wallet.chain_id)
 			   ("chain_id", _chain_id));
-
 	   size_t account_pagination = 100;
 	   vector< address > account_address_to_send;
 	   size_t n = _wallet.my_accounts.size();
@@ -1212,7 +1235,6 @@ public:
 			   i++;
 		   }
 	   }
-
 	   return true;
    }
    bool check_keys_modified(string wallet_filename = "")
@@ -4728,6 +4750,7 @@ public:
             throw;
          }
       }
+	  _wallet.pending_transactions.emplace_back(tx);
       return tx;
    }
 
@@ -4846,7 +4869,14 @@ public:
 	   return result;
    }
 
-   
+   vector<transaction_id_type> get_pending_transactions() const {
+	   vector<transaction_id_type> ret;
+	   for (auto& tx : _wallet.pending_transactions)
+	   {
+		   ret.push_back(tx.id());
+	   }
+	   return ret;
+   }
 
    optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
    {
@@ -7362,7 +7392,9 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    auto acc =  my->get_account(account_name_or_id);
    if (acc.addr == address())
 	   return fc::variant_object();
-   const auto& obj = get_account_by_addr(acc.addr);
+   fc::optional<account_object> obj = acc;
+   if (!maybe_id<account_id_type>(account_name_or_id))
+	   obj = get_account_by_addr(acc.addr);
    if (obj.valid())
    {
 	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
@@ -7822,6 +7854,10 @@ void wallet_api::senator_sign_crosschain_transaction(const string& trx_id,const 
 optional<multisig_address_object> wallet_api::get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
 {
 	return my->get_current_multi_address_obj(symbol,guard);
+}
+vector<transaction_id_type> wallet_api::get_pending_transactions() const
+{
+	return my->get_pending_transactions();
 }
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);

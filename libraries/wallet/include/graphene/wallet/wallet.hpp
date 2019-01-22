@@ -177,6 +177,7 @@ struct wallet_data
    fc::mutex script_lock;
    //
    vector<string> mining_accounts;
+   vector<signed_transaction> pending_transactions;
    /// @return IDs of all accounts in @ref my_accounts
    vector<object_id_type> my_account_ids()const
    {
@@ -2075,7 +2076,8 @@ class wallet_api
 	  full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast = true);
 	  full_transaction citizen_referendum_for_senator(const string& citizen, const string& amount,const map<account_id_type, account_id_type>& replacement,bool broadcast = true);
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
-	   optional<account_object> get_account_by_addr(const address& addr) const;
+	  vector<transaction_id_type> get_pending_transactions() const;
+	  optional<account_object> get_account_by_addr(const address& addr) const;
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
@@ -2131,6 +2133,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
 	        (cipher_keys_extend)
             (extra_keys)
 			(mining_accounts)
+	        (pending_transactions)
             (pending_account_registrations)(pending_miner_registrations)
 			(pending_account_updation)
             (labeled_keys)
@@ -2398,4 +2401,5 @@ FC_API( graphene::wallet::wallet_api,
 		(wallet_create_account_with_brain_key)
 		(derive_wif_key)
 		(set_brain_key)
+		(get_pending_transactions)
       )
