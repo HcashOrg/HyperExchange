@@ -29,5 +29,6 @@ namespace graphene { namespace utilities {
 
   std::string escape_string_for_c_source_code(const std::string& input);
   std::string remove_zero_for_str_amount(const std::string& input);
+  std::string amount_to_string(uint64_t amount,int precision);
 
 } } // end namespace graphene::utilities

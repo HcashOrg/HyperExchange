@@ -23,7 +23,8 @@
  */
 #include <graphene/utilities/string_escape.hpp>
 #include <sstream>
-
+#include <assert.h>
+#include <fc/string.hpp>
 namespace graphene { namespace utilities {
 
   std::string escape_string_for_c_source_code(const std::string& input)
@@ -89,7 +90,19 @@ namespace graphene { namespace utilities {
 	  
 	  return temp.substr(0, end + 1);
   }
+  std::string amount_to_string(uint64_t amount, int precision)
+  {
+	  uint64_t scaled_precision = 1;
+	  for (uint8_t i = 0; i < precision; ++i)
+		  scaled_precision *= 10;
+	  assert(scaled_precision > 0);
 
+	  std::string result = fc::to_string(amount / scaled_precision);
+	  auto decimals = amount % scaled_precision;
+	  if (decimals)
+		  result += "." + fc::to_string(scaled_precision + decimals).erase(0, 1);
+	  return result;
+  }
 
 } } // end namespace graphene::utilities
 

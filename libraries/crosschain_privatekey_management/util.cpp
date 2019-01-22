@@ -13,6 +13,7 @@
 #include <fc/variant.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/io/json.hpp>
+#include <graphene/utilities/string_escape.hpp>
 namespace graphene {
     namespace privatekey_management {
 
@@ -303,7 +304,7 @@ namespace graphene {
 		    tx.from_data(libbitcoin::config::base16(trx));
 			auto hash =tx.hash(true);
 			std::reverse(hash.begin(),hash.end());
-			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"inputs\": {";
+			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"vin\": [";
 			//insert input:
 			auto ins = tx.inputs();
 			auto int_size = ins.size();
@@ -311,21 +312,19 @@ namespace graphene {
 			{ 
 				if (index > 0)
 					obj << ",";
-				obj << "\"input\": {";
+				obj << "{";
 				auto input = ins.at(index);
 				auto previous_output = input.previous_output();
 				hash = previous_output.hash();
 				std::reverse(hash.begin(),hash.end());
-				obj << "\"previous_output\": { \
-                       \"hash\": \"" << libbitcoin::encode_base16(hash);
-				obj << "\",\"index\": " << previous_output.index();
-				obj << "},";
+				obj << "\"txid\": \"" << libbitcoin::encode_base16(hash);
+				obj << "\",\"vout\": " << previous_output.index();
 
 				obj <<"\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
 				obj << "\"sequence\": " << input.sequence() << "}";
 			}
-			obj << "},\
-                \"lock_time\": " << tx.locktime() << ",\"outputs\": {";
+			obj << "],\
+                \"lock_time\": " << tx.locktime() << ",\"vout\": [";
 
 			auto ons = tx.outputs();
 			auto out_size = ons.size();
@@ -334,12 +333,13 @@ namespace graphene {
 				if (index > 0)
 					obj << ",";
 				auto output = ons.at(index);
-				obj << "\"output\": {";
-				obj << "\"address\": \"" << output.address() << "\",";
-				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\",";
-				obj << "\"value\": " << output.value() << "}";
+				obj << "{";
+				obj << "\"scriptPubkey\": {";
+				obj << "\"address\": [\"" << output.address() << "\"],";
+				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\"},";
+				obj << "\"value\": " << graphene::utilities::amount_to_string(output.value(),8) << "}";
 			}
-			obj << "}}";
+			obj << "]}";
 			return obj.str();
 
 		}
