@@ -383,7 +383,7 @@ namespace graphene { namespace net { namespace detail {
 
       bool has_item( const net::item_id& id ) override;
       void handle_message( const message& ) override;
-      bool handle_block( const graphene::net::block_message& block_message, bool sync_mode, std::vector<fc::uint160_t>& contained_transaction_message_ids ) override;
+      bool handle_block( const graphene::net::block_message& block_message, bool sync_mode, std::vector<fc::uint160_t>& contained_transaction_message_ids ,bool stoppable=false) override;
       void handle_transaction( const graphene::net::trx_message& transaction_message ) override;
       std::vector<item_hash_t> get_block_ids(const std::vector<item_hash_t>& blockchain_synopsis,
                                              uint32_t& remaining_item_count,
@@ -3334,7 +3334,7 @@ namespace graphene { namespace net { namespace detail {
                       block_message_to_process.block_id) == _most_recent_blocks_accepted.end())
         {
           std::vector<fc::uint160_t> contained_transaction_message_ids;
-          _delegate->handle_block(block_message_to_process, false, contained_transaction_message_ids);
+          _delegate->handle_block(block_message_to_process, false, contained_transaction_message_ids,true);
           message_validated_time = fc::time_point::now();
           ilog("Successfully pushed block ${num} (id:${id})",
                 ("num", block_message_to_process.block.block_num())
@@ -3421,6 +3421,10 @@ namespace graphene { namespace net { namespace detail {
       {
         throw;
       }
+	  catch (const block_process_stopped&)
+	  {
+		  return;
+	  }
       catch (const unlinkable_block_exception& e) 
       {
         restart_sync_exception = e;
@@ -5392,9 +5396,9 @@ namespace graphene { namespace net { namespace detail {
       INVOKE_AND_COLLECT_STATISTICS(handle_message, message_to_handle);
     }
 
-    bool statistics_gathering_node_delegate_wrapper::handle_block( const graphene::net::block_message& block_message, bool sync_mode, std::vector<fc::uint160_t>& contained_transaction_message_ids)
+    bool statistics_gathering_node_delegate_wrapper::handle_block( const graphene::net::block_message& block_message, bool sync_mode, std::vector<fc::uint160_t>& contained_transaction_message_ids,bool stoppable)
     {
-      INVOKE_AND_COLLECT_STATISTICS(handle_block, block_message, sync_mode, contained_transaction_message_ids);
+      INVOKE_AND_COLLECT_STATISTICS(handle_block, block_message, sync_mode, contained_transaction_message_ids, stoppable);
     }
 
     void statistics_gathering_node_delegate_wrapper::handle_transaction( const graphene::net::trx_message& transaction_message )
