@@ -8374,6 +8374,7 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
+	std::string caller_address;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8385,12 +8386,25 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	{
 		is_valid_address = false;
 	}
+	bool is_caller_addr=true;
+	try
+	{
+		caller_address = graphene::chain::address(caller_account_name).address_to_string();
+		auto temp = address(caller_address);
+		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
+	}
+	catch (fc::exception& e)
+	{
+		is_caller_addr = false;
+	}
 	if (!is_valid_address)
 	{
 		cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}
-	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
+	if(!is_caller_addr)
+		return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
+	return my->_remote_db->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }
 
 full_transaction wallet_api::upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)
