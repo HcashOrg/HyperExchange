@@ -430,9 +430,11 @@ signed_block database::_generate_block(
    _pending_tx_session.reset();
    _pending_tx_session = _undo_db.start_undo_session();
    uint64_t postponed_tx_count = 0;
+   uint64_t postponed_tx_count_by_gas_limit = 0;
    // pop pending state (reset to head block state)
    reset_current_collected_fee();
    map<string, int > temp_signature;
+   _current_gas_in_block = 0;
    for( const processed_transaction& tx : _pending_tx )
    {
       size_t new_total_size = total_block_size + fc::raw::pack_size( tx );
@@ -443,6 +445,32 @@ signed_block database::_generate_block(
          postponed_tx_count++;
          continue;
       }
+	  if (_current_gas_in_block >= _gas_limit_in_in_block)
+	  {
+		  bool related_with_contract = false;
+		  for (auto& op : tx.operations)
+		  {
+			  
+			  switch (op.which())
+			  {
+			  case operation::tag<chain::contract_register_operation>::value:
+			  case operation::tag<chain::contract_upgrade_operation>::value:
+			  case operation::tag<chain::contract_invoke_operation>::value:
+			  case operation::tag<chain::transfer_contract_operation>::value:
+			  case operation::tag<chain::native_contract_register_operation>::value:
+				  related_with_contract = true;
+				  break;
+			  default:
+				  related_with_contract = false;
+				  
+			  }
+		  }
+		  if (related_with_contract)
+		  {
+			  postponed_tx_count_by_gas_limit++;
+			  continue;
+		  }
+	  }
       try
       {
          auto temp_session = _undo_db.start_undo_session();
@@ -467,7 +495,10 @@ signed_block database::_generate_block(
    {
       wlog( "Postponed ${n} transactions due to block size limit", ("n", postponed_tx_count) );
    }
-
+   if (postponed_tx_count_by_gas_limit > 0)
+   {
+	   wlog("Postponed ${n} transactions due to block gas limit reached", ("n", postponed_tx_count_by_gas_limit));
+   }
    _pending_tx_session.reset();
 
 

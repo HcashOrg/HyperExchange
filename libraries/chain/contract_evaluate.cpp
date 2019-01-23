@@ -340,7 +340,7 @@ namespace graphene {
 			this->caller_address = std::make_shared<address>(o.caller_addr);
             total_fee = o.fee.amount;
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
-            
+			gas_count = 0;
             if(contract.code.abi.find("on_upgrade") != contract.code.abi.end())
             { 
 			try {
@@ -446,7 +446,7 @@ namespace graphene {
                 do_apply_balance();
             }
 
-            d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result);
+            d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result, gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -464,7 +464,7 @@ namespace graphene {
 
             }
 			invoke_contract_result.contract_registed = new_contract.contract_address;
-            db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
+            db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result, gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -481,7 +481,7 @@ namespace graphene {
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
             }
-            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -503,7 +503,7 @@ namespace graphene {
                 do_apply_balance();
 
             }
-            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -724,7 +724,7 @@ namespace graphene {
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
-            
+			gas_count = 0;
             try {
                 if (contract.type_of_contract == contract_type::native_contract)
                 {
@@ -845,8 +845,7 @@ namespace graphene {
                 if(!gen_eval->get_trx_eval_state()->testing)
                     db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
-
-            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result);
+            db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
