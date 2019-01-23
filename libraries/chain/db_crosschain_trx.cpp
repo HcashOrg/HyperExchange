@@ -1035,7 +1035,11 @@ namespace graphene {
 					crosschain_withdraw_combine_sign_operation trx_op;
 					vector<string> guard_signed;
 					for (const auto& iter : combine_signature)
+					{
 						guard_signed.push_back(iter.second);
+						if (guard_signed.size() == 11)
+							break;
+					}
 					if (with_sign_op.asset_symbol == "ETH" || with_sign_op.asset_symbol.find("ERC") != with_sign_op.asset_symbol.npos)
 					{
 						try {
