@@ -985,9 +985,10 @@ namespace graphene {
 						uncombine_trxs_counts[p.relate_transaction_id].push_back(p.transaction_id);
 					}
 				});
+				auto guard_members = get_guard_members();
 				for (auto & trxs : uncombine_trxs_counts) {
 					//TODO : Use macro instead this magic number
-					if (trxs.second.size() < (get_guard_members().size()*2/3+1)) {
+					if (trxs.second.size() < (guard_members.size()*2/3+1)) {
 						continue;
 					}
 					map<guard_member_id_type,string> combine_signature;
@@ -1037,7 +1038,7 @@ namespace graphene {
 					for (const auto& iter : combine_signature)
 					{
 						guard_signed.push_back(iter.second);
-						if (guard_signed.size() == 11)
+						if (guard_signed.size() == (guard_members.size() * 2 / 3 + 1))
 							break;
 					}
 					if (with_sign_op.asset_symbol == "ETH" || with_sign_op.asset_symbol.find("ERC") != with_sign_op.asset_symbol.npos)
