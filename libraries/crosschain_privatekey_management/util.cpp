@@ -334,8 +334,8 @@ namespace graphene {
 					obj << ",";
 				auto output = ons.at(index);
 				obj << "{";
-				obj << "\"scriptPubkey\": {";
-				obj << "\"address\": [\"" << output.address() << "\"],";
+				obj << "\"scriptPubKey\": {";
+				obj << "\"addresses\": [\"" << output.address() << "\"],";
 				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\"},";
 				obj << "\"value\": " << graphene::utilities::amount_to_string(output.value(),8) << "}";
 			}
@@ -444,7 +444,7 @@ namespace graphene {
 
 		std::string combine_trx(const std::vector<std::string>& trxs)
 		{
-			std::map<int,fc::flat_set<std::string>> signatures;
+			std::map<int,std::vector<std::string>> signatures;
 			libbitcoin::chain::transaction  tx;
 			int ins_size;
 			std::string redeemscript;
@@ -466,7 +466,7 @@ namespace graphene {
 					std::string hex;
 					hex.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
 					redeemscript.assign(script_str.begin()+pos_end+1,script_str.end());
-					signatures[vin_index].insert(hex);
+					signatures[vin_index].push_back(hex);
 				}
 			}
 

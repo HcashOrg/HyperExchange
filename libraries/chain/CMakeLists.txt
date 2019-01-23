@@ -22,7 +22,8 @@ if( GRAPHENE_DISABLE_UNITY_BUILD )
    message( STATUS "Graphene database unity build disabled" )
 else( GRAPHENE_DISABLE_UNITY_BUILD )
    set( GRAPHENE_DB_FILES
-        database.cpp )
+        database.cpp 
+		database_impl.cpp)
    message( STATUS "Graphene database unity build enabled" )
 endif( GRAPHENE_DISABLE_UNITY_BUILD )
 
@@ -120,7 +121,7 @@ target_include_directories( graphene_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../jsondiff/jsondiff-cpp/include" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" )
 
 if(MSVC)
-  set_source_files_properties( db_init.cpp db_block.cpp database.cpp block_database.cpp fork_database.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+  set_source_files_properties( db_init.cpp db_block.cpp database.cpp database_impl.cpp block_database.cpp fork_database.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
 endif(MSVC)
 
 INSTALL( TARGETS
