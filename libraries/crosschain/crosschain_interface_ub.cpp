@@ -655,5 +655,64 @@ namespace graphene {
 		{
 			return std::string();
 		}
+		std::vector<fc::variant_object> crosschain_interface_ub::transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj) {
+			std::vector<fc::variant_object> return_value;
+			std::ostringstream req_body;
+			req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Transaction.All.History\" ,\
+				\"params\" : {\"param\":[";
+			for (int i = 0; i < mul_param_obj.size(); ++i)
+			{
+				try
+				{
+					std::string chainId = mul_param_obj[i]["chainId"].as_string();
+					std::string account = mul_param_obj[i]["account"].as_string();
+					uint64_t blockNum = mul_param_obj[i]["blockNum"].as_uint64();
+					int32_t limit = mul_param_obj[i]["limit"].as_uint64();
+					req_body << "{\"chainId\":\"" << chainId << "\",";
+					req_body << "\"account\":\"" << account << "\",";
+					req_body << "\"blockNum\":" << blockNum << ",";
+					req_body << "\"limit\":" << limit;
+					if (i < mul_param_obj.size() - 1)
+					{
+						req_body << "},";
+					}
+
+				}
+				catch (...)
+				{
+					if (mul_param_obj[i].find("chainId") != mul_param_obj[i].end())
+					{
+						std::cout << "this plugin error" << mul_param_obj[i]["chainId"].as_string() << std::endl;
+					}
+					else {
+						std::cout << "no chainId found[" << i << "]" << std::endl;
+					}
+					continue;
+				}
+			}
+			req_body << "}]}}";
+			fc::http::connection_sync conn;
+			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			std::cout << req_body.str() << std::endl;
+			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
+
+			if (response.status == fc::http::reply::OK)
+			{
+				auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+				//std::cout << std::string(response.body.begin(), response.body.end());
+				auto result = resp.get_object();
+				if (result.contains("result"))
+				{
+					auto pending_trxs = result["result"].get_array();
+					for (auto one_data : pending_trxs)
+					{
+						return_value.push_back(one_data.get_object());
+					}
+				}
+			}
+			return return_value;
+		}
 	}
 }

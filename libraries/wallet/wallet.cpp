@@ -1963,7 +1963,7 @@ public:
 		   tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
-		   auto signed_tx = sign_transaction(tx, false, true);
+		   signed_transaction signed_tx(tx);
 		   auto trx_res = _remote_db->validate_transaction(signed_tx, true);
 		   share_type gas_count = 0;
 		   string res = "some error happened, not api result get";
@@ -8374,7 +8374,7 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	std::string caller_address;
+	std::string caller_publickey;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8386,23 +8386,22 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	{
 		is_valid_address = false;
 	}
-	bool is_caller_addr=true;
+	bool is_caller_publickey=true;
 	try
 	{
-		caller_address = graphene::chain::address(caller_account_name).address_to_string();
-		auto temp = address(caller_address);
+		auto temp = address(public_key_type(caller_publickey));
 		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
 	}
 	catch (fc::exception& e)
 	{
-		is_caller_addr = false;
+		is_caller_publickey = false;
 	}
 	if (!is_valid_address)
 	{
 		cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}
-	if(!is_caller_addr)
+	if(!is_caller_publickey)
 		return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 	return my->_remote_db->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }

@@ -28,6 +28,7 @@ namespace graphene {
 		private:
 			void schedule_acquired_record_loop();
 			void acquired_crosschain_record_loop();
+			void acquired_all_crosschain_record_loop();
 			fc::future<void> _acquire_crosschain_task;
 			std::set<std::string> _asset_symbols;
 			boost::program_options::variables_map _options;
@@ -35,6 +36,7 @@ namespace graphene {
 			std::set<chain::guard_member_id_type> _guard;
 			fc::thread                            _thread;
 			bool started = false;
+			bool _all_plugin = false;
 		};
 	}
 }
