@@ -226,13 +226,14 @@ namespace graphene {
 			return res;
 
 		}
-        void database::store_invoke_result(const transaction_id_type& trx_id, int op_num, const contract_invoke_result& res)
+        void database::store_invoke_result(const transaction_id_type& trx_id, int op_num, const contract_invoke_result& res, const share_type& gas)
         {
             try {
                 auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid_and_opnum>();
                 auto con = con_db.find(boost::make_tuple(trx_id,op_num));
                 auto block_num=head_block_num();
                 address invoker = res.invoker;
+				_current_gas_in_block += gas;
                 if (con == con_db.end())
                 {
                     create<contract_invoke_result_object>([res,trx_id, op_num, block_num, invoker](contract_invoke_result_object & obj) {
