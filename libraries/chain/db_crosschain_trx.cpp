@@ -1,6 +1,9 @@
 #include <graphene/chain/database.hpp>
+#include <fc/string.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <graphene/chain/committee_member_object.hpp>
+
 namespace graphene {
 	namespace chain {
 		void database::adjust_deposit_to_link_trx(const hd_trx& handled_trx) {
@@ -494,7 +497,7 @@ namespace graphene {
 					fee[withop.asset_id] += fc::variant(crosschain_fee).as_double();
 						
 					if (temp_map.count(withop.crosschain_account)>0){
-						temp_map[withop.crosschain_account] = fc::to_string(to_double(temp_map[withop.crosschain_account]) + temp_amount).c_str();
+						temp_map[withop.crosschain_account] = fc::to_string(fc::to_double(temp_map[withop.crosschain_account]) + temp_amount).c_str();
 					}
 					else{
 						temp_map[withop.crosschain_account] = fc::variant(temp_amount).as_string();
@@ -982,12 +985,13 @@ namespace graphene {
 						uncombine_trxs_counts[p.relate_transaction_id].push_back(p.transaction_id);
 					}
 				});
+				auto guard_members = get_guard_members();
 				for (auto & trxs : uncombine_trxs_counts) {
 					//TODO : Use macro instead this magic number
-					if (trxs.second.size() < (get_guard_members().size()*2/3+1)) {
+					if (trxs.second.size() < (guard_members.size()*2/3+1)) {
 						continue;
 					}
-					set<string> combine_signature;
+					map<account_id_type,string> combine_signature;
 					account_id_type sign_senator;
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
@@ -1005,7 +1009,7 @@ namespace graphene {
 							continue;
 						}
 						auto with_sign_op = op.get<crosschain_withdraw_with_sign_evaluate::operation_type>();
-						combine_signature.insert(with_sign_op.ccw_trx_signature);
+						combine_signature[get(with_sign_op.sign_guard).guard_member_account]= with_sign_op.ccw_trx_signature;
 						if (sign_senator == account_id_type()) {
 							auto guard_iter = guard_db.find(with_sign_op.sign_guard);
 							FC_ASSERT(guard_iter != guard_db.end());
@@ -1030,7 +1034,13 @@ namespace graphene {
 						continue;
 					auto hdl = manager.get_crosschain_handle(std::string(with_sign_op.asset_symbol));
 					crosschain_withdraw_combine_sign_operation trx_op;
-					vector<string> guard_signed(combine_signature.begin(), combine_signature.end());
+					vector<string> guard_signed;
+					for (const auto& iter : combine_signature)
+					{
+						guard_signed.push_back(iter.second);
+						if (guard_signed.size() == (guard_members.size() * 2 / 3 + 1))
+							break;
+					}
 					if (with_sign_op.asset_symbol == "ETH" || with_sign_op.asset_symbol.find("ERC") != with_sign_op.asset_symbol.npos)
 					{
 						try {

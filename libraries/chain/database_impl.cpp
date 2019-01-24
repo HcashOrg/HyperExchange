@@ -21,15 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <fc/smart_ref_impl.hpp>
-#include "db_balance.cpp"
-#include "db_block.cpp"
-#include "db_debug.cpp"
-#include "db_getter.cpp"
-#include "db_init.cpp"
-#include "db_maint.cpp"
-#include "db_management.cpp"
-#include "db_market.cpp"
-#include "db_update.cpp"
-#include "db_witness_schedule.cpp"
-#include "db_notify.cpp"
+#include <graphene/chain/evalutor_inc.hpp>
+#include "db_lock_balance.cpp"
+#include "db_crosschain_trx.cpp"
+#include "db_coldhot_trx.cpp"
+#include "db_pay_back.cpp"
+#include "db_eths_trx.cpp"

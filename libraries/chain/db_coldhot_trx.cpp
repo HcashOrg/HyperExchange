@@ -586,7 +586,7 @@ namespace graphene {
 						continue;
 					}
 					account_id_type sign_senator;
-					set<string> combine_signature;
+					map<account_id_type, string> combine_signature;
 					auto & tx_db = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					bool transaction_err = false;
 					for (auto & sign_trx_id : trxs.second) {
@@ -601,7 +601,7 @@ namespace graphene {
 							continue;
 						}
 						auto coldhot_sign_op = op.get<coldhot_transfer_with_sign_operation>();
-						combine_signature.insert(coldhot_sign_op.coldhot_transfer_sign);
+						combine_signature[get(coldhot_sign_op.sign_guard).guard_member_account] = coldhot_sign_op.coldhot_transfer_sign;
 						if (sign_senator == account_id_type()) {
 							auto guard_iter = guard_db.find(coldhot_sign_op.sign_guard);
 							FC_ASSERT(guard_iter != guard_db.end());
@@ -619,7 +619,13 @@ namespace graphene {
 					auto crosschain_plugin = manager.get_crosschain_handle(coldhot_op.asset_symbol);
 					coldhot_transfer_combine_sign_operation trx_op;
 
-					vector<string> guard_signs(combine_signature.begin(), combine_signature.end());
+					vector<string> guard_signs;
+					for (const auto& iter : combine_signature)
+					{
+						guard_signs.push_back(iter.second);
+						if (guard_signs.size() == (coldhot_op.withdraw_account_count * 2 / 3 + 1))
+							break;
+					}
 					if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos)
 					{
 						try {
