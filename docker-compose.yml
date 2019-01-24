@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    context: .
+    dockerfile: ./Dockerfile-hx
+    command: /bin/bash
+    volumes:
+      - .:/code
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+      - "9034:9034"
