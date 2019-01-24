@@ -78,7 +78,7 @@ namespace graphene {
 
 		fc::variant_object btc_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx, btc_pubkey, btc_script);
 			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object hc_privatekey::decoderawtransaction(const std::string& trx)
@@ -88,12 +88,12 @@ namespace graphene {
 		}
 		fc::variant_object ltc_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx,ltc_pubkey,ltc_script);
 			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object ub_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx,btc_pubkey,btc_script);
 			return fc::json::from_string(decode).get_object();
 		}
     }
@@ -297,7 +297,7 @@ namespace graphene {
 			obj << "}}";
 			return obj.str();
 		}
-		std::string decoderawtransaction(const std::string& trx)
+		std::string decoderawtransaction(const std::string& trx,uint8_t kh,uint8_t sh)
 		{
 			std::ostringstream obj;
 			libbitcoin::chain::transaction  tx;
@@ -335,7 +335,7 @@ namespace graphene {
 				auto output = ons.at(index);
 				obj << "{";
 				obj << "\"scriptPubKey\": {";
-				obj << "\"addresses\": [\"" << output.address() << "\"],";
+				obj << "\"addresses\": [\"" << output.address(kh,sh) << "\"],";
 				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\"},";
 				obj << "\"value\": " << graphene::utilities::amount_to_string(output.value(),8) << "}";
 			}

@@ -122,7 +122,7 @@ namespace graphene { namespace privatekey_management {
 	{
 		auto trx = graphene::utxo::combine_trx(trxs);
 		fc::mutable_variant_object result;
-		result["trx"]=fc::json::from_string(graphene::utxo::decoderawtransaction(trx)).get_object();
+		result["trx"]=fc::json::from_string(graphene::utxo::decoderawtransaction(trx,get_pubkey_prefix(),get_script_prefix())).get_object();
 		result["hex"] = trx;
 		return result;
 	}
@@ -138,9 +138,9 @@ namespace graphene { namespace privatekey_management {
 		//set_pubkey_prefix(0x6F);
 		//set_script_prefix(0xC4);
 		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x0);
-		set_script_prefix(0x05);
-		set_privkey_prefix(0x80);
+		set_pubkey_prefix(btc_pubkey);
+		set_script_prefix(btc_script);
+		set_privkey_prefix(btc_privkey);
 	}
 
 
@@ -236,9 +236,9 @@ namespace graphene { namespace privatekey_management {
 		//set_pubkey_prefix(0x6F);
 		//set_script_prefix(0x3A);
 		//set_privkey_prefix(0xEF);
-		set_pubkey_prefix(0x30);
-		set_script_prefix(0x32);
-		set_privkey_prefix(0xB0);
+		set_pubkey_prefix(ltc_pubkey);
+		set_script_prefix(ltc_script);
+		set_privkey_prefix(ltc_privkey);
 	}
 
 	std::string  ltc_privatekey::get_wif_key()
@@ -393,9 +393,9 @@ namespace graphene { namespace privatekey_management {
 	void ub_privatekey::init()
 	{
 		set_id(0);
-		set_pubkey_prefix(0x0);
-		set_script_prefix(0x05);
-		set_privkey_prefix(0x80);
+		set_pubkey_prefix(btc_pubkey);
+		set_script_prefix(btc_script);
+		set_privkey_prefix(btc_privkey);
 	}
 
 
@@ -571,8 +571,8 @@ namespace graphene { namespace privatekey_management {
 		set_id(0);
 		//set_pubkey_prefix(0x0f21);
 		//set_privkey_prefix(0x230e);
-		set_pubkey_prefix(0x097f);
-		set_privkey_prefix(0x19ab);
+		set_pubkey_prefix(hc_pubkey);
+		set_privkey_prefix(hc_privkey);
 	}
 	std::string hc_privatekey::get_wif_key() {
 		FC_ASSERT(is_empty() == false, "private key is empty!");
@@ -1128,7 +1128,7 @@ namespace graphene { namespace privatekey_management {
 	{
 		auto hex = hc_combine_trx(trxs);
 		fc::mutable_variant_object result;
-		result["trx"] = fc::json::from_string(graphene::utxo::decoderawtransaction(hex)).get_object();
+		result["trx"] = hc_privatekey::decoderawtransaction(hex);
 		result["hex"] = hex;
 		return result;
 	}
