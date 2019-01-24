@@ -21,65 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <fc/smart_ref_impl.hpp>
-#include <graphene/chain/account_object.hpp>
-#include <graphene/chain/asset_object.hpp>
-#include <graphene/chain/balance_object.hpp>
-#include <graphene/chain/block_summary_object.hpp>
-#include <graphene/chain/budget_record_object.hpp>
-#include <graphene/chain/buyback_object.hpp>
-#include <graphene/chain/chain_property_object.hpp>
-#include <graphene/chain/committee_member_object.hpp>
-#include <graphene/chain/confidential_object.hpp>
-#include <graphene/chain/fba_object.hpp>
-#include <graphene/chain/global_property_object.hpp>
-#include <graphene/chain/market_object.hpp>
-#include <graphene/chain/operation_history_object.hpp>
-#include <graphene/chain/proposal_object.hpp>
-#include <graphene/chain/special_authority_object.hpp>
-#include <graphene/chain/transaction_object.hpp>
-#include <graphene/chain/vesting_balance_object.hpp>
-#include <graphene/chain/withdraw_permission_object.hpp>
-#include <graphene/chain/witness_object.hpp>
-#include <graphene/chain/witness_schedule_object.hpp>
-#include <graphene/chain/worker_object.hpp>
-#include <graphene/chain/lockbalance_object.hpp>
-#include <graphene/chain/crosschain_trx_object.hpp>
-#include <graphene/chain/guard_lock_balance_object.hpp>
-
-#include <graphene/chain/account_evaluator.hpp>
-#include <graphene/chain/asset_evaluator.hpp>
-#include <graphene/chain/assert_evaluator.hpp>
-#include <graphene/chain/balance_evaluator.hpp>
-#include <graphene/chain/committee_member_evaluator.hpp>
-#include <graphene/chain/confidential_evaluator.hpp>
-#include <graphene/chain/custom_evaluator.hpp>
-#include <graphene/chain/market_evaluator.hpp>
-#include <graphene/chain/proposal_evaluator.hpp>
-#include <graphene/chain/transfer_evaluator.hpp>
-#include <graphene/chain/vesting_balance_evaluator.hpp>
-#include <graphene/chain/withdraw_permission_evaluator.hpp>
-#include <graphene/chain/witness_evaluator.hpp>
-#include <graphene/chain/worker_evaluator.hpp>
-#include <graphene/chain/lockbalance_evaluator.hpp>
-#include <graphene/chain/guard_lock_balance_evaluator.hpp>
-#include <graphene/chain/crosschain_record_evaluate.hpp>
-#include <graphene/chain/coldhot_transfer_evaluate.hpp>
-#include <graphene/chain/protocol/fee_schedule.hpp>
-#include <graphene/chain/crosschain_trx_object.hpp>
-#include <graphene/chain/coldhot_transfer_object.hpp>
-#include <graphene/chain/guard_refund_balance_evaluator.hpp>
-#include <graphene/chain/contract_evaluate.hpp>
-#include <graphene/chain/contract.hpp>
-#include <graphene/chain/contract_object.hpp>
-#include <graphene/chain/native_contract.hpp>
-#include <graphene/chain/pay_back_object.hpp>
-#include <graphene/chain/pay_back_evaluator.hpp>
-#include <graphene/chain/referendum_evaluator.hpp>
-#include <graphene/chain/referendum_object.hpp>
-#include <graphene/chain/eth_seri_record.hpp>
-#include <graphene/chain/eth_seri_record_evaluate.hpp>
-
+#include <graphene/chain/evalutor_inc.hpp>
 #include "db_lock_balance.cpp"
 #include "db_crosschain_trx.cpp"
 #include "db_coldhot_trx.cpp"
