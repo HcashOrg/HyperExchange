@@ -991,7 +991,7 @@ namespace graphene {
 					if (trxs.second.size() < (guard_members.size()*2/3+1)) {
 						continue;
 					}
-					map<guard_member_id_type,string> combine_signature;
+					map<account_id_type,string> combine_signature;
 					account_id_type sign_senator;
 					auto& trx_db = get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 					const auto& guard_db = get_index_type<guard_member_index>().indices().get<by_id>();
@@ -1009,7 +1009,7 @@ namespace graphene {
 							continue;
 						}
 						auto with_sign_op = op.get<crosschain_withdraw_with_sign_evaluate::operation_type>();
-						combine_signature[with_sign_op.sign_guard]= with_sign_op.ccw_trx_signature;
+						combine_signature[get(with_sign_op.sign_guard).guard_member_account]= with_sign_op.ccw_trx_signature;
 						if (sign_senator == account_id_type()) {
 							auto guard_iter = guard_db.find(with_sign_op.sign_guard);
 							FC_ASSERT(guard_iter != guard_db.end());
