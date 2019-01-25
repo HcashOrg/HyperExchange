@@ -4749,8 +4749,9 @@ public:
 				elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()) );
             throw;
          }
+		 _wallet.pending_transactions.emplace_back(tx);
       }
-	  _wallet.pending_transactions.emplace_back(tx);
+	  
       return tx;
    }
 

@@ -1,12 +1,13 @@
 version: '3'
 
 services:
-  web:
-    context: .
-    dockerfile: ./Dockerfile-hx
+  hxbuild:
+    build: .
     command: /bin/bash
+    tty: true
     volumes:
       - .:/code
+    working_dir: /code
     ports:
       - "8090:8090"
       - "8091:8091"
