@@ -310,7 +310,8 @@ processed_transaction database::_push_transaction( const signed_transaction& trx
 processed_transaction database::validate_transaction( const signed_transaction& trx,bool testing )
 {
    auto session = _undo_db.start_undo_session();
-   return _apply_transaction( trx,testing );
+   auto res= _apply_transaction( trx,testing );
+   return res;
 }
 
 processed_transaction database::push_referendum(const referendum_object& referendum)

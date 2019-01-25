@@ -2232,15 +2232,12 @@ public:
        asset transfer_asset = asset_obj->amount_from_string(amount);
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
-       FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-	   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-       auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-       auto caller_pubkey = privkey.get_public_key();
+
 
        transfer_to_contract_op.gas_price = 0;
        transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
        transfer_to_contract_op.caller_addr = acc_caller.addr;
-       transfer_to_contract_op.caller_pubkey = caller_pubkey;
+       transfer_to_contract_op.caller_pubkey = acc_caller.options.memo_key;
        transfer_to_contract_op.contract_id = address(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
@@ -2257,7 +2254,7 @@ public:
        tx.set_expiration(dyn_props.time + fc::seconds(30));
        tx.validate();
 
-       auto signed_tx = sign_transaction(tx, false);
+       auto signed_tx = signed_transaction(tx);
        auto trx_res = _remote_db->validate_transaction(signed_tx,true);
        share_type gas_count = 0;
        for (auto op_res : trx_res.operation_results)
