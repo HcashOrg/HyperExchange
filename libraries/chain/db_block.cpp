@@ -311,8 +311,6 @@ processed_transaction database::validate_transaction( const signed_transaction& 
 {
    auto session = _undo_db.start_undo_session();
    auto res= _apply_transaction( trx,testing );
-   if(testing)
-	   session.undo();
    return res;
 }
 
