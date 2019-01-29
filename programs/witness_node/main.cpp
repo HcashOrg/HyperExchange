@@ -249,6 +249,7 @@ int main(int argc, char** argv) {
    } catch( const fc::exception& e ) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
+	  node->shutdown();
    }
    catch (const std::exception&e)
    {
@@ -263,7 +264,7 @@ int main(int argc, char** argv) {
    if (unhandled_exception)
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));
-      node->shutdown();
+      //node->shutdown();
       delete node;
       return 1;
    }

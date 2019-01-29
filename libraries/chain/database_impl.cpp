@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <fc/smart_ref_impl.hpp>
 #include <graphene/chain/evalutor_inc.hpp>
 #include "db_lock_balance.cpp"
 #include "db_crosschain_trx.cpp"
