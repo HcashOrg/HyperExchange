@@ -22,6 +22,7 @@ const int ltc_script = 0x32;
 const int ltc_privkey = 0xB0;
 
 const int hc_pubkey = 0x097f;
+const int hc_script = 0x095a;
 const int hc_privkey = 0x19ab;
 
 
