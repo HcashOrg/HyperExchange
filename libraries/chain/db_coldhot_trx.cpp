@@ -693,8 +693,15 @@ namespace graphene {
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
 					trx_op.coldhot_transfer_trx_id = relate_tx_iter->current_id;
-					
-					auto hdl_trx = crosschain_plugin->turn_trxs(trx_op.coldhot_trx_original_chain);
+					crosschain_trx hdl_trx;
+					if (coldhot_op.asset_symbol == "USDT")
+					{
+						hdl_trx = crosschain_plugin->turn_trxs(fc::variant_object("turn_without_usdt_sign", trx_op.coldhot_trx_original_chain));
+					}
+					else {
+						hdl_trx = crosschain_plugin->turn_trxs(trx_op.coldhot_trx_original_chain);
+					}
+					//auto hdl_trx = crosschain_plugin->turn_trxs(trx_op.coldhot_trx_original_chain);
 					if (coldhot_op.asset_symbol == "ETH" || coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos) {
 						auto source_without_sign_trx = trx_op.coldhot_trx_original_chain;
 						if ((source_without_sign_trx.contains("msg_prefix")) && (source_without_sign_trx.contains("contract_addr"))) {

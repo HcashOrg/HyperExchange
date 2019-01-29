@@ -306,6 +306,39 @@ namespace graphene {
 		{
 			return true;
 		}
+		int split(const std::string& str, std::vector<std::string>& ret_, std::string sep)
+		{
+			if (str.empty())
+			{
+				return 0;
+			}
+
+			std::string tmp;
+			std::string::size_type pos_begin = str.find_first_not_of(sep);
+			std::string::size_type comma_pos = 0;
+
+			while (pos_begin != std::string::npos)
+			{
+				comma_pos = str.find(sep, pos_begin);
+				if (comma_pos != std::string::npos)
+				{
+					tmp = str.substr(pos_begin, comma_pos - pos_begin);
+					pos_begin = comma_pos + sep.length();
+				}
+				else
+				{
+					tmp = str.substr(pos_begin);
+					pos_begin = comma_pos;
+				}
+
+				if (!tmp.empty())
+				{
+					ret_.push_back(tmp);
+					tmp.clear();
+				}
+			}
+			return 0;
+		}
 		void_result crosschain_withdraw_without_sign_evaluate::do_evaluate(const crosschain_withdraw_without_sign_operation& o) {
 			try {
 				auto& trx_db = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
@@ -349,6 +382,39 @@ namespace graphene {
 				}
 				else if (o.asset_symbol == "ETH") {
 					create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign", o.withdraw_source_trx));
+				}
+				else if (o.asset_symbol == "USDT") {
+					FC_ASSERT(o.ccw_trx_ids.size() == 1,"USDT cant combine");
+					create_trxs = hdl->turn_trxs(fc::variant_object("turn_without_usdt_sign", o.withdraw_source_trx));
+					FC_ASSERT(create_trxs.trxs.size() == 1,"USDT transaction count error");
+				
+					auto to_accounts = create_trxs.trxs.begin()->second.from_account;
+					std::vector<std::string> sep_vec;
+					split(to_accounts, sep_vec, "|");
+					FC_ASSERT((sep_vec.size() > 1 && sep_vec.size() <= 3),"Not USDT trx");
+					FC_ASSERT(sep_vec[0] != "-", "No from account get");
+					int toAccountCheck = 0;
+					std::string fee_change_address = "";
+					for (int i = 1;i  < sep_vec.size();++i)
+					{
+						auto sep_pos = sep_vec[i].find(',');
+						FC_ASSERT(sep_pos != sep_vec[i].npos,"USDT turn error");
+						auto address = sep_vec[i].substr(0, sep_pos);
+						auto amount = fc::to_double(sep_vec[i].substr(sep_pos + 1));
+						FC_ASSERT(amount > 0, "USDT Amount error");
+						if (amount <= 0.00000546){
+							toAccountCheck += 1;
+						}
+						else {
+							fee_change_address = address;
+						}
+					}
+					FC_ASSERT(toAccountCheck == 1, "usdt doesnt get to_account");
+					if (fee_change_address != "")
+					{
+						auto multisig_obj = db().get_multisgi_account(fee_change_address, o.asset_symbol);
+						FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
+					}
 				}
 				else {
 					create_trxs = hdl->turn_trxs(o.withdraw_source_trx);
