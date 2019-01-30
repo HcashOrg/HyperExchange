@@ -12,6 +12,7 @@
 #include <fc/asio.hpp>
 
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 
 class fc::http::connection::impl
 {
@@ -216,12 +217,27 @@ namespace fc {
 			return h;
 		}
 
-		connection_sync::connection_sync() :_socket(fc::asio::default_io_service()) {}
+		connection_sync::connection_sync(): _socket(fc::asio::default_io_service()), _deadline(fc::asio::default_io_service()){
+		}
 
-		connection_sync::~connection_sync() {}
+		connection_sync::~connection_sync() { 
+			close_socket();
+		}
 
 		void connection_sync::connect_to(const fc::ip::endpoint& ep)
 		{
+			for (int i = 0; i < 3; i++) {
+				try {
+					boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
+					_socket.close();
+					_socket.connect(p);
+					return;
+
+				}
+				catch (...) {
+					std::cout << "retry connection to" << std::endl;
+				}
+			}
 			try {
 				boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
 				_socket.close();
@@ -232,6 +248,46 @@ namespace fc {
 				FC_THROW_EXCEPTION(exception, "Error Connecting HTTP Server.");
 			}
 
+		}
+		void connection_sync::handle_reply(const boost::system::error_code & error) {
+			if (is_timeout)
+				return;
+			if (error&&error.value()!=2) {
+				std::cout << "handle_reply error" <<error.value()<< error.message() << std::endl;
+				return;
+			}
+				
+			std::lock_guard<std::mutex> lk(read_lock);
+			//is_timeout = false;
+			is_done = true;
+			
+			if (!is_release) {
+				is_release = true;
+				_deadline.get_io_service().dispatch([&]() { try { _deadline.cancel(); }
+				catch (...) {} });
+			}
+			m_cond.notify_all();
+
+		}
+		void connection_sync::handle_reply(const boost::system::error_code & error, size_t bytes_transferred) {
+			if (is_timeout)
+				return;
+			if (error) {
+				std::cout << "handle_reply error" << error.message() << std::endl;
+				return;
+			}
+			std::lock_guard<std::mutex> lk(read_lock);
+			//is_timeout = false;
+
+			std::cout << error.message() << "          " << bytes_transferred << std::endl;
+			is_done = true;
+			if (!is_release) {
+				is_release = true;
+				_deadline.get_io_service().dispatch([&]() { try { _deadline.cancel(); }
+				catch (...) {} });
+			}
+			
+			m_cond.notify_all();
 		}
 		http::reply connection_sync::request(const fc::string& method, const fc::string& url, const fc::string& body, const headers& he)
 		{
@@ -259,21 +315,101 @@ namespace fc {
 					//      fc::cerr.write( body.c_str() );
 				}
 				//  fc::cerr.flush();
-				return parse_reply();
+				const auto& ret = parse_reply();
+				return ret;
 				//return parse_reply();
 			}
 			catch (...) {
-				_socket.close();
 				FC_THROW_EXCEPTION(exception, "Error Sending HTTP Request"); // TODO: provide more info
 			}
 
 		}
 
+
+
+		void connection_sync::close_socket() {
+			is_release = true;
+			try {
+				_socket.cancel();
+				
+
+
+			}
+			catch (...) {
+
+			}
+			try {
+				_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+
+			}
+			catch (...) {
+				
+			}
+			
+			try {
+
+				_socket.close();
+				
+				
+
+
+			}
+			catch (...) {
+
+			}
+			
+		}
+
+		void connection_sync::check_deadline(const boost::system::error_code & error)
+		{
+			if (is_timeout||is_done||is_release)
+				return;
+			if (error){
+				std::cout << "check_deadline error" <<error.value()<<"  "<< error.message() << std::endl;
+				return;
+			}
+
+			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+			{
+				std::lock_guard<std::mutex> lk(read_lock);
+				is_timeout = true;
+				
+				close_socket();
+
+				boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+				//close_socket();
+
+				m_cond.notify_all();
+
+			}
+			
+
+			
+		}
+
+
 		http::reply connection_sync::parse_reply() {
 			fc::http::reply rep;
 			try {
-				boost::asio::streambuf line;
-				int s = boost::asio::read_until(_socket, line, "\r\n\r\n"); // HTTP/1.1
+				{
+					std::unique_lock<std::mutex> lk(read_lock);
+					_deadline.expires_from_now(boost::posix_time::seconds(5));
+					_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error) );
+					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
+					while (!(is_done || is_timeout)) {
+						m_cond.wait(lk);
+					}
+					if (is_timeout) {
+						std::cout << "query timeout" << std::endl;
+						rep.status = reply::status_code::InternalServerError;
+						return rep;
+					}
+				}
+				is_release = false;
+				is_done = false;
+				is_timeout = false;
+				
 				//line.consume(s);
 				//s = boost::asio::read_until(_socket, line, ' '); // COD
 				std::istream response_stream(&line);
@@ -285,6 +421,7 @@ namespace fc {
 				std::getline(response_stream, status_message);
 				rep.status = status_code;
 				std::string head;
+				uint64_t content_length=0;
 				while (std::getline(response_stream, head) && head != "\r")
 				{
 					auto pos = head.find(':');
@@ -292,17 +429,33 @@ namespace fc {
 					key.assign(head.c_str(), pos);
 					string val;
 					val.assign(head.c_str(), pos + 1, std::string::npos);
+					val.erase(0, val.find_first_not_of(" "));
+					val.erase(val.find_last_not_of("\r") + 1);
 					header h(key, val);
+					if (boost::iequals(h.key, "Content-Length")) {
+						rep.body.resize(static_cast<size_t>(to_uint64(fc::string(h.val))));
+						content_length = to_uint64(fc::string(h.val));
+					}
 					///rep.headers.push_back();
 					rep.headers.push_back(h);
 				}
 				boost::system::error_code error;
-				while (boost::asio::read(_socket, line,
-					boost::asio::transfer_at_least(1), error))
-				{
+				std::unique_lock<std::mutex> lk(read_lock);
+				_deadline.expires_from_now(boost::posix_time::seconds(5));
+				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error));
+				if (content_length > 0){
+					boost::asio::async_read(_socket, line, boost::asio::transfer_at_least(content_length), boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
+					//, boost::asio::placeholders::error,boost::asio::placeholders::bytes_transferred
 				}
-
-
+				
+				while (!(is_done || is_timeout)) {
+					m_cond.wait(lk);
+				}
+				if (is_timeout) {
+					std::cout << "query timeout" << std::endl;
+					rep.status = reply::status_code::InternalServerError;
+					return rep;
+				}
 				if (line.size())
 				{
 					std::istream response_stream1(&line);
@@ -346,9 +499,21 @@ namespace fc {
 				return rep;
 				*/
 			}
+			catch (std::exception& ex) {
+				std::cout << ex.what() << std::endl;
+			}
 			catch (fc::exception& e) {
 				elog("${exception}", ("exception", e.to_detail_string()));
-				_socket.close();
+				is_done = true;
+				is_timeout = true;
+				if (!is_release) {
+					is_release = true;
+					_deadline.get_io_service().post([&]() {try { _deadline.cancel(); }
+					catch (...) {} });
+				}
+
+					
+				
 				rep.status = http::reply::InternalServerError;
 				return rep;
 			}

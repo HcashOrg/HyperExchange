@@ -611,7 +611,10 @@ namespace graphene {
 					if (p.acquired_transaction_state == acquired_trx_uncreate && manager.contain_crosschain_handles(p.handle_trx.asset_symbol)){
 						if (head_block_num() >= DB_CROSSCHAIN_TRX_220000)
 						{
-							acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+							if (acquired_crosschain_trx[p.handle_trx.asset_symbol].size() < 5) {
+								acquired_crosschain_trx[p.handle_trx.asset_symbol].push_back(p);
+							}
+							
 						}
 						else if (p.handle_trx.trx_id != "e5a5043b7f4ae26793069b535de1ad0a443a6ae48c733b44aaad9662969fc960" &&
 							p.handle_trx.trx_id != "9b81ad5f2706bac7bcb4f1021ee4bc0cbcd44e46ed7da858c3a0a1fbfe9a901d" &&
