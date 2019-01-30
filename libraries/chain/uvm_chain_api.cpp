@@ -50,15 +50,20 @@ namespace graphene {
 				return;
 			has_error = 1;
 			char *msg = (char*)lua_malloc(L, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH);
-			memset(msg, 0x0, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH);
+			if (msg) {
+				memset(msg, 0x0, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH);
 
-			va_list vap;
-			va_start(vap, error_format);
-			vsnprintf(msg, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH, error_format, vap);
-			va_end(vap);
-			if (strlen(msg) > LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1)
-			{
-				msg[LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1] = 0;
+				va_list vap;
+				va_start(vap, error_format);
+				vsnprintf(msg, LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH, error_format, vap);
+				va_end(vap);
+				if (strlen(msg) > LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1)
+				{
+					msg[LUA_EXCEPTION_MULTILINE_STRNG_MAX_LENGTH - 1] = 0;
+				}
+			}
+			else {
+				msg = "vm out of memory";
 			}
 			lua_set_compile_error(L, msg);
 
