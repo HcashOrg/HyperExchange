@@ -312,6 +312,7 @@ namespace graphene {
 					key = name + "." + fast_map_key;
 				}
 				auto storage_data = evaluator->get_storage(contract_id, key);
+				// TODO: cost more gas when read large storage
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
 			}
 			catch (fc::exception &e) {
