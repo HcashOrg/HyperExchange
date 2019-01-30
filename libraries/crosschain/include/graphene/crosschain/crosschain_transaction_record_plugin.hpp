@@ -30,7 +30,6 @@ namespace graphene {
 			void acquired_crosschain_record_loop();
 			void acquired_all_crosschain_record_loop();
 			fc::future<void> _acquire_crosschain_task;
-			fc::future<void> _fut;
 			std::set<std::string> _asset_symbols;
 			boost::program_options::variables_map _options;
 			std::set<chain::miner_id_type> _miners;

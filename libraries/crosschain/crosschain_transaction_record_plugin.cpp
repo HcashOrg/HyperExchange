@@ -358,8 +358,8 @@ namespace graphene {
 		void crosschain_record_plugin::plugin_startup(){
 			try {
 				if (!_miners.empty() || !_guard.empty()) {
-					_fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
-					_fut.wait();
+					auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
+					fut.wait();
 					started = true;
 				}
 				else {
@@ -381,9 +381,7 @@ namespace graphene {
 		}
 		void crosschain_record_plugin::plugin_shutdown(){
 			try {
-				_acquire_crosschain_task.cancel();
-				_fut.cancel();
-				//_thread.quit();
+				_thread.quit();
 			}FC_CAPTURE_AND_RETHROW()
 			return;
 		}
