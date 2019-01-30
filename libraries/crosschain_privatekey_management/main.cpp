@@ -171,13 +171,13 @@ int main(int argc, char** argv)
 	
 	
 	my_thread.async([&]() {
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 100; i++) {
 		try {
 			
 				graphene::crosschain::crosschain_interface_hc inter;
 
 				inter.initialize_config(config);
-				auto ressss = inter.transaction_query("123456789");
+				auto ressss = inter.transaction_query("12345678");
 				std::cout << fc::json::to_string(ressss) << std::endl;
 			
 			
@@ -189,6 +189,20 @@ int main(int argc, char** argv)
 
 	});
 
+	
+		for (int i = 0; i < 100; i++) {
+			try {
+			graphene::crosschain::crosschain_interface_hc inter;
+
+			inter.initialize_config(config);
+			auto ressss = inter.transaction_query("12345678");
+			std::cout << fc::json::to_string(ressss) << std::endl;
+			}
+			catch (fc::exception &ex) {
+				std::cout << "ex!  " << ex.what() << std::endl;
+			}
+		}
+	
 	
 	btc_privatekey priv_btc;
 	std::vector<std::string> a = { "0200000001f9f960f336656d7cb90463735a8516113f4493516d43b893e5338cff6d25179301000000fd4d020047304402202d4bcbfdf06682ef21a548ea89464ed765159c347ade5d9fb82ade29f8139d550220182012a25eb7e96cb652ac3f55050ac2353173637b2a87c80d1528267b0101a5014d01025b210209f45f7adb48d3a2bcc62ab49a29df822fdaf6b2c1e26afc48529a6a4272240c21023a37b1ec16f5d073ed4c1c435ac0dad2031f2d0188d439a5655b3bd1e8d9f0d72103a9e498958e3b816c89a6886adadc65a67e3658dfbc0c2a8d898536a64bb14ee22103d99a8ac95d78488394f0611bf3a654a726bb47b1453ed8ba93a26a868419c858210276447b1c51823c89359b64ae03ce23497caee8e4a3ce0b0616b18102c2f909122103b935a588f8d1f38af0926ba8b32fa4d2f549e97129544852922a45d4853b9a7e2103a154c3e59040df072d6a82a322a8cc48c142f85745749bb4147dfb0265a3c7382102bdbdb15ab4495025990f99edb7ab29f1fed3ae10b6631a7aa0a837053273cbb421039bf0b4f48b33456fca71f541143a5b4c0195e138ccc51ef71d1d4c25a8c3258a2102a7822cd38afae7a31cf8f5443c91c877d1931aeb58bd319fa7c95a7666bb07852102d23df29f6c723e0ea71b9841c010e18011462ec03a709e8fbd9c1e5ae89967e821026d80ea22ec04ac402a2056b6f10244956f51635825cb1c01f5ca0fe47e336d3321038da52155bb32fd7c835226c1aa8912eab50d214dea29e16a50625c624cc5747f21038a99963e63b998ebf3b02929927f0ab6220241c81589d97f41e6dadf1963f04b210235de1c98d9021cad75aaaf9ebd2a473e1ebf846d0c9d164b648782edacca10a25faeffffffff02c8b654180000000017a91492fb55f5343846b6acfc269a615a82a800f5d6ad87a0fab8010000000017a9141592f4033152839c02b3716cc57dd02ad4bdb1ec8700000000",
