@@ -240,6 +240,7 @@ int main(int argc, char** argv) {
       ilog("Chain ID is ${id}", ("id", node->chain_database()->get_chain_id()) );
 
       int signal = exit_promise->wait();
+	  node->stop_block_processing();
       ilog("Exiting from signal ${n}", ("n", signal));
       node->shutdown_plugins();
       node->shutdown();
@@ -248,15 +249,22 @@ int main(int argc, char** argv) {
    } catch( const fc::exception& e ) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
+	  node->shutdown();
    }
    catch (const std::exception&e)
    {
 	   elog("Exiting with std::exception:\n${e}", ("e", e.what()));
+	   unhandled_exception = fc::exception();
+   }
+   catch (...)
+   {
+	   elog("Exiting with uncertain exception");
+	   unhandled_exception = fc::exception();
    }
    if (unhandled_exception)
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));
-      node->shutdown();
+      //node->shutdown();
       delete node;
       return 1;
    }

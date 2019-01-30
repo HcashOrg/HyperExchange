@@ -17,11 +17,231 @@ namespace graphene {
 				time_to_next_second += 1000000;
 			}
 			fc::time_point next_wakeup(now + fc::microseconds(time_to_next_second));
+			if (_all_plugin){
+				_acquire_crosschain_task = fc::schedule([this] {acquired_all_crosschain_record_loop(); },
+					next_wakeup, "Acquire crosschain record ");
+			}
+			else {
 			_acquire_crosschain_task = fc::schedule([this] {acquired_crosschain_record_loop(); },
 				next_wakeup, "Acquire crosschain record ");
 		}
+			
+		}
+		void crosschain_record_plugin::acquired_all_crosschain_record_loop() {
+			try {
+				std::vector<fc::mutable_variant_object> history_params;
+				std::string emu_asset_symbol = "";
+				for (const auto& asset_symbol : _asset_symbols) {
+					uint32_t start_num;
+
+					chain::database& db = database();
+					auto asset_obj = db.get_asset(asset_symbol);
+					if (!asset_obj.valid())
+						continue;
+					if (!asset_obj->allow_withdraw_deposit)
+						continue;
+					//auto sess = db._undo_db.start_undo_session();
+					auto& trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+					auto trx_iter = trx_iters.find(asset_symbol);
+					auto db_count = trx_iters.size();
+					if (trx_iter != trx_iters.end()) {
+						start_num = trx_iter->local_count;
+					}
+					else {
+						db.create<crosschain_transaction_history_count_object>([&](crosschain_transaction_history_count_object& obj) {
+							obj.asset_symbol = asset_symbol;
+							obj.local_count = 0;
+						});
+						start_num = 0;
+						continue;
+					}
+					fc::mutable_variant_object multi_history_param_obj;
+					multi_history_param_obj.set("chainId", asset_symbol);
+					multi_history_param_obj.set("account", "");
+					multi_history_param_obj.set("blockNum", start_num);
+					multi_history_param_obj.set("limit", -1);
+					history_params.push_back(multi_history_param_obj);
+					emu_asset_symbol = asset_symbol;
+				}
+				if (emu_asset_symbol != "")
+				{
+					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					auto hdl = manager.get_crosschain_handle(std::string(emu_asset_symbol));
+					auto pending_trxs = hdl->transaction_history_all(history_params);
+					for (auto pending_trx_obj : pending_trxs)
+					{
+						try {
+							std::string asset_symbol = pending_trx_obj["chainId"].as_string();
+							uint32_t return_block_num = pending_trx_obj["blockNum"].as_uint64();
+							auto pending_trx = pending_trx_obj["data"].get_array();
+							chain::database& db = database();
+							auto& last_trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+							auto last_trx_iter = last_trx_iters.find(asset_symbol);
+							assert(last_trx_iter != last_trx_iters.end());
+							hdl = manager.get_crosschain_handle(asset_symbol);
+							db.modify(*last_trx_iter, [&](crosschain_transaction_history_count_object& obj) { obj.local_count = return_block_num; });
+							for (const auto & trx_varient : pending_trx) {
+								auto trx = trx_varient.get_object();
+								hd_trx handle_trx;
+								std::string real_trx;
+								if (asset_symbol == "ETH" || asset_symbol.find("ERC") != asset_symbol.npos)
+								{
+									handle_trx = hdl->turn_trx(fc::variant_object("plugin_get_trx", trx));
+									real_trx = handle_trx.trx_id;
+									if (handle_trx.trx_id.find('|') != handle_trx.trx_id.npos)
+									{
+										auto pos = handle_trx.trx_id.find('|');
+										real_trx = handle_trx.trx_id.substr(pos + 1);
+									}
+								}
+								else {
+									handle_trx = hdl->turn_trx(trx);
+									real_trx = handle_trx.trx_id;
+								}
+
+								fc::scoped_lock<std::mutex> _lock(db.db_lock);
+								auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
+								auto trx_iter = trx_iters.find(real_trx);
+								if (trx_iter != trx_iters.end()) {
+									continue;
+								}
+								db.create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
+									obj.handle_trx = handle_trx;
+									obj.handle_trx_id = real_trx;
+									obj.acquired_transaction_state = acquired_trx_uncreate;
+								});
+							}
+						}
+						catch (fc::exception ex)
+						{
+							std::string err_log = ex.to_detail_string();
+							ulog("maybe all transaction error! ${error} ", ("error", err_log.c_str()));
+							continue;
+
+						}
+						catch (...)
+						{
+							ulog("maybe unkown error!");
+							continue;
+						}
+
+					}
+				}
+			}
+			catch (fc::exception ex)
+			{
+				std::string err_log = ex.to_detail_string();
+				ulog("maybe something error! ${error} ", ("error", err_log.c_str()));
+
+			}
+			catch (...)
+			{
+				ulog("maybe unkown error!");
+			}
+
+			schedule_acquired_record_loop();
+		}
 		void crosschain_record_plugin::acquired_crosschain_record_loop() {
 			try {
+				/*std::vector<fc::mutable_variant_object> history_params;
+				std::string emu_asset_symbol = "";
+				for (const auto& asset_symbol : _asset_symbols) {
+					uint32_t start_num;
+
+					chain::database& db = database();
+					auto asset_obj = db.get_asset(asset_symbol);
+					if (!asset_obj.valid())
+						continue;
+					if (!asset_obj->allow_withdraw_deposit)
+						continue;
+					//auto sess = db._undo_db.start_undo_session();
+					auto& trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+					auto trx_iter = trx_iters.find(asset_symbol);
+					auto db_count = trx_iters.size();
+					if (trx_iter != trx_iters.end()) {
+						start_num = trx_iter->local_count;
+					}
+					else {
+						db.create<crosschain_transaction_history_count_object>([&](crosschain_transaction_history_count_object& obj) {
+							obj.asset_symbol = asset_symbol;
+							obj.local_count = 0;
+						});
+						start_num = 0;
+						continue;
+					}
+					fc::mutable_variant_object multi_history_param_obj;
+					multi_history_param_obj.set("chainId", asset_symbol);
+					multi_history_param_obj.set("account", "");
+					multi_history_param_obj.set("blockNum", start_num);
+					multi_history_param_obj.set("limit", -1);
+					history_params.push_back(multi_history_param_obj);
+					emu_asset_symbol = asset_symbol;
+				}
+				if (emu_asset_symbol != "")
+				{
+					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
+					auto hdl = manager.get_crosschain_handle(std::string(emu_asset_symbol));
+					auto pending_trxs = hdl->transaction_history_all(history_params);
+					for (auto pending_trx_obj : pending_trxs)
+					{
+						try {
+							std::string asset_symbol = pending_trx_obj["chainId"].as_string();
+							uint32_t return_block_num = pending_trx_obj["blockNum"].as_uint64();
+							auto pending_trx = pending_trx_obj["data"].get_array();
+							chain::database& db = database();
+							auto& last_trx_iters = db.get_index_type<graphene::chain::transaction_history_count_index>().indices().get<graphene::chain::by_history_asset_symbol>();
+							auto last_trx_iter = last_trx_iters.find(asset_symbol);
+							assert(last_trx_iter != last_trx_iters.end());
+							hdl = manager.get_crosschain_handle(asset_symbol);
+							db.modify(*last_trx_iter, [&](crosschain_transaction_history_count_object& obj) { obj.local_count = return_block_num; });
+							for (const auto & trx_varient : pending_trx) {
+								auto trx = trx_varient.get_object();
+								hd_trx handle_trx;
+								std::string real_trx;
+								if (asset_symbol == "ETH" || asset_symbol.find("ERC") != asset_symbol.npos)
+								{
+									handle_trx = hdl->turn_trx(fc::variant_object("plugin_get_trx", trx));
+									real_trx = handle_trx.trx_id;
+									if (handle_trx.trx_id.find('|') != handle_trx.trx_id.npos)
+									{
+										auto pos = handle_trx.trx_id.find('|');
+										real_trx = handle_trx.trx_id.substr(pos + 1);
+									}
+								}
+								else {
+									handle_trx = hdl->turn_trx(trx);
+									real_trx = handle_trx.trx_id;
+								}
+
+								fc::scoped_lock<std::mutex> _lock(db.db_lock);
+								auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
+								auto trx_iter = trx_iters.find(real_trx);
+								if (trx_iter != trx_iters.end()) {
+									continue;
+								}
+								db.create<acquired_crosschain_trx_object>([&](acquired_crosschain_trx_object& obj) {
+									obj.handle_trx = handle_trx;
+									obj.handle_trx_id = real_trx;
+									obj.acquired_transaction_state = acquired_trx_uncreate;
+								});
+							}
+						}
+						catch (fc::exception ex)
+						{
+							std::string err_log = ex.to_detail_string();
+							ulog("maybe all transaction error! ${error} ", ("error", err_log.c_str()));
+							continue;
+
+						}
+						catch (...)
+						{
+							ulog("maybe unkown error!");
+							continue;
+						}
+						
+					}
+				}*/
+					
 				for (const auto& asset_symbol : _asset_symbols) {
 					auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 					auto hdl = manager.get_crosschain_handle(std::string(asset_symbol));
@@ -96,7 +316,7 @@ namespace graphene {
 					}
 
 					//sess.commit();
-				}
+				};
 			}
 			catch (fc::exception ex)
 			{
@@ -123,7 +343,9 @@ namespace graphene {
 			boost::program_options::options_description &config_file_options
 		) {
 			command_line_options.add_options()
-				("guard-id,w", bpo::value<vector<string>>()->composing()->multitoken());
+				("guard-id,w", bpo::value<vector<string>>()->composing()->multitoken())
+				("all-plugin-start",bpo::bool_switch()->notifier([this](bool e) {_all_plugin = e; }),"wither start all types of coin-collector in one plugin")
+				;
 			config_file_options.add(command_line_options);
 		}
 		void crosschain_record_plugin::plugin_initialize(const boost::program_options::variables_map& options){
@@ -159,7 +381,7 @@ namespace graphene {
 		}
 		void crosschain_record_plugin::plugin_shutdown(){
 			try {
-				_thread.quit();
+				//_thread.quit();
 			}FC_CAPTURE_AND_RETHROW()
 			return;
 		}

@@ -136,7 +136,7 @@ namespace graphene {
 
 			// Recover wallet.
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
-
+			virtual std::vector<fc::variant_object> transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj) = 0;
 		};
 	}
 }

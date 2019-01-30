@@ -21,14 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-
-#include <string>
-
-namespace graphene { namespace utilities {
-
-  std::string escape_string_for_c_source_code(const std::string& input);
-  std::string remove_zero_for_str_amount(const std::string& input);
-  std::string amount_to_string(uint64_t amount,int precision);
-
-} } // end namespace graphene::utilities
+#include <fc/smart_ref_impl.hpp>
+#include <graphene/chain/evalutor_inc.hpp>
+#include "db_lock_balance.cpp"
+#include "db_crosschain_trx.cpp"
+#include "db_coldhot_trx.cpp"
+#include "db_pay_back.cpp"
+#include "db_eths_trx.cpp"

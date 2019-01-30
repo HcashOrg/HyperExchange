@@ -418,6 +418,30 @@ private:
           }
           save_wallet_file();
       }
+	  if (!_wallet.pending_transactions.empty())
+	  {
+		  for (vector<signed_transaction>::iterator iter = _wallet.pending_transactions.begin(); 
+			                            iter != _wallet.pending_transactions.end() ; )
+		  {
+			  try {
+				  if (_remote_trx->get_transaction(iter->id()).valid())
+				  {
+					  iter = _wallet.pending_transactions.erase(iter);
+					  continue;
+				  }
+				  else
+				  {
+					  _remote_net_broadcast->broadcast_transaction(*iter);
+				  }
+			  }
+			  catch (const fc::exception&)
+			  {
+				  iter = _wallet.pending_transactions.erase(iter);
+				  continue;
+			  }
+			  ++iter;
+		  }
+	  }
    }
    void enable_umask_protection()
    {
@@ -623,7 +647,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.10";
+	  result["version"] = "1.2.11";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -684,8 +708,8 @@ public:
    }
    account_object get_account(account_id_type id) const
    {
-      if( _wallet.my_accounts.get<by_id>().count(id) )
-         return *_wallet.my_accounts.get<by_id>().find(id);
+      //if( _wallet.my_accounts.get<by_id>().count(id) )
+      //   return *_wallet.my_accounts.get<by_id>().find(id);
       auto rec = _remote_db->get_accounts({id}).front();
       FC_ASSERT(rec);
       return *rec;
@@ -1163,7 +1187,6 @@ public:
 		   FC_THROW("Wallet chain ID does not match",
 		   ("wallet.chain_id", _wallet.chain_id)
 			   ("chain_id", _chain_id));
-
 	   size_t account_pagination = 100;
 	   vector< address > account_address_to_send;
 	   size_t n = _wallet.my_accounts.size();
@@ -1212,7 +1235,6 @@ public:
 			   i++;
 		   }
 	   }
-
 	   return true;
    }
    bool check_keys_modified(string wallet_filename = "")
@@ -1941,7 +1963,7 @@ public:
 		   tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
-		   auto signed_tx = sign_transaction(tx, false, true);
+		   signed_transaction signed_tx(tx);
 		   auto trx_res = _remote_db->validate_transaction(signed_tx, true);
 		   share_type gas_count = 0;
 		   string res = "some error happened, not api result get";
@@ -2210,15 +2232,12 @@ public:
        asset transfer_asset = asset_obj->amount_from_string(amount);
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
-       FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-	   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-       auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-       auto caller_pubkey = privkey.get_public_key();
+
 
        transfer_to_contract_op.gas_price = 0;
        transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
        transfer_to_contract_op.caller_addr = acc_caller.addr;
-       transfer_to_contract_op.caller_pubkey = caller_pubkey;
+       transfer_to_contract_op.caller_pubkey = acc_caller.options.memo_key;
        transfer_to_contract_op.contract_id = address(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
@@ -2235,7 +2254,7 @@ public:
        tx.set_expiration(dyn_props.time + fc::seconds(30));
        tx.validate();
 
-       auto signed_tx = sign_transaction(tx, false);
+       auto signed_tx = signed_transaction(tx);
        auto trx_res = _remote_db->validate_transaction(signed_tx,true);
        share_type gas_count = 0;
        for (auto op_res : trx_res.operation_results)
@@ -4727,7 +4746,9 @@ public:
 				elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()) );
             throw;
          }
+		 _wallet.pending_transactions.emplace_back(tx);
       }
+	  
       return tx;
    }
 
@@ -4846,7 +4867,14 @@ public:
 	   return result;
    }
 
-   
+   vector<transaction_id_type> get_pending_transactions() const {
+	   vector<transaction_id_type> ret;
+	   for (auto& tx : _wallet.pending_transactions)
+	   {
+		   ret.push_back(tx.id());
+	   }
+	   return ret;
+   }
 
    optional<multisig_address_object> get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
    {
@@ -7362,7 +7390,9 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    auto acc =  my->get_account(account_name_or_id);
    if (acc.addr == address())
 	   return fc::variant_object();
-   const auto& obj = get_account_by_addr(acc.addr);
+   fc::optional<account_object> obj = acc;
+   if (!maybe_id<account_id_type>(account_name_or_id))
+	   obj = get_account_by_addr(acc.addr);
    if (obj.valid())
    {
 	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
@@ -7822,6 +7852,10 @@ void wallet_api::senator_sign_crosschain_transaction(const string& trx_id,const 
 optional<multisig_address_object> wallet_api::get_current_multi_address_obj(const string& symbol, const account_id_type& guard) const
 {
 	return my->get_current_multi_address_obj(symbol,guard);
+}
+vector<transaction_id_type> wallet_api::get_pending_transactions() const
+{
+	return my->get_pending_transactions();
 }
 std::vector<lockbalance_object> wallet_api::get_account_lock_balance(const string& account)const {
 	return my->get_account_lock_balance(account);
@@ -8338,6 +8372,7 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
+	std::string caller_publickey;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8349,12 +8384,24 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	{
 		is_valid_address = false;
 	}
+	bool is_caller_publickey=true;
+	try
+	{
+		auto temp = address(public_key_type(caller_publickey));
+		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
+	}
+	catch (fc::exception& e)
+	{
+		is_caller_publickey = false;
+	}
 	if (!is_valid_address)
 	{
 		cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}
-	return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
+	if(!is_caller_publickey)
+		return my->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
+	return my->_remote_db->invoke_contract_offline(caller_account_name, contract_address, contract_api, contract_arg);
 }
 
 full_transaction wallet_api::upgrade_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address, const string& contract_name, const string& contract_desc)

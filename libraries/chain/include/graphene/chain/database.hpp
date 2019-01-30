@@ -356,7 +356,7 @@ namespace graphene { namespace chain {
          vector<address> get_contract_address_by_owner(const address& owner);
 		 bool has_contract(const address& contract_address, const string& method="");
 		 bool has_contract_of_name(const string& contract_name);
-         void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res);
+         void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res, const share_type& gas);
 		 void store_contract_related_transaction(const transaction_id_type&,const address& contract_id);
 
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
@@ -630,7 +630,9 @@ namespace graphene { namespace chain {
          node_property_object              _node_property_object;
 
          //gas_price check
-         share_type                        _min_gas_price=1;
+		 share_type                        _min_gas_price = 1;
+		 share_type						   _gas_limit_in_in_block = 2000000;
+		 share_type						   _current_gas_in_block= 0;
 	public:
 
 		bool rewind_on_close = false;

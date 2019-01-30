@@ -76,7 +76,9 @@ namespace graphene {
 			virtual std::string import_private_key(std::string &account, std::string &encrypt_passprase) override ;
 			virtual std::string backup_wallet(std::string &wallet_name, std::string &encrypt_passprase) override ;
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) override ;
-
+			virtual std::vector<fc::variant_object> transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj)override {
+				return std::vector<fc::variant_object>();
+			} ;
 
 			bool load_wallet_file(std::string wallet_filename = "");
 			void lock();

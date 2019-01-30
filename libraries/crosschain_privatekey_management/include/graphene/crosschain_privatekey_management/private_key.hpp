@@ -14,6 +14,18 @@
 #include "Keccak.hpp"
 #include <fc/variant_object.hpp>
 #include <fc/io/json.hpp>
+const int btc_pubkey = 0x0;
+const int btc_script = 0x05;
+const int btc_privkey = 0x80;
+const int ltc_pubkey = 0x30;
+const int ltc_script = 0x32;
+const int ltc_privkey = 0xB0;
+
+const int hc_pubkey = 0x097f;
+const int hc_script = 0x095a;
+const int hc_privkey = 0x19ab;
+
+
 namespace graphene {
 	namespace privatekey_management {
 

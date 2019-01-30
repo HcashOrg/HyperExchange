@@ -101,6 +101,7 @@ void miner_plugin::plugin_set_program_options(
    chain_type.push_back("HC");
    chain_type.push_back("ETH");
    chain_type.push_back("ERCPAX");
+   chain_type.push_back("ERCELF");
    command_line_options.add_options()
          ("enable-stale-production", bpo::bool_switch()->notifier([this](bool e){_production_enabled = e;}), "Enable block production, even if the chain is stale.")
          ("required-participation", bpo::bool_switch()->notifier([this](int e){_required_miner_participation = uint32_t(e*GRAPHENE_1_PERCENT);}), "Percent of miners (0-99) that must be participating in order to produce blocks")
@@ -593,10 +594,9 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
    //through this to generate new multi-addr
    auto varient_obj = check_generate_multi_addr(scheduled_miner, private_key_itr->second);
    check_eths_generate_multi_addr(scheduled_miner, private_key_itr->second);
-   db.create_result_transaction(scheduled_miner, private_key_itr->second);
    db.create_coldhot_transfer_trx(scheduled_miner, private_key_itr->second);
    db.combine_coldhot_sign_transaction(scheduled_miner, private_key_itr->second);
-
+   db.create_result_transaction(scheduled_miner, private_key_itr->second);
    db.combine_sign_transaction(scheduled_miner, private_key_itr->second);
    db.create_acquire_crosschhain_transaction(scheduled_miner, private_key_itr->second);
    //check_multi_transfer(scheduled_miner, private_key_itr->second);

@@ -13,6 +13,7 @@
 #include <fc/variant.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/io/json.hpp>
+#include <graphene/utilities/string_escape.hpp>
 namespace graphene {
     namespace privatekey_management {
 
@@ -77,7 +78,7 @@ namespace graphene {
 
 		fc::variant_object btc_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx, btc_pubkey, btc_script);
 			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object hc_privatekey::decoderawtransaction(const std::string& trx)
@@ -87,12 +88,12 @@ namespace graphene {
 		}
 		fc::variant_object ltc_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx,ltc_pubkey,ltc_script);
 			return fc::json::from_string(decode).get_object();
 		}
 		fc::variant_object ub_privatekey::decoderawtransaction(const std::string& trx)
 		{
-			auto decode = graphene::utxo::decoderawtransaction(trx);
+			auto decode = graphene::utxo::decoderawtransaction(trx,btc_pubkey,btc_script);
 			return fc::json::from_string(decode).get_object();
 		}
     }
@@ -252,7 +253,7 @@ namespace graphene {
 						fc::array<char, 26> addr;
 						//test line
 						//int version = 0x0f21;
-						int version = 0x097f;
+						int version = hc_pubkey;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[2].data().size(); i++)
@@ -276,7 +277,7 @@ namespace graphene {
 						fc::array<char, 26> addr;
 						//test line
 						//int version = 0x0efc;
-						int version = 0x095a;
+						int version = hc_script;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[1].data().size(); i++)
@@ -296,14 +297,14 @@ namespace graphene {
 			obj << "}}";
 			return obj.str();
 		}
-		std::string decoderawtransaction(const std::string& trx)
+		std::string decoderawtransaction(const std::string& trx,uint8_t kh,uint8_t sh)
 		{
 			std::ostringstream obj;
 			libbitcoin::chain::transaction  tx;
 		    tx.from_data(libbitcoin::config::base16(trx));
 			auto hash =tx.hash(true);
 			std::reverse(hash.begin(),hash.end());
-			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"inputs\": {";
+			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"vin\": [";
 			//insert input:
 			auto ins = tx.inputs();
 			auto int_size = ins.size();
@@ -311,21 +312,19 @@ namespace graphene {
 			{ 
 				if (index > 0)
 					obj << ",";
-				obj << "\"input\": {";
+				obj << "{";
 				auto input = ins.at(index);
 				auto previous_output = input.previous_output();
 				hash = previous_output.hash();
 				std::reverse(hash.begin(),hash.end());
-				obj << "\"previous_output\": { \
-                       \"hash\": \"" << libbitcoin::encode_base16(hash);
-				obj << "\",\"index\": " << previous_output.index();
-				obj << "},";
+				obj << "\"txid\": \"" << libbitcoin::encode_base16(hash);
+				obj << "\",\"vout\": " << previous_output.index();
 
 				obj <<"\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
 				obj << "\"sequence\": " << input.sequence() << "}";
 			}
-			obj << "},\
-                \"lock_time\": " << tx.locktime() << ",\"outputs\": {";
+			obj << "],\
+                \"lock_time\": " << tx.locktime() << ",\"vout\": [";
 
 			auto ons = tx.outputs();
 			auto out_size = ons.size();
@@ -334,12 +333,13 @@ namespace graphene {
 				if (index > 0)
 					obj << ",";
 				auto output = ons.at(index);
-				obj << "\"output\": {";
-				obj << "\"address\": \"" << output.address() << "\",";
-				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\",";
-				obj << "\"value\": " << output.value() << "}";
+				obj << "{";
+				obj << "\"scriptPubKey\": {";
+				obj << "\"addresses\": [\"" << output.address(kh,sh) << "\"],";
+				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) <<"\"},";
+				obj << "\"value\": " << graphene::utilities::amount_to_string(output.value(),8) << "}";
 			}
-			obj << "}}";
+			obj << "]}";
 			return obj.str();
 
 		}
@@ -444,7 +444,7 @@ namespace graphene {
 
 		std::string combine_trx(const std::vector<std::string>& trxs)
 		{
-			std::map<int,fc::flat_set<std::string>> signatures;
+			std::map<int,std::vector<std::string>> signatures;
 			libbitcoin::chain::transaction  tx;
 			int ins_size;
 			std::string redeemscript;
@@ -466,7 +466,7 @@ namespace graphene {
 					std::string hex;
 					hex.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
 					redeemscript.assign(script_str.begin()+pos_end+1,script_str.end());
-					signatures[vin_index].insert(hex);
+					signatures[vin_index].push_back(hex);
 				}
 			}
 

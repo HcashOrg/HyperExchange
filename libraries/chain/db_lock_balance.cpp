@@ -1,5 +1,8 @@
 #include <graphene/chain/database.hpp>
-
+#include <graphene/chain/protocol/authority.hpp>
+#include <graphene/chain/protocol/operations.hpp>
+#include <graphene/chain/protocol/transaction.hpp>
+#include <graphene/chain/protocol/types.hpp>
 #include <graphene/chain/lockbalance_object.hpp>
 #include <graphene/chain/account_object.hpp>
 #include <graphene/chain/asset_object.hpp>

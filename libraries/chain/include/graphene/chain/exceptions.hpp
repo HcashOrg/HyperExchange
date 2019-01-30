@@ -89,7 +89,7 @@ namespace graphene { namespace chain {
    FC_DECLARE_DERIVED_EXCEPTION(guarantee_order_finished, graphene::chain::transaction_exception, 3030008, "guarantee order has been finished")
    FC_DECLARE_DERIVED_EXCEPTION( invalid_pts_address,               graphene::chain::utility_exception, 3060001, "invalid pts address" )
    FC_DECLARE_DERIVED_EXCEPTION( insufficient_feeds,                graphene::chain::chain_exception, 37006, "insufficient feeds" )
-	   
+
    FC_DECLARE_DERIVED_EXCEPTION( pop_empty_chain,                   graphene::chain::undo_database_exception, 3070001, "there are no blocks to pop" )
    FC_DECLARE_DERIVED_EXCEPTION( deserialize_undo_database_failed,  graphene::chain::undo_database_exception, 3070002, "deserialize undo database failed")
    FC_DECLARE_DERIVED_EXCEPTION( deserialize_fork_database_failed,  graphene::chain::undo_database_exception, 3070003, "deserialize fork database failed")

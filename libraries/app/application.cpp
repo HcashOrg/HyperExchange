@@ -141,7 +141,7 @@ namespace detail {
       fc::optional<fc::temp_file> _lock_file;
       bool _is_block_producer = false;
       bool _force_validate = false;
-
+	  bool _stop_block_processing = false;
       void reset_p2p_node(const fc::path& data_dir)
       { try {
          _p2p_network = std::make_shared<net::node>("BlockLinks Reference Implementation");
@@ -358,7 +358,14 @@ namespace detail {
             genesis.initial_miner_candidates[i].block_signing_key = init_pubkey;
          return;
       }
-
+	  void stop_block_processing()
+	  {
+		  _stop_block_processing = true;
+	  }
+	  void start_block_processing()
+	  {
+		  _stop_block_processing = false;
+	  }
       void startup()
       { try {
          bool clean = !fc::exists(_data_dir / "blockchain/dblock");
@@ -632,11 +639,14 @@ namespace detail {
        *
        * @throws exception if error validating the item, otherwise the item is safe to broadcast on.
        */
-      virtual bool handle_block(const graphene::net::block_message& blk_msg, bool sync_mode,
-                                std::vector<fc::uint160_t>& contained_transaction_message_ids) override
+	  virtual bool handle_block(const graphene::net::block_message& blk_msg, bool sync_mode,
+		  std::vector<fc::uint160_t>& contained_transaction_message_ids, bool stoppable=false) override
       { try {
+		  if (stoppable&&_stop_block_processing)
+		  {
+			  FC_CAPTURE_AND_THROW(net::block_process_stopped);
+		  }
 		  static int latency_chk = 0;
-
 		  static time_point last_chk_tm = fc::time_point::now();
 		  time_point chk_tm = fc::time_point::now();
 
@@ -1236,6 +1246,16 @@ void application::shutdown_plugins()
       entry.second->plugin_shutdown();
    return;
 }
+
+void application::stop_block_processing()
+{
+	my->stop_block_processing();
+}
+void application::start_block_processing()
+{
+	my->start_block_processing();
+}
+
 void application::shutdown()
 {
    if( my->_p2p_network )

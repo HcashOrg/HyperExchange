@@ -239,9 +239,28 @@ namespace fc {
 				}
 			}
 			try {
-				boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
-				_socket.close();
-				_socket.connect(p);
+				for (int i = 0; i < 3; i++) {
+					try {
+						boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
+						_socket.close();
+						_socket.connect(p);
+						return;
+
+					}
+					catch (...) {
+						std::cout << "retry connection to" << std::endl;
+					}
+				}
+				try {
+					boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
+					_socket.close();
+					_socket.connect(p);
+
+				}
+				catch (fc::exception& e) {
+					FC_THROW_EXCEPTION(exception, "Error Connecting HTTP Server.");
+				}
+
 
 			}
 			catch (fc::exception& e) {
