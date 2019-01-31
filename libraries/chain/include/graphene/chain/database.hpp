@@ -631,7 +631,7 @@ namespace graphene { namespace chain {
 
          //gas_price check
 		 share_type                        _min_gas_price = 1;
-		 share_type						   _gas_limit_in_in_block = 10000000;
+		 share_type						   _gas_limit_in_in_block = 2000000;
 		 share_type						   _current_gas_in_block= 0;
 	public:
 

@@ -3,6 +3,10 @@
 #include <fc/string.hpp>
 #include <memory>
 #include <boost/asio.hpp>
+#include <mutex>
+#include <condition_variable>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 namespace fc {
 	namespace ip { class endpoint; }
 	class tcp_socket;
@@ -85,10 +89,21 @@ namespace fc {
 			// used for servers
 			//boost::asio::ip::tcp::socket get_socket()const;
 
-			//http::request    read_request()const;
+		 //http::request    read_request()const;
 			http::reply parse_reply();
+			void handle_reply(const boost::system::error_code & error);
+			void handle_reply(const boost::system::error_code & error, size_t bytes_transferred);
+			void check_deadline(const boost::system::error_code & error);
+			void close_socket();
 		private:
+			std::mutex read_lock;
+			std::condition_variable m_cond;
+			bool is_done = false;
+			bool is_timeout = false;
+			bool is_release = false;
+			boost::asio::deadline_timer _deadline;
 			boost::asio::ip::tcp::socket _socket;
+			boost::asio::streambuf line;
 		};
 
 	}
