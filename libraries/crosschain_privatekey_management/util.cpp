@@ -207,8 +207,7 @@ namespace graphene {
 				auto Index = input_source.read_4_bytes_little_endian();
 				auto Tree = input_source.read_size_little_endian();
 				obj <<"\"txid\": \"" << libbitcoin::encode_base16(Hash);
-				obj << "\",\"vout\": " << Index;
-				obj << "},";
+				obj << "\",\"vout\": " << Index <<",";
 				if (i < witness_count){
 					auto ValueIn = source.read_8_bytes_little_endian();
 					auto BlockHeight = source.read_4_bytes_little_endian();
@@ -240,7 +239,7 @@ namespace graphene {
 				if (i > 0)
 					obj << ",";
 				obj << "{";
-				obj << "\"scriptPubKey\": {"<<"\"script: \""<<"\"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
+				obj << "\"scriptPubKey\": {"<<"\"script\": "<<"\"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
 				if (a.size() == 5)
 				{
 					
@@ -263,7 +262,7 @@ namespace graphene {
 						auto check = HashR14(addr.data, addr.data + a[2].data().size() + 2);
 						check = HashR14((char*)&check, (char*)&check + sizeof(check));
 						memcpy(addr.data + 2 + a[2].data().size(), (char*)&check, 4);
-						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"],";
+						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"]";
 						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
 					}
 				}
@@ -287,7 +286,7 @@ namespace graphene {
 						check = HashR14((char*)&check, (char*)&check + sizeof(check));
 						memcpy(addr.data + 2 + a[1].data().size(), (char*)&check, 4);
 						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
-						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"],";
+						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"]";
 					}
 				}
 				obj << "},";
