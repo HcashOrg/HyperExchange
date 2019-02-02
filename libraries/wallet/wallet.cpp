@@ -8362,7 +8362,6 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	std::string caller_publickey;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8377,7 +8376,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	bool is_caller_publickey=true;
 	try
 	{
-		auto temp = address(public_key_type(caller_publickey));
+		auto temp = address(public_key_type(caller_account_name));
 		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
 	}
 	catch (fc::exception& e)
