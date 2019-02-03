@@ -9,7 +9,6 @@ namespace bpo = boost::program_options;
 namespace graphene {
 	namespace crosschain {
 		using namespace graphene::chain;
-		crosschain_record_plugin::crosschain_record_plugin() :_thread("crosschain_trasacntion") {}
 		void crosschain_record_plugin::schedule_acquired_record_loop() {
 			if (!started)
 				return;
@@ -387,8 +386,7 @@ namespace graphene {
 				started = false;
 				if (!_acquire_crosschain_task.canceled())
 				{
-					_acquire_crosschain_task.cancel();
-					_thread.quit();
+					_acquire_crosschain_task.cancel_and_wait();
 				}
 				
 			}FC_CAPTURE_AND_RETHROW()
