@@ -9,8 +9,9 @@ namespace bpo = boost::program_options;
 namespace graphene {
 	namespace crosschain {
 		using namespace graphene::chain;
-		crosschain_record_plugin::crosschain_record_plugin() :_thread("crosschain_trasacntion") {}
 		void crosschain_record_plugin::schedule_acquired_record_loop() {
+			if (!started)
+				return;
 			fc::time_point now = fc::time_point::now();
 			int64_t time_to_next_second = 20000000 - (now.time_since_epoch().count() % 20000000);
 			if (time_to_next_second < 50000) {    // we must sleep for at least 50ms
@@ -358,9 +359,9 @@ namespace graphene {
 		void crosschain_record_plugin::plugin_startup(){
 			try {
 				if (!_miners.empty() || !_guard.empty()) {
+					started = true;
 					auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
 					fut.wait();
-					started = true;
 				}
 				else {
 					elog("No miner or guard in this client");
@@ -374,14 +375,20 @@ namespace graphene {
 			try {
 				if (started)
 					return;
+				started = true;
 				auto fut = _thread.async([&] {schedule_acquired_record_loop(); }, "crosschain_record_plugin");
 				fut.wait();
-				started = true;
+				
 			}FC_CAPTURE_AND_RETHROW()
 		}
 		void crosschain_record_plugin::plugin_shutdown(){
 			try {
-				//_thread.quit();
+				started = false;
+				if (!_acquire_crosschain_task.canceled())
+				{
+					_acquire_crosschain_task.cancel_and_wait();
+				}
+				
 			}FC_CAPTURE_AND_RETHROW()
 			return;
 		}

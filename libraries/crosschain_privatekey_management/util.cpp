@@ -185,7 +185,7 @@ namespace graphene {
 			tx.from_data(libbitcoin::config::base16(trx));
 			auto hash = tx.hash(false);
 			std::reverse(hash.begin(), hash.end());
-			obj << "{\"hash\": \"" << libbitcoin::encode_base16(higest_bitcoin1) << "\",\"inputs\": {";
+			obj << "{\"txid\": \"" << libbitcoin::encode_base16(higest_bitcoin1) << "\",\"vin\": [";
 			
 			
 			//insert input:
@@ -197,7 +197,7 @@ namespace graphene {
 			for (uint64_t i = 0; i < InputCount; ++i) {
 				if (i > 0)
 					obj << ",";
-				obj << "\"input\": {";
+				obj << "{";
 				auto Hash = input_source.read_hash();
 				for (int i = 0; i < Hash.size() / 2; i++) {
 					auto temp = Hash[i];
@@ -206,10 +206,8 @@ namespace graphene {
 				}
 				auto Index = input_source.read_4_bytes_little_endian();
 				auto Tree = input_source.read_size_little_endian();
-				obj << "\"previous_output\": { \
-                       \"hash\": \"" << libbitcoin::encode_base16(Hash);
-				obj << "\",\"index\": " << Index;
-				obj << "},";
+				obj <<"\"txid\": \"" << libbitcoin::encode_base16(Hash);
+				obj << "\",\"vout\": " << Index <<",";
 				if (i < witness_count){
 					auto ValueIn = source.read_8_bytes_little_endian();
 					auto BlockHeight = source.read_4_bytes_little_endian();
@@ -217,15 +215,15 @@ namespace graphene {
 					auto signtureCount = source.read_size_little_endian();
 					
 					auto SignatureScript = source.read_bytes(signtureCount);
-					obj << "\"script\": \"" << libbitcoin::encode_base16(libbitcoin::data_slice(SignatureScript)) << "\",";
-					obj << "\"ValueIn\": " << ValueIn << ",";
+					obj << "\"scriptSig\": \"" << libbitcoin::encode_base16(libbitcoin::data_slice(SignatureScript)) << "\",";
+					obj << "\"amountin\": " << ValueIn << ",";
 					
 				}
 				auto Sequence = input_source.read_4_bytes_little_endian();
 				obj << "\"sequence\": " << Sequence << "}";
 			}
-			obj << "},\
-                \"lock_time\": " << locktime << ",\"outputs\": {";
+			obj << "],\
+                \"lock_time\": " << locktime << ",\"vout\": [";
 			//insert output:
 			libbitcoin::data_source output_reader(output_writ);
 			libbitcoin::istream_reader output_source(output_reader);
@@ -240,8 +238,8 @@ namespace graphene {
 				//std::cout << "out put script is " << a.to_string(libbitcoin::machine::all_rules) << std::endl;
 				if (i > 0)
 					obj << ",";
-				obj << "\"output\": {";
-				
+				obj << "{";
+				obj << "\"scriptPubKey\": {"<<"\"script\": "<<"\"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
 				if (a.size() == 5)
 				{
 					
@@ -253,7 +251,7 @@ namespace graphene {
 						fc::array<char, 26> addr;
 						//test line
 						//int version = 0x0f21;
-						int version = 0x097f;
+						int version = hc_pubkey;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[2].data().size(); i++)
@@ -264,7 +262,7 @@ namespace graphene {
 						auto check = HashR14(addr.data, addr.data + a[2].data().size() + 2);
 						check = HashR14((char*)&check, (char*)&check + sizeof(check));
 						memcpy(addr.data + 2 + a[2].data().size(), (char*)&check, 4);
-						obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"]";
 						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
 					}
 				}
@@ -277,7 +275,7 @@ namespace graphene {
 						fc::array<char, 26> addr;
 						//test line
 						//int version = 0x0efc;
-						int version = 0x095a;
+						int version = hc_script;
 						addr.data[0] = char(version >> 8);
 						addr.data[1] = (char)version;
 						for (int i = 0; i < a[1].data().size(); i++)
@@ -288,13 +286,13 @@ namespace graphene {
 						check = HashR14((char*)&check, (char*)&check + sizeof(check));
 						memcpy(addr.data + 2 + a[1].data().size(), (char*)&check, 4);
 						//std::cout << fc::to_base58(addr.data, sizeof(addr)) << std::endl;
-						obj << "\"address\": \"" << fc::to_base58(addr.data, sizeof(addr)) << "\",";
+						obj << "\"addresses\": [\"" << fc::to_base58(addr.data, sizeof(addr)) << "\"]";
 					}
 				}
-				obj << "\"script\": \"" << a.to_string(libbitcoin::machine::all_rules) << "\",";
+				obj << "},";
 				obj << "\"value\": " << Value << "}";
 			}
-			obj << "}}";
+			obj << "]}";
 			return obj.str();
 		}
 		std::string decoderawtransaction(const std::string& trx,uint8_t kh,uint8_t sh)
