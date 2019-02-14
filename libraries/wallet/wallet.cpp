@@ -4160,6 +4160,34 @@ public:
 		   return res;
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast)(cold_address)(cold_pubkey))
    }
+   full_transaction update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address, const string& hot_pubkey, const string& cold_address, const string& cold_pubkey, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(), "only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+
+		   op.new_address_cold = cold_address;
+		   op.new_pubkey_cold = cold_pubkey;
+		   op.new_address_hot = hot_address;
+		   op.new_pubkey_hot = hot_pubkey;
+		   op.crosschain_type = symbol;
+		   FC_ASSERT(_keys.find(op.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", op.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
+		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   auto res = sign_transaction(trx, broadcast);
+		   return res;
+
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(hot_address)(hot_pubkey)(cold_address)(cold_pubkey)(broadcast))
+   }
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast,bool use_brain_key=false)
    {
 	   try {
@@ -8914,6 +8942,10 @@ graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_bra
 }
 graphene::chain::full_transaction wallet_api::update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
 	return my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
+}
+graphene::chain::full_transaction wallet_api::update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address, const string& hot_pubkey, const string& cold_address, const string& cold_pubkey, bool broadcast)
+{
+	return my->update_asset_private_with_keys(from_account,symbol,hot_address,hot_pubkey,cold_address,cold_pubkey,true);
 }
 
 full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)
