@@ -455,7 +455,10 @@ namespace graphene {
 					auto storage_after = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.after);
 					con_chg_iter->second.cbor_diff = *(differ.diff(cbor_storage_before, cbor_storage_after));
 					auto cbor_diff_value = std::make_shared<cbor::CborObject>(con_chg_iter->second.cbor_diff.value());
-					storage_change.storage_diff.storage_data = str_to_chars(cbor_diff::cbor_encode(cbor_diff_value));
+					const auto& cbor_diff_hex = cbor_diff::cbor_encode(cbor_diff_value);
+                                        std::vector<char> cbor_diff_chars(cbor_diff_hex.size()/2);
+					fc::from_hex(cbor_diff_hex, cbor_diff_chars.data(), cbor_diff_chars.size());
+					storage_change.storage_diff.storage_data = cbor_diff_chars;
 					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
 					nested_changes[contract_name] = cbor_diff_value;
