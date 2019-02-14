@@ -2038,6 +2038,7 @@ class wallet_api
 	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast);
+	  full_transaction update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address,const string& hot_pubkey,const string& cold_address, const string& cold_pubkey, bool broadcast);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
@@ -3361,4 +3362,5 @@ FC_API( graphene::wallet::wallet_api,
 		(derive_wif_key)
 		(set_brain_key)
 		(get_pending_transactions)
+		(update_asset_private_with_keys)
       )
