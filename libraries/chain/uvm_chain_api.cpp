@@ -384,10 +384,45 @@ namespace graphene {
 			return json_value;
 		}
 
+		static cbor::CborObjectP nested_cbor_object_to_array(const cbor::CborObject* cbor_value)
+		{
+			if (cbor_value->is_map())
+			{
+				const auto& map = cbor_value->as_map();
+				cbor::CborArrayValue cbor_array;
+				std::list<std::string> keys;
+				for (auto it = map.begin(); it != map.end(); it++)
+				{
+					keys.push_back(it->first);
+				}
+				keys.sort(&compare_key);
+				for (const auto& key : keys)
+				{
+					cbor::CborArrayValue item_json;
+					item_json.push_back(key);
+					item_json.push_back(nested_cbor_object_to_array(map.at(key)));
+					cbor_array.push_back(item_json);
+				}
+				return cbor_array;
+			}
+			if (cbor_value->is_array())
+			{
+				const auto& arr = cbor_value->as_array();
+				cbor::CborArrayValue result;
+				for (const auto& item : arr)
+				{
+					result.push_back(nested_cbor_object_to_array(item));
+				}
+				return result;
+			}
+			return cbor_value;
+		}
+
 		bool UvmChainApi::commit_storage_changes_to_uvm(lua_State *L, AllContractsChangesMap &changes)
 		{
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-			jsondiff::JsonDiff json_differ;
+			cbor_diff::CborDiff differ;
+			// jsondiff::JsonDiff differ;
 			int64_t storage_gas = 0;
 
 			auto gas_limit = uvm::lua::lib::get_lua_state_instructions_limit(L);
@@ -399,7 +434,7 @@ namespace graphene {
 				contract_storage_changes_type contract_storage_change;
 				std::string contract_id = all_con_chg_iter->first;
 				ContractChangesMap contract_change = *(all_con_chg_iter->second);
-				jsondiff::JsonObject nested_changes;
+				cbor::CborMapValue nested_changes;
 
 				for (auto con_chg_iter = contract_change.begin(); con_chg_iter != contract_change.end(); ++con_chg_iter)
 				{
@@ -407,18 +442,19 @@ namespace graphene {
 
 					StorageDataChangeType storage_change;
 					// storage_op存储的从before, after改成diff
-					auto json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
-					auto json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
+					auto cbor_storage_before = uvm_storage_value_to_cbor(con_chg_iter->second.before);
+					auto cbor_storage_after = uvm_storage_value_to_cbor(con_chg_iter->second.after);
 					auto storage_after = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.after);
-					con_chg_iter->second.diff = *(json_differ.diff(json_storage_before, json_storage_after));
-					storage_change.storage_diff.storage_data = json_to_chars(con_chg_iter->second.diff.value());
+					con_chg_iter->second.cbor_diff = *(differ.diff(cbor_storage_before, cbor_storage_after));
+					auto cbor_diff_value = std::make_shared<cbor::CborObject>(con_chg_iter->second.cbor_diff.value());
+					storage_change.storage_diff.storage_data = cbor_diff::cbor_encode(cbor_diff_value);
 					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
-					nested_changes[contract_name] = con_chg_iter->second.diff.value();
+					nested_changes[contract_name] = cbor_diff_value;
 				}
 				// count gas by changes size
-				const auto& changes_parsed_to_array = nested_json_object_to_array(nested_changes);
-				auto changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
+				const auto& changes_parsed_to_array = nested_cbor_object_to_array(nested_changes);
+				auto changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size();
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);

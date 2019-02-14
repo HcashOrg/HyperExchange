@@ -7,10 +7,13 @@
 #include <fc/crypto/base58.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
+#include <cborcpp/cbor.h>
+#include <cbor_diff/cbor_diff.h>
 
 namespace graphene {
 	namespace chain {
 		using namespace uvm::blockchain;
+		using namespace ::cbor_diff;
 
 		void            storage_operation::validate()const
 		{
@@ -61,8 +64,10 @@ namespace graphene {
 
 		StorageDataType StorageDataType::get_storage_data_from_lua_storage(const UvmStorageValue& lua_storage)
 		{
-			auto storage_json = uvm_storage_value_to_json(lua_storage);
-			StorageDataType storage_data(jsondiff::json_dumps(storage_json));
+			// auto storage_json = uvm_storage_value_to_json(lua_storage);
+			// StorageDataType storage_data(jsondiff::json_dumps(storage_json));
+			auto storage_cbor = uvm_storage_value_to_cbor(lua_storage);
+			StorageDataType storage_data(cbor_diff::cbor_encode(storage_cbor));
 			return storage_data;
 		}
 
@@ -82,8 +87,11 @@ namespace graphene {
 
 		UvmStorageValue StorageDataType::create_lua_storage_from_storage_data(lua_State *L, const StorageDataType& storage)
 		{
-			auto json_value = json_from_str(storage.as<std::string>());
-			auto value = json_to_uvm_storage_value(L, json_value);
+			const auto& storage_str = storage.as<std::string>();
+			auto cbor_value = cbor_decode(storage_str);
+			// auto json_value = json_from_str(storage_str);
+			// auto value = json_to_uvm_storage_value(L, json_value);
+			auto value = cbor_to_uvm_storage_value(L, cbor_value.get());
 			return value;
 		}
 	}
