@@ -4150,6 +4150,34 @@ public:
 		   return res;
 	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(broadcast)(cold_address)(cold_pubkey))
    }
+   full_transaction update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address, const string& hot_pubkey, const string& cold_address, const string& cold_pubkey, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   auto guard_account = get_guard_member(from_account);
+		   FC_ASSERT(guard_account.guard_member_account != account_id_type(), "only guard member can do this operation.");
+		   auto asset_id = get_asset_id(symbol);
+		   account_multisig_create_operation op;
+		   op.addr = get_account(guard_account.guard_member_account).addr;
+		   op.account_id = get_account(guard_account.guard_member_account).get_id();
+
+		   op.new_address_cold = cold_address;
+		   op.new_pubkey_cold = cold_pubkey;
+		   op.new_address_hot = hot_address;
+		   op.new_pubkey_hot = hot_pubkey;
+		   op.crosschain_type = symbol;
+		   FC_ASSERT(_keys.find(op.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", op.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[op.addr]);
+		   op.signature = key->sign_compact(fc::sha256::hash(op.new_address_hot + op.new_address_cold));
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   auto res = sign_transaction(trx, broadcast);
+		   return res;
+
+	   }FC_CAPTURE_AND_RETHROW((from_account)(symbol)(hot_address)(hot_pubkey)(cold_address)(cold_pubkey)(broadcast))
+   }
    full_transaction update_asset_private_keys(const string& from_account, const string& symbol,const string& out_key_file,const string& encrypt_key, bool broadcast,bool use_brain_key=false)
    {
 	   try {
@@ -4395,6 +4423,12 @@ public:
 			   FC_ASSERT(eth_bind_account.size() != 0, "Must bind eth tunnel account first");
 			   std::string eth_tunnel_account = eth_bind_account.at(0)->bind_account;
 			   FC_ASSERT(eth_tunnel_account == tunnel_account, "erc tunnel account must consistent with eth tunnel account");
+		   }
+		   if (symbol == "USDT") {
+			   auto btc_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "BTC");
+			   FC_ASSERT(btc_bind_account.size() != 0, "Must bind btc tunnel account first");
+			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
+			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
 		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
@@ -4985,6 +5019,31 @@ public:
 		transaction.validate();
 		sign_transaction(transaction, true);
    }
+   std::string test(fc::variants param) {
+	   for (auto item : param)
+	   {
+		   if (item.is_string())
+		   {
+			   std::cout << item.as_string() << std::endl;
+		   }
+		   else if (item.is_int64())
+		   {
+			   std::cout << item.as_uint64() << std::endl;
+		   }
+		   
+	   }
+	   return "hello world";
+   }
+   fc::variant extra_imp(const fc::variant_object& param_list) {
+	   FC_ASSERT(param_list.contains("method"), "No method found");
+	   FC_ASSERT(param_list.contains("param"), "No param found");
+	   std::string method = param_list["method"].as_string();
+	   auto params= param_list["param"];
+	   if (method == "test"){
+		   auto ret = test(params.get_array());
+		   return fc::variant(ret);
+	   }
+   }
    string get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey)
    {
 	   FC_ASSERT(!is_locked());
@@ -5003,6 +5062,9 @@ public:
 	   if ((coldhot_op.asset_symbol == "ETH") || (coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos)) {
 		   handled_trx = crosschain_plugin->turn_trxs(fc::variant_object("eth_trx", coldhot_op.coldhot_trx_original_chain));
 	   }
+	   else if (coldhot_op.asset_symbol == "USDT"){
+		   handled_trx = crosschain_plugin->turn_trxs(fc::variant_object("turn_without_usdt_sign", coldhot_op.coldhot_trx_original_chain));
+	   }
 	   else {
 		   handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
 	   }
@@ -5015,8 +5077,17 @@ public:
 	   const account_object & account_obj = get_account(guard);
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
+	   std::string from_account = "";
+	   if (coldhot_op.asset_symbol == "USDT") {
+		   auto sep_pos = handled_trx.trxs.begin()->second.from_account.find('|');
+		   FC_ASSERT(sep_pos != handled_trx.trxs.begin()->second.from_account.npos, "USDT turn error");
+		   from_account = handled_trx.trxs.begin()->second.from_account.substr(0, sep_pos);
+	   }
+	   else {
+		   from_account = handled_trx.trxs.begin()->second.from_account;
+	   }
 	   for (auto multi_obj : multi_objs) {
-		   if (multi_obj->bind_account_hot == handled_trx.trxs.begin()->second.from_account) {
+		   if (multi_obj->bind_account_hot == from_account) {
 			   redeemScript = multi_obj->redeemScript_hot;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -5026,7 +5097,7 @@ public:
 			   }
 			   break;
 		   }
-		   if (multi_obj->bind_account_cold == handled_trx.trxs.begin()->second.from_account) {
+		   if (multi_obj->bind_account_cold == from_account) {
 			   redeemScript = multi_obj->redeemScript_cold;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -5116,6 +5187,9 @@ public:
 	   if ((coldhot_op.asset_symbol == "ETH") || (coldhot_op.asset_symbol.find("ERC") != coldhot_op.asset_symbol.npos)){
 		   handled_trx = crosschain_plugin->turn_trxs(fc::variant_object("eth_trx",coldhot_op.coldhot_trx_original_chain));
 	   }
+	   else if (coldhot_op.asset_symbol == "USDT") {
+		   handled_trx = crosschain_plugin->turn_trxs(fc::variant_object("turn_without_usdt_sign", coldhot_op.coldhot_trx_original_chain));
+	   }
 	   else {
 		   handled_trx = crosschain_plugin->turn_trxs(coldhot_op.coldhot_trx_original_chain);
 	   }
@@ -5128,8 +5202,16 @@ public:
 	   const account_object & account_obj = get_account(guard);
 	   const auto& guard_obj = _remote_db->get_guard_member_by_account(account_obj.get_id());
 	   auto guard_multi_address_objs = get_multi_address_obj(coldhot_op.asset_symbol, account_obj.id);
+	   std::string from_account = "";
+	   if (coldhot_op.asset_symbol == "USDT"){
+		   auto sep_pos = handled_trx.trxs.begin()->second.from_account.find('|');
+		   FC_ASSERT(sep_pos != handled_trx.trxs.begin()->second.from_account.npos,"USDT turn error");
+		   from_account = handled_trx.trxs.begin()->second.from_account.substr(0, sep_pos);
+	   } else {
+		   from_account = handled_trx.trxs.begin()->second.from_account;
+	   }
 	   for (auto multi_obj : multi_objs) {
-		   if (multi_obj->bind_account_hot == handled_trx.trxs.begin()->second.from_account) {
+		   if (multi_obj->bind_account_hot == from_account) {
 			   redeemScript = multi_obj->redeemScript_hot;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -5139,7 +5221,7 @@ public:
 			   }
 			   break;
 		   }
-		   if (multi_obj->bind_account_cold == handled_trx.trxs.begin()->second.from_account) {
+		   if (multi_obj->bind_account_cold == from_account) {
 			   redeemScript = multi_obj->redeemScript_cold;
 			   for (auto guard_multi_address_obj : guard_multi_address_objs) {
 				   if (guard_multi_address_obj->multisig_account_pair_object_id == multi_obj->id) {
@@ -7725,6 +7807,9 @@ std::string wallet_api::get_coldhot_trx_sig(const string& tx_id, const string& g
 {
 	return my->get_coldhot_trx_sig(tx_id, guard, keyfile, decryptkey);
 }
+fc::variant wallet_api::extra_imp(const fc::variant_object& param_list) {
+	return my->extra_imp(param_list);
+}
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);
@@ -8846,6 +8931,10 @@ graphene::chain::full_transaction wallet_api::update_asset_private_keys_with_bra
 }
 graphene::chain::full_transaction wallet_api::update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast) {
 	return my->update_asset_private_with_coldkeys(from_account, symbol, cold_address, cold_pubkey, broadcast);
+}
+graphene::chain::full_transaction wallet_api::update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address, const string& hot_pubkey, const string& cold_address, const string& cold_pubkey, bool broadcast)
+{
+	return my->update_asset_private_with_keys(from_account,symbol,hot_address,hot_pubkey,cold_address,cold_pubkey,true);
 }
 
 full_transaction wallet_api::transfer_from_cold_to_hot(const string& proposer, const string& from_account, const string& to_account, const string& amount, const string& asset_symbol,const string& memo,const int64_t& exception_time, bool broadcast)

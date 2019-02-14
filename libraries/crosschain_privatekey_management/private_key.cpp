@@ -1640,6 +1640,7 @@ namespace graphene { namespace privatekey_management {
 		crosschain_decode.insert(std::make_pair("HC", &graphene::privatekey_management::hc_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("ETH", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("ERC", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("USDT", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
 	}
 	crosschain_privatekey_base * crosschain_management::get_crosschain_prk(const std::string& name)
 	{
@@ -1650,6 +1651,11 @@ namespace graphene { namespace privatekey_management {
 		}
 
 		if (name == "BTC")
+		{
+			auto itr = crosschain_prks.insert(std::make_pair(name, new btc_privatekey()));
+			return itr.first->second;
+		}
+		else if (name == "USDT")
 		{
 			auto itr = crosschain_prks.insert(std::make_pair(name, new btc_privatekey()));
 			return itr.first->second;

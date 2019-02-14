@@ -462,6 +462,11 @@ namespace graphene {
 							continue;
 						}
 					}
+					else if (withop.asset_symbol == "USDT") {
+						if (dest_info[withop.asset_id].size() >= 1) {
+							continue;
+						}
+					}
 					else {
 						if (dest_info[withop.asset_id].size() > 20) {
 							continue;
@@ -571,6 +576,10 @@ namespace graphene {
 						}						
 						trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, temp_memo);
 						hdtrxs = hdl->turn_trxs(fc::variant_object("turn_without_eth_sign",trx_op.withdraw_source_trx));
+					}
+					else if(asset_symbol == "USDT"){
+						trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
+						hdtrxs = hdl->turn_trxs(fc::variant_object("turn_without_usdt_sign", trx_op.withdraw_source_trx));
 					}
 					else {
 						trx_op.withdraw_source_trx = hdl->create_multisig_transaction(multi_account_obj.bind_account_hot, one_asset.second, asset_symbol, memo_info[asset_symbol]);
@@ -1098,6 +1107,10 @@ namespace graphene {
 							trx_op.crosschain_trx_id = source_without_sign_trx["contract_addr"].as_string() + '|' + source_without_sign_trx["msg_prefix"].as_string();
 						}
 							
+					}
+					else if (with_sign_op.asset_symbol == "USDT")
+					{
+						trx_op.crosschain_trx_id = hdl->turn_trxs(fc::variant_object("turn_without_usdt_sign", trx_op.cross_chain_trx)).trxs.begin()->second.trx_id;
 					}
 					else {
 					trx_op.crosschain_trx_id = hdl->turn_trxs(trx_op.cross_chain_trx).trxs.begin()->second.trx_id;

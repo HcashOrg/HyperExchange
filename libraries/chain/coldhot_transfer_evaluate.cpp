@@ -58,7 +58,41 @@ namespace graphene {
 		void coldhot_transfer_evaluate::pay_fee(){
 
 		}
+		namespace coldhot_evaluate{
+		int split(const std::string& str, std::vector<std::string>& ret_, std::string sep)
+		{
+			if (str.empty())
+			{
+				return 0;
+			}
 
+			std::string tmp;
+			std::string::size_type pos_begin = str.find_first_not_of(sep);
+			std::string::size_type comma_pos = 0;
+
+			while (pos_begin != std::string::npos)
+			{
+				comma_pos = str.find(sep, pos_begin);
+				if (comma_pos != std::string::npos)
+				{
+					tmp = str.substr(pos_begin, comma_pos - pos_begin);
+					pos_begin = comma_pos + sep.length();
+				}
+				else
+				{
+					tmp = str.substr(pos_begin);
+					pos_begin = comma_pos;
+				}
+
+				if (!tmp.empty())
+				{
+					ret_.push_back(tmp);
+					tmp.clear();
+				}
+			}
+			return 0;
+		}
+		}
 		void_result coldhot_transfer_without_sign_evaluate::do_evaluate(const coldhot_transfer_without_sign_operation& o) {
 			try {
 				database& d = db();
@@ -99,6 +133,44 @@ namespace graphene {
 					mul_obj.set("turn_without_eth_sign", o.coldhot_trx_original_chain);
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object(mul_obj));
 				}
+				else if (o.asset_symbol == "USDT") {
+					
+					created_trx = crosschain_handle->turn_trxs(fc::variant_object("turn_without_usdt_sign", o.coldhot_trx_original_chain));
+					FC_ASSERT(created_trx.trxs.size() == 1, "USDT transaction count error");
+
+					auto to_accounts = created_trx.trxs.begin()->second.from_account;
+					std::vector<std::string> sep_vec;
+					coldhot_evaluate::split(to_accounts, sep_vec, "|");
+					FC_ASSERT((sep_vec.size() > 1 && sep_vec.size() <= 3), "Not USDT trx");
+					FC_ASSERT(sep_vec[0] != "-", "No from account get");
+					int toAccountCheck = 0;
+					std::string fee_change_address = "";
+					std::string usdt_to_address = "";
+					for (int i = 1; i < sep_vec.size(); ++i)
+					{
+						auto sep_pos = sep_vec[i].find(',');
+						FC_ASSERT(sep_pos != sep_vec[i].npos, "USDT turn error");
+						auto address = sep_vec[i].substr(0, sep_pos);
+						auto amount = fc::to_double(sep_vec[i].substr(sep_pos + 1));
+						FC_ASSERT(amount > 0, "USDT Amount error");
+						if (amount <= 0.00000546) {
+							toAccountCheck += 1;
+							usdt_to_address = address;
+						}
+						else {
+							fee_change_address = address;
+						}
+					}
+					FC_ASSERT(toAccountCheck == 1, "usdt doesnt get to_account");
+					FC_ASSERT(usdt_to_address != "", "usdt to address error");
+					auto multisig_usdt_obj = db().get_multisgi_account(usdt_to_address, o.asset_symbol);
+					FC_ASSERT(multisig_usdt_obj.valid(), "multisig address does not exist.");
+					if (fee_change_address != "")
+					{
+						auto multisig_obj = db().get_multisgi_account(fee_change_address, o.asset_symbol);
+						FC_ASSERT(multisig_obj.valid(), "multisig address does not exist.");
+					}
+				}
 				else if (o.asset_symbol == "ETH")
 				{
 					created_trx = crosschain_handle->turn_trxs(fc::variant_object("turn_without_eth_sign", o.coldhot_trx_original_chain));
@@ -138,7 +210,16 @@ namespace graphene {
 					FC_ASSERT(created_trx.trxs.count(coldhot_transfer_op.multi_account_deposit) == 1);
 					auto one_trx = created_trx.trxs[coldhot_transfer_op.multi_account_deposit];
 					FC_ASSERT(one_trx.to_account == coldhot_transfer_op.multi_account_deposit);
+					if (o.asset_symbol == "USDT") {
+						std::vector<std::string> sep_vec;
+						coldhot_evaluate::split(one_trx.from_account, sep_vec, "|");
+						FC_ASSERT((sep_vec.size() > 1 && sep_vec.size() <= 3), "Not USDT trx");
+						FC_ASSERT(sep_vec[0] != "-", "No from account get");
+						FC_ASSERT(sep_vec[0] == coldhot_transfer_op.multi_account_withdraw);
+					}
+					else {
 					FC_ASSERT(one_trx.from_account == coldhot_transfer_op.multi_account_withdraw);
+					}
 					const auto & asset_idx = db().get_index_type<asset_index>().indices().get<by_symbol>();
 					const auto asset_itr = asset_idx.find(coldhot_transfer_op.asset_symbol);
 					FC_ASSERT(asset_itr != asset_idx.end());

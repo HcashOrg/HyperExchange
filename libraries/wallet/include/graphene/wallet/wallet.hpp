@@ -2038,6 +2038,7 @@ class wallet_api
 	  full_transaction update_asset_private_keys(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_keys_with_brain_key(const string& from_account, const string& symbol, const string& out_key_file, const string& encrypt_key, bool broadcast = true);
 	  full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast);
+	  full_transaction update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address,const string& hot_pubkey,const string& cold_address, const string& cold_pubkey, bool broadcast);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
@@ -2114,6 +2115,20 @@ class wallet_api
 
 	  void send_coldhot_transfer_with_sign(const string& tx_id, const string& guard, const string& siging);
 	  string get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey);
+	  fc::variant extra_imp(const fc::variant_object& param_list);
+	  /*void testaaa1() {}
+	  void testaaa2() {}
+	  void testaaa3() {}
+	  void testaaa4() {}
+	  void testaaa5() {}
+	  void testaaa6() {}
+	  void testaaa7() {}
+	  void testaaa8() {}
+	  void testaaa9() {}
+	  void testaaa10() {}
+	  void testaaa11() {}
+	  void testaaa12() {}
+	  void testaaa13() {}*/
 };
 
 } }
@@ -2182,11 +2197,956 @@ FC_REFLECT_DERIVED( graphene::wallet::signed_block_with_info, (graphene::chain::
 
 FC_REFLECT( graphene::wallet::operation_detail, 
             (memo)(description)(op) )
-
+	/*
+	namespace fc {
+		template<typename Transform> 
+		struct vtable<graphene::wallet::wallet_api, Transform> : public std::enable_shared_from_this<vtable<graphene::wallet::wallet_api, Transform>> {
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::help)) help;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::info)) info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::about)) about;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::extra_imp)) extra_imp;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa1)) testaaa1;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa2)) testaaa2;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa3)) testaaa3;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa4)) testaaa4;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa5)) testaaa5;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa6)) testaaa6;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa7)) testaaa7;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa8)) testaaa8;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa9)) testaaa9;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa10)) testaaa10;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa11)) testaaa11;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa12)) testaaa12;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::testaaa13)) testaaa13;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::is_locked)) is_locked;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::is_new)) is_new;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_address_pay_back_balance)) get_address_pay_back_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::obtain_pay_back_balance)) obtain_pay_back_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::obtain_bonus_balance)) obtain_bonus_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_pass_combined_transaction)) senator_pass_combined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_pass_coldhot_combined_transaction)) senator_pass_coldhot_combined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock)) lock;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::unlock)) unlock;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_password)) set_password;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_private_keys)) dump_private_keys;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_private_key)) dump_private_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_my_accounts)) list_my_accounts;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_addr_balances)) get_addr_balances;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_balances)) get_account_balances;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_assets)) list_assets;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::import_key)) import_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_account)) register_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::upgrade_account)) upgrade_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_account)) wallet_create_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_change_eth_gas_price)) senator_change_eth_gas_price;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_eth_multi_account_trx)) get_eth_multi_account_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_transaction_id)) get_transaction_id;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_asset)) create_asset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_acquire_transaction)) get_acquire_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_asset)) update_asset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_bitasset)) update_bitasset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_asset_feed_producers)) update_asset_feed_producers;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::publish_asset_feed)) publish_asset_feed;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::publish_normal_asset_feed)) publish_normal_asset_feed;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_asset)) get_asset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_asset_imp)) get_asset_imp;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_senator_member)) create_senator_member;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_citizen)) get_citizen;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_senator_member)) get_senator_member;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_citizens)) list_citizens;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_senator_members)) list_senator_members;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_all_senators)) list_all_senators;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_citizen)) create_citizen;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_desired_citizen_and_senator_member_count)) set_desired_citizen_and_senator_member_count;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account)) get_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::change_account_name)) change_account_name;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::remove_local_account)) remove_local_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_id)) get_account_id;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_block)) get_block;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::change_acquire_plugin_num)) change_acquire_plugin_num;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_count)) get_account_count;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_history)) get_account_history;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::is_public_key_registered)) is_public_key_registered;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_global_properties)) get_global_properties;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_dynamic_global_properties)) get_dynamic_global_properties;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_object)) get_object;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_private_key)) get_private_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::load_wallet_file)) load_wallet_file;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::save_wallet_file)) save_wallet_file;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_change_acquire_trx)) senator_change_acquire_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::serialize_transaction)) serialize_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::sign_transaction)) sign_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_prototype_operation)) get_prototype_operation;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::propose_senator_pledge_change)) propose_senator_pledge_change;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::propose_pay_back_asset_rate_change)) propose_pay_back_asset_rate_change;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::propose_parameter_change)) propose_parameter_change;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::propose_coin_destory)) propose_coin_destory;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::propose_fee_change)) propose_fee_change;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::approve_proposal)) approve_proposal;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::network_add_nodes)) network_add_nodes;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::network_get_connected_peers)) network_get_connected_peers;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_public_key)) get_public_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_blind_accounts)) get_blind_accounts;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_my_blind_accounts)) get_my_blind_accounts;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_blind_balances)) get_blind_balances;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_blind_account)) create_blind_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::send_coldhot_transfer_with_sign)) send_coldhot_transfer_with_sign;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_coldhot_trx_sig)) get_coldhot_trx_sig;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_to_address)) transfer_to_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_to_account)) transfer_to_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_addr)) get_account_addr;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_proposal)) get_proposal;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_proposal_for_voter)) get_proposal_for_voter;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_citizen)) lock_balance_to_citizen;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_lock_balance)) senator_lock_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_citizen)) foreclose_balance_from_citizen;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_foreclose_balance)) senator_foreclose_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_senator_formal)) update_senator_formal;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_lock_balance)) get_account_lock_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_senator_lock_balance)) get_senator_lock_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_citizen_lock_balance)) get_citizen_lock_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::refund_request)) refund_request;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_cold_hot_uncreate_transaction)) cancel_cold_hot_uncreate_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_from_cold_to_hot)) transfer_from_cold_to_hot;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multi_account_senator)) get_multi_account_senator;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multisig_asset_tx)) get_multisig_asset_tx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::sign_multi_asset_trx)) sign_multi_asset_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_binding_account)) get_binding_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::withdraw_cross_chain_transaction)) withdraw_cross_chain_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::refund_uncombined_transaction)) refund_uncombined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::refund_combined_transaction)) refund_combined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_coldhot_uncombined_transaction)) cancel_coldhot_uncombined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_coldhot_combined_transaction)) cancel_coldhot_combined_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::eth_cancel_fail_transaction)) eth_cancel_fail_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_coldhot_eth_fail_transaction)) cancel_coldhot_eth_fail_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_senator_multi_account)) transfer_senator_multi_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_withdraw_crosschain_without_sign_transaction)) get_withdraw_crosschain_without_sign_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_coldhot_transaction)) get_coldhot_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_crosschain_transaction)) get_crosschain_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_crosschain_transaction_by_block_num)) get_crosschain_transaction_by_block_num;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_coldhot_transaction_by_blocknum)) get_coldhot_transaction_by_blocknum;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multi_address_obj)) get_multi_address_obj;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_asset)) wallet_create_asset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_erc_asset)) wallet_create_erc_asset;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_crosschain_symbol)) create_crosschain_symbol;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_crosschain_symbol_cold)) create_crosschain_symbol_cold;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::bind_tunnel_account)) bind_tunnel_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::unbind_tunnel_account)) unbind_tunnel_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_asset_private_keys)) update_asset_private_keys;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_asset_private_keys_with_brain_key)) update_asset_private_keys_with_brain_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::update_asset_private_with_coldkeys)) update_asset_private_with_coldkeys;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multisig_account_pair_by_id)) get_multisig_account_pair_by_id;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multisig_account_pair)) get_multisig_account_pair;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_sign_crosschain_transaction)) senator_sign_crosschain_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_sign_coldhot_transaction)) senator_sign_coldhot_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_sign_eths_multi_account_create_trx)) senator_sign_eths_multi_account_create_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_sign_eths_final_trx)) senator_sign_eths_final_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_changer_eth_singer_trx)) senator_changer_eth_singer_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_changer_eth_coldhot_singer_trx)) senator_changer_eth_coldhot_singer_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_sign_eths_coldhot_final_trx)) senator_sign_eths_coldhot_final_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::account_change_for_crosschain)) account_change_for_crosschain;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_current_multi_address_obj)) get_current_multi_address_obj;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_current_multi_address)) get_current_multi_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_contract)) register_contract;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_native_contract)) register_native_contract;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_contract_like)) register_contract_like;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::invoke_contract)) invoke_contract;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::invoke_contract_offline)) invoke_contract_offline;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::upgrade_contract)) upgrade_contract;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_info)) get_contract_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_simple_contract_info)) get_simple_contract_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_to_contract)) transfer_to_contract;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_balance)) get_contract_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_addresses_by_owner)) get_contract_addresses_by_owner;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contracts_by_owner)) get_contracts_by_owner;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contracts_hash_entry_by_owner)) get_contracts_hash_entry_by_owner;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_events)) get_contract_events;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_events_in_range)) get_contract_events_in_range;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_history)) get_contract_history;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_guarantee_order)) create_guarantee_order;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_guarantee_order)) list_guarantee_order;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_guarantee_id)) set_guarantee_id;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_guarantee_order)) cancel_guarantee_order;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::invoke_contract_testing)) invoke_contract_testing;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_to_contract_testing)) transfer_to_contract_testing;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_contract_testing)) register_contract_testing;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::register_native_contract_testing)) register_native_contract_testing;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::upgrade_contract_testing)) upgrade_contract_testing;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_registered)) get_contract_registered;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_storage_changed)) get_contract_storage_changed;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_contract_transfer_fee_proposal)) create_contract_transfer_fee_proposal;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_transaction)) get_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_transactions)) list_transactions;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_crosschain_private_key)) dump_crosschain_private_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_crosschain_private_keys)) dump_crosschain_private_keys;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_crosschain_symbol)) wallet_create_crosschain_symbol;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_crosschain_symbol_with_brain_key)) wallet_create_crosschain_symbol_with_brain_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::import_crosschain_key)) import_crosschain_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::decoderawtransaction)) decoderawtransaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::createrawtransaction)) createrawtransaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::signrawtransaction)) signrawtransaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_my_guarantee_order)) get_my_guarantee_order;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_contract_invoke_object)) get_contract_invoke_object;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_guarantee_order)) get_guarantee_order;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_appointed_publisher)) senator_appointed_publisher;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_appointed_crosschain_fee)) senator_appointed_crosschain_fee;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::remove_guarantee_id)) remove_guarantee_id;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::network_get_info)) network_get_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::start_citizen)) start_citizen;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_crosschain_transaction)) get_account_crosschain_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::witness_node_stop)) witness_node_stop;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_bonus_balance)) get_bonus_balance;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_appointed_lockbalance_senator)) senator_appointed_lockbalance_senator;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_citizen_lockbalance_info)) get_citizen_lockbalance_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_cancel_publisher)) senator_cancel_publisher;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_determine_withdraw_deposit)) senator_determine_withdraw_deposit;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lightwallet_broadcast)) lightwallet_broadcast;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lightwallet_get_refblock_info)) lightwallet_get_refblock_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::create_multisignature_address)) create_multisignature_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_first_contract_address)) get_first_contract_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_pubkey_from_priv)) get_pubkey_from_priv;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::sign_multisig_trx)) sign_multisig_trx;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::senator_determine_block_payment)) senator_determine_block_payment;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::transfer_from_to_address)) transfer_from_to_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::combine_transaction)) combine_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_multisig_address)) get_multisig_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_citizen_pledge_pay_back_rate)) set_citizen_pledge_pay_back_rate;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::list_active_citizens)) list_active_citizens;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::decode_multisig_transaction)) decode_multisig_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_pubkey_from_account)) get_pubkey_from_account;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_eth_signer)) get_eth_signer;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::citizen_referendum_for_senator)) citizen_referendum_for_senator;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_referendum_for_voter)) get_referendum_for_voter;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::referendum_accelerate_pledge)) referendum_accelerate_pledge;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::approve_referendum)) approve_referendum;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::proposal_block_address)) proposal_block_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::proposal_cancel_block_address)) proposal_cancel_block_address;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::decrypt_coldkeys)) decrypt_coldkeys;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_ntp_info)) get_ntp_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::ntp_update_time)) ntp_update_time;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_account_by_addr)) get_account_by_addr;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::start_mining)) start_mining;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::foreclose_balance_from_citizens)) foreclose_balance_from_citizens;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::lock_balance_to_citizens)) lock_balance_to_citizens;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::cancel_eth_sign_transaction)) cancel_eth_sign_transaction;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::dump_brain_key_usage_info)) dump_brain_key_usage_info;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::wallet_create_account_with_brain_key)) wallet_create_account_with_brain_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::derive_wif_key)) derive_wif_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::set_brain_key)) set_brain_key;
+			decltype(Transform::functor((graphene::wallet::wallet_api*)nullptr, &graphene::wallet::wallet_api::get_pending_transactions)) get_pending_transactions;
+			template<typename Visitor> 
+			void visit_other(Visitor&& v) {
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(help), help, &OtherType::help); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(info), info, &OtherType::info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(about), about, &OtherType::about); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(extra_imp), extra_imp, &OtherType::extra_imp); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa1), testaaa1, &OtherType::testaaa1); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa2), testaaa2, &OtherType::testaaa2); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa3), testaaa3, &OtherType::testaaa3); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa4), testaaa4, &OtherType::testaaa4); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa5), testaaa5, &OtherType::testaaa5); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa6), testaaa6, &OtherType::testaaa6); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa7), testaaa7, &OtherType::testaaa7); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa8), testaaa8, &OtherType::testaaa8); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa9), testaaa9, &OtherType::testaaa9); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa10), testaaa10, &OtherType::testaaa10); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa11), testaaa11, &OtherType::testaaa11); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa12), testaaa12, &OtherType::testaaa12); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(testaaa13), testaaa13, &OtherType::testaaa13); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(is_locked), is_locked, &OtherType::is_locked); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(is_new), is_new, &OtherType::is_new); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_address_pay_back_balance), get_address_pay_back_balance, &OtherType::get_address_pay_back_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(obtain_pay_back_balance), obtain_pay_back_balance, &OtherType::obtain_pay_back_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(obtain_bonus_balance), obtain_bonus_balance, &OtherType::obtain_bonus_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_pass_combined_transaction), senator_pass_combined_transaction, &OtherType::senator_pass_combined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_pass_coldhot_combined_transaction), senator_pass_coldhot_combined_transaction, &OtherType::senator_pass_coldhot_combined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(lock), lock, &OtherType::lock); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(unlock), unlock, &OtherType::unlock); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(set_password), set_password, &OtherType::set_password); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(dump_private_keys), dump_private_keys, &OtherType::dump_private_keys); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(dump_private_key), dump_private_key, &OtherType::dump_private_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_my_accounts), list_my_accounts, &OtherType::list_my_accounts); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_addr_balances), get_addr_balances, &OtherType::get_addr_balances); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_balances), get_account_balances, &OtherType::get_account_balances); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_assets), list_assets, &OtherType::list_assets); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(import_key), import_key, &OtherType::import_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_account), register_account, &OtherType::register_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(upgrade_account), upgrade_account, &OtherType::upgrade_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_account), wallet_create_account, &OtherType::wallet_create_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_change_eth_gas_price), senator_change_eth_gas_price, &OtherType::senator_change_eth_gas_price); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_eth_multi_account_trx), get_eth_multi_account_trx, &OtherType::get_eth_multi_account_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_transaction_id), get_transaction_id, &OtherType::get_transaction_id); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_asset), create_asset, &OtherType::create_asset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_acquire_transaction), get_acquire_transaction, &OtherType::get_acquire_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_asset), update_asset, &OtherType::update_asset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_bitasset), update_bitasset, &OtherType::update_bitasset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_asset_feed_producers), update_asset_feed_producers, &OtherType::update_asset_feed_producers); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(publish_asset_feed), publish_asset_feed, &OtherType::publish_asset_feed); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(publish_normal_asset_feed), publish_normal_asset_feed, &OtherType::publish_normal_asset_feed); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_asset), get_asset, &OtherType::get_asset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_asset_imp), get_asset_imp, &OtherType::get_asset_imp); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_senator_member), create_senator_member, &OtherType::create_senator_member); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_citizen), get_citizen, &OtherType::get_citizen); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_senator_member), get_senator_member, &OtherType::get_senator_member); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_citizens), list_citizens, &OtherType::list_citizens); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_senator_members), list_senator_members, &OtherType::list_senator_members); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_all_senators), list_all_senators, &OtherType::list_all_senators); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_citizen), create_citizen, &OtherType::create_citizen); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(set_desired_citizen_and_senator_member_count), set_desired_citizen_and_senator_member_count, &OtherType::set_desired_citizen_and_senator_member_count); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account), get_account, &OtherType::get_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(change_account_name), change_account_name, &OtherType::change_account_name); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(remove_local_account), remove_local_account, &OtherType::remove_local_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_id), get_account_id, &OtherType::get_account_id); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_block), get_block, &OtherType::get_block); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(change_acquire_plugin_num), change_acquire_plugin_num, &OtherType::change_acquire_plugin_num); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_count), get_account_count, &OtherType::get_account_count); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_history), get_account_history, &OtherType::get_account_history); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(is_public_key_registered), is_public_key_registered, &OtherType::is_public_key_registered); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_global_properties), get_global_properties, &OtherType::get_global_properties); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_dynamic_global_properties), get_dynamic_global_properties, &OtherType::get_dynamic_global_properties); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_object), get_object, &OtherType::get_object); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_private_key), get_private_key, &OtherType::get_private_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(load_wallet_file), load_wallet_file, &OtherType::load_wallet_file); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(save_wallet_file), save_wallet_file, &OtherType::save_wallet_file); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_change_acquire_trx), senator_change_acquire_trx, &OtherType::senator_change_acquire_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(serialize_transaction), serialize_transaction, &OtherType::serialize_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(sign_transaction), sign_transaction, &OtherType::sign_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_prototype_operation), get_prototype_operation, &OtherType::get_prototype_operation); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(propose_senator_pledge_change), propose_senator_pledge_change, &OtherType::propose_senator_pledge_change); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(propose_pay_back_asset_rate_change), propose_pay_back_asset_rate_change, &OtherType::propose_pay_back_asset_rate_change); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(propose_parameter_change), propose_parameter_change, &OtherType::propose_parameter_change); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(propose_coin_destory), propose_coin_destory, &OtherType::propose_coin_destory); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(propose_fee_change), propose_fee_change, &OtherType::propose_fee_change); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(approve_proposal), approve_proposal, &OtherType::approve_proposal); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(network_add_nodes), network_add_nodes, &OtherType::network_add_nodes); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(network_get_connected_peers), network_get_connected_peers, &OtherType::network_get_connected_peers); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_public_key), get_public_key, &OtherType::get_public_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_blind_accounts), get_blind_accounts, &OtherType::get_blind_accounts); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_my_blind_accounts), get_my_blind_accounts, &OtherType::get_my_blind_accounts); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_blind_balances), get_blind_balances, &OtherType::get_blind_balances); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_blind_account), create_blind_account, &OtherType::create_blind_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(send_coldhot_transfer_with_sign), send_coldhot_transfer_with_sign, &OtherType::send_coldhot_transfer_with_sign); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_coldhot_trx_sig), get_coldhot_trx_sig, &OtherType::get_coldhot_trx_sig); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_to_address), transfer_to_address, &OtherType::transfer_to_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_to_account), transfer_to_account, &OtherType::transfer_to_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_addr), get_account_addr, &OtherType::get_account_addr); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_proposal), get_proposal, &OtherType::get_proposal); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_proposal_for_voter), get_proposal_for_voter, &OtherType::get_proposal_for_voter); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(lock_balance_to_citizen), lock_balance_to_citizen, &OtherType::lock_balance_to_citizen); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_lock_balance), senator_lock_balance, &OtherType::senator_lock_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(foreclose_balance_from_citizen), foreclose_balance_from_citizen, &OtherType::foreclose_balance_from_citizen); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_foreclose_balance), senator_foreclose_balance, &OtherType::senator_foreclose_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_senator_formal), update_senator_formal, &OtherType::update_senator_formal); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_lock_balance), get_account_lock_balance, &OtherType::get_account_lock_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_senator_lock_balance), get_senator_lock_balance, &OtherType::get_senator_lock_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_citizen_lock_balance), get_citizen_lock_balance, &OtherType::get_citizen_lock_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(refund_request), refund_request, &OtherType::refund_request); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_cold_hot_uncreate_transaction), cancel_cold_hot_uncreate_transaction, &OtherType::cancel_cold_hot_uncreate_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_from_cold_to_hot), transfer_from_cold_to_hot, &OtherType::transfer_from_cold_to_hot); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multi_account_senator), get_multi_account_senator, &OtherType::get_multi_account_senator); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multisig_asset_tx), get_multisig_asset_tx, &OtherType::get_multisig_asset_tx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(sign_multi_asset_trx), sign_multi_asset_trx, &OtherType::sign_multi_asset_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_binding_account), get_binding_account, &OtherType::get_binding_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(withdraw_cross_chain_transaction), withdraw_cross_chain_transaction, &OtherType::withdraw_cross_chain_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(refund_uncombined_transaction), refund_uncombined_transaction, &OtherType::refund_uncombined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(refund_combined_transaction), refund_combined_transaction, &OtherType::refund_combined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_coldhot_uncombined_transaction), cancel_coldhot_uncombined_transaction, &OtherType::cancel_coldhot_uncombined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_coldhot_combined_transaction), cancel_coldhot_combined_transaction, &OtherType::cancel_coldhot_combined_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(eth_cancel_fail_transaction), eth_cancel_fail_transaction, &OtherType::eth_cancel_fail_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_coldhot_eth_fail_transaction), cancel_coldhot_eth_fail_transaction, &OtherType::cancel_coldhot_eth_fail_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_senator_multi_account), transfer_senator_multi_account, &OtherType::transfer_senator_multi_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_withdraw_crosschain_without_sign_transaction), get_withdraw_crosschain_without_sign_transaction, &OtherType::get_withdraw_crosschain_without_sign_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_coldhot_transaction), get_coldhot_transaction, &OtherType::get_coldhot_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_crosschain_transaction), get_crosschain_transaction, &OtherType::get_crosschain_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_crosschain_transaction_by_block_num), get_crosschain_transaction_by_block_num, &OtherType::get_crosschain_transaction_by_block_num); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_coldhot_transaction_by_blocknum), get_coldhot_transaction_by_blocknum, &OtherType::get_coldhot_transaction_by_blocknum); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multi_address_obj), get_multi_address_obj, &OtherType::get_multi_address_obj); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_asset), wallet_create_asset, &OtherType::wallet_create_asset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_erc_asset), wallet_create_erc_asset, &OtherType::wallet_create_erc_asset); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_crosschain_symbol), create_crosschain_symbol, &OtherType::create_crosschain_symbol); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_crosschain_symbol_cold), create_crosschain_symbol_cold, &OtherType::create_crosschain_symbol_cold); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(bind_tunnel_account), bind_tunnel_account, &OtherType::bind_tunnel_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(unbind_tunnel_account), unbind_tunnel_account, &OtherType::unbind_tunnel_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_asset_private_keys), update_asset_private_keys, &OtherType::update_asset_private_keys); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_asset_private_keys_with_brain_key), update_asset_private_keys_with_brain_key, &OtherType::update_asset_private_keys_with_brain_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(update_asset_private_with_coldkeys), update_asset_private_with_coldkeys, &OtherType::update_asset_private_with_coldkeys); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multisig_account_pair_by_id), get_multisig_account_pair_by_id, &OtherType::get_multisig_account_pair_by_id); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multisig_account_pair), get_multisig_account_pair, &OtherType::get_multisig_account_pair); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_sign_crosschain_transaction), senator_sign_crosschain_transaction, &OtherType::senator_sign_crosschain_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_sign_coldhot_transaction), senator_sign_coldhot_transaction, &OtherType::senator_sign_coldhot_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_sign_eths_multi_account_create_trx), senator_sign_eths_multi_account_create_trx, &OtherType::senator_sign_eths_multi_account_create_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_sign_eths_final_trx), senator_sign_eths_final_trx, &OtherType::senator_sign_eths_final_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_changer_eth_singer_trx), senator_changer_eth_singer_trx, &OtherType::senator_changer_eth_singer_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_changer_eth_coldhot_singer_trx), senator_changer_eth_coldhot_singer_trx, &OtherType::senator_changer_eth_coldhot_singer_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_sign_eths_coldhot_final_trx), senator_sign_eths_coldhot_final_trx, &OtherType::senator_sign_eths_coldhot_final_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(account_change_for_crosschain), account_change_for_crosschain, &OtherType::account_change_for_crosschain); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_current_multi_address_obj), get_current_multi_address_obj, &OtherType::get_current_multi_address_obj); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_current_multi_address), get_current_multi_address, &OtherType::get_current_multi_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_contract), register_contract, &OtherType::register_contract); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_native_contract), register_native_contract, &OtherType::register_native_contract); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_contract_like), register_contract_like, &OtherType::register_contract_like); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(invoke_contract), invoke_contract, &OtherType::invoke_contract); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(invoke_contract_offline), invoke_contract_offline, &OtherType::invoke_contract_offline); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(upgrade_contract), upgrade_contract, &OtherType::upgrade_contract); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_info), get_contract_info, &OtherType::get_contract_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_simple_contract_info), get_simple_contract_info, &OtherType::get_simple_contract_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_to_contract), transfer_to_contract, &OtherType::transfer_to_contract); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_balance), get_contract_balance, &OtherType::get_contract_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_addresses_by_owner), get_contract_addresses_by_owner, &OtherType::get_contract_addresses_by_owner); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contracts_by_owner), get_contracts_by_owner, &OtherType::get_contracts_by_owner); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contracts_hash_entry_by_owner), get_contracts_hash_entry_by_owner, &OtherType::get_contracts_hash_entry_by_owner); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_events), get_contract_events, &OtherType::get_contract_events); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_events_in_range), get_contract_events_in_range, &OtherType::get_contract_events_in_range); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_history), get_contract_history, &OtherType::get_contract_history); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_guarantee_order), create_guarantee_order, &OtherType::create_guarantee_order); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_guarantee_order), list_guarantee_order, &OtherType::list_guarantee_order); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(set_guarantee_id), set_guarantee_id, &OtherType::set_guarantee_id); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_guarantee_order), cancel_guarantee_order, &OtherType::cancel_guarantee_order); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(invoke_contract_testing), invoke_contract_testing, &OtherType::invoke_contract_testing); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_to_contract_testing), transfer_to_contract_testing, &OtherType::transfer_to_contract_testing); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_contract_testing), register_contract_testing, &OtherType::register_contract_testing); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(register_native_contract_testing), register_native_contract_testing, &OtherType::register_native_contract_testing); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(upgrade_contract_testing), upgrade_contract_testing, &OtherType::upgrade_contract_testing); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_registered), get_contract_registered, &OtherType::get_contract_registered); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_storage_changed), get_contract_storage_changed, &OtherType::get_contract_storage_changed); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_contract_transfer_fee_proposal), create_contract_transfer_fee_proposal, &OtherType::create_contract_transfer_fee_proposal); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_transaction), get_transaction, &OtherType::get_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_transactions), list_transactions, &OtherType::list_transactions); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(dump_crosschain_private_key), dump_crosschain_private_key, &OtherType::dump_crosschain_private_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(dump_crosschain_private_keys), dump_crosschain_private_keys, &OtherType::dump_crosschain_private_keys); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_crosschain_symbol), wallet_create_crosschain_symbol, &OtherType::wallet_create_crosschain_symbol); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_crosschain_symbol_with_brain_key), wallet_create_crosschain_symbol_with_brain_key, &OtherType::wallet_create_crosschain_symbol_with_brain_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(import_crosschain_key), import_crosschain_key, &OtherType::import_crosschain_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(decoderawtransaction), decoderawtransaction, &OtherType::decoderawtransaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(createrawtransaction), createrawtransaction, &OtherType::createrawtransaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(signrawtransaction), signrawtransaction, &OtherType::signrawtransaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_my_guarantee_order), get_my_guarantee_order, &OtherType::get_my_guarantee_order); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_contract_invoke_object), get_contract_invoke_object, &OtherType::get_contract_invoke_object); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_guarantee_order), get_guarantee_order, &OtherType::get_guarantee_order); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_appointed_publisher), senator_appointed_publisher, &OtherType::senator_appointed_publisher); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_appointed_crosschain_fee), senator_appointed_crosschain_fee, &OtherType::senator_appointed_crosschain_fee); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(remove_guarantee_id), remove_guarantee_id, &OtherType::remove_guarantee_id); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(network_get_info), network_get_info, &OtherType::network_get_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(start_citizen), start_citizen, &OtherType::start_citizen); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_crosschain_transaction), get_account_crosschain_transaction, &OtherType::get_account_crosschain_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(witness_node_stop), witness_node_stop, &OtherType::witness_node_stop); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_bonus_balance), get_bonus_balance, &OtherType::get_bonus_balance); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_appointed_lockbalance_senator), senator_appointed_lockbalance_senator, &OtherType::senator_appointed_lockbalance_senator); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_citizen_lockbalance_info), get_citizen_lockbalance_info, &OtherType::get_citizen_lockbalance_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_cancel_publisher), senator_cancel_publisher, &OtherType::senator_cancel_publisher); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_determine_withdraw_deposit), senator_determine_withdraw_deposit, &OtherType::senator_determine_withdraw_deposit); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(lightwallet_broadcast), lightwallet_broadcast, &OtherType::lightwallet_broadcast); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(lightwallet_get_refblock_info), lightwallet_get_refblock_info, &OtherType::lightwallet_get_refblock_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(create_multisignature_address), create_multisignature_address, &OtherType::create_multisignature_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_first_contract_address), get_first_contract_address, &OtherType::get_first_contract_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_pubkey_from_priv), get_pubkey_from_priv, &OtherType::get_pubkey_from_priv); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(sign_multisig_trx), sign_multisig_trx, &OtherType::sign_multisig_trx); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(senator_determine_block_payment), senator_determine_block_payment, &OtherType::senator_determine_block_payment); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(transfer_from_to_address), transfer_from_to_address, &OtherType::transfer_from_to_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(combine_transaction), combine_transaction, &OtherType::combine_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_multisig_address), get_multisig_address, &OtherType::get_multisig_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(set_citizen_pledge_pay_back_rate), set_citizen_pledge_pay_back_rate, &OtherType::set_citizen_pledge_pay_back_rate); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(list_active_citizens), list_active_citizens, &OtherType::list_active_citizens); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(decode_multisig_transaction), decode_multisig_transaction, &OtherType::decode_multisig_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_pubkey_from_account), get_pubkey_from_account, &OtherType::get_pubkey_from_account); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_eth_signer), get_eth_signer, &OtherType::get_eth_signer); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(citizen_referendum_for_senator), citizen_referendum_for_senator, &OtherType::citizen_referendum_for_senator); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_referendum_for_voter), get_referendum_for_voter, &OtherType::get_referendum_for_voter); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(referendum_accelerate_pledge), referendum_accelerate_pledge, &OtherType::referendum_accelerate_pledge); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(approve_referendum), approve_referendum, &OtherType::approve_referendum); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(proposal_block_address), proposal_block_address, &OtherType::proposal_block_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(proposal_cancel_block_address), proposal_cancel_block_address, &OtherType::proposal_cancel_block_address); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(decrypt_coldkeys), decrypt_coldkeys, &OtherType::decrypt_coldkeys); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_ntp_info), get_ntp_info, &OtherType::get_ntp_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(ntp_update_time), ntp_update_time, &OtherType::ntp_update_time); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_account_by_addr), get_account_by_addr, &OtherType::get_account_by_addr); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(start_mining), start_mining, &OtherType::start_mining); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(foreclose_balance_from_citizens), foreclose_balance_from_citizens, &OtherType::foreclose_balance_from_citizens); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(lock_balance_to_citizens), lock_balance_to_citizens, &OtherType::lock_balance_to_citizens); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(cancel_eth_sign_transaction), cancel_eth_sign_transaction, &OtherType::cancel_eth_sign_transaction); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(dump_brain_key_usage_info), dump_brain_key_usage_info, &OtherType::dump_brain_key_usage_info); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(wallet_create_account_with_brain_key), wallet_create_account_with_brain_key, &OtherType::wallet_create_account_with_brain_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(derive_wif_key), derive_wif_key, &OtherType::derive_wif_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(set_brain_key), set_brain_key, &OtherType::set_brain_key); }
+				{ typedef typename Visitor::other_type OtherType;
+				v(BOOST_PP_STRINGIZE(get_pending_transactions), get_pending_transactions, &OtherType::get_pending_transactions); }
+		}
+			template<typename Visitor> 
+				void visit(Visitor&& v) {
+					v(BOOST_PP_STRINGIZE(help), help);
+					v(BOOST_PP_STRINGIZE(info), info);
+					v(BOOST_PP_STRINGIZE(about), about);
+					v(BOOST_PP_STRINGIZE(extra_imp), extra_imp);
+					v(BOOST_PP_STRINGIZE(testaaa1), testaaa1);
+					v(BOOST_PP_STRINGIZE(testaaa2), testaaa2);
+					v(BOOST_PP_STRINGIZE(testaaa3), testaaa3);
+					v(BOOST_PP_STRINGIZE(testaaa4), testaaa4);
+					v(BOOST_PP_STRINGIZE(testaaa5), testaaa5);
+					v(BOOST_PP_STRINGIZE(testaaa6), testaaa6);
+					v(BOOST_PP_STRINGIZE(testaaa7), testaaa7);
+					v(BOOST_PP_STRINGIZE(testaaa8), testaaa8);
+					v(BOOST_PP_STRINGIZE(testaaa9), testaaa9);
+					v(BOOST_PP_STRINGIZE(testaaa10), testaaa10);
+					v(BOOST_PP_STRINGIZE(testaaa11), testaaa11);
+					v(BOOST_PP_STRINGIZE(testaaa12), testaaa12);
+					v(BOOST_PP_STRINGIZE(testaaa13), testaaa13);
+					v(BOOST_PP_STRINGIZE(is_locked), is_locked);
+					v(BOOST_PP_STRINGIZE(is_new), is_new);
+					v(BOOST_PP_STRINGIZE(get_address_pay_back_balance), get_address_pay_back_balance);
+					v(BOOST_PP_STRINGIZE(obtain_pay_back_balance), obtain_pay_back_balance);
+					v(BOOST_PP_STRINGIZE(obtain_bonus_balance), obtain_bonus_balance);
+					v(BOOST_PP_STRINGIZE(senator_pass_combined_transaction), senator_pass_combined_transaction);
+					v(BOOST_PP_STRINGIZE(senator_pass_coldhot_combined_transaction), senator_pass_coldhot_combined_transaction);
+					v(BOOST_PP_STRINGIZE(lock), lock);
+					v(BOOST_PP_STRINGIZE(unlock), unlock);
+					v(BOOST_PP_STRINGIZE(set_password), set_password);
+					v(BOOST_PP_STRINGIZE(dump_private_keys), dump_private_keys);
+					v(BOOST_PP_STRINGIZE(dump_private_key), dump_private_key);
+					v(BOOST_PP_STRINGIZE(list_my_accounts), list_my_accounts);
+					v(BOOST_PP_STRINGIZE(get_addr_balances), get_addr_balances);
+					v(BOOST_PP_STRINGIZE(get_account_balances), get_account_balances);
+					v(BOOST_PP_STRINGIZE(list_assets), list_assets);
+					v(BOOST_PP_STRINGIZE(import_key), import_key);
+					v(BOOST_PP_STRINGIZE(register_account), register_account);
+					v(BOOST_PP_STRINGIZE(upgrade_account), upgrade_account);
+					v(BOOST_PP_STRINGIZE(wallet_create_account), wallet_create_account);
+					v(BOOST_PP_STRINGIZE(senator_change_eth_gas_price), senator_change_eth_gas_price);
+					v(BOOST_PP_STRINGIZE(get_eth_multi_account_trx), get_eth_multi_account_trx);
+					v(BOOST_PP_STRINGIZE(get_transaction_id), get_transaction_id);
+					v(BOOST_PP_STRINGIZE(create_asset), create_asset);
+					v(BOOST_PP_STRINGIZE(get_acquire_transaction), get_acquire_transaction);
+					v(BOOST_PP_STRINGIZE(update_asset), update_asset);
+					v(BOOST_PP_STRINGIZE(update_bitasset), update_bitasset);
+					v(BOOST_PP_STRINGIZE(update_asset_feed_producers), update_asset_feed_producers);
+					v(BOOST_PP_STRINGIZE(publish_asset_feed), publish_asset_feed);
+					v(BOOST_PP_STRINGIZE(publish_normal_asset_feed), publish_normal_asset_feed);
+					v(BOOST_PP_STRINGIZE(get_asset), get_asset);
+					v(BOOST_PP_STRINGIZE(get_asset_imp), get_asset_imp);
+					v(BOOST_PP_STRINGIZE(create_senator_member), create_senator_member);
+					v(BOOST_PP_STRINGIZE(get_citizen), get_citizen);
+					v(BOOST_PP_STRINGIZE(get_senator_member), get_senator_member);
+					v(BOOST_PP_STRINGIZE(list_citizens), list_citizens);
+					v(BOOST_PP_STRINGIZE(list_senator_members), list_senator_members);
+					v(BOOST_PP_STRINGIZE(list_all_senators), list_all_senators);
+					v(BOOST_PP_STRINGIZE(create_citizen), create_citizen);
+					v(BOOST_PP_STRINGIZE(set_desired_citizen_and_senator_member_count), set_desired_citizen_and_senator_member_count);
+					v(BOOST_PP_STRINGIZE(get_account), get_account);
+					v(BOOST_PP_STRINGIZE(change_account_name), change_account_name);
+					v(BOOST_PP_STRINGIZE(remove_local_account), remove_local_account);
+					v(BOOST_PP_STRINGIZE(get_account_id), get_account_id);
+					v(BOOST_PP_STRINGIZE(get_block), get_block);
+					v(BOOST_PP_STRINGIZE(change_acquire_plugin_num), change_acquire_plugin_num);
+					v(BOOST_PP_STRINGIZE(get_account_count), get_account_count);
+					v(BOOST_PP_STRINGIZE(get_account_history), get_account_history);
+					v(BOOST_PP_STRINGIZE(is_public_key_registered), is_public_key_registered);
+					v(BOOST_PP_STRINGIZE(get_global_properties), get_global_properties);
+					v(BOOST_PP_STRINGIZE(get_dynamic_global_properties), get_dynamic_global_properties);
+					v(BOOST_PP_STRINGIZE(get_object), get_object);
+					v(BOOST_PP_STRINGIZE(get_private_key), get_private_key);
+					v(BOOST_PP_STRINGIZE(load_wallet_file), load_wallet_file);
+					v(BOOST_PP_STRINGIZE(save_wallet_file), save_wallet_file);
+					v(BOOST_PP_STRINGIZE(senator_change_acquire_trx), senator_change_acquire_trx);
+					v(BOOST_PP_STRINGIZE(serialize_transaction), serialize_transaction);
+					v(BOOST_PP_STRINGIZE(sign_transaction), sign_transaction);
+					v(BOOST_PP_STRINGIZE(get_prototype_operation), get_prototype_operation);
+					v(BOOST_PP_STRINGIZE(propose_senator_pledge_change), propose_senator_pledge_change);
+					v(BOOST_PP_STRINGIZE(propose_pay_back_asset_rate_change), propose_pay_back_asset_rate_change);
+					v(BOOST_PP_STRINGIZE(propose_parameter_change), propose_parameter_change);
+					v(BOOST_PP_STRINGIZE(propose_coin_destory), propose_coin_destory);
+					v(BOOST_PP_STRINGIZE(propose_fee_change), propose_fee_change);
+					v(BOOST_PP_STRINGIZE(approve_proposal), approve_proposal);
+					v(BOOST_PP_STRINGIZE(network_add_nodes), network_add_nodes);
+					v(BOOST_PP_STRINGIZE(network_get_connected_peers), network_get_connected_peers);
+					v(BOOST_PP_STRINGIZE(get_public_key), get_public_key);
+					v(BOOST_PP_STRINGIZE(get_blind_accounts), get_blind_accounts);
+					v(BOOST_PP_STRINGIZE(get_my_blind_accounts), get_my_blind_accounts);
+					v(BOOST_PP_STRINGIZE(get_blind_balances), get_blind_balances);
+					v(BOOST_PP_STRINGIZE(create_blind_account), create_blind_account);
+					v(BOOST_PP_STRINGIZE(send_coldhot_transfer_with_sign), send_coldhot_transfer_with_sign);
+					v(BOOST_PP_STRINGIZE(get_coldhot_trx_sig), get_coldhot_trx_sig);
+					v(BOOST_PP_STRINGIZE(transfer_to_address), transfer_to_address);
+					v(BOOST_PP_STRINGIZE(transfer_to_account), transfer_to_account);
+					v(BOOST_PP_STRINGIZE(get_account_addr), get_account_addr);
+					v(BOOST_PP_STRINGIZE(get_proposal), get_proposal);
+					v(BOOST_PP_STRINGIZE(get_proposal_for_voter), get_proposal_for_voter);
+					v(BOOST_PP_STRINGIZE(lock_balance_to_citizen), lock_balance_to_citizen);
+					v(BOOST_PP_STRINGIZE(senator_lock_balance), senator_lock_balance);
+					v(BOOST_PP_STRINGIZE(foreclose_balance_from_citizen), foreclose_balance_from_citizen);
+					v(BOOST_PP_STRINGIZE(senator_foreclose_balance), senator_foreclose_balance);
+					v(BOOST_PP_STRINGIZE(update_senator_formal), update_senator_formal);
+					v(BOOST_PP_STRINGIZE(get_account_lock_balance), get_account_lock_balance);
+					v(BOOST_PP_STRINGIZE(get_senator_lock_balance), get_senator_lock_balance);
+					v(BOOST_PP_STRINGIZE(get_citizen_lock_balance), get_citizen_lock_balance);
+					v(BOOST_PP_STRINGIZE(refund_request), refund_request);
+					v(BOOST_PP_STRINGIZE(cancel_cold_hot_uncreate_transaction), cancel_cold_hot_uncreate_transaction);
+					v(BOOST_PP_STRINGIZE(transfer_from_cold_to_hot), transfer_from_cold_to_hot);
+					v(BOOST_PP_STRINGIZE(get_multi_account_senator), get_multi_account_senator);
+					v(BOOST_PP_STRINGIZE(get_multisig_asset_tx), get_multisig_asset_tx);
+					v(BOOST_PP_STRINGIZE(sign_multi_asset_trx), sign_multi_asset_trx);
+					v(BOOST_PP_STRINGIZE(get_binding_account), get_binding_account);
+					v(BOOST_PP_STRINGIZE(withdraw_cross_chain_transaction), withdraw_cross_chain_transaction);
+					v(BOOST_PP_STRINGIZE(refund_uncombined_transaction), refund_uncombined_transaction);
+					v(BOOST_PP_STRINGIZE(refund_combined_transaction), refund_combined_transaction);
+					v(BOOST_PP_STRINGIZE(cancel_coldhot_uncombined_transaction), cancel_coldhot_uncombined_transaction);
+					v(BOOST_PP_STRINGIZE(cancel_coldhot_combined_transaction), cancel_coldhot_combined_transaction);
+					v(BOOST_PP_STRINGIZE(eth_cancel_fail_transaction), eth_cancel_fail_transaction);
+					v(BOOST_PP_STRINGIZE(cancel_coldhot_eth_fail_transaction), cancel_coldhot_eth_fail_transaction);
+					v(BOOST_PP_STRINGIZE(transfer_senator_multi_account), transfer_senator_multi_account);
+					v(BOOST_PP_STRINGIZE(get_withdraw_crosschain_without_sign_transaction), get_withdraw_crosschain_without_sign_transaction);
+					v(BOOST_PP_STRINGIZE(get_coldhot_transaction), get_coldhot_transaction);
+					v(BOOST_PP_STRINGIZE(get_crosschain_transaction), get_crosschain_transaction);
+					v(BOOST_PP_STRINGIZE(get_crosschain_transaction_by_block_num), get_crosschain_transaction_by_block_num);
+					v(BOOST_PP_STRINGIZE(get_coldhot_transaction_by_blocknum), get_coldhot_transaction_by_blocknum);
+					v(BOOST_PP_STRINGIZE(get_multi_address_obj), get_multi_address_obj);
+					v(BOOST_PP_STRINGIZE(wallet_create_asset), wallet_create_asset);
+					v(BOOST_PP_STRINGIZE(wallet_create_erc_asset), wallet_create_erc_asset);
+					v(BOOST_PP_STRINGIZE(create_crosschain_symbol), create_crosschain_symbol);
+					v(BOOST_PP_STRINGIZE(create_crosschain_symbol_cold), create_crosschain_symbol_cold);
+					v(BOOST_PP_STRINGIZE(bind_tunnel_account), bind_tunnel_account);
+					v(BOOST_PP_STRINGIZE(unbind_tunnel_account), unbind_tunnel_account);
+					v(BOOST_PP_STRINGIZE(update_asset_private_keys), update_asset_private_keys);
+					v(BOOST_PP_STRINGIZE(update_asset_private_keys_with_brain_key), update_asset_private_keys_with_brain_key);
+					v(BOOST_PP_STRINGIZE(update_asset_private_with_coldkeys), update_asset_private_with_coldkeys);
+					v(BOOST_PP_STRINGIZE(get_multisig_account_pair_by_id), get_multisig_account_pair_by_id);
+					v(BOOST_PP_STRINGIZE(get_multisig_account_pair), get_multisig_account_pair);
+					v(BOOST_PP_STRINGIZE(senator_sign_crosschain_transaction), senator_sign_crosschain_transaction);
+					v(BOOST_PP_STRINGIZE(senator_sign_coldhot_transaction), senator_sign_coldhot_transaction);
+					v(BOOST_PP_STRINGIZE(senator_sign_eths_multi_account_create_trx), senator_sign_eths_multi_account_create_trx);
+					v(BOOST_PP_STRINGIZE(senator_sign_eths_final_trx), senator_sign_eths_final_trx);
+					v(BOOST_PP_STRINGIZE(senator_changer_eth_singer_trx), senator_changer_eth_singer_trx);
+					v(BOOST_PP_STRINGIZE(senator_changer_eth_coldhot_singer_trx), senator_changer_eth_coldhot_singer_trx);
+					v(BOOST_PP_STRINGIZE(senator_sign_eths_coldhot_final_trx), senator_sign_eths_coldhot_final_trx);
+					v(BOOST_PP_STRINGIZE(account_change_for_crosschain), account_change_for_crosschain);
+					v(BOOST_PP_STRINGIZE(get_current_multi_address_obj), get_current_multi_address_obj);
+					v(BOOST_PP_STRINGIZE(get_current_multi_address), get_current_multi_address);
+					v(BOOST_PP_STRINGIZE(register_contract), register_contract);
+					v(BOOST_PP_STRINGIZE(register_native_contract), register_native_contract);
+					v(BOOST_PP_STRINGIZE(register_contract_like), register_contract_like);
+					v(BOOST_PP_STRINGIZE(invoke_contract), invoke_contract);
+					v(BOOST_PP_STRINGIZE(invoke_contract_offline), invoke_contract_offline);
+					v(BOOST_PP_STRINGIZE(upgrade_contract), upgrade_contract);
+					v(BOOST_PP_STRINGIZE(get_contract_info), get_contract_info);
+					v(BOOST_PP_STRINGIZE(get_simple_contract_info), get_simple_contract_info);
+					v(BOOST_PP_STRINGIZE(transfer_to_contract), transfer_to_contract);
+					v(BOOST_PP_STRINGIZE(get_contract_balance), get_contract_balance);
+					v(BOOST_PP_STRINGIZE(get_contract_addresses_by_owner), get_contract_addresses_by_owner);
+					v(BOOST_PP_STRINGIZE(get_contracts_by_owner), get_contracts_by_owner);
+					v(BOOST_PP_STRINGIZE(get_contracts_hash_entry_by_owner), get_contracts_hash_entry_by_owner);
+					v(BOOST_PP_STRINGIZE(get_contract_events), get_contract_events);
+					v(BOOST_PP_STRINGIZE(get_contract_events_in_range), get_contract_events_in_range);
+					v(BOOST_PP_STRINGIZE(get_contract_history), get_contract_history);
+					v(BOOST_PP_STRINGIZE(create_guarantee_order), create_guarantee_order);
+					v(BOOST_PP_STRINGIZE(list_guarantee_order), list_guarantee_order);
+					v(BOOST_PP_STRINGIZE(set_guarantee_id), set_guarantee_id);
+					v(BOOST_PP_STRINGIZE(cancel_guarantee_order), cancel_guarantee_order);
+					v(BOOST_PP_STRINGIZE(invoke_contract_testing), invoke_contract_testing);
+					v(BOOST_PP_STRINGIZE(transfer_to_contract_testing), transfer_to_contract_testing);
+					v(BOOST_PP_STRINGIZE(register_contract_testing), register_contract_testing);
+					v(BOOST_PP_STRINGIZE(register_native_contract_testing), register_native_contract_testing);
+					v(BOOST_PP_STRINGIZE(upgrade_contract_testing), upgrade_contract_testing);
+					v(BOOST_PP_STRINGIZE(get_contract_registered), get_contract_registered);
+					v(BOOST_PP_STRINGIZE(get_contract_storage_changed), get_contract_storage_changed);
+					v(BOOST_PP_STRINGIZE(create_contract_transfer_fee_proposal), create_contract_transfer_fee_proposal);
+					v(BOOST_PP_STRINGIZE(get_transaction), get_transaction);
+					v(BOOST_PP_STRINGIZE(list_transactions), list_transactions);
+					v(BOOST_PP_STRINGIZE(dump_crosschain_private_key), dump_crosschain_private_key);
+					v(BOOST_PP_STRINGIZE(dump_crosschain_private_keys), dump_crosschain_private_keys);
+					v(BOOST_PP_STRINGIZE(wallet_create_crosschain_symbol), wallet_create_crosschain_symbol);
+					v(BOOST_PP_STRINGIZE(wallet_create_crosschain_symbol_with_brain_key), wallet_create_crosschain_symbol_with_brain_key);
+					v(BOOST_PP_STRINGIZE(import_crosschain_key), import_crosschain_key);
+					v(BOOST_PP_STRINGIZE(decoderawtransaction), decoderawtransaction);
+					v(BOOST_PP_STRINGIZE(createrawtransaction), createrawtransaction);
+					v(BOOST_PP_STRINGIZE(signrawtransaction), signrawtransaction);
+					v(BOOST_PP_STRINGIZE(get_my_guarantee_order), get_my_guarantee_order);
+					v(BOOST_PP_STRINGIZE(get_contract_invoke_object), get_contract_invoke_object);
+					v(BOOST_PP_STRINGIZE(get_guarantee_order), get_guarantee_order);
+					v(BOOST_PP_STRINGIZE(senator_appointed_publisher), senator_appointed_publisher);
+					v(BOOST_PP_STRINGIZE(senator_appointed_crosschain_fee), senator_appointed_crosschain_fee);
+					v(BOOST_PP_STRINGIZE(remove_guarantee_id), remove_guarantee_id);
+					v(BOOST_PP_STRINGIZE(network_get_info), network_get_info);
+					v(BOOST_PP_STRINGIZE(start_citizen), start_citizen);
+					v(BOOST_PP_STRINGIZE(get_account_crosschain_transaction), get_account_crosschain_transaction);
+					v(BOOST_PP_STRINGIZE(witness_node_stop), witness_node_stop);
+					v(BOOST_PP_STRINGIZE(get_bonus_balance), get_bonus_balance);
+					v(BOOST_PP_STRINGIZE(senator_appointed_lockbalance_senator), senator_appointed_lockbalance_senator);
+					v(BOOST_PP_STRINGIZE(get_citizen_lockbalance_info), get_citizen_lockbalance_info);
+					v(BOOST_PP_STRINGIZE(senator_cancel_publisher), senator_cancel_publisher);
+					v(BOOST_PP_STRINGIZE(senator_determine_withdraw_deposit), senator_determine_withdraw_deposit);
+					v(BOOST_PP_STRINGIZE(lightwallet_broadcast), lightwallet_broadcast);
+					v(BOOST_PP_STRINGIZE(lightwallet_get_refblock_info), lightwallet_get_refblock_info);
+					v(BOOST_PP_STRINGIZE(create_multisignature_address), create_multisignature_address);
+					v(BOOST_PP_STRINGIZE(get_first_contract_address), get_first_contract_address);
+					v(BOOST_PP_STRINGIZE(get_pubkey_from_priv), get_pubkey_from_priv);
+					v(BOOST_PP_STRINGIZE(sign_multisig_trx), sign_multisig_trx);
+					v(BOOST_PP_STRINGIZE(senator_determine_block_payment), senator_determine_block_payment);
+					v(BOOST_PP_STRINGIZE(transfer_from_to_address), transfer_from_to_address);
+					v(BOOST_PP_STRINGIZE(combine_transaction), combine_transaction);
+					v(BOOST_PP_STRINGIZE(get_multisig_address), get_multisig_address);
+					v(BOOST_PP_STRINGIZE(set_citizen_pledge_pay_back_rate), set_citizen_pledge_pay_back_rate);
+					v(BOOST_PP_STRINGIZE(list_active_citizens), list_active_citizens);
+					v(BOOST_PP_STRINGIZE(decode_multisig_transaction), decode_multisig_transaction);
+					v(BOOST_PP_STRINGIZE(get_pubkey_from_account), get_pubkey_from_account);
+					v(BOOST_PP_STRINGIZE(get_eth_signer), get_eth_signer);
+					v(BOOST_PP_STRINGIZE(citizen_referendum_for_senator), citizen_referendum_for_senator);
+					v(BOOST_PP_STRINGIZE(get_referendum_for_voter), get_referendum_for_voter);
+					v(BOOST_PP_STRINGIZE(referendum_accelerate_pledge), referendum_accelerate_pledge);
+					v(BOOST_PP_STRINGIZE(approve_referendum), approve_referendum);
+					v(BOOST_PP_STRINGIZE(proposal_block_address), proposal_block_address);
+					v(BOOST_PP_STRINGIZE(proposal_cancel_block_address), proposal_cancel_block_address);
+					v(BOOST_PP_STRINGIZE(decrypt_coldkeys), decrypt_coldkeys);
+					v(BOOST_PP_STRINGIZE(get_ntp_info), get_ntp_info);
+					v(BOOST_PP_STRINGIZE(ntp_update_time), ntp_update_time);
+					v(BOOST_PP_STRINGIZE(get_account_by_addr), get_account_by_addr);
+					v(BOOST_PP_STRINGIZE(start_mining), start_mining);
+					v(BOOST_PP_STRINGIZE(foreclose_balance_from_citizens), foreclose_balance_from_citizens);
+					v(BOOST_PP_STRINGIZE(lock_balance_to_citizens), lock_balance_to_citizens);
+					v(BOOST_PP_STRINGIZE(cancel_eth_sign_transaction), cancel_eth_sign_transaction);
+					v(BOOST_PP_STRINGIZE(dump_brain_key_usage_info), dump_brain_key_usage_info);
+					v(BOOST_PP_STRINGIZE(wallet_create_account_with_brain_key), wallet_create_account_with_brain_key);
+					v(BOOST_PP_STRINGIZE(derive_wif_key), derive_wif_key);
+					v(BOOST_PP_STRINGIZE(set_brain_key), set_brain_key);
+					v(BOOST_PP_STRINGIZE(get_pending_transactions), get_pending_transactions);
+			} 
+	}; 
+}
+*/
 FC_API( graphene::wallet::wallet_api,
         (help)
         (info)
         (about)
+	(extra_imp)
 	    (is_locked)
 	    (is_new)
 	    (get_address_pay_back_balance)
@@ -2402,4 +3362,5 @@ FC_API( graphene::wallet::wallet_api,
 		(derive_wif_key)
 		(set_brain_key)
 		(get_pending_transactions)
+		(update_asset_private_with_keys)
       )

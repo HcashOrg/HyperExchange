@@ -636,7 +636,7 @@ void database::process_bonus()
 
 				const auto& asset_obj = get(iter.first);
 				auto real_fee_pool = iter.second;
-				if ((asset_obj.symbol == "ETH" || asset_obj.symbol.find("ERC") != asset_obj.symbol.npos) && permanent_senators.size() != 0) {
+				if ((asset_obj.symbol == "ETH" || asset_obj.symbol.find("ERC") != asset_obj.symbol.npos || asset_obj.symbol == "USDT") && permanent_senators.size() != 0) {
 					share_type bonus;
 					bonus = double(iter.second.value) * 0.8 / double(permanent_senators.size());
 					if (bonus > 0) {
