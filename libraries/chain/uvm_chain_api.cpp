@@ -325,7 +325,15 @@ namespace graphene {
 			}
 		}
 
-		static std::vector<char> json_to_chars(jsondiff::JsonValue json_value)
+		static std::vector<char> str_to_chars(const std::string& str)
+		{
+			std::vector<char> data(str.size() + 1);
+			memcpy(data.data(), str.c_str(), str.size());
+			data[str.size()] = '\0';
+			return data;
+		}
+
+		static std::vector<char> json_to_chars(const jsondiff::JsonValue& json_value)
 		{
 			const auto &json_str = jsondiff::json_dumps(json_value);
 			std::vector<char> data(json_str.size() + 1);
@@ -399,11 +407,11 @@ namespace graphene {
 				for (const auto& key : keys)
 				{
 					cbor::CborArrayValue item_json;
-					item_json.push_back(key);
-					item_json.push_back(nested_cbor_object_to_array(map.at(key)));
-					cbor_array.push_back(item_json);
+					item_json.push_back(cbor::CborObject::from_string(key));
+					item_json.push_back(nested_cbor_object_to_array(map.at(key).get()));
+					cbor_array.push_back(cbor::CborObject::create_array(item_json));
 				}
-				return cbor_array;
+				return cbor::CborObject::create_array(cbor_array);
 			}
 			if (cbor_value->is_array())
 			{
@@ -411,11 +419,11 @@ namespace graphene {
 				cbor::CborArrayValue result;
 				for (const auto& item : arr)
 				{
-					result.push_back(nested_cbor_object_to_array(item));
+					result.push_back(nested_cbor_object_to_array(item.get()));
 				}
-				return result;
+				return cbor::CborObject::create_array(result);
 			}
-			return cbor_value;
+			return std::make_shared<cbor::CborObject>(*cbor_value);
 		}
 
 		bool UvmChainApi::commit_storage_changes_to_uvm(lua_State *L, AllContractsChangesMap &changes)
@@ -447,13 +455,14 @@ namespace graphene {
 					auto storage_after = StorageDataType::get_storage_data_from_lua_storage(con_chg_iter->second.after);
 					con_chg_iter->second.cbor_diff = *(differ.diff(cbor_storage_before, cbor_storage_after));
 					auto cbor_diff_value = std::make_shared<cbor::CborObject>(con_chg_iter->second.cbor_diff.value());
-					storage_change.storage_diff.storage_data = cbor_diff::cbor_encode(cbor_diff_value);
+					storage_change.storage_diff.storage_data = str_to_chars(cbor_diff::cbor_encode(cbor_diff_value));
 					storage_change.after = storage_after;
 					contract_storage_change[contract_name] = storage_change;
 					nested_changes[contract_name] = cbor_diff_value;
 				}
 				// count gas by changes size
-				const auto& changes_parsed_to_array = nested_cbor_object_to_array(nested_changes);
+				auto nested_changes_cbor = cbor::CborObject::create_map(nested_changes);
+				const auto& changes_parsed_to_array = nested_cbor_object_to_array(nested_changes_cbor.get());
 				auto changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size();
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
 				if (storage_gas < 0 && gas_limit > 0) {
