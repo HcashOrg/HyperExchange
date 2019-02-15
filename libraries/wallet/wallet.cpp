@@ -4762,7 +4762,7 @@ public:
       {
          try
          {
-            _remote_net_broadcast->broadcast_transaction( tx );
+            _remote_net_broadcast->broadcast_transaction( tx ,true);
          }
          catch (const fc::exception& e)
          {

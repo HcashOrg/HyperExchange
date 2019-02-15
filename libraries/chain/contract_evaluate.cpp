@@ -75,7 +75,11 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(),"gas is too cheap");
             }
-
+			bool throw_over_limit = false;
+			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
+			{
+				throw_over_limit = true;
+			}
 			invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			address fid = contract_register_operation::get_first_contract_id();
@@ -144,6 +148,8 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				if (throw_over_limit)
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
 				unspent_fee = 0;
 			}
@@ -165,7 +171,11 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-
+			bool throw_over_limit = true;
+			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
+			{
+				throw_over_limit = false;
+			}
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			// check contract id unique
 
@@ -211,6 +221,8 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				if (throw_over_limit)
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
 				unspent_fee = 0;
 			}
@@ -233,6 +245,11 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+			bool throw_over_limit = true;
+			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
+			{
+				throw_over_limit = false;
+			}
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
@@ -305,6 +322,8 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				if (throw_over_limit)
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
 				invoke_contract_result.api_result = string("gas ran out");
 				unspent_fee = 0;
@@ -328,6 +347,11 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
+			bool throw_over_limit = true;
+			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
+			{
+				throw_over_limit = false;
+			}
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
@@ -403,6 +427,9 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				if (throw_over_limit)
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
+
 				undo_contract_effected(total_fee);
 				unspent_fee = 0;
 			}
@@ -713,7 +740,11 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-
+			bool throw_over_limit = true;
+			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
+			{
+				throw_over_limit = false;
+			}
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
@@ -815,6 +846,8 @@ namespace graphene {
             }
             catch (::blockchain::contract_engine::contract_run_out_of_money& e)
             {
+				if(throw_over_limit)
+					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
                 unspent_fee = 0;
             }

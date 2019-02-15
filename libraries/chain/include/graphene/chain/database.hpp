@@ -79,7 +79,8 @@ namespace graphene { namespace chain {
             skip_undo_history_check     = 1 << 9,  ///< used while reindexing
             skip_witness_schedule_check = 1 << 10,  ///< used while reindexing
             skip_validate               = 1 << 11, ///< used prior to checkpoint, skips validate() call on transaction
-            check_gas_price       = 1 << 12
+            check_gas_price       = 1 << 12,
+			throw_over_limit       =  1<<13
          };
 
          /**

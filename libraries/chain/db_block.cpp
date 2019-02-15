@@ -496,7 +496,7 @@ signed_block database::_generate_block(
 	  if (related_with_contract&&(_current_gas_in_block+gas_count > _gas_limit_in_in_block))
 	  {
 
-		  printf("Gas limit block reached\n");
+		      printf("Gas limit block reached\n");
 			  postponed_tx_count_by_gas_limit++;
 			  continue;
 	  }
