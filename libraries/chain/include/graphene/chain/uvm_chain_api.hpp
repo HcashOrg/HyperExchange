@@ -155,7 +155,9 @@ namespace graphene {
 
 			virtual std::string get_address_role(lua_State* L, const std::string& addr) override;
 			
-			virtual int64_t get_fork_height(const std::string& fork_key) override;
+			virtual int64_t get_fork_height(lua_State* L, const std::string& fork_key) override;
+			
+			virtual bool use_cbor_diff(lua_State* L) const override;
 
 		};
 	}
