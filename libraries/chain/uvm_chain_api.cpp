@@ -865,5 +865,9 @@ namespace graphene {
 			}
 		}
 
+		int64_t UvmChainApi::get_fork_height(const std::string& fork_key) {
+			return -1;
+		}
+
 	}
 }
