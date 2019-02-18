@@ -58,7 +58,7 @@ namespace blockchain
 
 #include <graphene/db/generic_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
-#include <graphene/chain/storage.hpp>
+// #include <graphene/chain/storage.hpp>
 namespace uvm {
 	namespace blockchain {
 		struct Code
