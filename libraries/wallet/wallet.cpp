@@ -53,7 +53,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/native_contract.hpp>
-#include <graphene/chain/storage.hpp>
+// #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
