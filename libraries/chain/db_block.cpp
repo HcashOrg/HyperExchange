@@ -290,7 +290,7 @@ processed_transaction database::_push_transaction( const signed_transaction& trx
    auto temp_session = _undo_db.start_undo_session();
 
    processed_transaction processed_trx;
-   detail::with_skip_flags(*this, get_node_properties().skip_flags&check_gas_price, [&]()
+   detail::with_skip_flags(*this, get_node_properties().skip_flags, [&]()
    {
 	   processed_trx = _apply_transaction(trx);
    });

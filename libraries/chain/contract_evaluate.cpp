@@ -171,10 +171,10 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-			bool throw_over_limit = true;
+			bool throw_over_limit = false;
 			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
 			{
-				throw_over_limit = false;
+				throw_over_limit = true;
 			}
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			// check contract id unique
@@ -245,10 +245,10 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-			bool throw_over_limit = true;
+			bool throw_over_limit = false;
 			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
 			{
-				throw_over_limit = false;
+				throw_over_limit = true;
 			}
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 
@@ -347,10 +347,10 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-			bool throw_over_limit = true;
+			bool throw_over_limit = false;
 			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
 			{
-				throw_over_limit = false;
+				throw_over_limit = true;
 			}
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
@@ -740,10 +740,10 @@ namespace graphene {
             {
                 FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
             }
-			bool throw_over_limit = true;
+			bool throw_over_limit = false;
 			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
 			{
-				throw_over_limit = false;
+				throw_over_limit = true;
 			}
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
