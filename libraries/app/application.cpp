@@ -400,6 +400,7 @@ namespace detail {
 					 chain_type_vector.push_back("HC");
 					 chain_type_vector.push_back("ERCPAX");
 					 chain_type_vector.push_back("ERCELF");
+					 chain_type_vector.push_back("USDT");
 				 }
 				 if (chain_type_vector.size() > 0)
 				 {
