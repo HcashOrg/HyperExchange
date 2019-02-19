@@ -53,7 +53,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/native_contract.hpp>
-#include <graphene/chain/storage.hpp>
+// #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
@@ -431,7 +431,7 @@ private:
 				  }
 				  else
 				  {
-					  _remote_net_broadcast->broadcast_transaction(*iter);
+					  _remote_net_broadcast->broadcast_transaction(*iter,false);
 				  }
 			  }
 			  catch (const fc::exception&)
@@ -1494,7 +1494,7 @@ public:
 		   tx.sign(privkey, _chain_id);
 		   _wallet.pending_account_registrations[name] = owner;
 		   if (broadcast)
-			   _remote_net_broadcast->broadcast_transaction(tx);
+			   _remote_net_broadcast->broadcast_transaction(tx,true);
 		   return tx;
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
@@ -1606,14 +1606,11 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto owner_pubkey = privkey.get_public_key();
 
            contract_register_op.gas_price = 0 ;
            contract_register_op.init_cost = (GRAPHENE_CONTRACT_TESTING_GAS);
            contract_register_op.owner_addr = acc_caller.addr;
-           contract_register_op.owner_pubkey = owner_pubkey;
+           contract_register_op.owner_pubkey = acc_caller.options.memo_key;
 
            std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
            FC_ASSERT(in.is_open());
@@ -1638,7 +1635,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
@@ -1711,14 +1708,11 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto owner_pubkey = privkey.get_public_key();
 
            n_contract_register_op.gas_price =  0;
            n_contract_register_op.init_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            n_contract_register_op.owner_addr = acc_caller.addr;
-           n_contract_register_op.owner_pubkey = owner_pubkey;
+           n_contract_register_op.owner_pubkey = acc_caller.options.memo_key;
 
            FC_ASSERT(native_contract_finder::has_native_contract_with_key(native_contract_key));
            n_contract_register_op.native_contract_key = native_contract_key;
@@ -1737,7 +1731,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            
            auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
@@ -1765,9 +1759,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto caller_pubkey = privkey.get_public_key();
+
 
 
 		   std::string contract_address;
@@ -1794,7 +1786,7 @@ public:
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
-           contract_invoke_op.caller_pubkey = caller_pubkey;
+           contract_invoke_op.caller_pubkey = acc_caller.options.memo_key;
            contract_invoke_op.contract_id = address(contract_address);
            contract_invoke_op.contract_api = contract_api;
            contract_invoke_op.contract_arg = contract_arg;
@@ -1811,7 +1803,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res:trx_res.operation_results)
@@ -2130,14 +2122,12 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto caller_pubkey = privkey.get_public_key();
+
 
            contract_upgrade_op.gas_price = 0;
            contract_upgrade_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_upgrade_op.caller_addr = acc_caller.addr;
-           contract_upgrade_op.caller_pubkey = caller_pubkey;
+           contract_upgrade_op.caller_pubkey = acc_caller.options.memo_key;
            contract_upgrade_op.contract_id = address(contract_address);
            contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
@@ -2155,7 +2145,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
@@ -2364,7 +2354,7 @@ public:
       }
 	  
       if( broadcast )
-         _remote_net_broadcast->broadcast_transaction( tx );
+         _remote_net_broadcast->broadcast_transaction( tx ,true);
       return tx;
    } FC_CAPTURE_AND_RETHROW( (name)(owner)(active)(registrar_account)(referrer_account)(referrer_percent)(broadcast) ) }
 
@@ -2533,7 +2523,7 @@ public:
          if( save_wallet )
             save_wallet_file();
          if( broadcast )
-            _remote_net_broadcast->broadcast_transaction( tx );
+            _remote_net_broadcast->broadcast_transaction( tx ,true);
          return tx;
    } FC_CAPTURE_AND_RETHROW( (account_name)(registrar_account)(referrer_account)(broadcast) ) }
 
@@ -4772,7 +4762,7 @@ public:
       {
          try
          {
-            _remote_net_broadcast->broadcast_transaction( tx );
+            _remote_net_broadcast->broadcast_transaction( tx ,true);
          }
          catch (const fc::exception& e)
          {
@@ -6034,7 +6024,7 @@ public:
 			   }
 		   }
 		   if (broadcast)
-			   _remote_net_broadcast->broadcast_transaction(trx);
+			   _remote_net_broadcast->broadcast_transaction(trx,true);
 		   return trx;
 
 	   }FC_CAPTURE_AND_RETHROW((trxs)(broadcast))
@@ -6081,7 +6071,7 @@ public:
    {
        try {
 
-         _remote_net_broadcast->broadcast_transaction(tx); 
+         _remote_net_broadcast->broadcast_transaction(tx,true); 
          return tx.id().str();
 
         }FC_CAPTURE_AND_RETHROW((tx))
@@ -8457,7 +8447,6 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	std::string caller_publickey;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8472,7 +8461,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	bool is_caller_publickey=true;
 	try
 	{
-		auto temp = address(public_key_type(caller_publickey));
+		auto temp = address(public_key_type(caller_account_name));
 		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
 	}
 	catch (fc::exception& e)
@@ -9104,7 +9093,7 @@ vector< signed_transaction > wallet_api_impl::import_balance( string name_or_id,
       boost::erase(signed_tx.signatures, boost::unique<boost::return_found_end>(boost::sort(signed_tx.signatures)));
       result.push_back( signed_tx );
       if( broadcast )
-         _remote_net_broadcast->broadcast_transaction(signed_tx);
+         _remote_net_broadcast->broadcast_transaction(signed_tx,false);
    }
 
    return result;

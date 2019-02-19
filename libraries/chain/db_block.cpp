@@ -290,7 +290,7 @@ processed_transaction database::_push_transaction( const signed_transaction& trx
    auto temp_session = _undo_db.start_undo_session();
 
    processed_transaction processed_trx;
-   detail::with_skip_flags(*this, get_node_properties().skip_flags&check_gas_price, [&]()
+   detail::with_skip_flags(*this, get_node_properties().skip_flags, [&]()
    {
 	   processed_trx = _apply_transaction(trx);
    });
@@ -496,7 +496,7 @@ signed_block database::_generate_block(
 	  if (related_with_contract&&(_current_gas_in_block+gas_count > _gas_limit_in_in_block))
 	  {
 
-		  printf("Gas limit block reached\n");
+		      printf("Gas limit block reached\n");
 			  postponed_tx_count_by_gas_limit++;
 			  continue;
 	  }
