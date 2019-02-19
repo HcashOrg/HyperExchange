@@ -553,7 +553,7 @@ namespace graphene {
 			FC_ASSERT(omni_trx.contains("propertyid"));
 			FC_ASSERT(omni_trx.contains("valid"));
 			FC_ASSERT(omni_trx.contains("type_int"));
-			FC_ASSERT(omni_trx["propertyid"].as_int64() == 2);
+			FC_ASSERT(omni_trx["propertyid"].as_int64() == 31);
 			FC_ASSERT(omni_trx["type_int"].as_int64() == 0);
 			FC_ASSERT(omni_trx["valid"].as_bool() == true);
 			FC_ASSERT(omni_trx["sendingaddress"].as_string() == trx.from_account);
