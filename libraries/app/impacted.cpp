@@ -93,6 +93,8 @@ struct get_impacted_account_visitor
    void operator()( const asset_update_operation& op )
    {
    }
+   void operator()(const add_whiteOperation_list_operation& op) {}
+   void operator()(const cancel_whiteOperation_list_operation& op) {}
 
    void operator()( const asset_update_bitasset_operation& op ) {}
    void operator()( const asset_update_feed_producers_operation& op ) {}
