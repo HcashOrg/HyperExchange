@@ -8,6 +8,7 @@
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <uvm/uvm_api.h>
+#include <cbor_diff/cbor_diff.h>
 
 namespace graphene {
 	namespace chain {
@@ -18,8 +19,13 @@ namespace graphene {
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end())
 				{
-					std::string null_jsonstr("null");
-					return StorageDataType(null_jsonstr);
+					auto cbor_null = cbor::CborObject::create_null();
+					const auto& cbor_null_bytes = cbor_diff::cbor_encode(cbor_null);
+					StorageDataType storage;
+					storage.storage_data = cbor_null_bytes;
+					return storage;
+					// std::string null_jsonstr("null");
+					// return StorageDataType(null_jsonstr);
 				}
 				else
 				{
