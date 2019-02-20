@@ -481,7 +481,7 @@ namespace graphene {
 				if(use_cbor_diff_flag) {
 					auto nested_changes_cbor = cbor::CborObject::create_map(nested_changes);
 					const auto& changes_parsed_to_array = nested_cbor_object_to_array(nested_changes_cbor.get());
-					changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size();
+					changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size() / 2;
 				} else {
 					const auto& changes_parsed_to_array = nested_json_object_to_array(json_nested_changes);
 					changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
