@@ -458,9 +458,7 @@ namespace graphene {
                                         	auto cbor_storage_after = uvm_storage_value_to_cbor(con_chg_iter->second.after);
 						con_chg_iter->second.cbor_diff = *(differ.diff(cbor_storage_before, cbor_storage_after));
 						auto cbor_diff_value = std::make_shared<cbor::CborObject>(con_chg_iter->second.cbor_diff.value());
-                                        	const auto& cbor_diff_hex = cbor_diff::cbor_encode(cbor_diff_value);
-                                        	std::vector<char> cbor_diff_chars(cbor_diff_hex.size()/2);
-                                        	fc::from_hex(cbor_diff_hex, cbor_diff_chars.data(), cbor_diff_chars.size());
+                                        	const auto& cbor_diff_chars = cbor_diff::cbor_encode(cbor_diff_value);
                                         	storage_change.storage_diff.storage_data = cbor_diff_chars;
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
@@ -481,7 +479,7 @@ namespace graphene {
 				if(use_cbor_diff_flag) {
 					auto nested_changes_cbor = cbor::CborObject::create_map(nested_changes);
 					const auto& changes_parsed_to_array = nested_cbor_object_to_array(nested_changes_cbor.get());
-					changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size() / 2;
+					changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size();
 				} else {
 					const auto& changes_parsed_to_array = nested_json_object_to_array(json_nested_changes);
 					changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
