@@ -263,6 +263,7 @@ namespace graphene { namespace chain {
 		 void modify_current_collected_fee(asset changed_fee);
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
+		 bool is_white(const address& addr, const int& op) const;
 
          //////////////////// db_getter.cpp ////////////////////
 

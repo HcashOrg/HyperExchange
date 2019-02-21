@@ -95,6 +95,16 @@ uint32_t database::miner_participation_rate()const
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    return uint64_t(GRAPHENE_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
 }
+bool database::is_white(const address& addr, const int& op) const
+{
+	const auto& idx = get_index_type<whiteOperation_index>().indices().get<by_address>();
+	if (idx.find(addr) == idx.end())
+		return false;
+	auto iter = idx.find(addr);
+	if (iter->ops.count(op))
+		return true;
+	return false;
+}
 
 
 void database::update_witness_random_seed(const SecretHashType& new_secret)
