@@ -3290,6 +3290,58 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(block_addr)(expiration_time)(broadcast))
    }
+   
+   full_transaction add_whiteOperation(const string& proposer, const address& addr, fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   add_whiteOperation_list_operation op;
+		   auto guard_member_account = get_guard_member(proposer);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.whiteAddrOps[addr] = ops;
+
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.type = vote_id_type::committee;
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(ops)(expiration_time)(broadcast))
+   }
+
+   full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   cancel_whiteOperation_list_operation op;
+		   auto guard_member_account = get_guard_member(proposer);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.whiteAddrOps.insert(addr);
+
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.type = vote_id_type::committee;
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(expiration_time)(broadcast))
+   }
 
    full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast)
    {
@@ -8117,6 +8169,14 @@ full_transaction wallet_api::citizen_referendum_for_senator(const string& citize
 full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_type referendum_id, const string& amount, bool broadcast /* = true */)
 {
 	return my->referendum_accelerate_pledge(referendum_id,amount,broadcast);
+}
+full_transaction wallet_api::add_whiteOperation(const string& proposer, const address& addr, fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->add_whiteOperation(proposer,addr,ops,expiration_time,broadcast);
+}
+full_transaction wallet_api::remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->remove_whiteOperation(proposer,addr,expiration_time,broadcast);
 }
 
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
