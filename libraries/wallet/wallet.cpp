@@ -3291,7 +3291,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(block_addr)(expiration_time)(broadcast))
    }
    
-   full_transaction add_whiteOperation(const string& proposer, const address& addr, fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast)
+   full_transaction add_whiteOperation(const string& proposer, const address& addr, const fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
@@ -8170,7 +8170,7 @@ full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_ty
 {
 	return my->referendum_accelerate_pledge(referendum_id,amount,broadcast);
 }
-full_transaction wallet_api::add_whiteOperation(const string& proposer, const address& addr, fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast /* = true */)
+full_transaction wallet_api::add_whiteOperation(const string& proposer, const address& addr, const fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast /* = true */)
 {
 	return my->add_whiteOperation(proposer,addr,ops,expiration_time,broadcast);
 }
