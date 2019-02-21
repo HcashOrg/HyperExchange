@@ -3307,7 +3307,7 @@ public:
 		   prop_op.proposer = get_account(proposer).get_id();
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::committee;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -3333,7 +3333,7 @@ public:
 		   prop_op.proposer = get_account(proposer).get_id();
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::committee;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
