@@ -246,6 +246,9 @@ void database::initialize_evaluators()
    register_evaluator<senator_change_eth_gas_price_evaluator>();
    register_evaluator<eths_cancel_unsigned_transaction_evaluator>();
    register_evaluator<senator_change_acquire_trx_evaluator>();
+   register_evaluator<add_whiteOperation_list_evaluator>();
+   register_evaluator<cancel_whiteOperation_list_evaluator>();
+   register_evaluator<set_balance_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -308,6 +308,7 @@ namespace graphene { namespace chain {
 		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
 		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
+		 vector<lockbalance_object> get_lock_balance(account_id_type owner, asset_id_type asset_id)const;
 		 asset get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id)const;
 		 //asset get_lock_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;

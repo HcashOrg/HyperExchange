@@ -47,4 +47,17 @@ public:
    void_result do_apply(const balance_claim_operation& op);
 };
 
+class set_balance_evaluator : public evaluator<set_balance_evaluator>
+{
+public:
+	typedef set_balance_operation operation_type;
+	void_result do_evaluate(const set_balance_operation& op);
+	void_result do_apply(const set_balance_operation& op);
+	bool if_evluate() { return true; }
+private:
+	vector<lockbalance_object> lockbalance_objs;
+	account_id_type            deposited_account_id;
+};
+
+
 } } // graphene::chain

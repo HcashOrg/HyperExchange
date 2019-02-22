@@ -3317,6 +3317,24 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(ops)(expiration_time)(broadcast))
    }
 
+   full_transaction set_balance_for_addr(const string& account, const address& addr, const asset& balance, bool broadcast/* = false */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   set_balance_operation op;
+		   auto acc = get_account(account);
+		   op.addr_from_claim = acc.addr;
+		   op.addr_to_deposit = addr;
+		   op.claimed = balance;
+		  
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(addr)(balance)(broadcast))
+   }
+
    full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -8194,6 +8212,12 @@ map<string,guard_member_id_type> wallet_api::list_senator_members(const string& 
 {
    return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,false);
 }
+
+full_transaction wallet_api::set_balance_for_addr(const string& account, const address& addr, const asset& balance, bool broadcast/* = false */)
+{
+	return my->set_balance_for_addr(account ,addr, balance ,broadcast);
+}
+
 
 map<string, guard_member_id_type> wallet_api::list_all_senators(const string& lowerbound, uint32_t limit)
 {

@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 #include <graphene/chain/balance_evaluator.hpp>
+#include <graphene/chain/committee_member_object.hpp>
 
 namespace graphene { namespace chain {
 
@@ -89,4 +90,65 @@ void_result balance_claim_evaluator::do_apply(const balance_claim_operation& op)
    d.adjust_balance(op.deposit_to_account, op.total_claimed);
    return {};
 }
+
+void_result set_balance_evaluator::do_evaluate(const set_balance_operation& op)
+{
+	try {
+		/*
+		1.check balance
+		2.check whiteops
+		3.check lockbalance
+		*/
+		const database& d = db();
+	    const auto& idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto iter = idx.find(op.addr_to_deposit);
+		FC_ASSERT(iter != idx.end(),"${addr} should be registerd on the chain.",("addr",op.addr_to_deposit));
+		deposited_account_id = iter->get_id();
+		iter = idx.find(op.addr_from_claim);
+		FC_ASSERT(iter != idx.end(), "${addr} should be a senator.", ("addr", op.addr_to_deposit));
+		const auto& guards_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		auto senator_itr = guards_index.find(iter->get_id());
+		FC_ASSERT(senator_itr != guards_index.end() && senator_itr->senator_type == PERMANENT,"need to be permanent senator.");
+
+		FC_ASSERT(d.is_white(op.addr_to_deposit, operation::tag<transfer_operation>::value),"${addr} cannot be claimed balance.",("addr",op.addr_to_deposit));
+		auto balance = d.get_balance(op.addr_to_deposit, op.claimed.asset_id);
+		lockbalance_objs = d.get_lock_balance(deposited_account_id,op.claimed.asset_id);
+
+
+	}FC_CAPTURE_AND_RETHROW((op))
+}
+void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
+{
+	try {
+		database& d = db();
+
+		auto balance = d.get_balance(op.addr_to_deposit, op.claimed.asset_id);
+		asset lockbalance(0,op.claimed.asset_id);
+		for (const auto& lockbalance_obj : lockbalance_objs)
+		{
+			lockbalance += asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id);
+		}
+
+		asset total = balance + lockbalance;
+		if (total < op.claimed)
+		{
+			//todo just modify the balance
+			d.adjust_balance(op.addr_to_deposit, op.claimed - total);
+		}
+		else if (total > op.claimed)
+		{
+			//todo pull back the lockbalance
+			// modify the balance
+			for (const auto& lockbalance_obj : lockbalance_objs)
+			{
+				auto citizen = lockbalance_obj.lockto_miner_account;
+				d.adjust_lock_balance(citizen, deposited_account_id, -asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id));
+			}
+			d.adjust_balance(op.addr_to_deposit, -balance);
+			d.adjust_balance(op.addr_to_deposit, op.claimed);
+		}
+
+	}FC_CAPTURE_AND_RETHROW((op))
+}
+
 } } // namespace graphene::chain

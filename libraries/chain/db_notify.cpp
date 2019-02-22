@@ -85,6 +85,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.issue_to_account );
    }
+   void operator()(const set_balance_operation& op) {}
    void operator()(const add_whiteOperation_list_operation& op) {}
    void operator()(const cancel_whiteOperation_list_operation& op) {}
    void operator()( const asset_reserve_operation& op ) {}
