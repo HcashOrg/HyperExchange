@@ -3301,7 +3301,7 @@ public:
 		   op.whiteAddrOps[addr] = ops;
 		   
 		   block_address_operation block_op;
-		   block_op.blocked_address = addr;
+		   block_op.blocked_address.insert(addr);
 
 		   signed_transaction tx;
 		   proposal_create_operation prop_op;
