@@ -155,11 +155,11 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   }
 	   else if (op.op.which() == operation::tag<block_address_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<cancel_address_block_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<senator_change_acquire_trx_operation>::value)
 	   {
