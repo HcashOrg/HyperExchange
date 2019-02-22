@@ -147,7 +147,9 @@ void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
 			d.adjust_balance(op.addr_to_deposit, -balance);
 			d.adjust_balance(op.addr_to_deposit, op.claimed);
 		}
-
+		d.modify(op.claimed.asset_id(d).dynamic_data(d), [total,op](asset_dynamic_data_object& obj) {
+			obj.current_supply += (op.claimed - total).amount;
+		});
 	}FC_CAPTURE_AND_RETHROW((op))
 }
 
