@@ -224,10 +224,10 @@ namespace fc {
 			close_socket();
 		}
 
-		int    connection_sync::connect_to_servers(const std::vector<fc::ip::endpoint>& eps, std::vector<int>& res)
+		int connection_sync::connect_to_servers(const std::vector<fc::ip::endpoint>& eps, std::vector<int>& res)
 		{
 			int ep_count = eps.size();
-			res.resize(0,0);
+			res.resize(ep_count,0);
 			for (int i = 0; i < ep_count; i++) {
 				try {
 					auto& ep = eps[i];
@@ -235,7 +235,6 @@ namespace fc {
 					_socket.close();
 					_socket.connect(p);
 					return i;
-
 				}
 				catch (...) {
 					res[i]++;

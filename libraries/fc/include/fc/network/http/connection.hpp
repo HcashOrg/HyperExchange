@@ -83,8 +83,10 @@ namespace fc {
 			connection_sync();
 			~connection_sync();
 			// used for clients
+		private:
 			void         connect_to(const fc::ip::endpoint& ep);
-			int     connect_to_servers(const std::vector<fc::ip::endpoint>& eps, std::vector<fc::ip::endpoint>& res );
+		public:
+			int     connect_to_servers(const std::vector<fc::ip::endpoint>& eps, std::vector<int>& res );
 			http::reply  request(const fc::string& method, const fc::string& url, const fc::string& body = std::string(), const headers& = headers());
 
 			// used for servers

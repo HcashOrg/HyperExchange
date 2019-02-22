@@ -7,6 +7,7 @@
 #include <fc/variant_object.hpp>
 #include <iostream>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
+#include <fc/thread/scoped_lock.hpp>
 namespace graphene {
 	namespace crosschain {
 
@@ -88,7 +89,8 @@ namespace graphene {
 			}
 			req_body << "]}}";
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			std::cout << response.status << std::endl;
 			if (response.status == fc::http::reply::OK)
@@ -141,7 +143,8 @@ namespace graphene {
 						return get<1>(q);
 				}
 				fc::http::connection_sync conn;
-				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+				connect_midware(conn);
+				//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 				if (response.status == fc::http::reply::OK)
 				{
@@ -175,7 +178,8 @@ namespace graphene {
 					return get<1>(q);
 			}
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -213,7 +217,8 @@ namespace graphene {
 			req_body << "}}}";
 			std::cout << req_body.str() << std::endl;
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -238,7 +243,8 @@ namespace graphene {
 				\"params\" : {\"chainId\":\"ltc\" ,\"from_addr\": \"" << from_account << "\",\"to_addr\":\""<<to_account <<"\",\"amount\":" <<amount <<"}}";
 			std::cout << req_body.str() << std::endl;
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -629,7 +635,8 @@ namespace graphene {
 				\"method\" : \"Zchain.Trans.broadcastTrx\" ,\
 				\"params\" : {\"chainId\":\"ltc\" ,\"trx\": " << "\"" << trx["hex"].as_string() <<"\"" << "}}";
 				fc::http::connection_sync conn;
-				conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+				connect_midware(conn);
+				//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 				auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 				if (response.status == fc::http::reply::OK)
 				{
@@ -658,7 +665,8 @@ namespace graphene {
 				\"method\" : \"Zchain.Transaction.Deposit.History\" ,\
 				\"params\" : {\"chainId\":\""<< local_symbol<<"\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": "  << start_block << "}}";
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -681,7 +689,9 @@ namespace graphene {
 				\"method\" : \"Zchain.Transaction.Withdraw.History\" ,\
 				\"params\" : {\"chainId\":\"" << local_symbol << "\",\"account\": \"\" ,\"limit\": 0 ,\"blockNum\": " << start_block << "}}";
 			fc::http::connection_sync conn1;
-			conn1.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+
+			connect_midware(conn1);
+			//conn1.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response1 = conn1.request(_rpc_method, _rpc_url, req_body1.str(), _rpc_headers);
 			if (response1.status == fc::http::reply::OK)
 			{
@@ -708,7 +718,9 @@ namespace graphene {
 			req_body << "{ \"id\": 1, \"method\": \"dumpprivkey\", \"params\": [\""
 				<< account << "\"]}";
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 			if (response.status == fc::http::reply::OK)
 			{
@@ -728,7 +740,34 @@ namespace graphene {
 		{
 			return std::string();
 		}
-
+		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps ;
+		std::map<fc::ip::endpoint, std::pair<int, int>> abstract_crosschain_interface::connect_counts;
+		fc::mutex abstract_crosschain_interface::eps_lock;
+		void abstract_crosschain_interface::set_midwares(const std::vector<fc::ip::endpoint>& eps)
+		{
+			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			FC_ASSERT(eps.size() > 0);
+			midware_eps = eps;
+		}
+		void abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con)
+		{
+			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			FC_ASSERT(midware_eps.size() > 0);
+			vector<int> counts;
+			int ep_count = midware_eps.size();
+			int ep_idx = con.connect_to_servers(midware_eps, counts);
+			for (int i = 0; i < ep_count; i++)
+			{
+				int failed_count = counts[i];
+				if (failed_count != 0)
+					connect_counts[midware_eps[i]].second += failed_count;
+			}
+			FC_ASSERT(ep_idx >= 0 && ep_idx < ep_count);
+			connect_counts[midware_eps[ep_idx]].first += 1;
+			//µ÷ÕûË³Ðò
+			if (ep_idx != 0)
+				swap(midware_eps[0], midware_eps[ep_idx]);
+		}
 		std::string crosschain_interface_ltc::recover_wallet(std::string &wallet_name, std::string &encrypt_passprase)
 		{
 			return std::string();
@@ -772,7 +811,8 @@ namespace graphene {
 			}
 			req_body << "}]}}";
 			fc::http::connection_sync conn;
-			conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
+			connect_midware(conn);
+			//conn.connect_to(fc::ip::endpoint(fc::ip::address(_config["ip"].as_string()), _config["port"].as_uint64()));
 			std::cout << req_body.str() << std::endl;
 			auto response = conn.request(_rpc_method, _rpc_url, req_body.str(), _rpc_headers);
 
