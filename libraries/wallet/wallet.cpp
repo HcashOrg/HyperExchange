@@ -3347,6 +3347,8 @@ public:
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   op.whiteAddrOps.insert(addr);
 
+		   cancel_address_block_operation cancel_op;
+		   cancel_op.cancel_blocked_address.insert(addr);
 
 		   signed_transaction tx;
 		   proposal_create_operation prop_op;
@@ -3354,6 +3356,7 @@ public:
 		   prop_op.proposer = get_account(proposer).get_id();
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.proposed_ops.emplace_back(cancel_op);
 		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
