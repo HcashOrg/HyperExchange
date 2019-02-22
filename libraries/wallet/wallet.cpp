@@ -3282,7 +3282,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::cancel_commit;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -3299,7 +3299,9 @@ public:
 		   auto guard_member_account = get_guard_member(proposer);
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   op.whiteAddrOps[addr] = ops;
-
+		   
+		   block_address_operation block_op;
+		   block_op.blocked_address = addr;
 
 		   signed_transaction tx;
 		   proposal_create_operation prop_op;
@@ -3307,6 +3309,7 @@ public:
 		   prop_op.proposer = get_account(proposer).get_id();
 		   prop_op.fee_paying_account = get_account(proposer).addr;
 		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.proposed_ops.emplace_back(block_op);
 		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
@@ -3376,7 +3379,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::cancel_commit;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
