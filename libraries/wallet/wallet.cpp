@@ -3337,6 +3337,11 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(addr)(balance)(broadcast))
    }
+   optional<whiteOperationList_object> get_whiteOperation(const string& account) const 
+   {
+	   const auto& acc = get_account(account);
+	   return _remote_db->get_whiteOperation(acc.addr);
+   }
 
    full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast)
    {
@@ -4442,7 +4447,6 @@ public:
    {
 	   try 
 	   {
-		   
 		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
@@ -4485,6 +4489,39 @@ public:
 
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
+   }
+   full_transaction bind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast=true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   account_bind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   if (symbol.find("ERC") != symbol.npos) {
+			   auto eth_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "ETH");
+			   FC_ASSERT(eth_bind_account.size() != 0, "Must bind eth tunnel account first");
+			   std::string eth_tunnel_account = eth_bind_account.at(0)->bind_account;
+			   FC_ASSERT(eth_tunnel_account == tunnel_account, "erc tunnel account must consistent with eth tunnel account");
+		   }
+		   if (symbol == "USDT") {
+			   auto btc_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "BTC");
+			   FC_ASSERT(btc_bind_account.size() != 0, "Must bind btc tunnel account first");
+			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
+			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
+		   }
+		   op.addr = acct_obj.addr;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
+		   op.tunnel_signature = script; //signature of tunnel address.
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(script)(symbol)(broadcast))
    }
    
    full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
@@ -4534,6 +4571,29 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
    }
 
+   full_transaction unbind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   account_unbind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   op.addr = acct_obj.addr;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
+		   op.tunnel_signature = script;
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+
+
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(script)(symbol)(broadcast))
+   }
    full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
 	   try
@@ -8209,6 +8269,12 @@ full_transaction wallet_api::remove_whiteOperation(const string& proposer, const
 	return my->remove_whiteOperation(proposer,addr,expiration_time,broadcast);
 }
 
+optional<whiteOperationList_object> wallet_api::get_whiteOperation(const string& account) const
+{
+	return my->get_whiteOperation(account);
+}
+
+
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
 {
@@ -9075,10 +9141,18 @@ full_transaction wallet_api::bind_tunnel_account(const string& link_account, con
 {
 	return my->bind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
+full_transaction wallet_api::bind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast /* = false */)
+{
+	return my->bind_tunnel_account_with_script(link_account,tunnel_account,script,symbol,broadcast);
+}
 
 full_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
 {
 	return my->unbind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
+}
+full_transaction wallet_api::unbind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast /* = false */)
+{
+	return my->unbind_tunnel_account_with_script(link_account,tunnel_account,script,symbol,broadcast);
 }
 
 namespace detail {

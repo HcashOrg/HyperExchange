@@ -2040,6 +2040,7 @@ class wallet_api
 	  full_transaction update_asset_private_with_coldkeys(const string& from_account, const string& symbol, const string& cold_address, const string& cold_pubkey, bool broadcast);
 	  full_transaction update_asset_private_with_keys(const string& from_account, const string& symbol, const string& hot_address,const string& hot_pubkey,const string& cold_address, const string& cold_pubkey, bool broadcast);
 	  full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
+	  full_transaction bind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script,const string& symbol, bool broadcast = false);
 	  crosschain_prkeys wallet_create_crosschain_symbol(const string& symbol);
 	  crosschain_prkeys wallet_create_crosschain_symbol_with_brain_key(const string& symbol);
 	  crosschain_prkeys create_crosschain_symbol(const string& symbol);
@@ -2047,6 +2048,7 @@ class wallet_api
 	  crosschain_prkeys create_crosschain_symbol_cold(const string &symbol, const string& out_key_file, const string& encrypt_key);
 	  full_transaction set_balance_for_addr(const string& account, const address& addr,const asset& balance, bool broadcast= false);
 	  full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = false);
+	  full_transaction unbind_tunnel_account_with_script(const string& link_account, const string& tunnel_account,const string& script,const string& symbol, bool broadcast = false);
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 	  vector<multisig_asset_transfer_object> get_multisig_asset_tx() const;
 	  full_transaction sign_multi_asset_trx(const string& account,multisig_asset_transfer_id_type id,const string& senator, bool broadcast = false);
@@ -2080,6 +2082,7 @@ class wallet_api
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  full_transaction add_whiteOperation(const string& proposer,const address& addr, const fc::flat_set<int>& ops,int64_t expiration_time, bool broadcast = true);
 	  full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast = true);
+	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
@@ -3367,4 +3370,7 @@ FC_API( graphene::wallet::wallet_api,
 		(remove_whiteOperation)
 		(set_balance_for_addr)
 		(set_gas_limit_in_block)
+		(bind_tunnel_account_with_script)
+		(unbind_tunnel_account_with_script)
+		(get_whiteOperation)
       )
