@@ -224,6 +224,24 @@ namespace fc {
 			close_socket();
 		}
 
+		int connection_sync::connect_to_servers(const std::vector<fc::ip::endpoint>& eps, std::vector<int>& res)
+		{
+			int ep_count = eps.size();
+			res.resize(ep_count,0);
+			for (int i = 0; i < ep_count; i++) {
+				try {
+					auto& ep = eps[i];
+					boost::asio::ip::tcp::endpoint p(boost::asio::ip::address_v4(ep.get_address()), ep.port());
+					_socket.close();
+					_socket.connect(p);
+					return i;
+				}
+				catch (...) {
+					res[i]++;
+				}
+			}
+			FC_THROW_EXCEPTION(exception, "Error Connecting HTTP Server.");
+		}
 		void connection_sync::connect_to(const fc::ip::endpoint& ep)
 		{
 			for (int i = 0; i < 3; i++) {

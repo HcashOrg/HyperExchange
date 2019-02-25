@@ -27,10 +27,14 @@
 #include <string>
 #include <vector>
 #include <fc/variant_object.hpp>
+#include <fc/variant_object.hpp>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <graphene/utilities/string_escape.hpp>
+#include <fc/network/ip.hpp>
+#include <fc/thread/mutex.hpp>
+#include <fc/network/http/connection.hpp>
 using namespace std;
 namespace graphene {
 	namespace crosschain {
@@ -137,6 +141,11 @@ namespace graphene {
 			// Recover wallet.
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
 			virtual std::vector<fc::variant_object> transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj) = 0;
+			static fc::mutex eps_lock;
+			static std::vector<fc::ip::endpoint> midware_eps;
+			static std::map<fc::ip::endpoint, std::pair<int, int>> connect_counts;
+			void connect_midware(fc::http::connection_sync& con);
+			static void set_midwares(const std::vector<fc::ip::endpoint>& midware_eps);
 		};
 	}
 }
