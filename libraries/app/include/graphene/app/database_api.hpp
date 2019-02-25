@@ -675,7 +675,7 @@ class database_api
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 	  fc::ntp_info get_ntp_info() const;
 	  void ntp_update_time() const;
-
+	  void set_gas_limit_in_block(const share_type& new_limit);
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -858,4 +858,5 @@ FC_API(graphene::app::database_api,
 	(invoke_contract_testing)
 	(get_ntp_info)
 	(ntp_update_time)
+	(set_gas_limit_in_block)
 );

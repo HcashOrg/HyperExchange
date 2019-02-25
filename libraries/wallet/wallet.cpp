@@ -7886,6 +7886,12 @@ std::string wallet_api::get_coldhot_trx_sig(const string& tx_id, const string& g
 fc::variant wallet_api::extra_imp(const fc::variant_object& param_list) {
 	return my->extra_imp(param_list);
 }
+
+void wallet_api::set_gas_limit_in_block(const share_type& new_limit)
+{
+	return my->_remote_db->set_gas_limit_in_block(new_limit);
+}
+
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);

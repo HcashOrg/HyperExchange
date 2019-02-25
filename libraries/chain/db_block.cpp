@@ -314,6 +314,11 @@ processed_transaction database::validate_transaction( const signed_transaction& 
    return res;
 }
 
+void database::set_gas_limit_in_block(const share_type & new_limit)
+{
+	_gas_limit_in_in_block = new_limit;
+}
+
 processed_transaction database::push_referendum(const referendum_object& referendum)
 {
 	try {
@@ -495,7 +500,6 @@ signed_block database::_generate_block(
 	  }
 	  if (related_with_contract&&(_current_gas_in_block+gas_count > _gas_limit_in_in_block))
 	  {
-
 		      printf("Gas limit block reached\n");
 			  postponed_tx_count_by_gas_limit++;
 			  continue;

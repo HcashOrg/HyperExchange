@@ -522,7 +522,10 @@ namespace graphene { namespace chain {
           */
          processed_transaction validate_transaction( const signed_transaction& trx ,bool testing=false);
 
-
+		 /*
+		 set max limit allowd to produce a block
+		 */
+		 void set_gas_limit_in_block(const share_type& new_limit);
          /** when popping a block, the transactions that were removed get cached here so they
           * can be reapplied at the proper time */
          std::deque< signed_transaction >       _popped_tx;
@@ -588,7 +591,6 @@ namespace graphene { namespace chain {
          void update_active_miners();
          void update_active_committee_members();
          void update_worker_votes();
-
          template<class... Types>
          void perform_account_maintenance(std::tuple<Types...> helpers);
          ///@}
