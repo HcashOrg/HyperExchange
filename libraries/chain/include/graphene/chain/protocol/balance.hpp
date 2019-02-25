@@ -52,8 +52,30 @@ namespace graphene { namespace chain {
       }
    };
 
+   struct set_balance_operation : public base_operation
+   {
+	   struct fee_parameters_type {};
+
+	   asset             fee;
+	   address           addr_from_claim;
+	   address           addr_to_deposit;
+	   asset             claimed;
+
+	   address fee_payer()const { return addr_from_claim; }
+	   share_type      calculate_fee(const fee_parameters_type&)const { return 0; }
+	   void            validate()const;
+	   void            get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, addr_from_claim, 1));
+	   }
+   };
+
+
 } } // graphene::chain
 
 FC_REFLECT( graphene::chain::balance_claim_operation::fee_parameters_type,  )
 FC_REFLECT( graphene::chain::balance_claim_operation,
             (fee)(deposit_to_account)(balance_to_claim)(balance_owner_key)(total_claimed) )
+FC_REFLECT(graphene::chain::set_balance_operation::fee_parameters_type, )
+FC_REFLECT(graphene::chain::set_balance_operation,
+	(fee)(addr_from_claim)(addr_to_deposit)(claimed))

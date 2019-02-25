@@ -120,5 +120,20 @@ public:
 	void_result do_apply(const cancel_address_block_operation& o);
 };
 
+class add_whiteOperation_list_evaluator : public evaluator<add_whiteOperation_list_evaluator>
+{
+public:
+	typedef add_whiteOperation_list_operation operation_type;
+	void_result do_evaluate(const add_whiteOperation_list_operation& o);
+	void_result do_apply(const add_whiteOperation_list_operation& o);
+};
+
+class cancel_whiteOperation_list_evaluator : public evaluator<cancel_whiteOperation_list_evaluator>
+{
+public:
+	typedef cancel_whiteOperation_list_operation operation_type;
+	void_result do_evaluate(const cancel_whiteOperation_list_operation& o);
+	void_result do_apply(const cancel_whiteOperation_list_operation& o);
+};
 
 } } // graphene::chain

@@ -327,6 +327,15 @@ namespace graphene { namespace chain {
 	   //std::string get_tunnel_account()const { return bind_account; }
    };
 
+   class whiteOperationList_object : public abstract_object<whiteOperationList_object>
+   {
+   public:
+	   static const uint8_t space_id = implementation_ids;
+	   static const uint8_t type_id = impl_white_operationlist_object_type;
+	   address white_address;
+	   fc::flat_set<int> ops; 
+   };
+
    /**
     *  @brief This secondary index will allow a reverse lookup of all accounts that a particular key or account
     *  is an potential signing authority.
@@ -539,7 +548,7 @@ namespace graphene { namespace chain {
 	   >
    > multisig_address_object_multi_index_type;
 
-   /**
+   /** 
    * @ingroup object_index
    */
    typedef generic_index<multisig_address_object, multisig_address_object_multi_index_type> multisig_address_index;
@@ -552,6 +561,19 @@ namespace graphene { namespace chain {
 	   >
    > blocked_address_object_multi_index_type;
    typedef generic_index<blocked_address_object, blocked_address_object_multi_index_type> blocked_index;
+
+   typedef multi_index_container<
+	   whiteOperationList_object,
+	   indexed_by<
+	   ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
+	   ordered_unique<tag<by_address>, member<whiteOperationList_object, address, &whiteOperationList_object::white_address>>
+	   >
+   > whiteOperation_address_object_multi_index_type;
+   typedef generic_index<whiteOperationList_object, whiteOperation_address_object_multi_index_type> whiteOperation_index;
+
+
+
+
 }}
 
 FC_REFLECT_DERIVED( graphene::chain::account_object,
@@ -592,3 +614,4 @@ FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
                     (pending_fees)(pending_vested_fees)
                   )
 FC_REFLECT_DERIVED(graphene::chain::blocked_address_object, (graphene::db::object),(blocked_address))
+FC_REFLECT_DERIVED(graphene::chain::whiteOperationList_object, (graphene::db::object), (white_address)(ops))

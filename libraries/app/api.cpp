@@ -293,11 +293,11 @@ namespace graphene { namespace app {
        }
     }
 
-    void network_broadcast_api::broadcast_transaction(const signed_transaction& trx)
+    void network_broadcast_api::broadcast_transaction(const signed_transaction& trx, bool throw_over_limit/*=false*/)
     {
        trx.validate();
-       _app.chain_database()->push_transaction(trx);
-       _app.p2p_node()->broadcast_transaction(trx);
+	   _app.chain_database()->push_transaction(trx, throw_over_limit?database::validation_steps::throw_over_limit:0);
+	   _app.p2p_node()->broadcast_transaction(trx);
     }
 
     fc::variant network_broadcast_api::broadcast_transaction_synchronous(const signed_transaction& trx)

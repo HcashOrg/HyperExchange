@@ -394,6 +394,24 @@ namespace graphene { namespace chain {
 	   void validate() const { FC_ASSERT(cancel_blocked_address.size() > 0); }
    };
 
+   struct add_whiteOperation_list_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   address fee_payer() const { return address(); }
+	   std::map<address, fc::flat_set<int>> whiteAddrOps;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   void validate() const { FC_ASSERT(whiteAddrOps.size() > 0); }
+   };
+   struct cancel_whiteOperation_list_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   address fee_payer() const { return address(); }
+	   fc::flat_set<address> whiteAddrOps;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   void validate() const { FC_ASSERT(whiteAddrOps.size() > 0); }
+   };
 
 } } // graphene::chain
 
@@ -437,3 +455,7 @@ FC_REFLECT(graphene::chain::block_address_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::block_address_operation,(fee)(blocked_address))
 FC_REFLECT(graphene::chain::cancel_address_block_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::cancel_address_block_operation, (fee)(cancel_blocked_address))
+FC_REFLECT(graphene::chain::add_whiteOperation_list_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::add_whiteOperation_list_operation, (fee)(whiteAddrOps))
+FC_REFLECT(graphene::chain::cancel_whiteOperation_list_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::cancel_whiteOperation_list_operation, (fee)(whiteAddrOps))

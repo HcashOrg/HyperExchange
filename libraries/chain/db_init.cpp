@@ -128,6 +128,9 @@ const uint8_t bonus_object::type_id;
 
 const uint8_t eth_multi_account_trx_object::space_id;
 const uint8_t eth_multi_account_trx_object::type_id;
+const uint8_t whiteOperationList_object::space_id;
+const uint8_t whiteOperationList_object::type_id;
+
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -243,6 +246,9 @@ void database::initialize_evaluators()
    register_evaluator<senator_change_eth_gas_price_evaluator>();
    register_evaluator<eths_cancel_unsigned_transaction_evaluator>();
    register_evaluator<senator_change_acquire_trx_evaluator>();
+   register_evaluator<add_whiteOperation_list_evaluator>();
+   register_evaluator<cancel_whiteOperation_list_evaluator>();
+   register_evaluator<set_balance_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -313,6 +319,7 @@ void database::initialize_indexes()
    add_index<primary_index<eth_multi_account_trx_index>>();
    add_index<primary_index<referendum_index>>();
    add_index<primary_index<blocked_index>>  ();
+   add_index<primary_index<whiteOperation_index>>();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

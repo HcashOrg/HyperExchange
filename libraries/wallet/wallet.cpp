@@ -53,7 +53,7 @@
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/native_contract.hpp>
-//#include <graphene/chain/storage.hpp>
+// #include <graphene/chain/storage.hpp>
 #include <graphene/chain/contract_object.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
@@ -431,7 +431,7 @@ private:
 				  }
 				  else
 				  {
-					  _remote_net_broadcast->broadcast_transaction(*iter);
+					  _remote_net_broadcast->broadcast_transaction(*iter,false);
 				  }
 			  }
 			  catch (const fc::exception&)
@@ -647,7 +647,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.11";
+	  result["version"] = "1.2.13";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1494,7 +1494,7 @@ public:
 		   tx.sign(privkey, _chain_id);
 		   _wallet.pending_account_registrations[name] = owner;
 		   if (broadcast)
-			   _remote_net_broadcast->broadcast_transaction(tx);
+			   _remote_net_broadcast->broadcast_transaction(tx,true);
 		   return tx;
 	   }FC_CAPTURE_AND_RETHROW((name)(broadcast))
    }
@@ -1606,14 +1606,11 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto owner_pubkey = privkey.get_public_key();
 
            contract_register_op.gas_price = 0 ;
            contract_register_op.init_cost = (GRAPHENE_CONTRACT_TESTING_GAS);
            contract_register_op.owner_addr = acc_caller.addr;
-           contract_register_op.owner_pubkey = owner_pubkey;
+           contract_register_op.owner_pubkey = acc_caller.options.memo_key;
 
            std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
            FC_ASSERT(in.is_open());
@@ -1638,7 +1635,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
@@ -1711,14 +1708,11 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto owner_pubkey = privkey.get_public_key();
 
            n_contract_register_op.gas_price =  0;
            n_contract_register_op.init_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            n_contract_register_op.owner_addr = acc_caller.addr;
-           n_contract_register_op.owner_pubkey = owner_pubkey;
+           n_contract_register_op.owner_pubkey = acc_caller.options.memo_key;
 
            FC_ASSERT(native_contract_finder::has_native_contract_with_key(native_contract_key));
            n_contract_register_op.native_contract_key = native_contract_key;
@@ -1737,7 +1731,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            
            auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
@@ -1765,9 +1759,7 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto caller_pubkey = privkey.get_public_key();
+
 
 
 		   std::string contract_address;
@@ -1794,7 +1786,7 @@ public:
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
-           contract_invoke_op.caller_pubkey = caller_pubkey;
+           contract_invoke_op.caller_pubkey = acc_caller.options.memo_key;
            contract_invoke_op.contract_id = address(contract_address);
            contract_invoke_op.contract_api = contract_api;
            contract_invoke_op.contract_arg = contract_arg;
@@ -1811,7 +1803,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res=_remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res:trx_res.operation_results)
@@ -2130,14 +2122,12 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
-           auto privkey = *wif_to_key(_keys[acc_caller.addr]);
-           auto caller_pubkey = privkey.get_public_key();
+
 
            contract_upgrade_op.gas_price = 0;
            contract_upgrade_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_upgrade_op.caller_addr = acc_caller.addr;
-           contract_upgrade_op.caller_pubkey = caller_pubkey;
+           contract_upgrade_op.caller_pubkey = acc_caller.options.memo_key;
            contract_upgrade_op.contract_id = address(contract_address);
            contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
@@ -2155,7 +2145,7 @@ public:
            tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
-           auto signed_tx = sign_transaction(tx, false);
+           auto signed_tx = signed_transaction(tx);
            auto trx_res = _remote_db->validate_transaction(signed_tx,true);
            share_type gas_count = 0;
            for (auto op_res : trx_res.operation_results)
@@ -2364,7 +2354,7 @@ public:
       }
 	  
       if( broadcast )
-         _remote_net_broadcast->broadcast_transaction( tx );
+         _remote_net_broadcast->broadcast_transaction( tx ,true);
       return tx;
    } FC_CAPTURE_AND_RETHROW( (name)(owner)(active)(registrar_account)(referrer_account)(referrer_percent)(broadcast) ) }
 
@@ -2533,7 +2523,7 @@ public:
          if( save_wallet )
             save_wallet_file();
          if( broadcast )
-            _remote_net_broadcast->broadcast_transaction( tx );
+            _remote_net_broadcast->broadcast_transaction( tx ,true);
          return tx;
    } FC_CAPTURE_AND_RETHROW( (account_name)(registrar_account)(referrer_account)(broadcast) ) }
 
@@ -3292,13 +3282,89 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::cancel_commit;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(block_addr)(expiration_time)(broadcast))
+   }
+   
+   full_transaction add_whiteOperation(const string& proposer, const address& addr, const fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   add_whiteOperation_list_operation op;
+		   auto guard_member_account = get_guard_member(proposer);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.whiteAddrOps[addr] = ops;
+		   
+		   block_address_operation block_op;
+		   block_op.blocked_address.insert(addr);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.proposed_ops.emplace_back(block_op);
+		   prop_op.type = vote_id_type::senator;
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(ops)(expiration_time)(broadcast))
+   }
+
+   full_transaction set_balance_for_addr(const string& account, const address& addr, const asset& balance, bool broadcast/* = false */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   set_balance_operation op;
+		   auto acc = get_account(account);
+		   op.addr_from_claim = acc.addr;
+		   op.addr_to_deposit = addr;
+		   op.claimed = balance;
+		  
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((account)(addr)(balance)(broadcast))
+   }
+
+   full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   cancel_whiteOperation_list_operation op;
+		   auto guard_member_account = get_guard_member(proposer);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.whiteAddrOps.insert(addr);
+
+		   cancel_address_block_operation cancel_op;
+		   cancel_op.cancel_blocked_address.insert(addr);
+
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(proposer).get_id();
+		   prop_op.fee_paying_account = get_account(proposer).addr;
+		   prop_op.proposed_ops.emplace_back(op);
+		   prop_op.proposed_ops.emplace_back(cancel_op);
+		   prop_op.type = vote_id_type::senator;
+		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(expiration_time)(broadcast))
    }
 
    full_transaction proposal_cancel_block_address(const string& account, const fc::flat_set<address>& block_addr, int64_t expiration_time, bool broadcast)
@@ -3316,7 +3382,7 @@ public:
 		   prop_op.proposer = get_account(account).get_id();
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(op);
-		   prop_op.type = vote_id_type::cancel_commit;
+		   prop_op.type = vote_id_type::senator;
 		   current_params.current_fees->set_fee(prop_op.proposed_ops.back().op);
 		   tx.operations.push_back(prop_op);
 		   set_operation_fees(tx, current_params.current_fees);
@@ -4420,6 +4486,39 @@ public:
 		   return sign_transaction(trx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(symbol)(amount)(broadcast))
    }
+   full_transaction bind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast=true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   account_bind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   if (symbol.find("ERC") != symbol.npos) {
+			   auto eth_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "ETH");
+			   FC_ASSERT(eth_bind_account.size() != 0, "Must bind eth tunnel account first");
+			   std::string eth_tunnel_account = eth_bind_account.at(0)->bind_account;
+			   FC_ASSERT(eth_tunnel_account == tunnel_account, "erc tunnel account must consistent with eth tunnel account");
+		   }
+		   if (symbol == "USDT") {
+			   auto btc_bind_account = get_binding_account(acct_obj.addr.address_to_string(), "BTC");
+			   FC_ASSERT(btc_bind_account.size() != 0, "Must bind btc tunnel account first");
+			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
+			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
+		   }
+		   op.addr = acct_obj.addr;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
+		   op.tunnel_signature = script; //signature of tunnel address.
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(script)(symbol)(broadcast))
+   }
    
    full_transaction bind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
@@ -4468,6 +4567,29 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(symbol)(broadcast))
    }
 
+   full_transaction unbind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   account_unbind_operation op;
+		   auto acct_obj = get_account(link_account);
+		   op.addr = acct_obj.addr;
+		   op.crosschain_type = symbol;
+		   op.tunnel_address = tunnel_account;
+		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
+		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
+		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
+		   op.guarantee_id = get_guarantee_id();
+		   op.tunnel_signature = script;
+		   signed_transaction trx;
+		   trx.operations.emplace_back(op);
+		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
+		   trx.validate();
+		   return sign_transaction(trx, broadcast);
+
+
+	   }FC_CAPTURE_AND_RETHROW((link_account)(tunnel_account)(script)(symbol)(broadcast))
+   }
    full_transaction unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast = true)
    {
 	   try
@@ -4772,7 +4894,7 @@ public:
       {
          try
          {
-            _remote_net_broadcast->broadcast_transaction( tx );
+            _remote_net_broadcast->broadcast_transaction( tx ,true);
          }
          catch (const fc::exception& e)
          {
@@ -6034,7 +6156,7 @@ public:
 			   }
 		   }
 		   if (broadcast)
-			   _remote_net_broadcast->broadcast_transaction(trx);
+			   _remote_net_broadcast->broadcast_transaction(trx,true);
 		   return trx;
 
 	   }FC_CAPTURE_AND_RETHROW((trxs)(broadcast))
@@ -6081,7 +6203,7 @@ public:
    {
        try {
 
-         _remote_net_broadcast->broadcast_transaction(tx); 
+         _remote_net_broadcast->broadcast_transaction(tx,true); 
          return tx.id().str();
 
         }FC_CAPTURE_AND_RETHROW((tx))
@@ -8128,6 +8250,14 @@ full_transaction wallet_api::referendum_accelerate_pledge(const referendum_id_ty
 {
 	return my->referendum_accelerate_pledge(referendum_id,amount,broadcast);
 }
+full_transaction wallet_api::add_whiteOperation(const string& proposer, const address& addr, const fc::flat_set<int>& ops, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->add_whiteOperation(proposer,addr,ops,expiration_time,broadcast);
+}
+full_transaction wallet_api::remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->remove_whiteOperation(proposer,addr,expiration_time,broadcast);
+}
 
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)
@@ -8144,6 +8274,12 @@ map<string,guard_member_id_type> wallet_api::list_senator_members(const string& 
 {
    return my->_remote_db->lookup_guard_member_accounts(lowerbound, limit,false);
 }
+
+full_transaction wallet_api::set_balance_for_addr(const string& account, const address& addr, const asset& balance, bool broadcast/* = false */)
+{
+	return my->set_balance_for_addr(account ,addr, balance ,broadcast);
+}
+
 
 map<string, guard_member_id_type> wallet_api::list_all_senators(const string& lowerbound, uint32_t limit)
 {
@@ -8457,7 +8593,6 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 string wallet_api::invoke_contract_offline(const string& caller_account_name, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
 {
 	std::string contract_address;
-	std::string caller_publickey;
 	contract_object cont;
 	bool is_valid_address = true;
 	try {
@@ -8472,7 +8607,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	bool is_caller_publickey=true;
 	try
 	{
-		auto temp = address(public_key_type(caller_publickey));
+		auto temp = address(public_key_type(caller_account_name));
 		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
 	}
 	catch (fc::exception& e)
@@ -8990,10 +9125,18 @@ full_transaction wallet_api::bind_tunnel_account(const string& link_account, con
 {
 	return my->bind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
 }
+full_transaction wallet_api::bind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast /* = false */)
+{
+	return my->bind_tunnel_account_with_script(link_account,tunnel_account,script,symbol,broadcast);
+}
 
 full_transaction wallet_api::unbind_tunnel_account(const string& link_account, const string& tunnel_account, const string& symbol, bool broadcast)
 {
 	return my->unbind_tunnel_account(link_account, tunnel_account, symbol, broadcast);
+}
+full_transaction wallet_api::unbind_tunnel_account_with_script(const string& link_account, const string& tunnel_account, const string& script, const string& symbol, bool broadcast /* = false */)
+{
+	return my->unbind_tunnel_account_with_script(link_account,tunnel_account,script,symbol,broadcast);
 }
 
 namespace detail {
@@ -9104,7 +9247,7 @@ vector< signed_transaction > wallet_api_impl::import_balance( string name_or_id,
       boost::erase(signed_tx.signatures, boost::unique<boost::return_found_end>(boost::sort(signed_tx.signatures)));
       result.push_back( signed_tx );
       if( broadcast )
-         _remote_net_broadcast->broadcast_transaction(signed_tx);
+         _remote_net_broadcast->broadcast_transaction(signed_tx,false);
    }
 
    return result;

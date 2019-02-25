@@ -155,15 +155,23 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   }
 	   else if (op.op.which() == operation::tag<block_address_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<cancel_address_block_operation>::value)
 	   {
-		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<senator_change_acquire_trx_operation>::value)
 	   {
-		FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<add_whiteOperation_list_operation>::value)
+	   {
+	         FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
+       }
+	   else if (op.op.which() == operation::tag<cancel_whiteOperation_list_operation>::value)
+	   {
+	        FC_ASSERT(o.type == vote_id_type::senator, "Vote Type is error");
 	   }
 	   else
 	   {
@@ -256,7 +264,7 @@ object_id_type proposal_create_evaluator::do_apply(const proposal_create_operati
 				  proposal.required_account_approvals.insert(acc.find(a.guard_member_account)->addr);
 		  });
 	  }
-	  else if (o.type == vote_id_type::cancel_commit)
+	  else if (o.type == vote_id_type::cancel_commit || o.type == vote_id_type::senator)
 	  {
 		  const auto& iter = d.get_index_type<guard_member_index>().indices().get<by_account>();
 		  std::for_each(iter.begin(), iter.end(), [&](const guard_member_object& a)

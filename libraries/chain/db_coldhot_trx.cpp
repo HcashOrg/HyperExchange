@@ -481,9 +481,13 @@ namespace graphene {
 				}
 				start++;
 			}
+			std::vector<coldhot_transfer_object> uncreate_range;
+			for (auto coldhot_transfer_trx : boost::make_iterator_range(coldhot_uncreate_range.first, coldhot_uncreate_range.second))
+			{
+				uncreate_range.push_back(coldhot_transfer_trx);
+			}
 
-
-			for (auto coldhot_transfer_trx : boost::make_iterator_range(coldhot_uncreate_range.first, coldhot_uncreate_range.second)) {
+			for (const auto& coldhot_transfer_trx : uncreate_range) {
 				try {
 					auto coldhot_transfer_op = coldhot_transfer_trx.current_trx.operations[0];
 					/*auto& propsal_op = coldhot_transfer_op.get<proposal_create_operation>();

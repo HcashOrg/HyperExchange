@@ -37,6 +37,12 @@ void balance_claim_operation::validate()const
    FC_ASSERT( fee == asset() );
    FC_ASSERT( balance_owner_key != public_key_type() );
 }
+void set_balance_operation::validate()const
+{
+	FC_ASSERT(fee.amount >= 0);
+	FC_ASSERT(claimed.asset_id != asset_id_type());
+	FC_ASSERT(claimed.amount >= 0);
+}
 
 /**
  * @brief Used to validate operations in a polymorphic manner

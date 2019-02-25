@@ -38,6 +38,8 @@ bool proposal_object::is_authorized_to_execute(database& db) const
 		   return approved_key_approvals.size() >= size_t(required_account_approvals.size()*2/3 + 1);
 	   if (type == vote_id_type::cancel_commit)
 		   return approved_key_approvals.size() >= size_t(required_account_approvals.size()*1/2 + 1);
+	   if (type == vote_id_type::senator)
+		   return approved_key_approvals.size() >= size_t(required_account_approvals.size() * 1 / 2 + 1);
 	   auto& miner_idx = db.get_index_type<miner_index>().indices().get<by_account>();
 	   auto& account_idx = db.get_index_type<account_index>().indices().get<by_address>();
 	   boost::multiprecision::uint256_t total_weights = 0;

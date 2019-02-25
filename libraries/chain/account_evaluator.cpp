@@ -583,6 +583,51 @@ void_result cancel_address_block_evaluator::do_apply(const cancel_address_block_
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
+void_result add_whiteOperation_list_evaluator::do_evaluate(const add_whiteOperation_list_operation& o)
+{
+	try {
+		FC_ASSERT(o.whiteAddrOps.size() > 0);
+		const auto& white_idx = db().get_index_type<whiteOperation_index>().indices().get<by_address>();
+		for (const auto& whts : o.whiteAddrOps)
+		{
+			FC_ASSERT(white_idx.find(whts.first) == white_idx.end(), "address has been in whiteOperation list.");
+		} 
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
+void_result add_whiteOperation_list_evaluator::do_apply(const add_whiteOperation_list_operation& o)
+{
+	try {
+		for (auto whts : o.whiteAddrOps)
+		{
+			db().create<whiteOperationList_object>([&](whiteOperationList_object& obj) {
+				obj.white_address = whts.first;
+				obj.ops = whts.second;
+			});
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result cancel_whiteOperation_list_evaluator::do_evaluate(const cancel_whiteOperation_list_operation& o)
+{
+	try {
+		FC_ASSERT(o.whiteAddrOps.size() > 0);
+		const auto& white_idx = db().get_index_type<whiteOperation_index>().indices().get<by_address>();
+		for (auto whts : o.whiteAddrOps)
+		{
+			FC_ASSERT(white_idx.find(whts) != white_idx.end(), "address has not been in whiteOperation list.");
+		}
 
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result cancel_whiteOperation_list_evaluator::do_apply(const cancel_whiteOperation_list_operation& o)
+{
+	try {
+		const auto& white_idx = db().get_index_type<whiteOperation_index>().indices().get<by_address>();
+		for (auto addr : o.whiteAddrOps)
+		{
+			db().remove(*white_idx.find(addr));
+		}
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 } } // graphene::chain

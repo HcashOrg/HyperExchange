@@ -23,6 +23,21 @@ namespace graphene {
 				return asset();
 			}FC_CAPTURE_AND_RETHROW((owner)(miner)(asset_id))
 		}
+
+		vector<lockbalance_object> database::get_lock_balance(account_id_type owner, asset_id_type asset_id) const {
+			try {
+				const auto& lb_index = get_index_type<lockbalance_index>();
+				vector<lockbalance_object> result;
+				lb_index.inspect_all_objects([&](const object& obj) {
+					const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
+					if (p.lock_balance_account == owner && p.lock_asset_amount > 0  && p.lock_asset_id == asset_id) {
+						result.push_back(p);
+					}
+				});
+				return result;
+			}FC_CAPTURE_AND_RETHROW((owner)(asset_id))
+		}
+
 		asset database::get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id) const {
 			try {
 				auto& index = get_index_type<guard_lock_balance_index>().indices().get<by_guard_lock>();
