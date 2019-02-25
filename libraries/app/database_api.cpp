@@ -99,7 +99,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<balance_object> get_balance_objects( const vector<address>& addrs )const;
       vector<asset> get_vested_balances( const vector<balance_id_type>& objs )const;
       vector<vesting_balance_object> get_vesting_balances( account_id_type account_id )const;
-
+	  optional<whiteOperationList_object> get_whiteOperation(const address& addr) const;
       // Assets
       vector<optional<asset_object>> get_assets(const vector<asset_id_type>& asset_ids)const;
       vector<asset_object>           list_assets(const string& lower_bound_symbol, uint32_t limit)const;
@@ -1258,6 +1258,15 @@ vector<asset> database_api::list_account_balances(const string& id) const
         return get_account_balances(*real_id, flat_set<asset_id_type>());
     return get_account_balances(get_account(id).id, flat_set<asset_id_type>());
 }
+optional<whiteOperationList_object> database_api_impl::get_whiteOperation(const address& addr) const {
+	optional<whiteOperationList_object> result;
+	const auto& whiteOpIdx = _db.get_index_type<whiteOperation_index>().indices().get<by_address>();
+	auto iter = whiteOpIdx.find(addr);
+	if (iter != whiteOpIdx.end())
+		result = *iter;
+	return result;
+}
+
 vector<asset> database_api_impl::get_account_balances(account_id_type acnt, const flat_set<asset_id_type>& assets)const
 {
    vector<asset> result;
@@ -2676,6 +2685,11 @@ vector<lockbalance_object> database_api::get_asset_lock_balance(const asset_id_t
 vector<lockbalance_object> database_api::get_miner_lock_balance(const miner_id_type& miner) const {
 	return my->get_miner_lock_balance(miner);
 }
+
+optional<whiteOperationList_object> database_api::get_whiteOperation(const address& addr) const {
+	return my->get_whiteOperation(addr);
+}
+
 vector<lockbalance_object> database_api_impl::get_account_lock_balance(const account_id_type& id)const{
 	const auto& lb_index = _db.get_index_type<lockbalance_index>();
 	vector<lockbalance_object> result;

@@ -3337,6 +3337,11 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(addr)(balance)(broadcast))
    }
+   optional<whiteOperationList_object> get_whiteOperation(const string& account) const 
+   {
+	   const auto& acc = get_account(account);
+	   return _remote_db->get_whiteOperation(acc.addr);
+   }
 
    full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast)
    {
@@ -4442,7 +4447,6 @@ public:
    {
 	   try 
 	   {
-		   
 		   FC_ASSERT(!is_locked());
 		   proposal_create_operation prop_op;
 		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
@@ -8258,6 +8262,12 @@ full_transaction wallet_api::remove_whiteOperation(const string& proposer, const
 {
 	return my->remove_whiteOperation(proposer,addr,expiration_time,broadcast);
 }
+
+optional<whiteOperationList_object> wallet_api::get_whiteOperation(const string& account) const
+{
+	return my->get_whiteOperation(account);
+}
+
 
 full_transaction wallet_api::resign_senator_member(string proposing_account, string account,
     int64_t expiration_time, bool broadcast)

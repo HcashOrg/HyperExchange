@@ -2082,6 +2082,7 @@ class wallet_api
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  full_transaction add_whiteOperation(const string& proposer,const address& addr, const fc::flat_set<int>& ops,int64_t expiration_time, bool broadcast = true);
 	  full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast = true);
+	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
 	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);

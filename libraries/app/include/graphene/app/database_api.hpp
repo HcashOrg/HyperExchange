@@ -297,6 +297,7 @@ class database_api
        * This function has semantics identical to @ref get_objects
        */
       vector<optional<account_object>> lookup_account_names(const vector<string>& account_names)const;
+	  optional<whiteOperationList_object> get_whiteOperation(const address& addr) const;
 
 	  /**
 	  * @brief Get a list of multisigs
@@ -858,4 +859,5 @@ FC_API(graphene::app::database_api,
 	(invoke_contract_testing)
 	(get_ntp_info)
 	(ntp_update_time)
+	(get_whiteOperation)
 );
