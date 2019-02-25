@@ -3370,4 +3370,5 @@ FC_API( graphene::wallet::wallet_api,
 		(set_balance_for_addr)
 		(bind_tunnel_account_with_script)
 		(unbind_tunnel_account_with_script)
+		(get_whiteOperation)
       )
