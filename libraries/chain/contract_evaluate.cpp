@@ -148,6 +148,7 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				//printf("register contract error: %s\n", e.what());
 				if (throw_over_limit)
 					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
@@ -155,10 +156,12 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
+				//printf("register contract error: %s\n", e.what());
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
+				//printf("register contract error: %s\n", e.what());
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
@@ -307,6 +310,7 @@ namespace graphene {
 					}
 					catch (std::exception &e)
 					{
+						//printf("invoke contract error: %s\n", e.what());
 						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 					}
 
@@ -322,6 +326,7 @@ namespace graphene {
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
+				//printf("invoke contract error: %s\n", e.what());
 				if (throw_over_limit)
 					FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
 				undo_contract_effected(total_fee);
@@ -330,10 +335,12 @@ namespace graphene {
 			}
 			catch (const ::blockchain::contract_engine::contract_error& e)
 			{
+				//printf("invoke contract error: %s\n", e.what());
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
 			catch (std::exception &e)
 			{
+				//printf("invoke contract error: %s\n", e.what());
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 

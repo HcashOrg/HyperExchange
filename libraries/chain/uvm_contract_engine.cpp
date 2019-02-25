@@ -105,6 +105,7 @@ namespace uvm
 				FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money);
 			else
 			{
+				// printf("execute_contract_api_by_address error with code %d: %s\n", exception_code, exception_msg);
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
 				std::logic_error ex(exception_msg);
 				throw std::exception(ex);
