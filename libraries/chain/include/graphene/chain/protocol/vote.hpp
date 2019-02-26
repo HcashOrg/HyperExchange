@@ -64,8 +64,8 @@ struct vote_id_type
       committee,
       witness,
 	  worker,
-      senator,
 	  cancel_commit,
+	  senator,
       VOTE_TYPE_COUNT
    };
 
