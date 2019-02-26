@@ -8,6 +8,7 @@
 #include <iostream>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <fc/network/resolve.hpp>
 namespace graphene {
 	namespace crosschain {
 
@@ -749,13 +750,58 @@ namespace graphene {
 			FC_ASSERT(eps.size() > 0);
 			midware_eps = eps;
 		}
+
+		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_from_server()
+		{
+
+			auto midware_seeds = fc::resolve("1000896736104835.cn-hongkong.fc.aliyuncs.com", 80);
+			for (auto& seed_ep : midware_seeds)
+			{
+				try {
+					fc::http::connection conn;
+					conn.connect_to(seed_ep);
+					//auto res = conn.parse_reply();
+					auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_hx_middleware_endpoint/query_middleware_endpoint/", "");
+					if (response.status == fc::http::reply::OK)
+					{
+						auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+						std::cout << std::string(response.body.begin(), response.body.end());
+						auto result = resp.get_object();
+						if (result.contains("result"))
+						{
+
+							vector<fc::ip::endpoint> midware_sers;
+							auto eps = result["result"].get_array();
+							for (auto ep : eps)
+							{
+								auto str = ep["ip"].get_string() + ":" + std::to_string(ep["port"].as_int64());
+								midware_sers.push_back(fc::ip::endpoint::from_string(str));
+							}
+							return midware_sers;
+						}
+					}
+				}
+				catch (...)
+				{
+				}
+			}
+			return std::vector<fc::ip::endpoint>();
+		}
 		void abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con)
 		{
 			fc::scoped_lock<fc::mutex>lock(eps_lock);
 			FC_ASSERT(midware_eps.size() > 0);
 			vector<int> counts;
 			int ep_count = midware_eps.size();
-			int ep_idx = con.connect_to_servers(midware_eps, counts);
+			int ep_idx = 0;
+			try {
+				ep_idx = con.connect_to_servers(midware_eps, counts);
+			}
+			catch (exception &e)
+			{
+				set_midwares(get_midware_from_server());
+				throw e;
+			}
 			for (int i = 0; i < ep_count; i++)
 			{
 				int failed_count = counts[i];

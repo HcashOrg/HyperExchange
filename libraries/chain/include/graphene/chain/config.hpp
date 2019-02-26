@@ -195,3 +195,4 @@
 ///@}
 
 #define GRAPHENE_FBA_STEALTH_DESIGNATED_ASSET (asset_id_type(743))
+#define GRAPHENE_MIDWARE_SEED  {"47.90.117.50:80"}

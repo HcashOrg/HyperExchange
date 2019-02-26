@@ -146,7 +146,10 @@ namespace graphene {
 			static std::map<fc::ip::endpoint, std::pair<int, int>> connect_counts;
 			void connect_midware(fc::http::connection_sync& con);
 			static void set_midwares(const std::vector<fc::ip::endpoint>& midware_eps);
+			static std::vector<fc::ip::endpoint> get_midware_from_server();
 		};
+
+
 	}
 }
 FC_REFLECT(graphene::crosschain::handle_history_trx, (trx_id)(from_account)(to_account)(amount)(asset_symbol)(block_num))

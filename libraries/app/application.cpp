@@ -43,6 +43,7 @@
 #include <fc/rpc/api_connection.hpp>
 #include <fc/rpc/websocket_api.hpp>
 #include <fc/network/resolve.hpp>
+#include <fc/network/http/connection.hpp>
 #include <fc/crypto/base64.hpp>
 
 #include <boost/filesystem/path.hpp>
@@ -402,21 +403,30 @@ namespace detail {
 					 chain_type_vector.push_back("ERCELF");
 					 chain_type_vector.push_back("USDT");
 				 }
-				 if (_options->count("midware_servers"))
+				 auto midware_seeds = abstract_crosschain_interface::get_midware_from_server();
+
+				 if (midware_seeds.size()==0)
 				 {
-					 auto eps_str=_options->at("midware_servers").as<string>();
-					 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
-					 vector<fc::ip::endpoint> midware_sers;
-					 for(auto& str:ep_strs)
+					 if (_options->count("midware_servers"))
 					 {
-						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
+						 auto eps_str = _options->at("midware_servers").as<string>();
+						 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+						 vector<fc::ip::endpoint> midware_sers;
+						 for (auto& str : ep_strs)
+						 {
+							 midware_sers.push_back(fc::ip::endpoint::from_string(str));
+						 }
+						 abstract_crosschain_interface::set_midwares(midware_sers);
 					 }
-					 abstract_crosschain_interface::set_midwares(midware_sers);
+					 else
+					 {
+						 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+						 abstract_crosschain_interface::set_midwares(midware_sers);
+					 }
 				 }
 				 else
 				 {
-					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005"),fc::ip::endpoint::from_string("39.98.75.32:8080") };
-					 abstract_crosschain_interface::set_midwares(midware_sers);
+					 abstract_crosschain_interface::set_midwares(midware_seeds);
 				 }
 				 if (chain_type_vector.size() > 0)
 				 {
