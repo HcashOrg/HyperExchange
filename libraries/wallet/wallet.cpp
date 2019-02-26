@@ -1605,12 +1605,15 @@ public:
 
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
-           FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto caller_pubkey = privkey.get_public_key();
 
            contract_register_op.gas_price = 0 ;
            contract_register_op.init_cost = (GRAPHENE_CONTRACT_TESTING_GAS);
            contract_register_op.owner_addr = acc_caller.addr;
-           contract_register_op.owner_pubkey = acc_caller.options.memo_key;
+           contract_register_op.owner_pubkey = caller_pubkey;
 
            std::ifstream in(contract_filepath, std::ios::in | std::ios::binary);
            FC_ASSERT(in.is_open());
@@ -1708,11 +1711,13 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto caller_pubkey = privkey.get_public_key();
            n_contract_register_op.gas_price =  0;
            n_contract_register_op.init_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            n_contract_register_op.owner_addr = acc_caller.addr;
-           n_contract_register_op.owner_pubkey = acc_caller.options.memo_key;
+           n_contract_register_op.owner_pubkey = caller_pubkey;
 
            FC_ASSERT(native_contract_finder::has_native_contract_with_key(native_contract_key));
            n_contract_register_op.native_contract_key = native_contract_key;
@@ -1759,7 +1764,9 @@ public:
            //juge if the name has been registered in the chain
            auto acc_caller = get_account(caller_account_name);
            FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
-
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto caller_pubkey = privkey.get_public_key();
 
 
 		   std::string contract_address;
@@ -1786,7 +1793,7 @@ public:
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
-           contract_invoke_op.caller_pubkey = acc_caller.options.memo_key;
+           contract_invoke_op.caller_pubkey = caller_pubkey;
            contract_invoke_op.contract_id = address(contract_address);
            contract_invoke_op.contract_api = contract_api;
            contract_invoke_op.contract_arg = contract_arg;
@@ -2120,14 +2127,17 @@ public:
            contract_upgrade_operation contract_upgrade_op;
 
            //juge if the name has been registered in the chain
-           auto acc_caller = get_account(caller_account_name);
-           FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   auto acc_caller = get_account(caller_account_name);           
+		   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+		   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
+		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+		   auto caller_pubkey = privkey.get_public_key();
 
 
            contract_upgrade_op.gas_price = 0;
            contract_upgrade_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_upgrade_op.caller_addr = acc_caller.addr;
-           contract_upgrade_op.caller_pubkey = acc_caller.options.memo_key;
+           contract_upgrade_op.caller_pubkey = caller_pubkey;
            contract_upgrade_op.contract_id = address(contract_address);
            contract_upgrade_operation::contract_name_check(contract_name);
            contract_upgrade_op.contract_name = contract_name;
@@ -2222,12 +2232,15 @@ public:
        asset transfer_asset = asset_obj->amount_from_string(amount);
        //juge if the name has been registered in the chain
        auto acc_caller = get_account(from);
-
+	   FC_ASSERT(acc_caller.addr != address(), "contract owner can't be empty.");
+	   FC_ASSERT(_keys.count(acc_caller.addr), "this name has not existed in the wallet.");
+	   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
+	   auto caller_pubkey = privkey.get_public_key();
 
        transfer_to_contract_op.gas_price = 0;
        transfer_to_contract_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
        transfer_to_contract_op.caller_addr = acc_caller.addr;
-       transfer_to_contract_op.caller_pubkey = acc_caller.options.memo_key;
+       transfer_to_contract_op.caller_pubkey = caller_pubkey;
        transfer_to_contract_op.contract_id = address(to);
        transfer_to_contract_op.fee.amount = 0;
        transfer_to_contract_op.fee.asset_id = asset_id_type(0);
