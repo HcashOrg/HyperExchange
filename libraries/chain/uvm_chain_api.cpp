@@ -1,6 +1,7 @@
 #include <graphene/chain/uvm_chain_api.hpp>
 #include <graphene/chain/protocol/address.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
+#include <graphene/chain/forks.hpp>
 #include <uvm/exceptions.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
@@ -947,7 +948,7 @@ namespace graphene {
                                 auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
                                 const auto& d = evaluator->get_db();
                                 auto head_block_num = d.head_block_num();
-                                result = false; // TODO: by fork height
+                                result = head_block_num > USE_CBOR_DIFF_FORK_HEIGHT;
                         }
                         catch (...)
                         {
