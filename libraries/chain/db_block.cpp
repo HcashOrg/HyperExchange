@@ -519,6 +519,7 @@ signed_block database::_generate_block(
 		  postponed_tx_count_by_contract_op_limit++;
 		  continue;
 	  }
+	  contract_op_in_a_block -= contract_op_in_trx;
       try
       {
          auto temp_session = _undo_db.start_undo_session();

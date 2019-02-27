@@ -400,6 +400,11 @@ void database_api::set_gas_limit_in_block(const share_type& new_limit)
 	my->_db.set_gas_limit_in_block(new_limit);
 }
 
+std::vector<fc::ip::endpoint> database_api::get_midware_eps()
+{
+	return abstract_crosschain_interface::get_midware_eps();
+}
+
 ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
 {
     return my->get_contract_object(contract_address);
