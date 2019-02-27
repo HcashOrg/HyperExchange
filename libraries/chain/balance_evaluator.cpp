@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 #include <graphene/chain/balance_evaluator.hpp>
+#include <graphene/chain/transfer_evaluator.hpp>
 #include <graphene/chain/committee_member_object.hpp>
-
 namespace graphene { namespace chain {
 
 void_result balance_claim_evaluator::do_evaluate(const balance_claim_operation& op)
@@ -110,7 +110,7 @@ void_result set_balance_evaluator::do_evaluate(const set_balance_operation& op)
 		auto senator_itr = guards_index.find(iter->get_id());
 		FC_ASSERT(senator_itr != guards_index.end() && senator_itr->senator_type == PERMANENT,"need to be permanent senator.");
 
-		FC_ASSERT(d.is_white(op.addr_to_deposit, operation::tag<transfer_operation>::value),"${addr} cannot be claimed balance.",("addr",op.addr_to_deposit));
+		FC_ASSERT(d.is_white(op.addr_to_deposit, operation(transfer_evaluator::operation_type).which()),"${addr} cannot be claimed balance.",("addr",op.addr_to_deposit));
 		auto balance = d.get_balance(op.addr_to_deposit, op.claimed.asset_id);
 		lockbalance_objs = d.get_lock_balance(deposited_account_id,op.claimed.asset_id);
 
