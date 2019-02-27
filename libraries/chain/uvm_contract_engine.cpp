@@ -3,7 +3,7 @@
 #include <memory>
 #include <fc/exception/exception.hpp>
 #include <graphene/chain/contract_entry.hpp>
-
+#include <uvm/exceptions.h>
 
 namespace uvm
 {
@@ -47,7 +47,7 @@ namespace uvm
 		}
 		else
 		{
-			// »¹Ã»Ö´ÐÐ¹ývmÖ¸Áî£¬ÕâÊ±ºò²»ÔÊÐíÐÞ¸Ägas_used
+			// ï¿½ï¿½Ã»Ö´ï¿½Ð¹ï¿½vmÖ¸ï¿½î£¬ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½gas_used
 		}
 	}
 	void UvmContractEngine::add_gas_used(int64_t delta_used)
@@ -107,8 +107,8 @@ namespace uvm
 			{
 				// printf("execute_contract_api_by_address error with code %d: %s\n", exception_code, exception_msg);
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-				std::logic_error ex(exception_msg);
-				throw std::exception(ex);
+				uvm::core::UvmException ex(exception_msg);
+				throw ex;
 			}
 		}
 	}
@@ -128,8 +128,8 @@ namespace uvm
 			else
 			{
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (exception_msg));
-				std::logic_error ex(exception_msg);
-				throw std::exception(ex);
+				uvm::core::UvmException ex(exception_msg);
+				throw ex;
 			}
 		}
 	}
