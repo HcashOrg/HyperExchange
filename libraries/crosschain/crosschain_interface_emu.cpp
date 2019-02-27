@@ -2,7 +2,7 @@
 #include <fc/filesystem.hpp>
 #include <iostream>
 #include <boost/filesystem.hpp>
-
+#include <fc/smart_ref_impl.hpp>
 namespace graphene {
 	namespace crosschain {
 
