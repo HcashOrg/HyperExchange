@@ -677,6 +677,7 @@ class database_api
 	  fc::ntp_info get_ntp_info() const;
 	  void ntp_update_time() const;
 	  void set_gas_limit_in_block(const share_type& new_limit);
+	  std::vector<fc::ip::endpoint> get_midware_eps();
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -861,4 +862,5 @@ FC_API(graphene::app::database_api,
 	(ntp_update_time)
 	(set_gas_limit_in_block)
 	(get_whiteOperation)
+	(get_midware_eps)
 );

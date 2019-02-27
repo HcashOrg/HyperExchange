@@ -9024,6 +9024,7 @@ void wallet_api::unlock(string password)
 
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
+   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
    try
    {
 	   if (my->_wallet.mining_accounts.size())

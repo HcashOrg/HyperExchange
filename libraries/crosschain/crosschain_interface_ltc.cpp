@@ -750,7 +750,12 @@ namespace graphene {
 			FC_ASSERT(eps.size() > 0);
 			midware_eps = eps;
 		}
-
+		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_eps()
+		{
+			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			std::vector<fc::ip::endpoint> res= midware_eps;
+			return res;
+		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_from_server()
 		{
 
