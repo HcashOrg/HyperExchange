@@ -43,6 +43,7 @@
 #include <fc/rpc/api_connection.hpp>
 #include <fc/rpc/websocket_api.hpp>
 #include <fc/network/resolve.hpp>
+#include <fc/network/http/connection.hpp>
 #include <fc/crypto/base64.hpp>
 
 #include <boost/filesystem/path.hpp>
@@ -402,9 +403,35 @@ namespace detail {
 					 chain_type_vector.push_back("ERCELF");
 					 chain_type_vector.push_back("USDT");
 				 }
+				 auto midware_seeds = abstract_crosschain_interface::get_midware_from_server();
+
+				 if (midware_seeds.size()==0)
+				 {
+					 if (_options->count("midware_servers"))
+					 {
+						 auto eps_str = _options->at("midware_servers").as<string>();
+						 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+						 vector<fc::ip::endpoint> midware_sers;
+						 for (auto& str : ep_strs)
+						 {
+							 midware_sers.push_back(fc::ip::endpoint::from_string(str));
+						 }
+						 abstract_crosschain_interface::set_midwares(midware_sers);
+					 }
+					 else
+					 {
+						 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+						 abstract_crosschain_interface::set_midwares(midware_sers);
+					 }
+				 }
+				 else
+				 {
+					 abstract_crosschain_interface::set_midwares(midware_seeds);
+				 }
 				 if (chain_type_vector.size() > 0)
 				 {
 					 auto chain_types = chain_type_vector;
+
 					 for (auto chain_type : chain_type_vector)
 					 {
 						 //std::cout << chain_type << std::endl;
@@ -1115,6 +1142,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
          ("min_gas_price",bpo::value<int>(),"Miner in this node would not pack contract trx which gas price to low")
+	     ("midware_servers", bpo::value<string>()->composing(), "")
          ;
    command_line_options.add(configuration_file_options);
    command_line_options.add_options()
@@ -1128,6 +1156,7 @@ void application::set_program_options(boost::program_options::options_descriptio
 		 ("testnet", "Start for testnet")
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
+		 ("midware_servers", bpo::value<string>()->composing(), "")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);

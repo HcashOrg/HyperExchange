@@ -8,6 +8,7 @@
 #include <uvm/uvm_lib.h>
 #include <fc/exception/exception.hpp>
 #include <exception>
+#include <graphene/chain/storage.hpp>
 //#include <graphene/chain/protocol/operations.hpp>
 
 

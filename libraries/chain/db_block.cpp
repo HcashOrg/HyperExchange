@@ -314,6 +314,11 @@ processed_transaction database::validate_transaction( const signed_transaction& 
    return res;
 }
 
+void database::set_gas_limit_in_block(const share_type & new_limit)
+{
+	_gas_limit_in_in_block = new_limit;
+}
+
 processed_transaction database::push_referendum(const referendum_object& referendum)
 {
 	try {
@@ -416,7 +421,9 @@ signed_block database::_generate_block(
 
    const auto& witness_obj = witness_id(*this);
    const auto& account_obj = witness_obj.miner_account(*this);
-
+   int contract_op_in_a_block = 20;
+   if(USE_CBOR_DIFF_FORK_HEIGHT <head_block_num())
+	   contract_op_in_a_block = 100;
  if( !(skip & skip_miner_signature) )
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
@@ -439,6 +446,7 @@ signed_block database::_generate_block(
    _pending_tx_session = _undo_db.start_undo_session();
    uint64_t postponed_tx_count = 0;
    uint64_t postponed_tx_count_by_gas_limit = 0;
+   uint64_t postponed_tx_count_by_contract_op_limit = 0;
    // pop pending state (reset to head block state)
    reset_current_collected_fee();
    map<string, int > temp_signature;
@@ -454,7 +462,8 @@ signed_block database::_generate_block(
          continue;
       }
 	  bool related_with_contract = false;
-	  gas_count_type gas_count = 0;
+	  int contract_op_in_trx = 0;
+	  gas_count_type gas_count = 0; 
 	  for (auto& op : tx.operations)
 	  {
 
@@ -465,40 +474,50 @@ signed_block database::_generate_block(
 			  printf("Got A contract_register_operation\n");
 			  gas_count+=op.get<contract_register_operation>().init_cost;
 			  related_with_contract = true;
+			  contract_op_in_trx++;
 			  break;
 		  }
 		  case operation::tag<chain::contract_upgrade_operation>::value:
 		  {
 			  gas_count += op.get<contract_upgrade_operation>().invoke_cost;
 			  related_with_contract = true;
+			  contract_op_in_trx++;
 			  break;
 		  }
 		  case operation::tag<chain::contract_invoke_operation>::value:
 		  {
 			  gas_count += op.get<contract_invoke_operation>().invoke_cost;
 			  related_with_contract = true;
+			  contract_op_in_trx++;
 			  break;
 		  }
 		  case operation::tag<chain::transfer_contract_operation>::value:
 		  {
 			  gas_count += op.get<transfer_contract_operation>().invoke_cost;
 			  related_with_contract = true;
+			  contract_op_in_trx++;
 			  break;
 		  }
 		  case operation::tag<chain::native_contract_register_operation>::value:
 		  {
 			  gas_count += op.get<native_contract_register_operation>().init_cost;
 			  related_with_contract = true;
+			  contract_op_in_trx++;
 			  break;
 		  }
 		  }
 	  }
 	  if (related_with_contract&&(_current_gas_in_block+gas_count > _gas_limit_in_in_block))
 	  {
-
 		      printf("Gas limit block reached\n");
 			  postponed_tx_count_by_gas_limit++;
 			  continue;
+	  }
+	  if (related_with_contract&&contract_op_in_a_block<contract_op_in_trx)
+	  {
+		  printf("contract op limit reached in block\n");
+		  postponed_tx_count_by_contract_op_limit++;
+		  continue;
 	  }
       try
       {
@@ -527,6 +546,10 @@ signed_block database::_generate_block(
    if (postponed_tx_count_by_gas_limit > 0)
    {
 	   wlog("Postponed ${n} transactions due to block gas limit reached", ("n", postponed_tx_count_by_gas_limit));
+   }
+   if (postponed_tx_count_by_contract_op_limit > 0)
+   {
+	   wlog("Postponed ${n} transactions due to block contract op limit reached", ("n", postponed_tx_count_by_contract_op_limit));
    }
    _pending_tx_session.reset();
 

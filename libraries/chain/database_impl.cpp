@@ -28,3 +28,6 @@
 #include "db_coldhot_trx.cpp"
 #include "db_pay_back.cpp"
 #include "db_eths_trx.cpp"
+#include "db_update.cpp"
+#include "db_witness_schedule.cpp"
+#include "db_notify.cpp"

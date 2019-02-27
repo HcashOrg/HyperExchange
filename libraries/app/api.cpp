@@ -772,7 +772,9 @@ namespace graphene { namespace app {
        return fc::ecc::range_get_info( proof );
     }
 	//crosschain_api
-	crosschain_api::crosschain_api(const string& config, const vector<string>& crosschain_symbols) :_config(config) { _crosschain_symbols = crosschain_symbols; }
+	crosschain_api::crosschain_api(const string& config, const vector<string>& crosschain_symbols) :_config(config) { 
+		_crosschain_symbols = crosschain_symbols; 
+	}
 	crosschain_api::~crosschain_api() {}
 	string crosschain_api::get_config()
 	{

@@ -2122,6 +2122,7 @@ class wallet_api
 	  void send_coldhot_transfer_with_sign(const string& tx_id, const string& guard, const string& siging);
 	  string get_coldhot_trx_sig(const string& tx_id, const string& guard, const string& keyfile, const string& decryptkey);
 	  fc::variant extra_imp(const fc::variant_object& param_list);
+	  void set_gas_limit_in_block(const share_type& new_limit);
 	  /*void testaaa1() {}
 	  void testaaa2() {}
 	  void testaaa3() {}
@@ -3368,6 +3369,7 @@ FC_API( graphene::wallet::wallet_api,
 		(add_whiteOperation)
 		(remove_whiteOperation)
 		(set_balance_for_addr)
+		(set_gas_limit_in_block)
 		(bind_tunnel_account_with_script)
 		(unbind_tunnel_account_with_script)
 		(get_whiteOperation)
