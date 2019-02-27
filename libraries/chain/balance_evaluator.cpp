@@ -23,6 +23,7 @@
  */
 #include <graphene/chain/balance_evaluator.hpp>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/protocol/operations.hpp>
 
 namespace graphene { namespace chain {
 
