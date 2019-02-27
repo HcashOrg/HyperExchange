@@ -403,30 +403,30 @@ namespace detail {
 					 chain_type_vector.push_back("ERCELF");
 					 chain_type_vector.push_back("USDT");
 				 }
-				 auto midware_seeds = abstract_crosschain_interface::get_midware_from_server();
-
-				 if (midware_seeds.size()==0)
+				 if (_options->count("midware_servers"))
 				 {
-					 if (_options->count("midware_servers"))
+					 auto eps_str = _options->at("midware_servers").as<string>();
+					 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+					 vector<fc::ip::endpoint> midware_sers;
+					 for (auto& str : ep_strs)
 					 {
-						 auto eps_str = _options->at("midware_servers").as<string>();
-						 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
-						 vector<fc::ip::endpoint> midware_sers;
-						 for (auto& str : ep_strs)
-						 {
-							 midware_sers.push_back(fc::ip::endpoint::from_string(str));
-						 }
-						 abstract_crosschain_interface::set_midwares(midware_sers);
+						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
 					 }
-					 else
+					 abstract_crosschain_interface::set_midwares(midware_sers);
+				 }
+				 else
+				 {
+					 auto midware_seeds = abstract_crosschain_interface::get_midware_from_server();
+
+					 if (midware_seeds.size() == 0)
 					 {
 						 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
 						 abstract_crosschain_interface::set_midwares(midware_sers);
 					 }
-				 }
-				 else
-				 {
-					 abstract_crosschain_interface::set_midwares(midware_seeds);
+					 else
+					 {
+						 abstract_crosschain_interface::set_midwares(midware_seeds);
+					 }
 				 }
 				 if (chain_type_vector.size() > 0)
 				 {
