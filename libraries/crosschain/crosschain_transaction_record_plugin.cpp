@@ -23,10 +23,9 @@ namespace graphene {
 					next_wakeup, "Acquire crosschain record ");
 			}
 			else {
-			_acquire_crosschain_task = fc::schedule([this] {acquired_crosschain_record_loop(); },
-				next_wakeup, "Acquire crosschain record ");
-		}
-			
+				_acquire_crosschain_task = fc::schedule([this] {acquired_crosschain_record_loop(); },
+					next_wakeup, "Acquire crosschain record ");
+			}
 		}
 		void crosschain_record_plugin::acquired_all_crosschain_record_loop() {
 			try {
@@ -288,7 +287,7 @@ namespace graphene {
 					for (const auto & trx : pending_trx) {
 						hd_trx handle_trx;
 						std::string real_trx;
-						if (asset_symbol == "ETH" || asset_symbol.find("ERC")!= asset_symbol.npos)
+						if (asset_symbol == "ETH" || asset_symbol.find("ERC") != asset_symbol.npos)
 						{
 							handle_trx = hdl->turn_trx(fc::variant_object("plugin_get_trx", trx));
 							real_trx = handle_trx.trx_id;
@@ -302,7 +301,7 @@ namespace graphene {
 							handle_trx = hdl->turn_trx(trx);
 							real_trx = handle_trx.trx_id;
 						}
-						
+
 						fc::scoped_lock<std::mutex> _lock(db.db_lock);
 						auto& trx_iters = db.get_index_type<graphene::chain::acquired_crosschain_index>().indices().get<graphene::chain::by_acquired_trx_id>();
 						auto trx_iter = trx_iters.find(real_trx);
@@ -315,7 +314,6 @@ namespace graphene {
 							obj.acquired_transaction_state = acquired_trx_uncreate;
 						});
 					}
-
 					//sess.commit();
 				};
 			}

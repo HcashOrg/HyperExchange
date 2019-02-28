@@ -23,7 +23,6 @@
 #include <fc/thread/thread.hpp>
 
 
-
 // 
 // std::string key_to_compressed_wif(const fc::sha256& secret)
 // {

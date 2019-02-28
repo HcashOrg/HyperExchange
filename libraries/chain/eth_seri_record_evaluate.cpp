@@ -243,6 +243,30 @@ namespace graphene {
 		object_id_type eths_guard_sign_final_evaluator::do_apply(const eths_guard_sign_final_operation& o) {
 			FC_ASSERT(trx_state->_trx != nullptr);
 			db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
+			/*
+			const auto& trx_history_db = db().get_index_type<trx_index>().indices().get<by_trx_id>();
+			const auto trx_history_iter = trx_history_db.find(o.combine_trx_id);
+			auto current_blockNum = db().get_dynamic_global_properties().head_block_number;
+			if (current_blockNum < 436)
+			{
+				if (trx_history_iter->block_num + 100 < current_blockNum) {
+					std::cout << "sign final not put in" << std::endl;
+				}
+				else {
+					db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
+					std::cout << "sign final has put in" << std::endl;
+				}
+			}
+			else {
+				if (trx_history_iter->block_num + 100 >= current_blockNum) {
+					std::cout << "sign final not put in" << std::endl;
+				}
+				else {
+					db().adjust_crosschain_transaction(o.combine_trx_id, trx_state->_trx->id(), *(trx_state->_trx), uint64_t(operation::tag<eths_guard_sign_final_operation>::value), withdraw_eth_guard_sign);
+					std::cout << "sign final has put in" << std::endl;
+				}
+			}
+			*/
 			auto& manager = graphene::crosschain::crosschain_manager::get_instance();
 			if (!manager.contain_crosschain_handles(o.chain_type)) {
 				return object_id_type();
@@ -429,7 +453,7 @@ namespace graphene {
 			const auto trx_history_iter = trx_history_db.find(o.change_transaction_id);
 			FC_ASSERT(trx_history_iter != trx_history_db.end());
 			auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-			FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+			FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 
 			auto op = sign_final_iter->real_transaction.operations[0];
 			FC_ASSERT(op.which() == operation::tag<eths_guard_sign_final_operation>::value, "operation type error");

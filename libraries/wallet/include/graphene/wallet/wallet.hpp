@@ -2140,7 +2140,6 @@ class wallet_api
 };
 
 } }
-
 FC_REFLECT( graphene::wallet::key_label, (label)(key) )
 FC_REFLECT( graphene::wallet::blind_balance, (amount)(from)(to)(one_time_key)(blinding_factor)(commitment)(used) )
 FC_REFLECT( graphene::wallet::blind_confirmation::output, (label)(pub_key)(decrypted_memo)(confirmation)(auth)(confirmation_receipt) )
@@ -2152,6 +2151,7 @@ FC_REFLECT( graphene::wallet::wallet_data,
             (chain_id)
             (my_accounts)
             (my_scripts)
+
             (cipher_keys)
 	        (cipher_keys_extend)
             (extra_keys)

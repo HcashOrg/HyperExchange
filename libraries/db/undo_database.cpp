@@ -25,7 +25,7 @@
 #include <graphene/db/undo_database.hpp>
 #include <fc/reflect/variant.hpp>
 #include <iostream>
-
+#include <fc/smart_ref_impl.hpp>
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/chain/protocol/transaction.hpp>
 #include<graphene/chain/account_object.hpp>

@@ -221,7 +221,7 @@ namespace graphene {
 				auto & tx_db_objs = db().get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto tx_without_sign_iter = tx_db_objs.find(combine_trx_iter->relate_transaction_id);
 				FC_ASSERT(tx_without_sign_iter != tx_db_objs.end(), "user cross chain tx exist error");
-				auto current_blockNum = db().get_dynamic_global_properties().head_block_number; 
+				auto current_blockNum = db().get_dynamic_global_properties().head_block_number;
 				if(current_blockNum > CROSSCHAIN_RECORD_EVALUATE_1000000)
 				{
 					if (o.cross_chain_trx.asset_symbol == "ETH" || o.cross_chain_trx.asset_symbol.find("ERC") != o.cross_chain_trx.asset_symbol.npos)

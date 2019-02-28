@@ -190,7 +190,7 @@ namespace graphene {
 			transaction_id_type change_transaction_id;
 			address fee_payer()const {
 				return guard_address;
-	}
+			}
 			share_type  calculate_fee(const fee_parameters_type& k)const { return 0; }
 		};
 }

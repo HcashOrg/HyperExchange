@@ -147,7 +147,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto without_iter = trx_db.find(iter->relate_transaction_id);
 				FC_ASSERT(without_iter != trx_db.end(), "without transaction not exist.");
 				FC_ASSERT(without_iter->real_transaction.operations.size() == 1, "operation size error");
@@ -212,7 +212,7 @@ namespace graphene {
 				});
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-#define PASS_HX_BLOCK_NUM 220000
+#define PASS_HX_BLOCK_NUM 100
 		void_result senator_pass_success_trx_evaluate::do_evaluate(const senator_pass_success_trx_operation& o) {
 			try {
 				const database& d = db();
@@ -329,7 +329,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.cancel_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto without_iter = trx_db.find(iter->relate_transaction_id);
 				FC_ASSERT(without_iter != trx_db.end(), "without transaction not exist.");
 				FC_ASSERT(without_iter->real_transaction.operations.size() == 1, "operation size error");
@@ -355,7 +355,7 @@ namespace graphene {
 				database& d = db();
 				auto& crosschain_trxs = d.get_index_type<crosschain_trx_index>().indices().get<by_transaction_id>();
 				auto iter = crosschain_trxs.find(transaction_id_type(o.cancel_trx_id));
-
+		
 				auto without_iter = crosschain_trxs.find(iter->relate_transaction_id);
 				auto crosschain_sign_trxs_range = d.get_index_type<crosschain_trx_index>().indices().get<by_relate_trx_id>().equal_range(without_iter->transaction_id);
 				for (auto sign_trx : boost::make_iterator_range(crosschain_sign_trxs_range.first, crosschain_sign_trxs_range.second)) {
@@ -412,7 +412,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_transaction_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto op = iter->real_transaction.operations[0];
 				FC_ASSERT(op.which() == operation::tag<eths_guard_sign_final_operation>::value, "operation type error");
 				auto eths_guard_sign_final_op = op.get<eths_guard_sign_final_operation>();

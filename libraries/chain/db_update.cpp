@@ -270,8 +270,11 @@ void database::determine_referendum_detailes()
 			{
 				if (itr.get_id() == asset_id_type())
 					continue;
-				if (itr.symbol == "ETH" || itr.symbol.find("ERC") != string::npos)
-					continue;
+				if(head_block_num() > 200000){
+				    if (itr.symbol == "ETH" || itr.symbol.find("ERC") != string::npos){
+                                        continue;
+				    }
+				}
 				auto multisig_account_pair = get_current_multisig_account(itr.symbol);
 				if (!multisig_account_pair.valid())
 				{
