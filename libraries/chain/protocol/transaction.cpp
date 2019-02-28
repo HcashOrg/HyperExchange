@@ -290,7 +290,7 @@ void verify_authority(const vector<operation>& ops, const flat_set<public_key_ty
 			vector<authority> sig_other;
 			operation_get_required_authorities(op, required_active, required_owner, sig_other);
 			other.insert(other.end(), sig_other.begin(), sig_other.end());
-			for (const auto& auth : sig_other)
+			for (const auto auth : sig_other) // don't use const auto& auth here. It will cause error on linux gcc
 			{
 				GRAPHENE_ASSERT(s.check_authority(&auth), tx_missing_other_auth, "Missing Authority", ("auth", auth)("sigs", sigs));
 				for (const auto k : auth.address_auths)

@@ -13,6 +13,7 @@ namespace graphene {
 				_contract_invoke_result.storage_changes[string(contract_address)] = contract_storage_changes_type();
 			}
 			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
+			// TODO: use cbor_diff to replace json_diff in native contract storage
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				StorageDataChangeType change;
