@@ -88,7 +88,23 @@ void operation_validate( const operation& op )
 {
    op.visit( operation_validator() );
 }
-
+bool is_contract_operation(const operation& op)
+{
+	switch (op.which())
+	{
+	case operation::tag<chain::contract_register_operation>::value:
+		return true;
+	case operation::tag<chain::contract_upgrade_operation>::value:
+		return true;
+	case operation::tag<chain::contract_invoke_operation>::value:
+		return true;
+	case operation::tag<chain::transfer_contract_operation>::value:
+		return true;
+	case operation::tag<chain::native_contract_register_operation>::value:
+		return true;
+	}
+	return false;
+}
 optional<guarantee_object_id_type> operation_gurantee_id(const operation& op)
 {
 	return op.visit(operation_guarantee_idor());

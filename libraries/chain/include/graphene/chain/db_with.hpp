@@ -95,7 +95,8 @@ struct pending_transactions_restorer
 				}
 				if (need_continue)
 					continue;
-               _db._push_transaction( tx );
+				_db.push_transaction(tx, database::validation_steps::skip_contract_exec);
+               //_db._push_transaction( tx );
             }
          } catch ( const fc::exception&  ) {
          }

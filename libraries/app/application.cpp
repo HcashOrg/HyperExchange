@@ -758,7 +758,7 @@ namespace detail {
             trx_count = 0;
          }
 
-         _chain_db->push_transaction( transaction_message.trx );
+         _chain_db->push_transaction( transaction_message.trx ,database::skip_contract_exec);
       } FC_CAPTURE_AND_RETHROW( (transaction_message) ) }
 
       virtual void handle_message(const message& message_to_process) override
