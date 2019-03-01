@@ -37,6 +37,22 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
+		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
+		{
+			try {
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				if (storage_iter == storage_index.end())
+				{
+					return optional<contract_storage_object>();
+				}
+				else
+				{
+					return *storage_iter;
+				}
+			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
+		}
+
 		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
