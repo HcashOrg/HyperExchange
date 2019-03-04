@@ -7965,6 +7965,13 @@ void wallet_api::set_gas_limit_in_block(const share_type& new_limit)
 	return my->_remote_db->set_gas_limit_in_block(new_limit);
 }
 
+contract_storage_object wallet_api::get_contract_storage(const address& contract_address, const string& storage_name)
+{
+	auto res= my->_remote_db->get_contract_storage(contract_address,storage_name);
+	FC_ASSERT(res.valid(),"contract storage object not found");
+	return *res;
+}
+
 address wallet_api::wallet_create_account(string account_name)
 {
 	return my->create_account(account_name);

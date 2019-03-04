@@ -195,6 +195,8 @@ namespace graphene { namespace chain {
                                             vector<authority>&  other );
 
    void operation_validate( const operation& op );
+
+   bool is_contract_operation(const operation& op);
    optional<guarantee_object_id_type> operation_gurantee_id(const operation& op);
   
    /**

@@ -392,6 +392,22 @@ namespace detail {
 				 //auto key_id_to_wif_pairs = graphene::app::dejsonify<vector<std::pair<chain::public_key_type, std::string>> >(key_id_to_wif_pair_strings);
 				 auto chain_types_str = _options->at("chain-type").as<std::string>();
 				 auto chain_type_vector = graphene::app::dejsonify<vector<string>>(chain_types_str);
+				 if (_options->count("midware_servers_backup"))
+				 {
+					 auto eps_str = _options->at("midware_servers_backup").as<string>();
+					 auto ep_strs = graphene::app::dejsonify<vector<string>>(eps_str);
+					 vector<fc::ip::endpoint> midware_sers;
+					 for (auto& str : ep_strs)
+					 {
+						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
+					 }
+					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
+				 }
+				 else
+				 {
+					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
+				 }
 				 if (chain_type_vector.size() < 6)
 				 {
 					 chain_type_vector.clear();
@@ -417,11 +433,15 @@ namespace detail {
 				 else
 				 {
 					 auto midware_seeds = abstract_crosschain_interface::get_midware_from_server();
-
 					 if (midware_seeds.size() == 0)
 					 {
-						 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
-						 abstract_crosschain_interface::set_midwares(midware_sers);
+						 if(abstract_crosschain_interface::midware_eps_backup.size()!=0)
+							 abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
+						 else
+						 {
+							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+							 abstract_crosschain_interface::set_midwares(midware_sers);
+						 }
 					 }
 					 else
 					 {
@@ -758,7 +778,7 @@ namespace detail {
             trx_count = 0;
          }
 
-         _chain_db->push_transaction( transaction_message.trx );
+         _chain_db->push_transaction( transaction_message.trx ,database::skip_contract_exec);
       } FC_CAPTURE_AND_RETHROW( (transaction_message) ) }
 
       virtual void handle_message(const message& message_to_process) override
@@ -1141,8 +1161,9 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-json", bpo::value<boost::filesystem::path>(), "File to read Genesis State from")
          ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init mineres, overrides genesis file")
          ("api-access", bpo::value<boost::filesystem::path>(), "JSON file specifying API permissions")
-         ("min_gas_price",bpo::value<int>(),"Miner in this node would not pack contract trx which gas price to low")
+		 ("min_gas_price", bpo::value<int>(), "Miner in this node would not pack contract trx which gas price to low")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
+	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
          ;
    command_line_options.add(configuration_file_options);
    command_line_options.add_options()
@@ -1156,7 +1177,8 @@ void application::set_program_options(boost::program_options::options_descriptio
 		 ("testnet", "Start for testnet")
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
-		 ("midware_servers", bpo::value<string>()->composing(), "")
+	     ("midware_servers", bpo::value<string>()->composing(), "")
+	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);

@@ -143,9 +143,11 @@ namespace graphene {
 			virtual std::vector<fc::variant_object> transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj) = 0;
 			static fc::mutex eps_lock;
 			static std::vector<fc::ip::endpoint> midware_eps;
+			static std::vector<fc::ip::endpoint> midware_eps_backup;
 			static std::map<fc::ip::endpoint, std::pair<int, int>> connect_counts;
 			void connect_midware(fc::http::connection_sync& con);
-			static void set_midwares(const std::vector<fc::ip::endpoint>& midware_eps); 
+			static void set_midwares(const std::vector<fc::ip::endpoint>& midware_eps);
+			static void set_midwares_backup(const std::vector<fc::ip::endpoint>& midware_eps);
 			static std::vector<fc::ip::endpoint> get_midware_eps();
 			static std::vector<fc::ip::endpoint> get_midware_from_server();
 		};

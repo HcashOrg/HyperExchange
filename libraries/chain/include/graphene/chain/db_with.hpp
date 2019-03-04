@@ -95,7 +95,8 @@ struct pending_transactions_restorer
 				}
 				if (need_continue)
 					continue;
-               _db._push_transaction( tx );
+				_db.push_transaction(tx, database::validation_steps::skip_contract_exec);
+               //_db._push_transaction( tx );
             }
          } catch ( const fc::exception&  ) {
          }
@@ -108,7 +109,8 @@ struct pending_transactions_restorer
             if( !_db.is_known_transaction( tx.id() ) ) {
                // since push_transaction() takes a signed_transaction,
                // the operation_results field will be ignored.
-               _db._push_transaction( tx );
+               //_db._push_transaction( tx );
+				_db.push_transaction(tx, database::validation_steps::skip_contract_exec);
             }
          }
          catch( const fc::exception& e )

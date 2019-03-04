@@ -672,6 +672,7 @@ class database_api
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0)const ;
 	  optional<multisig_account_pair_object> get_current_multisig_account(const string& symbol) const;
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
+	  optional<contract_storage_object> get_contract_storage(const address& contract_address, const string& storage_name)const ;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 	  fc::ntp_info get_ntp_info() const;
@@ -863,4 +864,5 @@ FC_API(graphene::app::database_api,
 	(set_gas_limit_in_block)
 	(get_whiteOperation)
 	(get_midware_eps)
+	(get_contract_storage)
 );

@@ -871,9 +871,17 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    //Finally process the operations
    processed_transaction ptrx(trx);
    _current_op_in_trx = 0;
-   for( const auto& op : ptrx.operations )
+   bool skip_exec = skip & skip_contract_exec;
+   for( const auto& op : ptrx.operations ) 
    {
-      eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+	   if (skip_exec&&is_contract_operation(op))
+	   {
+		   eval_state.operation_results.emplace_back(void_result());
+	   }
+	   else
+	   {
+		   eval_state.operation_results.emplace_back(apply_operation(eval_state, op));
+	   }
       ++_current_op_in_trx;
    }
    ptrx.operation_results = std::move(eval_state.operation_results);
