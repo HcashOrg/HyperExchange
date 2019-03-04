@@ -741,7 +741,8 @@ namespace graphene {
 		{
 			return std::string();
 		}
-		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps ;
+		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps;
+		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps_backup;
 		std::map<fc::ip::endpoint, std::pair<int, int>> abstract_crosschain_interface::connect_counts;
 		fc::mutex abstract_crosschain_interface::eps_lock;
 		void abstract_crosschain_interface::set_midwares(const std::vector<fc::ip::endpoint>& eps)
@@ -749,6 +750,12 @@ namespace graphene {
 			fc::scoped_lock<fc::mutex>lock(eps_lock);
 			FC_ASSERT(eps.size() > 0);
 			midware_eps = eps;
+		}
+		void abstract_crosschain_interface::set_midwares_backup(const std::vector<fc::ip::endpoint>& eps)
+		{
+			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			FC_ASSERT(eps.size() > 0);
+			midware_eps_backup = eps;
 		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_eps()
 		{
@@ -758,8 +765,11 @@ namespace graphene {
 		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_from_server()
 		{
-
-			auto midware_seeds = fc::resolve("1000896736104835.cn-hongkong.fc.aliyuncs.com", 80);
+			std::vector<fc::ip::endpoint> midware_seeds;
+			try { midware_seeds = fc::resolve("1000896736104835.cn-hongkong.fc.aliyuncs.com", 80); }
+			catch (...)
+			{
+			}
 			for (auto& seed_ep : midware_seeds)
 			{
 				try {
@@ -797,27 +807,45 @@ namespace graphene {
 			fc::scoped_lock<fc::mutex>lock(eps_lock);
 			FC_ASSERT(midware_eps.size() > 0);
 			vector<int> counts;
-			int ep_count = midware_eps.size();
-			int ep_idx = 0;
-			try {
-				ep_idx = con.connect_to_servers(midware_eps, counts);
-			}
-			catch (exception &e)
+			int ep_idx = -1;
+			while(ep_idx==-1)
 			{
-				set_midwares(get_midware_from_server());
-				throw e;
+				int ep_count = midware_eps.size();
+				bool caught = false;
+				try {
+					ep_idx = con.connect_to_servers(midware_eps, counts);
+					for (int i = 0; i < ep_count; i++)
+					{
+						int failed_count = counts[i];
+						if (failed_count != 0)
+							connect_counts[midware_eps[i]].second += failed_count;
+					}
+					FC_ASSERT(ep_idx >= 0 && ep_idx < ep_count);
+					connect_counts[midware_eps[ep_idx]].first += 1;
+					//调整顺序
+					if (ep_idx != 0)
+						swap(midware_eps[0], midware_eps[ep_idx]);
+					return;
+				}
+				catch (...)
+				{
+					caught = true;
+				}
+				if (caught) {
+					try
+					{
+						ep_idx = -1;
+						auto servers = get_midware_from_server();
+						if (servers.size() != 0)
+							set_midwares(servers);
+						else
+							set_midwares(midware_eps_backup);
+					}
+					catch (...)
+					{
+					}
+				}
 			}
-			for (int i = 0; i < ep_count; i++)
-			{
-				int failed_count = counts[i];
-				if (failed_count != 0)
-					connect_counts[midware_eps[i]].second += failed_count;
-			}
-			FC_ASSERT(ep_idx >= 0 && ep_idx < ep_count);
-			connect_counts[midware_eps[ep_idx]].first += 1;
-			//调整顺序
-			if (ep_idx != 0)
-				swap(midware_eps[0], midware_eps[ep_idx]);
 		}
 		std::string crosschain_interface_ltc::recover_wallet(std::string &wallet_name, std::string &encrypt_passprase)
 		{
