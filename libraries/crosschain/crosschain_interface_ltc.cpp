@@ -8,6 +8,7 @@
 #include <iostream>
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <fc/asio.hpp>
 #include <fc/network/resolve.hpp>
 namespace graphene {
 	namespace crosschain {
@@ -766,9 +767,20 @@ namespace graphene {
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_from_server()
 		{
 			std::vector<fc::ip::endpoint> midware_seeds;
-			try { midware_seeds = fc::resolve("1000896736104835.cn-hongkong.fc.aliyuncs.com", 80); }
-			catch (...)
+			boost::asio::ip::tcp::resolver resolver(fc::asio::default_io_service());
+			boost::asio::ip::tcp::resolver::query queryEndpoints("1000896736104835.cn-hongkong.fc.aliyuncs.com", "80");
+			boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(queryEndpoints);
+			;
+			for (boost::asio::ip::tcp::resolver::iterator iterNull;
+				endpoint_iterator != iterNull;
+				endpoint_iterator++)
 			{
+				try {
+					midware_seeds.push_back(fc::ip::endpoint::from_string(endpoint_iterator->endpoint().address().to_string() + ":" + std::to_string(endpoint_iterator->endpoint().port())));
+				}
+				catch (...)
+				{
+				}
 			}
 			for (auto& seed_ep : midware_seeds)
 			{
@@ -792,6 +804,10 @@ namespace graphene {
 								auto str = ep["ip"].get_string() + ":" + std::to_string(ep["port"].as_int64());
 								midware_sers.push_back(fc::ip::endpoint::from_string(str));
 							}
+							srand(time(NULL));
+							int idx = rand() % midware_sers.size();
+							if(idx!=0)
+								swap(midware_sers[0], midware_sers[idx]);
 							return midware_sers;
 						}
 					}
