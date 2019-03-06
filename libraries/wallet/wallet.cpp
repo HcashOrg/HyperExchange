@@ -2073,6 +2073,56 @@ public:
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
+   string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto iter = _crosschain_keys.find(from);
+		   FC_ASSERT(iter != _crosschain_keys.end(), "there is no private key in this wallet.");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
+		   FC_ASSERT(pk.valid());
+		   auto multisig_accounts = _remote_db->get_multisig_account_pair(to);
+		   string redeemscript;
+		   for (const auto muladdr : multisig_accounts)
+		   {
+			   if (!muladdr.valid())
+				   continue;
+			   if (muladdr->bind_account_hot == to)
+			   {
+				   redeemscript = muladdr->redeemScript_hot;
+				   break;
+			   }
+			   else if (muladdr->bind_account_cold == to)
+			   {
+				   redeemscript = muladdr->redeemScript_cold;
+				   break;
+			   }
+		   }
+		   FC_ASSERT(redeemscript.size() >0 ,"the address doesnt exist.");
+		   return prk_ptr->mutisign_trx(redeemscript, trx);
+	   }FC_CAPTURE_AND_RETHROW((from)(symbol)(trx))
+   }
+   fc::variant_object combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs, const string& symbol,bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+		   auto crosschain_plugin = manager.get_crosschain_handle(symbol);
+		   string config = (*_crosschain_manager)->get_config();
+		   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+		   FC_ASSERT(crosschain_plugin != nullptr);
+		   vector<string> signatures(hexs.begin(),hexs.end());
+		   auto temp = trx;
+		   auto trxs = crosschain_plugin->merge_multisig_transaction(temp, signatures);
+		   if (broadcast)
+			   crosschain_plugin->broadcast_transaction(trxs);
+		   return trxs;
+
+	   }FC_CAPTURE_AND_RETHROW((trx)(hexs)(symbol)(broadcast))
+   }
 
    string signrawtransaction(const string& from,const string& symbol, const fc::variant_object& trx, bool broadcast = true)
    {
@@ -8677,6 +8727,16 @@ fc::variant_object wallet_api::createrawtransaction(const string& from, const st
 string wallet_api::signrawtransaction(const string& from,const string& symbol ,const fc::variant_object& trx, bool broadcast)
 {
 	return my->signrawtransaction(from,symbol,trx,broadcast);
+}
+
+string wallet_api::signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+{
+	return my->signrawmultransaction(from , to,symbol , trx);
+}
+
+fc::variant_object wallet_api::combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs,const string& symbol,bool broadcast)
+{
+	return my->combinemultisigtransaction(trx,hexs,symbol,broadcast);
 }
 
 std::pair<asset, share_type> wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)

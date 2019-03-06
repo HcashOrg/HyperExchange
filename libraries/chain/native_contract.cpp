@@ -560,12 +560,15 @@ namespace graphene {
 		}
         address native_contract_register_operation::calculate_contract_id() const
 		{
-            address id;
+			address id;
 			fc::sha512::encoder enc;
 			std::pair<address, fc::time_point> info_to_digest(owner_addr, register_time);
 			fc::raw::pack(enc, info_to_digest);
+
 			id.addr = fc::ripemd160::hash(enc.result());
+			id.version = addressVersion::CONTRACT;
 			return id;
+
 		}
 	}
 }
