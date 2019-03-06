@@ -430,7 +430,7 @@ namespace fc {
 					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
 					while (!(is_done || is_timeout)) {
 						auto now = std::chrono::system_clock::now();
-						m_cond.wait_until(lk, now+ std::chrono::microseconds(300));
+						m_cond.wait_until(lk, now+ std::chrono::milliseconds(500));
 						//m_cond.wait(lk);
 					}
 					if (is_timeout) {
@@ -483,11 +483,12 @@ namespace fc {
 
 				while (!(is_done || is_timeout)) {
 					if (line.size() == content_length) {
+						boost::this_thread::sleep(boost::posix_time::milliseconds(300));
 						clean_handle_reply();
 					}
 					else {
 						auto now = std::chrono::system_clock::now();
-						m_cond.wait_until(lk, now + std::chrono::microseconds(300));
+						m_cond.wait_until(lk, now + std::chrono::milliseconds(500));
 					}
 					
 					//m_cond.wait(lk);
