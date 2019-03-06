@@ -268,16 +268,6 @@ namespace fc {
 
 		}
 
-		void connection_sync::clean_handle_reply() {
-			
-			is_done = true;
-
-			if (!is_release) {
-				is_release = true;
-				_deadline.get_io_service().dispatch([&]() { try { _deadline.cancel(); }
-				catch (...) {} });
-			}
-		}
 		void connection_sync::handle_reply(const boost::system::error_code & error) {
 			if (is_timeout)
 				return;
@@ -430,7 +420,7 @@ namespace fc {
 					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
 					while (!(is_done || is_timeout)) {
 						auto now = std::chrono::system_clock::now();
-						m_cond.wait_until(lk, now+ std::chrono::milliseconds(500));
+						m_cond.wait_until(lk, now+ std::chrono::seconds(2));
 						//m_cond.wait(lk);
 					}
 					if (is_timeout) {
@@ -472,26 +462,20 @@ namespace fc {
 					///rep.headers.push_back();
 					rep.headers.push_back(h);
 				}
+				content_length -= line.size();
 				boost::system::error_code error;
 				std::unique_lock<std::mutex> lk(read_lock);
 				_deadline.expires_from_now(boost::posix_time::seconds(50));
 				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error));
+
 				if (content_length > 0) {
 					boost::asio::async_read(_socket, line, boost::asio::transfer_at_least(content_length), boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
 					//, boost::asio::placeholders::error,boost::asio::placeholders::bytes_transferred
 				}
 
-				while (!(is_done || is_timeout)) {
-					if (line.size() == content_length) {
-						boost::this_thread::sleep(boost::posix_time::milliseconds(300));
-						clean_handle_reply();
-					}
-					else {
-						auto now = std::chrono::system_clock::now();
-						m_cond.wait_until(lk, now + std::chrono::milliseconds(500));
-					}
-					
-					//m_cond.wait(lk);
+				while (!(is_done || is_timeout) && content_length>0) {
+					auto now = std::chrono::system_clock::now();
+					m_cond.wait_until(lk, now + std::chrono::seconds(2));
 				}
 				if (is_timeout) {
 					std::cout << "query timeout" << std::endl;
