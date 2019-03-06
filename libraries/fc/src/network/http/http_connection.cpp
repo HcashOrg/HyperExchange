@@ -281,10 +281,13 @@ namespace fc {
 		void connection_sync::handle_reply(const boost::system::error_code & error) {
 			if (is_timeout)
 				return;
+			
 			if (error&&error.value() != 2) {
 				std::cout << "handle_reply error" << error.value() << error.message() << std::endl;
 				return;
 			}
+			if (is_release)
+				return;
 			std::lock_guard<std::mutex> lk(read_lock);
 			//is_timeout = false;
 			is_done = true;
