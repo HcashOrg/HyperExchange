@@ -267,6 +267,17 @@ namespace fc {
 			}
 
 		}
+
+		void connection_sync::clean_handle_reply() {
+			
+			is_done = true;
+
+			if (!is_release) {
+				is_release = true;
+				_deadline.get_io_service().dispatch([&]() { try { _deadline.cancel(); }
+				catch (...) {} });
+			}
+		}
 		void connection_sync::handle_reply(const boost::system::error_code & error) {
 			if (is_timeout)
 				return;
@@ -274,7 +285,6 @@ namespace fc {
 				std::cout << "handle_reply error" << error.value() << error.message() << std::endl;
 				return;
 			}
-
 			std::lock_guard<std::mutex> lk(read_lock);
 			//is_timeout = false;
 			is_done = true;
@@ -416,7 +426,9 @@ namespace fc {
 					_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error));
 					boost::asio::async_read_until(_socket, line, "\r\n\r\n", boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
 					while (!(is_done || is_timeout)) {
-						m_cond.wait(lk);
+						auto now = std::chrono::system_clock::now();
+						m_cond.wait_until(lk, now+ std::chrono::microseconds(300));
+						//m_cond.wait(lk);
 					}
 					if (is_timeout) {
 						std::cout << "query timeout" << std::endl;
@@ -467,7 +479,15 @@ namespace fc {
 				}
 
 				while (!(is_done || is_timeout)) {
-					m_cond.wait(lk);
+					if (line.size() == content_length) {
+						clean_handle_reply();
+					}
+					else {
+						auto now = std::chrono::system_clock::now();
+						m_cond.wait_until(lk, now + std::chrono::microseconds(300));
+					}
+					
+					//m_cond.wait(lk);
 				}
 				if (is_timeout) {
 					std::cout << "query timeout" << std::endl;

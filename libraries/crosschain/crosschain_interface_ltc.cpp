@@ -785,7 +785,7 @@ namespace graphene {
 			for (auto& seed_ep : midware_seeds)
 			{
 				try {
-					fc::http::connection conn;
+					fc::http::connection_sync conn;
 					conn.connect_to(seed_ep);
 					//auto res = conn.parse_reply();
 					auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_hx_middleware_endpoint/query_middleware_endpoint/", "");

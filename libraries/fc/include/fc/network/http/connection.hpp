@@ -93,6 +93,7 @@ namespace fc {
 
 		 //http::request    read_request()const;
 			http::reply parse_reply();
+			void clean_handle_reply();
 			void handle_reply(const boost::system::error_code & error);
 			void handle_reply(const boost::system::error_code & error, size_t bytes_transferred);
 			void check_deadline(const boost::system::error_code & error);
