@@ -262,7 +262,7 @@ namespace graphene {
 
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
-			FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
+			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(operation_type::contract_api_check(o));
 			
 			const auto &contract = d.get_contract(o.contract_id);
@@ -290,6 +290,7 @@ namespace graphene {
 				}
 				else
 				{
+					FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
 					if (!global_uvm_chain_api)
 						global_uvm_chain_api = new UvmChainApi();
 

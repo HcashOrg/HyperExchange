@@ -6,6 +6,7 @@
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
+#include <cborcpp/cbor.h>
 
 namespace graphene {
 	namespace chain {
@@ -42,6 +43,7 @@ namespace graphene {
 			bool has_api(const string& api_name);
 
 			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
+			void set_contract_storage(const address& contract_address, const string& storage_name, cbor::CborObjectP cbor_value);
 			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
 			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
 		};
@@ -85,8 +87,8 @@ namespace graphene {
 			string get_storage_state();
 			int64_t get_storage_supply();
 			int64_t get_storage_precision();
-			jsondiff::JsonObject get_storage_users();
-			jsondiff::JsonObject get_storage_allowed();
+			cbor::CborMapValue get_storage_users();
+			cbor::CborMapValue get_storage_allowed();
 			int64_t get_balance_of_user(const string& owner_addr);
 			std::string get_from_address();
 

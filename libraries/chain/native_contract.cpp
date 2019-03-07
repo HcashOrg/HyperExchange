@@ -3,9 +3,16 @@
 #include <graphene/utilities/ordered_json.hpp>
 
 #include <boost/algorithm/string.hpp>
+#include <cborcpp/cbor.h>
+#include <cbor_diff/cbor_diff.h>
+
 
 namespace graphene {
 	namespace chain {
+		using namespace cbor_diff;
+		using namespace cbor;
+		// TODO: use fast_map to store users, allowed of token contract
+
 		void abstract_native_contract::set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value)
 		{
 			if (_contract_invoke_result.storage_changes.find(string(contract_address)) == _contract_invoke_result.storage_changes.end())
@@ -13,17 +20,16 @@ namespace graphene {
 				_contract_invoke_result.storage_changes[string(contract_address)] = contract_storage_changes_type();
 			}
 			auto& storage_changes = _contract_invoke_result.storage_changes[string(contract_address)];
-			// TODO: use cbor_diff to replace json_diff in native contract storage
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				StorageDataChangeType change;
 				change.after = value;
 				const auto &before = _evaluate->get_storage(string(contract_address), storage_name);
-				jsondiff::JsonDiff differ;
-				auto before_json_str = before.as<string>();
-				auto after_json_str = change.after.as<string>();
-				auto diff = differ.diff_by_string(before_json_str, after_json_str);
-				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
+				cbor_diff::CborDiff differ;
+				const auto& before_cbor = cbor_decode(before.storage_data);
+				const auto& after_cbor = cbor_decode(change.after.storage_data);
+				auto diff = differ.diff(before_cbor, after_cbor);
+				change.storage_diff.storage_data = cbor_encode(diff->value());
 				change.before = before;
 				storage_changes[storage_name] = change;
 			}
@@ -33,13 +39,20 @@ namespace graphene {
 				auto before = change.before;
 				auto after = value;
 				change.after = after;
-				jsondiff::JsonDiff differ;
-				auto before_json_str = before.as<string>();
-				auto after_json_str = after.as<string>();
-				auto diff = differ.diff_by_string(before_json_str, after_json_str);
-				change.storage_diff = graphene::utilities::json_ordered_dumps(diff->value());
+				cbor_diff::CborDiff differ;
+				const auto& before_cbor = cbor_diff::cbor_decode(before.storage_data);
+				const auto& after_cbor = cbor_diff::cbor_decode(after.storage_data);
+				auto diff = differ.diff(before_cbor, after_cbor);
+				change.storage_diff.storage_data = cbor_encode(diff->value());
 			}
 		}
+
+		void abstract_native_contract::set_contract_storage(const address& contract_address, const string& storage_name, cbor::CborObjectP cbor_value) {
+			StorageDataType value;
+			value.storage_data = cbor_encode(cbor_value);
+			return set_contract_storage(contract_address, storage_name, value);
+		}
+
 		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const string& storage_name)
 		{
 			if (_contract_invoke_result.storage_changes.find(contract_address.operator fc::string()) == _contract_invoke_result.storage_changes.end())
@@ -137,16 +150,15 @@ namespace graphene {
 
 		contract_invoke_result token_native_contract::init_api(const std::string& api_name, const std::string& api_arg)
 		{
-			set_contract_storage(contract_id, string("name"), string("\"\""));
-			set_contract_storage(contract_id, string("supply"), string("0"));
-			set_contract_storage(contract_id, string("precision"), string("0"));
-			set_contract_storage(contract_id, string("users"), string("{}"));
-			set_contract_storage(contract_id, string("allowed"), string("{}"));
-			set_contract_storage(contract_id, string("state"), string("\"") + not_inited_state_of_token_contract + "\"");
+			set_contract_storage(contract_id, string("name"), CborObject::from_string(""));
+			set_contract_storage(contract_id, string("supply"), CborObject::from_int(0));
+			set_contract_storage(contract_id, string("precision"), CborObject::from_int(0));
+			set_contract_storage(contract_id, string("users"), CborObject::create_map(0));
+			set_contract_storage(contract_id, string("allowed"), CborObject::create_map(0));
+			set_contract_storage(contract_id, string("state"), CborObject::from_string(not_inited_state_of_token_contract));
 			auto caller_addr = _evaluate->get_caller_address();
 			FC_ASSERT(caller_addr);
-			set_contract_storage(contract_id, string("admin"), graphene::utilities::json_ordered_dumps(string(*caller_addr)));
-			set_contract_storage(contract_id, string("users"), string("{}"));
+			set_contract_storage(contract_id, string("admin"), CborObject::from_string(string(*caller_addr)));
 			return _contract_invoke_result;
 		}
 
@@ -156,44 +168,44 @@ namespace graphene {
 			if (!caller_addr)
 				THROW_CONTRACT_ERROR("only admin can call this api");
 			auto admin_storage = get_contract_storage(contract_id, string("admin"));
-			auto admin = jsondiff::json_loads(admin_storage.as<string>());
-			if (admin.is_string() && admin.as_string() == string(*caller_addr))
-				return admin.as_string();
+			auto admin = cbor_diff::cbor_decode(admin_storage.storage_data);
+			if (admin->is_string() && admin->as_string() == string(*caller_addr))
+				return admin->as_string();
 			THROW_CONTRACT_ERROR("only admin can call this api");
 		}
 
 		string token_native_contract::get_storage_state()
 		{
 			auto state_storage = get_contract_storage(contract_id, string("state"));
-			auto state = jsondiff::json_loads(state_storage.as<string>());
-			return state.as_string();
+			auto state = cbor_decode(state_storage.storage_data);
+			return state->as_string();
 		}
 
 		int64_t token_native_contract::get_storage_supply()
 		{
 			auto supply_storage = get_contract_storage(contract_id, string("supply"));
-			auto supply = jsondiff::json_loads(supply_storage.as<string>());
-			return supply.as_int64();
+			auto supply = cbor_decode(supply_storage.storage_data);
+			return supply->force_as_int();
 		}
 		int64_t token_native_contract::get_storage_precision()
 		{
 			auto precision_storage = get_contract_storage(contract_id, string("precision"));
-			auto precision = jsondiff::json_loads(precision_storage.as<string>());
-			return precision.as_int64();
+			auto precision = cbor_decode(precision_storage.storage_data);
+			return precision->force_as_int();
 		}
 
-		jsondiff::JsonObject token_native_contract::get_storage_users()
+		cbor::CborMapValue token_native_contract::get_storage_users()
 		{
 			auto users_storage = get_contract_storage(contract_id, string("users"));
-			auto users = jsondiff::json_loads(users_storage.as<string>());
-			return users.as<jsondiff::JsonObject>();
+			auto users = cbor_decode(users_storage.storage_data);
+			return users->as_map();
 		}
 
-		jsondiff::JsonObject token_native_contract::get_storage_allowed()
+		cbor::CborMapValue token_native_contract::get_storage_allowed()
 		{
 			auto allowed_storage = get_contract_storage(contract_id, string("allowed"));
-			auto allowed = jsondiff::json_loads(allowed_storage.as<string>());
-			return allowed.as<jsondiff::JsonObject>();
+			auto allowed = cbor_decode(allowed_storage.storage_data);
+			return allowed->as_map();
 		}
 
 		int64_t token_native_contract::get_balance_of_user(const string& owner_addr)
@@ -201,7 +213,8 @@ namespace graphene {
 			const auto& users = get_storage_users();
 			if (users.find(owner_addr) == users.end())
 				return 0;
-			return users[owner_addr].as_int64();
+			auto user_balance_cbor = users.at(owner_addr);
+			return user_balance_cbor->force_as_int();
 		}
 
 		std::string token_native_contract::get_from_address()
@@ -251,15 +264,15 @@ namespace graphene {
 			std::vector<int64_t> allowed_precisions = { 1,10,100,1000,10000,100000,1000000,10000000,100000000 };
 			if(std::find(allowed_precisions.begin(), allowed_precisions.end(), precision) == allowed_precisions.end())
 				THROW_CONTRACT_ERROR("argument format error, precision must be any one of [1,10,100,1000,10000,100000,1000000,10000000,100000000]");
-			set_contract_storage(contract_id, string("state"), string("\"") + common_state_of_token_contract + "\"");
-			set_contract_storage(contract_id, string("precision"), string("") + std::to_string(precision));
-			set_contract_storage(contract_id, string("supply"), string("") + std::to_string(supply));
-			set_contract_storage(contract_id, string("name"), string("\"") + name + "\"");
+			set_contract_storage(contract_id, string("state"), CborObject::from_string(common_state_of_token_contract));
+			set_contract_storage(contract_id, string("precision"), CborObject::from_int(precision));
+			set_contract_storage(contract_id, string("supply"), CborObject::from_int(supply));
+			set_contract_storage(contract_id, string("name"), CborObject::from_string(name));
 
-			jsondiff::JsonObject users;
+			cbor::CborMapValue users;
 			auto caller_addr = string(*(_evaluate->get_caller_address()));
-			users[caller_addr] = supply;
-			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
+			users[caller_addr] = cbor::CborObject::from_int(supply);
+			set_contract_storage(contract_id, string("users"), CborObject::create_map(users));
 			emit_event(contract_id, "Inited", supply_str);
 			return _contract_invoke_result;
 		}
@@ -317,10 +330,10 @@ namespace graphene {
 			int64_t approved_amount = 0;
 			if (allowed.find(authorizer_address) != allowed.end())
 			{
-				jsondiff::JsonObject allowed_data = jsondiff::json_loads(allowed[authorizer_address].as_string()).as<jsondiff::JsonObject>();
+				auto allowed_data = allowed[authorizer_address]->as_map();
 				if (allowed_data.find(spender_address) != allowed_data.end())
 				{
-					approved_amount = allowed_data[spender_address].as_int64();
+					approved_amount = allowed_data[spender_address]->force_as_int();
 				}
 			}
 
@@ -337,12 +350,15 @@ namespace graphene {
 			if (!address::is_valid(from_address))
 				THROW_CONTRACT_ERROR("argument format error, from address format error");
 			
-			jsondiff::JsonObject allowed_data;
+			cbor::CborMapValue allowed_data;
 			if (allowed.find(from_address) != allowed.end())
 			{
-				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
+				allowed_data = allowed[from_address]->as_map();
 			}
-			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data);
+			auto L = uvm::lua::lib::create_lua_state(true); // FIXME: don't use L here
+			auto allowed_data_json = uvm_storage_value_to_json(cbor_to_uvm_storage_value(L, CborObject::create_map(allowed_data).get())); // FIXME
+			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data_json); // TODO
+			uvm::lua::lib::close_lua_state(L);
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;
 		}
@@ -369,15 +385,15 @@ namespace graphene {
 			
 			string from_addr = get_from_address();
 			auto users = get_storage_users();
-			if(users.find(from_addr)==users.end() || users[from_addr].as_int64()<amount)
+			if(users.find(from_addr)==users.end() || users[from_addr]->force_as_int()<amount)
 				THROW_CONTRACT_ERROR("you have not enoungh amount to transfer out");
-			auto from_addr_remain = users[from_addr].as_int64() - amount;
+			auto from_addr_remain = users[from_addr]->force_as_int() - amount;
 			if (from_addr_remain > 0)
-				users[from_addr] = from_addr_remain;
+				users[from_addr] = CborObject::from_int(from_addr_remain);
 			else
 				users.erase(from_addr);
-			users[to_address] = users[to_address].as_int64() + amount;
-			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
+			users[to_address] = CborObject::from_int(users[to_address]->force_as_int() + amount);
+			set_contract_storage(contract_id, string("users"), CborObject::create_map(users));
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = from_addr;
 			event_arg["to"] = to_address;
@@ -406,17 +422,17 @@ namespace graphene {
 			if (amount <= 0)
 				THROW_CONTRACT_ERROR("argument format error, amount must be positive integer");
 			auto allowed = get_storage_allowed();
-			jsondiff::JsonObject allowed_data;
+			cbor::CborMapValue allowed_data;
 			std::string contract_caller = get_from_address();
 			if (allowed.find(contract_caller) == allowed.end())
-				allowed_data = jsondiff::JsonObject();
+				allowed_data = cbor::CborMapValue();
 			else
 			{
-				allowed_data = jsondiff::json_loads(allowed[contract_caller].as_string()).as<jsondiff::JsonObject>();
+				allowed_data = allowed[contract_caller]->as_map();
 			}
-			allowed_data[spender_address] = amount;
-			allowed[contract_caller] = graphene::utilities::json_ordered_dumps(allowed_data);
-			set_contract_storage(contract_id, string("allowed"), graphene::utilities::json_ordered_dumps(allowed));
+			allowed_data[spender_address] = CborObject::from_int(amount);
+			allowed[contract_caller] = CborObject::create_map(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), CborObject::create_map(allowed));
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = contract_caller;
 			event_arg["spender"] = spender_address;
@@ -457,32 +473,32 @@ namespace graphene {
 			{
 				THROW_CONTRACT_ERROR("fromAddress not have enough token to withdraw");
 			}
-			jsondiff::JsonObject allowed_data;
+			cbor::CborMapValue allowed_data;
 			if (allowed.find(from_address) == allowed.end())
 				THROW_CONTRACT_ERROR("not enough approved amount to withdraw");
 			else
 			{
-				allowed_data = jsondiff::json_loads(allowed[from_address].as_string()).as<jsondiff::JsonObject>();
+				allowed_data = allowed[from_address]->as_map();
 			}
 			auto contract_caller = get_from_address();
 			if(allowed_data.find(contract_caller)==allowed_data.end())
 				THROW_CONTRACT_ERROR("not enough approved amount to withdraw");
-			auto approved_amount = allowed_data[contract_caller].as_int64();
+			auto approved_amount = allowed_data[contract_caller]->force_as_int();
 			if(approved_amount < amount)
 				THROW_CONTRACT_ERROR("not enough approved amount to withdraw");
-			auto from_addr_remain = users[from_address].as_int64() - amount;
+			auto from_addr_remain = users[from_address]->force_as_int() - amount;
 			if (from_addr_remain > 0)
-				users[from_address] = from_addr_remain;
+				users[from_address] = cbor::CborObject::from_int(from_addr_remain);
 			else
 				users.erase(from_address);
-			users[to_address] = users[to_address].as_int64() + amount;
-			set_contract_storage(contract_id, string("users"), graphene::utilities::json_ordered_dumps(users));
+			users[to_address] = cbor::CborObject::from_int(users[to_address]->force_as_int() + amount);
+			set_contract_storage(contract_id, string("users"), CborObject::create_map(users));
 							
-			allowed_data[contract_caller] = approved_amount - amount;
-			if (allowed_data[contract_caller].as_int64() == 0)
+			allowed_data[contract_caller] = cbor::CborObject::from_int(approved_amount - amount);
+			if (allowed_data[contract_caller]->force_as_int() == 0)
 				allowed_data.erase(contract_caller);
-			allowed[from_address] = graphene::utilities::json_ordered_dumps(allowed_data);
-			set_contract_storage(contract_id, string("allowed"), graphene::utilities::json_ordered_dumps(allowed));
+			allowed[from_address] = CborObject::create_map(allowed_data);
+			set_contract_storage(contract_id, string("allowed"), CborObject::create_map(allowed));
 									
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = from_address;
