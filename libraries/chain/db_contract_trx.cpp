@@ -505,6 +505,14 @@ namespace graphene {
 			auto itr = index.find(contract_address);
 			if(method=="")
 				return itr != index.end();
+			if (itr->type_of_contract == contract_based_on_template)
+			{
+				auto itrbase=index.find(itr->inherit_from);
+				FC_ASSERT(itrbase != index.end());
+				auto& apis = itrbase->code.abi;
+				auto& offline_apis = itrbase->code.offline_abi;
+				return apis.find(method) != apis.end() || offline_apis.find(method) != offline_apis.end();
+			}
 			auto& apis = itr->code.abi;
 			auto& offline_apis = itr->code.offline_abi;
 			return apis.find(method) != apis.end()|| offline_apis.find(method)!= offline_apis.end();
