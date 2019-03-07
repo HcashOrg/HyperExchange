@@ -408,7 +408,7 @@ namespace detail {
 					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
 					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
 				 }
-				 if (chain_type_vector.size() < 6)
+				 if (chain_type_vector.size() < 7)
 				 {
 					 chain_type_vector.clear();
 					 chain_type_vector.push_back("BTC");
