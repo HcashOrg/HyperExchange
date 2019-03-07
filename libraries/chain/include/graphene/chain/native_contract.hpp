@@ -85,6 +85,8 @@ namespace graphene {
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
 			string check_admin();
 			string get_storage_state();
+			string get_storage_token_name();
+			string get_storage_token_symbol();
 			int64_t get_storage_supply();
 			int64_t get_storage_precision();
 			cbor::CborMapValue get_storage_users();
@@ -97,6 +99,8 @@ namespace graphene {
 			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result balance_of_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result token_name_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result token_symbol_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg);
 			// 授权另一个用户可以从自己的余额中提现

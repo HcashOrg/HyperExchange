@@ -5,7 +5,7 @@
 #include <boost/algorithm/string.hpp>
 #include <cborcpp/cbor.h>
 #include <cbor_diff/cbor_diff.h>
-
+#include <fc/crypto/hex.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -136,10 +136,10 @@ namespace graphene {
 			return contract_id;
 		}
 		std::set<std::string> token_native_contract::apis() const {
-			return { "init", "init_token", "transfer", "transferFrom", "balanceOf", "approve", "approvedBalanceFrom", "allApprovedFromUser", "state", "supply", "precision" };
+			return { "init", "init_token", "transfer", "transferFrom", "balanceOf", "approve", "approvedBalanceFrom", "allApprovedFromUser", "state", "supply", "precision", "tokenName", "tokenSymbol" };
 		}
 		std::set<std::string> token_native_contract::offline_apis() const {
-			return { "balanceOf", "approvedBalanceFrom", "allApprovedFromUser", "state", "supply", "precision" };
+			return { "balanceOf", "approvedBalanceFrom", "allApprovedFromUser", "state", "supply", "precision", "tokenName", "tokenSymbol" };
 		}
 		std::set<std::string> token_native_contract::events() const {
 			return { "Inited", "Transfer", "Approved" };
@@ -151,6 +151,7 @@ namespace graphene {
 		contract_invoke_result token_native_contract::init_api(const std::string& api_name, const std::string& api_arg)
 		{
 			set_contract_storage(contract_id, string("name"), CborObject::from_string(""));
+			set_contract_storage(contract_id, string("symbol"), CborObject::from_string(""));
 			set_contract_storage(contract_id, string("supply"), CborObject::from_int(0));
 			set_contract_storage(contract_id, string("precision"), CborObject::from_int(0));
 			set_contract_storage(contract_id, string("users"), CborObject::create_map(0));
@@ -180,6 +181,21 @@ namespace graphene {
 			auto state = cbor_decode(state_storage.storage_data);
 			return state->as_string();
 		}
+
+                string token_native_contract::get_storage_token_name()
+                {       
+                        auto name_storage = get_contract_storage(contract_id, string("name"));
+                        auto name = cbor_decode(name_storage.storage_data);
+                        return name->as_string();
+                }
+
+                string token_native_contract::get_storage_token_symbol()
+                {       
+                        auto symbol_storage = get_contract_storage(contract_id, string("symbol"));
+                        auto symbol = cbor_decode(symbol_storage.storage_data);
+                        return symbol->as_string();
+                }
+
 
 		int64_t token_native_contract::get_storage_supply()
 		{
@@ -238,25 +254,29 @@ namespace graphene {
 
 		// arg format: name,symbol,supply,precision
 		contract_invoke_result token_native_contract::init_token_api(const std::string& api_name, const std::string& api_arg)
-		{
+		{	
 			check_admin();
 			if(get_storage_state()!= not_inited_state_of_token_contract)
 				THROW_CONTRACT_ERROR("this token contract inited before");
 			std::vector<string> parsed_args;
 			boost::split(parsed_args, api_arg, boost::is_any_of(","));
-			if (parsed_args.size() < 3)
-				THROW_CONTRACT_ERROR("argument format error, need format: name,supply,precision");
+			if (parsed_args.size() < 4)
+				THROW_CONTRACT_ERROR("argument format error, need format: name,symbol,supply,precision");
 			string name = parsed_args[0];
 			boost::trim(name);
-			string supply_str = parsed_args[1];
+			string symbol = parsed_args[1];
+			boost::trim(symbol);
+			if(name.empty() || symbol.empty())
+				THROW_CONTRACT_ERROR("argument format error, need format: name,symbol,supply,precision");
+			string supply_str = parsed_args[2];
 			if (!is_integral(supply_str))
-				THROW_CONTRACT_ERROR("argument format error, need format: name,supply,precision");
+				THROW_CONTRACT_ERROR("argument format error, need format: name,symbol,supply,precision");
 			int64_t supply = std::stoll(supply_str);
 			if(supply <= 0)
 				THROW_CONTRACT_ERROR("argument format error, supply must be positive integer");
-			string precision_str = parsed_args[2];
+			string precision_str = parsed_args[3];
 			if(!is_integral(precision_str))
-				THROW_CONTRACT_ERROR("argument format error, need format: name,supply,precision");
+				THROW_CONTRACT_ERROR("argument format error, need format: name,symbol,supply,precision");
 			int64_t precision = std::stoll(precision_str);
 			if(precision <= 0)
 				THROW_CONTRACT_ERROR("argument format error, precision must be positive integer");
@@ -268,6 +288,7 @@ namespace graphene {
 			set_contract_storage(contract_id, string("precision"), CborObject::from_int(precision));
 			set_contract_storage(contract_id, string("supply"), CborObject::from_int(supply));
 			set_contract_storage(contract_id, string("name"), CborObject::from_string(name));
+			set_contract_storage(contract_id, "symbol", CborObject::from_string(symbol));
 
 			cbor::CborMapValue users;
 			auto caller_addr = string(*(_evaluate->get_caller_address()));
@@ -291,11 +312,24 @@ namespace graphene {
 
 		contract_invoke_result token_native_contract::state_api(const std::string& api_name, const std::string& api_arg)
 		{
-			auto state = get_storage_state();
+			const auto& state = get_storage_state();
 			_contract_invoke_result.api_result = state;
 			return _contract_invoke_result;
 		}
 
+		contract_invoke_result token_native_contract::token_name_api(const std::string& api_name, const std::string& api_arg)
+                {
+                        const auto& token_name = get_storage_token_name();
+                        _contract_invoke_result.api_result = token_name;
+                        return _contract_invoke_result;
+                }
+
+		contract_invoke_result token_native_contract::token_symbol_api(const std::string& api_name, const std::string& api_arg)
+                {
+                        const auto& token_symbol = get_storage_token_symbol();
+                        _contract_invoke_result.api_result = token_symbol;
+                        return _contract_invoke_result;
+                }
 
 		contract_invoke_result token_native_contract::supply_api(const std::string& api_name, const std::string& api_arg)
 		{
@@ -392,7 +426,10 @@ namespace graphene {
 				users[from_addr] = CborObject::from_int(from_addr_remain);
 			else
 				users.erase(from_addr);
-			users[to_address] = CborObject::from_int(users[to_address]->force_as_int() + amount);
+			int64_t to_amount = 0;
+			if(users.find(to_address) != users.end())
+				to_amount = users[to_address]->force_as_int();
+			users[to_address] = CborObject::from_int(to_amount + amount);
 			set_contract_storage(contract_id, string("users"), CborObject::create_map(users));
 			jsondiff::JsonObject event_arg;
 			event_arg["from"] = from_addr;
@@ -491,7 +528,10 @@ namespace graphene {
 				users[from_address] = cbor::CborObject::from_int(from_addr_remain);
 			else
 				users.erase(from_address);
-			users[to_address] = cbor::CborObject::from_int(users[to_address]->force_as_int() + amount);
+			int64_t to_amount = 0;
+			if(users.find(to_address) != users.end())
+				to_amount = users[to_address]->force_as_int();
+			users[to_address] = cbor::CborObject::from_int(to_amount + amount);
 			set_contract_storage(contract_id, string("users"), CborObject::create_map(users));
 							
 			allowed_data[contract_caller] = cbor::CborObject::from_int(approved_amount - amount);
@@ -521,7 +561,9 @@ namespace graphene {
 				{"allApprovedFromUser", std::bind(&token_native_contract::all_approved_from_user_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"state", std::bind(&token_native_contract::state_api, this, std::placeholders::_1, std::placeholders::_2)},
 				{"supply", std::bind(&token_native_contract::supply_api, this, std::placeholders::_1, std::placeholders::_2)},
-				{"precision", std::bind(&token_native_contract::precision_api, this, std::placeholders::_1, std::placeholders::_2)}
+				{"precision", std::bind(&token_native_contract::precision_api, this, std::placeholders::_1, std::placeholders::_2)},
+				{"tokenName", std::bind(&token_native_contract::token_name_api, this, std::placeholders::_1, std::placeholders::_2)},
+				{"tokenSymbol", std::bind(&token_native_contract::token_symbol_api, this, std::placeholders::_1, std::placeholders::_2)},
 			};
             if (apis.find(api_name) != apis.end())
             {
