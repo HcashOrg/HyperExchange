@@ -6,6 +6,8 @@
 #include <cborcpp/cbor.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/hex.hpp>
+#include <fc/io/json.hpp>
+#include <jsondiff/jsondiff.h>
 
 namespace graphene {
 	namespace chain {
@@ -346,6 +348,7 @@ namespace graphene {
 
 		contract_invoke_result token_native_contract::approved_balance_from_api(const std::string& api_name, const std::string& api_arg)
 		{
+			printf("approved_balance_from_api arg: %s\n", api_arg.c_str());
 			if (get_storage_state() != common_state_of_token_contract)
 				THROW_CONTRACT_ERROR("this token contract state doesn't allow this api");
 			auto allowed = get_storage_allowed();
@@ -375,10 +378,12 @@ namespace graphene {
 			return _contract_invoke_result;
 		}
 		contract_invoke_result token_native_contract::all_approved_from_user_api(const std::string& api_name, const std::string& api_arg)
-		{
+		{	
+			printf("enter all_approved_from_user_api\n");
 			if (get_storage_state() != common_state_of_token_contract)
 				THROW_CONTRACT_ERROR("this token contract state doesn't allow this api");
 			auto allowed = get_storage_allowed();
+			printf("allowed got\n");
 			string from_address = api_arg;
 			boost::trim(from_address);
 			if (!address::is_valid(from_address))
@@ -389,10 +394,34 @@ namespace graphene {
 			{
 				allowed_data = allowed[from_address]->as_map();
 			}
+			printf("to parse json\n");
 			auto L = uvm::lua::lib::create_lua_state(true); // FIXME: don't use L here
-			auto allowed_data_json = uvm_storage_value_to_json(cbor_to_uvm_storage_value(L, CborObject::create_map(allowed_data).get())); // FIXME
+			auto allowed_data_cbor = CborObject::create_map(allowed_data);
+			printf("allowed_data_cbor cbor type: %d\n", allowed_data_cbor->object_type());
+			auto allowed_data_uvm_storage = cbor_to_uvm_storage_value(L, allowed_data_cbor.get());
+			printf("allowed_data_uvm_storage generated\n");
+			printf("allowed_data_uvm_storage type: %d\n", allowed_data_uvm_storage.type);
+			auto allowed_data_json = uvm_storage_value_to_json(allowed_data_uvm_storage); // FIXME
+			printf("allowed_data_json generated\n");
+			try {
+				if(allowed_data_json.is_object()) {
+					printf("found json object\n");
+					auto obj = allowed_data_json.as<jsondiff::JsonObject>();
+					printf("obj size: %d\n", obj.size());
+					for (auto it = obj.begin(); it != obj.end(); it++)
+					{
+						printf("found key\n");
+						printf("key: %s\n", it->key().c_str());
+						
+					}
+				}
+			printf(fc::json::to_string(allowed_data_json, fc::json::legacy_generator).c_str());
+			} catch(const std::exception& e) {
+				printf("to json string error: %s\n", e.what());
+			}
 			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data_json); // TODO
 			uvm::lua::lib::close_lua_state(L);
+			printf("json parsed\n");
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;
 		}
@@ -567,6 +596,7 @@ namespace graphene {
 			};
             if (apis.find(api_name) != apis.end())
             {
+		printf("token native api: %s\n, arg: %s\n", api_name.c_str(), api_arg.c_str());
                 contract_invoke_result res= apis[api_name](api_name, api_arg);
                 res.invoker = *(_evaluate->get_caller_address());
                 return res;
