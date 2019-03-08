@@ -133,6 +133,14 @@ int main(int argc, char** argv)
 	//	std::cout << "same signature" << std::endl;
 	//}
 
+		fc::http::connection_sync conn;
+		conn.connect_to(fc::ip::endpoint(fc::ip::address("47.90.117.50"),80));
+		//auto res = conn.parse_reply();
+		auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_hx_middleware_endpoint/query_middleware_endpoint/", " ");
+		std::cout << response.body << std::endl;
+	
+	getchar();
+
 	hc_privatekey priv;
 	std::string signature = "H5hDgKBVDhwWmuoK0vGRaKFp/Tatb/0WFufhL+36ZNd/DBx+xkZNUwoutsEzYi7Ojc/2VIzgpr53De47QsSRC44=";
 	std::string message = "HsPkLn69ENrLNiebesQsTEu6E4xvu4QXTYA";
@@ -167,6 +175,10 @@ int main(int argc, char** argv)
 	fc::thread my_thread;
 
 	fc::variant_object config = fc::json::from_string("{\"ip\":\"127.0.0.1\",\"port\":5005}").get_object();
+
+
+
+
 	
 	
 	my_thread.async([&]() {
@@ -187,8 +199,6 @@ int main(int argc, char** argv)
 		}
 
 	});
-
-	
 		for (int i = 0; i < 100; i++) {
 			try {
 			graphene::crosschain::crosschain_interface_hc inter;

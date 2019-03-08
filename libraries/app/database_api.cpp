@@ -2792,9 +2792,9 @@ map<account_id_type, vector<asset>> database_api::get_citizen_lockbalance_info(c
 	return my->get_citizen_lockbalance_info(id);
 }
 
-graphene::chain::StorageDataType database_api::get_contract_storage(const address& contract_address, const string& storage_name) const
+optional<contract_storage_object> database_api::get_contract_storage(const address& contract_address, const string& storage_name) const
 {
-	my->_db.get_contract_storage(contract_address, storage_name);
+	return my->_db.get_contract_storage_object(contract_address, storage_name);
 }
 
 optional<multisig_account_pair_object> database_api::lookup_multisig_account_pair(const multisig_account_pair_id_type& id) const

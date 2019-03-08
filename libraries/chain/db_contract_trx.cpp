@@ -37,6 +37,22 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
+		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
+		{
+			try {
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				if (storage_iter == storage_index.end())
+				{
+					return optional<contract_storage_object>();
+				}
+				else
+				{
+					return *storage_iter;
+				}
+			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
+		}
+
 		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
@@ -489,6 +505,14 @@ namespace graphene {
 			auto itr = index.find(contract_address);
 			if(method=="")
 				return itr != index.end();
+			if (itr->type_of_contract == contract_based_on_template)
+			{
+				auto itrbase=index.find(itr->inherit_from);
+				FC_ASSERT(itrbase != index.end());
+				auto& apis = itrbase->code.abi;
+				auto& offline_apis = itrbase->code.offline_abi;
+				return apis.find(method) != apis.end() || offline_apis.find(method) != offline_apis.end();
+			}
 			auto& apis = itr->code.abi;
 			auto& offline_apis = itr->code.offline_abi;
 			return apis.find(method) != apis.end()|| offline_apis.find(method)!= offline_apis.end();

@@ -122,6 +122,7 @@ namespace graphene {
             uint32_t registered_block;
 			transaction_id_type registered_trx;
             optional<std::string> inherit_from;
+			string  native_contract_key;
 
             std::vector<std::string> derived;
 			CodePrintAble code_printable; // code-related of contract
@@ -144,5 +145,5 @@ FC_REFLECT(uvm::blockchain::Code, (abi)(offline_abi)(events)(storage_properties)
 
 FC_REFLECT(graphene::chain::contract_blocknum_pair, (contract_address)(block_num));
 FC_REFLECT(graphene::chain::CodePrintAble, (abi)(offline_abi)(events)(printable_storage_properties)(printable_code)(code_hash));
-FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner_address)(owner_name)(name)(description)(type_of_contract)(registered_block)(registered_trx)(inherit_from)(derived)(code_printable)(createtime));
+FC_REFLECT(graphene::chain::ContractEntryPrintable, (id)(owner_address)(owner_name)(name)(description)(type_of_contract)(registered_block)(registered_trx)(inherit_from)(native_contract_key)(derived)(code_printable)(createtime));
 

@@ -647,7 +647,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.13";
+	  result["version"] = "1.2.15";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1863,9 +1863,14 @@ public:
 			   cont = _remote_db->get_contract_object(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
-		   auto& abi = cont.code.abi;
-		   if (abi.find(contract_api) == abi.end())
-			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   if(cont.type_of_contract == contract_type::native_contract) {
+			   // TODO: check native key and api exist
+			
+		   } else {
+		   	auto& abi = cont.code.abi;
+		   	if (abi.find(contract_api) == abi.end())
+			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
            fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
            contract_invoke_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
 
@@ -1938,10 +1943,13 @@ public:
 				cont = _remote_db->get_contract_object(contract_address_or_name);
 				contract_address = string(cont.contract_address);
 		   }
-		   auto& abi = cont.code.offline_abi;
-		   if (abi.find(contract_api) == abi.end())
-			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
-
+		   if(cont.type_of_contract == contract_type::native_contract) {
+			// TODO: check native key and api exist
+		   } else {
+		   	auto& abi = cont.code.offline_abi;
+		   	if (abi.find(contract_api) == abi.end())
+			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
 		   contract_invoke_op.gas_price = 0;
 		   contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   contract_invoke_op.caller_addr = acc_caller.addr;
@@ -2072,6 +2080,56 @@ public:
 		   }
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
+   }
+   string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto iter = _crosschain_keys.find(from);
+		   FC_ASSERT(iter != _crosschain_keys.end(), "there is no private key in this wallet.");
+		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
+		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
+		   FC_ASSERT(pk.valid());
+		   auto multisig_accounts = _remote_db->get_multisig_account_pair(to);
+		   string redeemscript;
+		   for (const auto muladdr : multisig_accounts)
+		   {
+			   if (!muladdr.valid())
+				   continue;
+			   if (muladdr->bind_account_hot == to)
+			   {
+				   redeemscript = muladdr->redeemScript_hot;
+				   break;
+			   }
+			   else if (muladdr->bind_account_cold == to)
+			   {
+				   redeemscript = muladdr->redeemScript_cold;
+				   break;
+			   }
+		   }
+		   FC_ASSERT(redeemscript.size() >0 ,"the address doesnt exist.");
+		   return prk_ptr->mutisign_trx(redeemscript, trx);
+	   }FC_CAPTURE_AND_RETHROW((from)(symbol)(trx))
+   }
+   fc::variant_object combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs, const string& symbol,bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+		   auto & manager = graphene::crosschain::crosschain_manager::get_instance();
+		   auto crosschain_plugin = manager.get_crosschain_handle(symbol);
+		   string config = (*_crosschain_manager)->get_config();
+		   crosschain_plugin->initialize_config(fc::json::from_string(config).get_object());
+		   FC_ASSERT(crosschain_plugin != nullptr);
+		   vector<string> signatures(hexs.begin(),hexs.end());
+		   auto temp = trx;
+		   auto trxs = crosschain_plugin->merge_multisig_transaction(temp, signatures);
+		   if (broadcast)
+			   crosschain_plugin->broadcast_transaction(trxs);
+		   return trxs;
+
+	   }FC_CAPTURE_AND_RETHROW((trx)(hexs)(symbol)(broadcast))
    }
 
    string signrawtransaction(const string& from,const string& symbol, const fc::variant_object& trx, bool broadcast = true)
@@ -7965,9 +8023,11 @@ void wallet_api::set_gas_limit_in_block(const share_type& new_limit)
 	return my->_remote_db->set_gas_limit_in_block(new_limit);
 }
 
-graphene::chain::StorageDataType wallet_api::get_contract_storage(const address& contract_address, const string& storage_name)
+contract_storage_object wallet_api::get_contract_storage(const address& contract_address, const string& storage_name)
 {
-	return my->_remote_db->get_contract_storage(contract_address,storage_name);
+	auto res= my->_remote_db->get_contract_storage(contract_address,storage_name);
+	FC_ASSERT(res.valid(),"contract storage object not found");
+	return *res;
 }
 
 address wallet_api::wallet_create_account(string account_name)
@@ -8675,6 +8735,16 @@ fc::variant_object wallet_api::createrawtransaction(const string& from, const st
 string wallet_api::signrawtransaction(const string& from,const string& symbol ,const fc::variant_object& trx, bool broadcast)
 {
 	return my->signrawtransaction(from,symbol,trx,broadcast);
+}
+
+string wallet_api::signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+{
+	return my->signrawmultransaction(from , to,symbol , trx);
+}
+
+fc::variant_object wallet_api::combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs,const string& symbol,bool broadcast)
+{
+	return my->combinemultisigtransaction(trx,hexs,symbol,broadcast);
 }
 
 std::pair<asset, share_type> wallet_api::upgrade_contract_testing(const string & caller_account_name, const string & contract_address, const string & contract_name, const string & contract_desc)

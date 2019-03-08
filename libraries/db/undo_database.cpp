@@ -771,6 +771,8 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
 		   return create_obj_unique_ptr<blocked_address_object>(var);
 	   case impl_lockbalance_record_object_type:
 		   return create_obj_unique_ptr<lockbalance_record_object>(var);
+	   case impl_white_operationlist_object_type:
+		   return create_obj_unique_ptr<whiteOperationList_object>(var);
        default:
            break;
     }
