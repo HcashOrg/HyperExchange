@@ -1863,9 +1863,14 @@ public:
 			   cont = _remote_db->get_contract_object(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
-		   auto& abi = cont.code.abi;
-		   if (abi.find(contract_api) == abi.end())
-			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   if(cont.type_of_contract == contract_type::native_contract) {
+			   // TODO: check native key and api exist
+			
+		   } else {
+		   	auto& abi = cont.code.abi;
+		   	if (abi.find(contract_api) == abi.end())
+			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
            fc::optional<asset_object> default_asset = get_asset(GRAPHENE_SYMBOL);
            contract_invoke_op.gas_price = default_asset->amount_from_string(gas_price).amount.value;
 
@@ -1938,10 +1943,13 @@ public:
 				cont = _remote_db->get_contract_object(contract_address_or_name);
 				contract_address = string(cont.contract_address);
 		   }
-		   auto& abi = cont.code.offline_abi;
-		   if (abi.find(contract_api) == abi.end())
-			   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
-
+		   if(cont.type_of_contract == contract_type::native_contract) {
+			// TODO: check native key and api exist
+		   } else {
+		   	auto& abi = cont.code.offline_abi;
+		   	if (abi.find(contract_api) == abi.end())
+			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
 		   contract_invoke_op.gas_price = 0;
 		   contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   contract_invoke_op.caller_addr = acc_caller.addr;

@@ -6,6 +6,7 @@
 #include <graphene/chain/contract_entry.hpp>
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
+#include <cborcpp/cbor.h>
 
 namespace graphene {
 	namespace chain {
@@ -42,6 +43,7 @@ namespace graphene {
 			bool has_api(const string& api_name);
 
 			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
+			void set_contract_storage(const address& contract_address, const string& storage_name, cbor::CborObjectP cbor_value);
 			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
 			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
 		};
@@ -83,10 +85,12 @@ namespace graphene {
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
 			string check_admin();
 			string get_storage_state();
+			string get_storage_token_name();
+			string get_storage_token_symbol();
 			int64_t get_storage_supply();
 			int64_t get_storage_precision();
-			jsondiff::JsonObject get_storage_users();
-			jsondiff::JsonObject get_storage_allowed();
+			cbor::CborMapValue get_storage_users();
+			cbor::CborMapValue get_storage_allowed();
 			int64_t get_balance_of_user(const string& owner_addr);
 			std::string get_from_address();
 
@@ -95,6 +99,8 @@ namespace graphene {
 			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result balance_of_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result token_name_api(const std::string& api_name, const std::string& api_arg);
+			contract_invoke_result token_symbol_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg);
 			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg);
 			// 授权另一个用户可以从自己的余额中提现
