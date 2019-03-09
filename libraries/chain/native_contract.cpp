@@ -6,6 +6,8 @@
 #include <cborcpp/cbor.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/hex.hpp>
+#include <fc/io/json.hpp>
+#include <jsondiff/jsondiff.h>
 
 namespace graphene {
 	namespace chain {
@@ -375,7 +377,7 @@ namespace graphene {
 			return _contract_invoke_result;
 		}
 		contract_invoke_result token_native_contract::all_approved_from_user_api(const std::string& api_name, const std::string& api_arg)
-		{
+		{	
 			if (get_storage_state() != common_state_of_token_contract)
 				THROW_CONTRACT_ERROR("this token contract state doesn't allow this api");
 			auto allowed = get_storage_allowed();
@@ -390,8 +392,10 @@ namespace graphene {
 				allowed_data = allowed[from_address]->as_map();
 			}
 			auto L = uvm::lua::lib::create_lua_state(true); // FIXME: don't use L here
-			auto allowed_data_json = uvm_storage_value_to_json(cbor_to_uvm_storage_value(L, CborObject::create_map(allowed_data).get())); // FIXME
-			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data_json); // TODO
+			auto allowed_data_cbor = CborObject::create_map(allowed_data);
+			auto allowed_data_uvm_storage = cbor_to_uvm_storage_value(L, allowed_data_cbor.get());
+			auto allowed_data_json = uvm_storage_value_to_json(allowed_data_uvm_storage);
+			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data_json);
 			uvm::lua::lib::close_lua_state(L);
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;

@@ -946,6 +946,8 @@ namespace graphene {
 			bool result = true;
 			try {
                                 auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				if(!evaluator)
+					return true;
                                 const auto& d = evaluator->get_db();
                                 auto head_block_num = d.head_block_num();
                                 result = head_block_num > USE_CBOR_DIFF_FORK_HEIGHT;
