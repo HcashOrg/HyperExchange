@@ -43,7 +43,8 @@ namespace block_production_condition
       low_participation = 5,
       lag = 6,
       consecutive = 7,
-      exception_producing_block = 8
+      exception_producing_block = 8,
+	  stopped = 9
    };
 }
 
@@ -51,7 +52,7 @@ class miner_plugin :public graphene::app::plugin {
 public:
    ~miner_plugin() {
       try {
-         if( _block_production_task.valid() )
+         if( _block_production_task.valid() || !_block_production_task.canceled())
             _block_production_task.cancel_and_wait(__FUNCTION__);
       } catch(fc::canceled_exception&) {
          //Expected exception. Move along.
