@@ -159,6 +159,8 @@ namespace graphene {
 			
 			virtual bool use_cbor_diff(lua_State* L) const override;
 
+			virtual bool use_fast_map_set_nil(lua_State *L) const override;
+
 		};
 	}
 }
