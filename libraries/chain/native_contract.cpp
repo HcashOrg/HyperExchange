@@ -61,12 +61,12 @@ namespace graphene {
 			{
 				return _evaluate->get_storage(contract_address.operator fc::string(), storage_name);
 			}
-			auto& storage_changes = _contract_invoke_result.storage_changes[contract_address.operator fc::string()];
+			auto& storage_changes = _contract_invoke_result.storage_changes.at(contract_address.address_to_string());
 			if (storage_changes.find(storage_name) == storage_changes.end())
 			{
 				return _evaluate->get_storage(contract_address.operator fc::string(), storage_name);
 			}
-			return storage_changes[storage_name].after;
+			return storage_changes.at(storage_name).after;
 		}
 
 		void abstract_native_contract::fast_map_set(const address& contract_address, const std::string& storage_name, const std::string& key, cbor::CborObjectP cbor_value) {
