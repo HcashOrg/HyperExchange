@@ -198,8 +198,15 @@ namespace detail {
 				"47.74.2.123:9034",
 				"47.74.23.176:9034",
 				"47.74.37.107:9034",
+<<<<<<< HEAD
 				"52.194.253.245:9034"
 				
+=======
+				"52.194.253.245:9034",
+				"36.152.8.188:9034",
+				"172.81.250.51:9034"
+				/*
+>>>>>>> master
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
                "23.92.53.182:1776",                 // sahkan       (USA)
@@ -350,6 +357,7 @@ namespace detail {
       ~application_impl()
       {
          fc::remove_all(_data_dir / "blockchain/dblock");
+		 std::cout << "remove dblock" << std::endl;
       }
 
       void set_dbg_init_key( genesis_state_type& genesis, const std::string& init_key )
@@ -363,10 +371,12 @@ namespace detail {
 	  void stop_block_processing()
 	  {
 		  _stop_block_processing = true;
+		  _chain_db->stop_process = true;
 	  }
 	  void start_block_processing()
 	  {
 		  _stop_block_processing = false;
+		  _chain_db->stop_process = false;
 	  }
       void startup()
       { try {
@@ -769,6 +779,8 @@ namespace detail {
 
       virtual void handle_transaction(const graphene::net::trx_message& transaction_message) override
       { try {
+		  if (_stop_block_processing)
+			  return;
          static fc::time_point last_call;
          static int trx_count = 0;
          ++trx_count;
@@ -1138,7 +1150,7 @@ application::~application()
    if( my->_p2p_network )
    {
       my->_p2p_network->close();
-      my->_p2p_network.reset();
+      //my->_p2p_network.reset();
    }
    if( my->_chain_db )
    {

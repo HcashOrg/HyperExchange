@@ -188,7 +188,16 @@ void miner_plugin::plugin_startup()
 
 void miner_plugin::plugin_shutdown()
 {
-   return;
+	try {
+		if (_block_production_task.valid())
+			_block_production_task.cancel_and_wait(__FUNCTION__);
+	}
+	catch (fc::canceled_exception&) {
+		//Expected exception. Move along.
+	}
+	catch (fc::exception& e) {
+		edump((e.to_detail_string()));
+	}
 }
 
 void miner_plugin::schedule_production_loop()
@@ -254,6 +263,10 @@ block_production_condition::block_production_condition_enum miner_plugin::block_
       case block_production_condition::exception_producing_block:
          elog( "exception prodcing block" );
          break;
+	  case block_production_condition::stopped:
+		  elog("stop prodcing block");
+		  return result;
+
    }
 
    schedule_production_loop();
@@ -533,6 +546,8 @@ block_production_condition::block_production_condition_enum miner_plugin::maybe_
 {
 	fc::scoped_lock<std::mutex> lock(_miner_lock);
    chain::database& db = database();
+   if(db.stop_process)
+	   return block_production_condition::stopped;
    fc::time_point now_fine = fc::time_point::now();
    fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
    db.set_min_gas_price(min_gas_price);

@@ -386,6 +386,7 @@ namespace graphene {
 				{
 					_acquire_crosschain_task.cancel_and_wait();
 				}
+				_thread.quit();
 				
 			}FC_CAPTURE_AND_RETHROW()
 			return;

@@ -745,22 +745,22 @@ namespace graphene {
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps;
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps_backup;
 		std::map<fc::ip::endpoint, std::pair<int, int>> abstract_crosschain_interface::connect_counts;
-		fc::mutex abstract_crosschain_interface::eps_lock;
+		std::mutex abstract_crosschain_interface::eps_lock;
 		void abstract_crosschain_interface::set_midwares(const std::vector<fc::ip::endpoint>& eps)
 		{
-			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			std::lock_guard<std::mutex> lock(eps_lock);
 			FC_ASSERT(eps.size() > 0);
 			midware_eps = eps;
 		}
 		void abstract_crosschain_interface::set_midwares_backup(const std::vector<fc::ip::endpoint>& eps)
 		{
-			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			std::lock_guard<std::mutex> lock(eps_lock);
 			FC_ASSERT(eps.size() > 0);
 			midware_eps_backup = eps;
 		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_eps()
 		{
-			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			std::lock_guard<std::mutex> lock(eps_lock);
 			std::vector<fc::ip::endpoint> res= midware_eps;
 			return res;
 		}
@@ -820,7 +820,7 @@ namespace graphene {
 		}
 		void abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con)
 		{
-			fc::scoped_lock<fc::mutex>lock(eps_lock);
+			std::lock_guard<std::mutex>lock(eps_lock);
 			FC_ASSERT(midware_eps.size() > 0);
 			vector<int> counts;
 			int ep_idx = -1;

@@ -202,6 +202,9 @@ namespace graphene {
 				auto native_contract = native_contract_finder::create_native_contract_by_key(this, o.native_contract_key, o.contract_id);
 				FC_ASSERT(native_contract);
 
+				if (!global_uvm_chain_api)
+                                	global_uvm_chain_api = new UvmChainApi();
+
 				auto invoke_result = native_contract->invoke("init", "");
 
 				gas_used_counts = native_contract->gas_count_for_api_invoke("init");

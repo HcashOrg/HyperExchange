@@ -55,6 +55,7 @@ namespace graphene {
 			std::map<std::string, graphene::crosschain::hd_trx> trxs;
 			double fee;
 		};
+
 		class abstract_crosschain_interface
 		{
 		public:
@@ -141,7 +142,7 @@ namespace graphene {
 			// Recover wallet.
 			virtual std::string recover_wallet(std::string &wallet_name, std::string &encrypt_passprase) = 0;
 			virtual std::vector<fc::variant_object> transaction_history_all(std::vector<fc::mutable_variant_object> mul_param_obj) = 0;
-			static fc::mutex eps_lock;
+			static std::mutex eps_lock;
 			static std::vector<fc::ip::endpoint> midware_eps;
 			static std::vector<fc::ip::endpoint> midware_eps_backup;
 			static std::map<fc::ip::endpoint, std::pair<int, int>> connect_counts;
