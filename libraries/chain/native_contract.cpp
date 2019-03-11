@@ -55,7 +55,7 @@ namespace graphene {
 			return set_contract_storage(contract_address, storage_name, value);
 		}
 
-		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const string& storage_name)
+		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const std::string& storage_name) const
 		{
 			if (_contract_invoke_result.storage_changes.find(contract_address.operator fc::string()) == _contract_invoke_result.storage_changes.end())
 			{
@@ -69,6 +69,58 @@ namespace graphene {
 			return storage_changes[storage_name].after;
 		}
 
+		void abstract_native_contract::fast_map_set(const address& contract_address, const std::string& storage_name, const std::string& key, cbor::CborObjectP cbor_value) {
+			std::string full_key = storage_name + "." + key;
+			set_contract_storage(contract_address, full_key, cbor_value);
+		}
+
+
+		cbor::CborObjectP abstract_native_contract::get_contract_storage_cbor(const address& contract_address, const std::string& storage_name) const {
+			const auto& data = get_contract_storage(contract_address, storage_name);
+			return cbor_decode(data.storage_data);
+		}
+
+		std::string abstract_native_contract::get_string_contract_storage(const address& contract_address, const std::string& storage_name) const {
+			auto cbor_data = get_contract_storage_cbor(contract_address, storage_name);
+			if (!cbor_data->is_string()) {
+				throw_error(std::string("invalid string contract storage ") + contract_address.address_to_string() + "." + storage_name);
+			}
+			return cbor_data->as_string();
+		}
+
+		cbor::CborObjectP abstract_native_contract::fast_map_get(const address& contract_address, const std::string& storage_name, const std::string& key) const {
+			std::string full_key = storage_name + "." + key;
+			return get_contract_storage_cbor(contract_address, full_key);
+		}
+
+		int64_t abstract_native_contract::get_int_contract_storage(const address& contract_address, const std::string& storage_name) const {
+			auto cbor_data = get_contract_storage_cbor(contract_address, storage_name);
+			if (!cbor_data->is_integer()) {
+				throw_error(std::string("invalid int contract storage ") + contract_address.address_to_string() + "." + storage_name);
+			}
+			return cbor_data->force_as_int();
+		}
+
+		uint64_t abstract_native_contract::head_block_num() const {
+			return _evaluate->get_db().head_block_num();
+		}
+
+		std::string abstract_native_contract::caller_address_string() const {
+			return _evaluate->get_caller_address()->address_to_string();
+		}
+
+		address abstract_native_contract::caller_address() const {
+			return *(_evaluate->get_caller_address());
+		}
+
+		void abstract_native_contract::throw_error(const std::string& err) const {
+			FC_THROW_EXCEPTION(fc::assert_exception, err);
+		}
+
+		void abstract_native_contract::add_gas(uint64_t gas) {
+			// _contract_invoke_result.gas_used += gas;
+		}
+
 		void abstract_native_contract::emit_event(const address& contract_address, const string& event_name, const string& event_arg)
 		{
 			FC_ASSERT(!event_name.empty());
@@ -78,12 +130,12 @@ namespace graphene {
             info.event_arg = event_arg;
             //todo
 		    //info.caller_addr = caller_address->address_to_string();
-            info.block_num = 1 + _evaluate->get_db().head_block_num();
+            info.block_num = 1 + head_block_num();
 
 			_contract_invoke_result.events.push_back(info);
 		}
 
-		bool abstract_native_contract::has_api(const string& api_name)
+		bool abstract_native_contract::has_api(const string& api_name) const
 		{
 			const auto& api_names = apis();
 			return api_names.find(api_name) != api_names.end();
@@ -391,12 +443,9 @@ namespace graphene {
 			{
 				allowed_data = allowed[from_address]->as_map();
 			}
-			auto L = uvm::lua::lib::create_lua_state(true); // FIXME: don't use L here
 			auto allowed_data_cbor = CborObject::create_map(allowed_data);
-			auto allowed_data_uvm_storage = cbor_to_uvm_storage_value(L, allowed_data_cbor.get());
-			auto allowed_data_json = uvm_storage_value_to_json(allowed_data_uvm_storage);
+			auto allowed_data_json = allowed_data_cbor->to_json();
 			auto allowed_data_str = graphene::utilities::json_ordered_dumps(allowed_data_json);
-			uvm::lua::lib::close_lua_state(L);
 			_contract_invoke_result.api_result = allowed_data_str;
 			return _contract_invoke_result;
 		}
