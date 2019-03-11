@@ -198,7 +198,8 @@ namespace detail {
 				"47.74.23.176:9034",
 				"47.74.37.107:9034",
 				"52.194.253.245:9034",
-				"36.152.8.188:9034"
+				"36.152.8.188:9034",
+				"172.81.250.51:9034"
 				/*
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
@@ -350,6 +351,7 @@ namespace detail {
       ~application_impl()
       {
          fc::remove_all(_data_dir / "blockchain/dblock");
+		 std::cout << "remove dblock" << std::endl;
       }
 
       void set_dbg_init_key( genesis_state_type& genesis, const std::string& init_key )
@@ -1142,7 +1144,7 @@ application::~application()
    if( my->_p2p_network )
    {
       my->_p2p_network->close();
-      my->_p2p_network.reset();
+      //my->_p2p_network.reset();
    }
    if( my->_chain_db )
    {
