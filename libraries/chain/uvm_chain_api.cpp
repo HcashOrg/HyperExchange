@@ -960,5 +960,9 @@ namespace graphene {
                         return result;
 		}
 
+		bool UvmChainApi::use_fast_map_set_nil(lua_State *L) const {
+                        return use_cbor_diff(L);
+		}
+
 	}
 }
