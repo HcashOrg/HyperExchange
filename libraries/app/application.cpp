@@ -365,10 +365,12 @@ namespace detail {
 	  void stop_block_processing()
 	  {
 		  _stop_block_processing = true;
+		  _chain_db->stop_process = true;
 	  }
 	  void start_block_processing()
 	  {
 		  _stop_block_processing = false;
+		  _chain_db->stop_process = false;
 	  }
       void startup()
       { try {
@@ -771,6 +773,8 @@ namespace detail {
 
       virtual void handle_transaction(const graphene::net::trx_message& transaction_message) override
       { try {
+		  if (_stop_block_processing)
+			  return;
          static fc::time_point last_call;
          static int trx_count = 0;
          ++trx_count;
