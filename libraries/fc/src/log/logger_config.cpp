@@ -95,11 +95,11 @@ namespace fc {
       dlc.appenders.push_back("stderr");
       cfg.loggers.push_back( dlc );
 
-	  logger_config p2p;
+	  /*logger_config p2p;
 	  p2p.name = "p2p";
 	  p2p.level = log_level::info;
 	  p2p.appenders.push_back("p2p");
-	  cfg.loggers.push_back(p2p);
+	  cfg.loggers.push_back(p2p);*/
       return cfg;
    }
 }
