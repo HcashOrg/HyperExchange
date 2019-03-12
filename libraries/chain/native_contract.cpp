@@ -1,6 +1,7 @@
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/utilities/ordered_json.hpp>
+#include <graphene/chain/native_token_contract.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <cborcpp/cbor.h>
