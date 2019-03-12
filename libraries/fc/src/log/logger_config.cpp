@@ -77,12 +77,29 @@ namespace fc {
                      ( "stream","std_out") 
                      ( "level_colors", c ) 
                  ) ); 
-      
+	  fc::file_appender::config file_appender_config;
+	  file_appender_config.filename = "p2p.log";
+	  file_appender_config.flush = true;
+	  file_appender_config.rotate = true;
+	  file_appender_config.rotation_interval = fc::hours(1);
+	  file_appender_config.rotation_limit = fc::days(1);
+
+
+	  cfg.appenders.push_back(
+		  appender_config("p2p","file", fc::variant(file_appender_config)
+		  ));
+  
       logger_config dlc;
       dlc.name = "default";
       dlc.level = log_level::debug;
       dlc.appenders.push_back("stderr");
       cfg.loggers.push_back( dlc );
+
+	  logger_config p2p;
+	  p2p.name = "p2p";
+	  p2p.level = log_level::info;
+	  p2p.appenders.push_back("p2p");
+	  cfg.loggers.push_back(p2p);
       return cfg;
    }
 }
