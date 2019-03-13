@@ -968,7 +968,7 @@ namespace graphene {
                                         return true;
                                 const auto& d = evaluator->get_db();
                                 auto head_block_num = d.head_block_num();
-                                result = head_block_num > USE_CBOR_DIFF_FORK_HEIGHT;
+                                result = head_block_num > USE_FAST_MAP_TABLE_NIL_FORK_HEIGHT;
                         }
                         catch (...)
                         {
