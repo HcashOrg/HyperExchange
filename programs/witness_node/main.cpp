@@ -171,12 +171,12 @@ int main(int argc, char** argv) {
 			if (logging_config)
 				fc::configure_logging(*logging_config);
 			else
-				fc::configure_logging(fc::logging_config::default_config());
+				fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
          catch (const fc::exception&)
          {
             wlog("Error parsing logging config from config file ${config}, using default config", ("config", config_ini_path.preferred_string()));
-			fc::configure_logging(fc::logging_config::default_config());
+			fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
       }
       else 
@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 		 if (logging_config)
 			 fc::configure_logging(*logging_config);
 		 else
-			 fc::configure_logging(fc::logging_config::default_config());
+			 fc::configure_logging(fc::logging_config::default_config(config_ini_path));
       }
 
       bpo::notify(options);
