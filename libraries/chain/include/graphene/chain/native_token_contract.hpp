@@ -18,11 +18,10 @@ namespace graphene {
 		public:
 			static std::string native_contract_key() { return "token"; }
 
-			token_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
+			token_native_contract() {}
 			virtual ~token_native_contract() {}
 
 			virtual std::string contract_key() const;
-			virtual address contract_address() const;
 			virtual std::set<std::string> apis() const;
 			virtual std::set<std::string> offline_apis() const;
 			virtual std::set<std::string> events() const;

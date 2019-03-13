@@ -23,9 +23,6 @@ namespace graphene {
 	{
 		return token_native_contract::native_contract_key();
 	}
-	address token_native_contract::contract_address() const {
-		return contract_id;
-	}
 	std::set<std::string> token_native_contract::apis() const {
 		return { "init", "init_token", "transfer", "transferFrom", "balanceOf", "approve", "approvedBalanceFrom", "allApprovedFromUser", "state", "supply", "precision", "tokenName", "tokenSymbol" };
 	}
@@ -41,22 +38,24 @@ namespace graphene {
 
 	contract_invoke_result token_native_contract::init_api(const std::string& api_name, const std::string& api_arg)
 	{
-		set_contract_storage(contract_id, "name", CborObject::from_string(""));
-		set_contract_storage(contract_id, "symbol", CborObject::from_string(""));
-		set_contract_storage(contract_id, "supply", CborObject::from_int(0));
-		set_contract_storage(contract_id, "precision", CborObject::from_int(0));
+		const auto& cur_contract_id = contract_address();
+		set_contract_storage(cur_contract_id, "name", CborObject::from_string(""));
+		set_contract_storage(cur_contract_id, "symbol", CborObject::from_string(""));
+		set_contract_storage(cur_contract_id, "supply", CborObject::from_int(0));
+		set_contract_storage(cur_contract_id, "precision", CborObject::from_int(0));
 		// fast map storages: users, allowed
-		set_contract_storage(contract_id, "state", CborObject::from_string(not_inited_state_of_token_contract));
+		set_contract_storage(cur_contract_id, "state", CborObject::from_string(not_inited_state_of_token_contract));
 		auto caller_addr = caller_address_string();
 		FC_ASSERT(!caller_addr.empty(), "caller_address can't be empty");
-		set_contract_storage(contract_id, "admin", CborObject::from_string(caller_addr));
+		set_contract_storage(cur_contract_id, "admin", CborObject::from_string(caller_addr));
 		return _contract_invoke_result;
 	}
 
 	string token_native_contract::check_admin()
 	{
-		auto caller_addr = caller_address_string();
-		const auto& admin = get_string_contract_storage(contract_id, "admin");
+		const auto& cur_contract_id = contract_address();
+		const auto& caller_addr = caller_address_string();
+		const auto& admin = get_string_contract_storage(cur_contract_id, "admin");
 		if (admin == caller_addr)
 			return admin;
 		throw_error("only admin can call this api");
@@ -65,44 +64,51 @@ namespace graphene {
 
 	string token_native_contract::get_storage_state()
 	{
-		const auto& state = get_string_contract_storage(contract_id, "state");
+		const auto& cur_contract_id = contract_address();
+		const auto& state = get_string_contract_storage(cur_contract_id, "state");
 		return state;
 	}
 
 	string token_native_contract::get_storage_token_name()
 	{
-		const auto& name = get_string_contract_storage(contract_id, "name");
+		const auto& cur_contract_id = contract_address();
+		const auto& name = get_string_contract_storage(cur_contract_id, "name");
 		return name;
 	}
 
 	string token_native_contract::get_storage_token_symbol()
 	{
-		const auto& symbol = get_string_contract_storage(contract_id, "symbol");
+		const auto& cur_contract_id = contract_address();
+		const auto& symbol = get_string_contract_storage(cur_contract_id, "symbol");
 		return symbol;
 	}
 
 
 	int64_t token_native_contract::get_storage_supply()
 	{
-		auto supply = get_int_contract_storage(contract_id, "supply");
+		const auto& cur_contract_id = contract_address();
+		auto supply = get_int_contract_storage(cur_contract_id, "supply");
 		return supply;
 	}
 	int64_t token_native_contract::get_storage_precision()
 	{
-		auto precision = get_int_contract_storage(contract_id, "precision");
+		const auto& cur_contract_id = contract_address();
+		auto precision = get_int_contract_storage(cur_contract_id, "precision");
 		return precision;
 	}
 
 	int64_t token_native_contract::get_balance_of_user(const std::string& owner_addr) const
 	{
-		auto user_balance_cbor = fast_map_get(contract_id, "users", owner_addr);
+		const auto& cur_contract_id = contract_address();
+		auto user_balance_cbor = fast_map_get(cur_contract_id, "users", owner_addr);
 		if (!user_balance_cbor->is_integer())
 			return 0;
 		return user_balance_cbor->force_as_int();
 	}
 
 	cbor::CborMapValue token_native_contract::get_allowed_of_user(const std::string& from_addr) const {
-		auto user_allowed = fast_map_get(contract_id, "allowed", from_addr);
+		const auto& cur_contract_id = contract_address();
+		auto user_allowed = fast_map_get(cur_contract_id, "allowed", from_addr);
 		if (!user_allowed->is_map()) {
 			return CborObject::create_map(0)->as_map();
 		}
@@ -159,15 +165,16 @@ namespace graphene {
 		std::vector<int64_t> allowed_precisions = { 1,10,100,1000,10000,100000,1000000,10000000,100000000 };
 		if (std::find(allowed_precisions.begin(), allowed_precisions.end(), precision) == allowed_precisions.end())
 			throw_error("argument format error, precision must be any one of [1,10,100,1000,10000,100000,1000000,10000000,100000000]");
-		set_contract_storage(contract_id, string("state"), CborObject::from_string(common_state_of_token_contract));
-		set_contract_storage(contract_id, string("precision"), CborObject::from_int(precision));
-		set_contract_storage(contract_id, string("supply"), CborObject::from_int(supply));
-		set_contract_storage(contract_id, string("name"), CborObject::from_string(name));
-		set_contract_storage(contract_id, "symbol", CborObject::from_string(symbol));
+		const auto& cur_contract_id = contract_address();
+		set_contract_storage(cur_contract_id, string("state"), CborObject::from_string(common_state_of_token_contract));
+		set_contract_storage(cur_contract_id, string("precision"), CborObject::from_int(precision));
+		set_contract_storage(cur_contract_id, string("supply"), CborObject::from_int(supply));
+		set_contract_storage(cur_contract_id, string("name"), CborObject::from_string(name));
+		set_contract_storage(cur_contract_id, "symbol", CborObject::from_string(symbol));
 
 		auto caller_addr = caller_address_string();
-		fast_map_set(contract_id, "users", caller_addr, CborObject::from_int(supply));
-		emit_event(contract_id, "Inited", supply_str);
+		fast_map_set(cur_contract_id, "users", caller_addr, CborObject::from_int(supply));
+		emit_event(cur_contract_id, "Inited", supply_str);
 		return _contract_invoke_result;
 	}
 
@@ -271,23 +278,24 @@ namespace graphene {
 			throw_error("argument format error, amount must be positive integer");
 
 		string from_addr = get_from_address();
+		const auto& cur_contract_id = contract_address();
 		auto from_user_balance = get_balance_of_user(from_addr);
 		if (from_user_balance < amount)
 			throw_error("you have not enoungh amount to transfer out");
 		auto from_addr_remain = from_user_balance - amount;
 		if (from_addr_remain > 0) {
-			fast_map_set(contract_id, "users", from_addr, CborObject::from_int(from_addr_remain));
+			fast_map_set(cur_contract_id, "users", from_addr, CborObject::from_int(from_addr_remain));
 		}
 		else {
-			fast_map_set(contract_id, "users", from_addr, CborObject::create_null());
+			fast_map_set(cur_contract_id, "users", from_addr, CborObject::create_null());
 		}
 		auto to_amount = get_balance_of_user(to_address);
-		fast_map_set(contract_id, "users", to_address, CborObject::from_int(to_amount + amount));
+		fast_map_set(cur_contract_id, "users", to_address, CborObject::from_int(to_amount + amount));
 		jsondiff::JsonObject event_arg;
 		event_arg["from"] = from_addr;
 		event_arg["to"] = to_address;
 		event_arg["amount"] = amount;
-		emit_event(contract_id, "Transfer", uvm::util::json_ordered_dumps(event_arg));
+		emit_event(cur_contract_id, "Transfer", uvm::util::json_ordered_dumps(event_arg));
 		return _contract_invoke_result;
 	}
 
@@ -313,12 +321,13 @@ namespace graphene {
 		allowed_data[spender_address] = CborObject::from_int(amount);
 		if (allowed_data.size() > 1000)
 			throw_error("you approved to too many users");
-		fast_map_set(contract_id, "allowed", contract_caller, CborObject::create_map(allowed_data));
+		const auto& cur_contract_id = contract_address();
+		fast_map_set(cur_contract_id, "allowed", contract_caller, CborObject::create_map(allowed_data));
 		jsondiff::JsonObject event_arg;
 		event_arg["from"] = contract_caller;
 		event_arg["spender"] = spender_address;
 		event_arg["amount"] = amount;
-		emit_event(contract_id, "Approved", uvm::util::json_ordered_dumps(event_arg));
+		emit_event(cur_contract_id, "Approved", uvm::util::json_ordered_dumps(event_arg));
 		return _contract_invoke_result;
 	}
 
@@ -346,6 +355,7 @@ namespace graphene {
 		{
 			throw_error("fromAddress not have enough token to withdraw");
 		}
+		const auto& cur_contract_id = contract_address();
 		auto allowed_data = get_allowed_of_user(from_address);
 		auto contract_caller = get_from_address();
 		if (allowed_data.find(contract_caller) == allowed_data.end())
@@ -355,22 +365,22 @@ namespace graphene {
 			throw_error("not enough approved amount to withdraw");
 		auto from_addr_remain = get_balance_of_user(from_address) - amount;
 		if (from_addr_remain > 0)
-			fast_map_set(contract_id, "users", from_address, CborObject::from_int(from_addr_remain));
+			fast_map_set(cur_contract_id, "users", from_address, CborObject::from_int(from_addr_remain));
 		else
-			fast_map_set(contract_id, "users", from_address, CborObject::create_null());
+			fast_map_set(cur_contract_id, "users", from_address, CborObject::create_null());
 		auto to_amount = get_balance_of_user(to_address);
-		fast_map_set(contract_id, "users", to_address, CborObject::from_int(to_amount + amount));
+		fast_map_set(cur_contract_id, "users", to_address, CborObject::from_int(to_amount + amount));
 
 		allowed_data[contract_caller] = CborObject::from_int(approved_amount - amount);
 		if (allowed_data[contract_caller]->force_as_int() == 0)
 			allowed_data.erase(contract_caller);
-		fast_map_set(contract_id, "allowed", from_address, CborObject::create_map(allowed_data));
+		fast_map_set(cur_contract_id, "allowed", from_address, CborObject::create_map(allowed_data));
 
 		jsondiff::JsonObject event_arg;
 		event_arg["from"] = from_address;
 		event_arg["to"] = to_address;
 		event_arg["amount"] = amount;
-		emit_event(contract_id, "Transfer", uvm::util::json_ordered_dumps(event_arg));
+		emit_event(cur_contract_id, "Transfer", uvm::util::json_ordered_dumps(event_arg));
 
 		return _contract_invoke_result;
 	}

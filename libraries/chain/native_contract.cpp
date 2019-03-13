@@ -113,12 +113,20 @@ namespace graphene {
 			return *(_evaluate->get_caller_address());
 		}
 
+		address abstract_native_contract::contract_address() const {
+			return contract_id;
+		}
+
 		void abstract_native_contract::throw_error(const std::string& err) const {
 			FC_THROW_EXCEPTION(fc::assert_exception, err);
 		}
 
 		void abstract_native_contract::add_gas(uint64_t gas) {
 			// _contract_invoke_result.gas_used += gas;
+		}
+
+		void abstract_native_contract::set_invoke_result_caller() {
+			_contract_invoke_result.invoker = caller_address();
 		}
 
 		void abstract_native_contract::emit_event(const address& contract_address, const string& event_name, const string& event_arg)
@@ -141,12 +149,14 @@ namespace graphene {
 			return api_names.find(api_name) != api_names.end();
 		}
 
+		void abstract_native_contract::init_config(contract_common_evaluate* evaluate, const address& _contract_id) {
+			this->_evaluate = evaluate;
+			this->contract_id = _contract_id;
+		}
+
 		std::string demo_native_contract::contract_key() const
 		{
 			return demo_native_contract::native_contract_key();
-		}
-        address demo_native_contract::contract_address() const {
-			return contract_id;
 		}
 		std::set<std::string> demo_native_contract::apis() const {
 			return { "init", "hello", "contract_balance", "withdraw", "on_deposit_asset" };
@@ -167,16 +177,16 @@ namespace graphene {
 			if (api_name == "contract_balance")
 			{
 				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
-				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
+				auto balance = _evaluate->get_contract_balance(contract_address(), system_asset_id);
 				result.api_result = std::to_string(balance.value);
 			}
 			else if (api_name == "withdraw")
 			{
 				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
-				auto balance = _evaluate->get_contract_balance(contract_id, system_asset_id);
+				auto balance = _evaluate->get_contract_balance(contract_address(), system_asset_id);
 				if(balance.value <= 0)
 					THROW_CONTRACT_ERROR("can't withdraw because of empty balance");
-				_evaluate->transfer_to_address(contract_id, balance, *(_evaluate->get_caller_address()));
+				_evaluate->transfer_to_address(contract_address(), balance, *(_evaluate->get_caller_address()));
 			}
 			return result;
 		}
@@ -191,19 +201,23 @@ namespace graphene {
 		}
 		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
 		{
+			shared_ptr<abstract_native_contract> result;
 			/*if (key == demo_native_contract::native_contract_key())
 			{
-				return std::make_shared<demo_native_contract>(evaluate, contract_address);
+				result = std::make_shared<demo_native_contract>();
 			}
 			else */
 			if (key == token_native_contract::native_contract_key())
 			{
-				return std::make_shared<token_native_contract>(evaluate, contract_address);
+				result = std::make_shared<token_native_contract>();
 			}
 			else
 			{
 				return nullptr;
 			}
+			if (result)
+				result->init_config(evaluate, contract_address);
+			return result;
 		}
 
 		void            native_contract_register_operation::validate()const

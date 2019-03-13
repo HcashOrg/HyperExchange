@@ -22,17 +22,21 @@ namespace graphene {
 		protected:
 			contract_common_evaluate* _evaluate;
 			contract_invoke_result _contract_invoke_result;
+		private:
+			address contract_id;
 		public:
-            address contract_id;
+			abstract_native_contract() : _evaluate(nullptr), contract_id("") {}
 			abstract_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
+			void init_config(contract_common_evaluate* evaluate, const address& _contract_id);
+
 			// unique key to identify native contract
 			virtual std::string contract_key() const = 0;
-			virtual address contract_address() const = 0;
 			virtual std::set<std::string> apis() const = 0;
 			virtual std::set<std::string> offline_apis() const = 0;
 			virtual std::set<std::string> events() const = 0;
+			virtual address contract_address() const;
 
 			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg) = 0;
 
@@ -59,6 +63,7 @@ namespace graphene {
 			void throw_error(const std::string& err) const;
 
 			void add_gas(uint64_t gas);
+			void set_invoke_result_caller();
 		};
 
 		// FIXME: remove the demo native contract
@@ -70,7 +75,6 @@ namespace graphene {
 			demo_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
 			virtual ~demo_native_contract() {}
 			virtual std::string contract_key() const;
-			virtual address contract_address() const;
 			virtual std::set<std::string> apis() const;
 			virtual std::set<std::string> offline_apis() const;
 			virtual std::set<std::string> events() const;
