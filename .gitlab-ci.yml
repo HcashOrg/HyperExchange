@@ -1,0 +1,31 @@
+image: docker:latest
+
+variables:
+  DOCKER_DRIVER: overlay
+
+services:
+  - docker:dind
+
+before_script:
+    - echo hello
+    - docker info
+    - curl -L "https://github.com/docker/compose/releases/download/1.10.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - chmod +x /usr/local/bin/docker-compose
+    - export PATH=/usr/local/bin:$PATH
+    - echo $PATH
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - docker-compose build
+    - docker-compose up -d
+
+test:
+  script:
+    - git submodule update --init --recursive
+    - cmake .
+    - make
