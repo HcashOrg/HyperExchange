@@ -1,7 +1,6 @@
 #include <graphene/chain/native_contract.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/utilities/ordered_json.hpp>
-#include <graphene/chain/native_token_contract.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <cborcpp/cbor.h>
@@ -9,6 +8,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/io/json.hpp>
 #include <jsondiff/jsondiff.h>
+#include <native_contract/native_token_contract.h>
 
 namespace graphene {
 	namespace chain {
@@ -143,81 +143,25 @@ namespace graphene {
 			_contract_invoke_result.events.push_back(info);
 		}
 
-		bool abstract_native_contract::has_api(const string& api_name) const
-		{
-			const auto& api_names = apis();
-			return api_names.find(api_name) != api_names.end();
-		}
-
-		void abstract_native_contract::init_config(contract_common_evaluate* evaluate, const address& _contract_id) {
-			this->_evaluate = evaluate;
-			this->contract_id = _contract_id;
-		}
-
-		std::string demo_native_contract::contract_key() const
-		{
-			return demo_native_contract::native_contract_key();
-		}
-		std::set<std::string> demo_native_contract::apis() const {
-			return { "init", "hello", "contract_balance", "withdraw", "on_deposit_asset" };
-		}
-		std::set<std::string> demo_native_contract::offline_apis() const {
-			return {};
-		}
-		std::set<std::string> demo_native_contract::events() const {
-			return {};
-		}
-
-		contract_invoke_result demo_native_contract::invoke(const std::string& api_name, const std::string& api_arg) {
-			contract_invoke_result result;
-			printf("demo native contract called\n");
-			printf("api %s called with arg %s\n", api_name.c_str(), api_arg.c_str());
-
-            result.invoker = *(_evaluate->get_caller_address());
-			if (api_name == "contract_balance")
-			{
-				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
-				auto balance = _evaluate->get_contract_balance(contract_address(), system_asset_id);
-				result.api_result = std::to_string(balance.value);
-			}
-			else if (api_name == "withdraw")
-			{
-				auto system_asset_id = _evaluate->asset_from_string(string(GRAPHENE_SYMBOL), string("0")).asset_id;
-				auto balance = _evaluate->get_contract_balance(contract_address(), system_asset_id);
-				if(balance.value <= 0)
-					THROW_CONTRACT_ERROR("can't withdraw because of empty balance");
-				_evaluate->transfer_to_address(contract_address(), balance, *(_evaluate->get_caller_address()));
-			}
-			return result;
-		}
-
 		bool native_contract_finder::has_native_contract_with_key(const std::string& key)
 		{
 			std::vector<std::string> native_contract_keys = {
-				// demo_native_contract::native_contract_key(),
-				token_native_contract::native_contract_key()
+				uvm::contract::token_native_contract::native_contract_key()
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
-		shared_ptr<abstract_native_contract> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
+		shared_ptr<uvm::contract::native_contract_interface> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
 		{
-			shared_ptr<abstract_native_contract> result;
-			/*if (key == demo_native_contract::native_contract_key())
+			auto store = std::make_shared<abstract_native_contract>(evaluate, contract_address);
+			
+			if (key == uvm::contract::token_native_contract::native_contract_key())
 			{
-				result = std::make_shared<demo_native_contract>();
-			}
-			else */
-			if (key == token_native_contract::native_contract_key())
-			{
-				result = std::make_shared<token_native_contract>();
+				return std::make_shared<uvm::contract::token_native_contract>(store);
 			}
 			else
 			{
 				return nullptr;
 			}
-			if (result)
-				result->init_config(evaluate, contract_address);
-			return result;
 		}
 
 		void            native_contract_register_operation::validate()const

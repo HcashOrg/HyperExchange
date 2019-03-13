@@ -7,6 +7,7 @@
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
 #include <cborcpp/cbor.h>
+#include <native_contract/native_contract_api.h>
 
 namespace graphene {
 	namespace chain {
@@ -17,7 +18,7 @@ namespace graphene {
 
 #define THROW_CONTRACT_ERROR(...) FC_ASSERT(false, __VA_ARGS__)
 
-		class abstract_native_contract
+		class abstract_native_contract : public uvm::contract::native_contract_interface
 		{
 		protected:
 			contract_common_evaluate* _evaluate;
@@ -25,26 +26,38 @@ namespace graphene {
 		private:
 			address contract_id;
 		public:
-			abstract_native_contract() : _evaluate(nullptr), contract_id("") {}
 			abstract_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
-			void init_config(contract_common_evaluate* evaluate, const address& _contract_id);
+			virtual std::shared_ptr<uvm::contract::native_contract_interface> get_proxy() const {
+				return nullptr;
+			}
 
-			// unique key to identify native contract
-			virtual std::string contract_key() const = 0;
-			virtual std::set<std::string> apis() const = 0;
-			virtual std::set<std::string> offline_apis() const = 0;
-			virtual std::set<std::string> events() const = 0;
+			virtual std::string contract_key() const {
+				return "abstract";
+			}
+
+			virtual std::set<std::string> apis() const {
+				return std::set<std::string>{};
+			}
+			virtual std::set<std::string> offline_apis() const {
+				return std::set<std::string>{};
+			}
+			virtual std::set<std::string> events() const {
+				return std::set<std::string>{};
+			}
+
+			virtual void invoke(const std::string& api_name, const std::string& api_arg) {
+				throw_error("can't call native_contract_store::invoke");
+			}
+
 			virtual address contract_address() const;
 
-			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg) = 0;
 
 			virtual gas_count_type gas_count_for_api_invoke(const std::string& api_name) const
 			{
-				return 100; // now all native api call requires 100 gas count
+				return 100; // now all native api call requires 100 gas count TODO: add storage gas
 			}
-			bool has_api(const string& api_name) const;
 
 			void set_contract_storage(const address& contract_address, const std::string& storage_name, const StorageDataType& value);
 			void set_contract_storage(const address& contract_address, const std::string& storage_name, cbor::CborObjectP cbor_value);
@@ -57,6 +70,34 @@ namespace graphene {
 
 			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
 
+			virtual void current_fast_map_set(const std::string& storage_name, const std::string& key, cbor::CborObjectP cbor_value) {
+				fast_map_set(contract_address(), storage_name, key, cbor_value);
+			}
+			virtual StorageDataType get_current_contract_storage(const std::string& storage_name) const {
+				return get_contract_storage(contract_address(), storage_name);
+			}
+			virtual cbor::CborObjectP get_current_contract_storage_cbor(const std::string& storage_name) const {
+				return get_contract_storage_cbor(contract_address(), storage_name);
+			}
+			virtual cbor::CborObjectP current_fast_map_get(const std::string& storage_name, const std::string& key) const {
+				return fast_map_get(contract_address(), storage_name, key);
+			}
+			virtual std::string get_string_current_contract_storage(const std::string& storage_name) const {
+				return get_string_contract_storage(contract_address(), storage_name);
+			}
+			virtual int64_t get_int_current_contract_storage(const std::string& storage_name) const {
+				return get_int_contract_storage(contract_address(), storage_name);
+			}
+			virtual void set_current_contract_storage(const std::string& storage_name, cbor::CborObjectP cbor_value) {
+				set_contract_storage(contract_address(), storage_name, cbor_value);
+			}
+			virtual void set_current_contract_storage(const std::string& storage_name, const StorageDataType& value) {
+				set_contract_storage(contract_address(), storage_name, value);
+			}
+			virtual void emit_event(const std::string& event_name, const std::string& event_arg) {
+				emit_event(contract_address(), event_name, event_arg);
+			}
+
 			uint64_t head_block_num() const;
 			std::string caller_address_string() const;
 			address caller_address() const;
@@ -64,22 +105,11 @@ namespace graphene {
 
 			void add_gas(uint64_t gas);
 			void set_invoke_result_caller();
-		};
 
-		// FIXME: remove the demo native contract
-		class demo_native_contract : public abstract_native_contract
-		{
-		public:
-			static std::string native_contract_key() { return "demo"; }
-
-			demo_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
-			virtual ~demo_native_contract() {}
-			virtual std::string contract_key() const;
-			virtual std::set<std::string> apis() const;
-			virtual std::set<std::string> offline_apis() const;
-			virtual std::set<std::string> events() const;
-
-			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
+			virtual void* get_result() { return &_contract_invoke_result; }
+			virtual void set_api_result(const std::string& api_result) {
+				_contract_invoke_result.api_result = api_result;
+			}
 		};
 
 		// native合约的storage的json dumps和遍历都必须是确定性的
@@ -88,7 +118,7 @@ namespace graphene {
 		{
 		public:
 			static bool has_native_contract_with_key(const std::string& key);
-			static shared_ptr<abstract_native_contract> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
+			static shared_ptr<uvm::contract::native_contract_interface> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
 
 		};
 
@@ -125,6 +155,5 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::chain::demo_native_contract, (contract_id))
 FC_REFLECT(graphene::chain::native_contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::native_contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(native_contract_key)(guarantee_id))
