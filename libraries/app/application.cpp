@@ -1141,16 +1141,7 @@ application::application()
 
 application::~application()
 {
-   if( my->_p2p_network )
-   {
-      my->_p2p_network->close();
-      //my->_p2p_network.reset();
-   }
-   if( my->_chain_db )
-   {
-	  my->_chain_db->rewind_on_close = false;
-      my->_chain_db->close();
-   }
+	//shutdown();
 }
 
 void application::set_program_options(boost::program_options::options_description& command_line_options,
@@ -1319,8 +1310,12 @@ void application::shutdown()
 {
    if( my->_p2p_network )
       my->_p2p_network->close();
-   if( my->_chain_db )
-      my->_chain_db->close();
+   if (my->_chain_db)
+   {
+	   my->_chain_db->close();
+	   fc::remove_all(my->_data_dir / "blockchain/dblock");
+   }
+      
 }
 
 void application::initialize_plugins( const boost::program_options::variables_map& options )

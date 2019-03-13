@@ -249,8 +249,7 @@ int main(int argc, char** argv) {
       ilog("Exiting from signal ${n}", ("n", signal));
       node->shutdown_plugins();
       node->shutdown();
-      delete node;
-      return 0;
+	  return 0;
    } catch( const fc::exception& e ) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
@@ -269,8 +268,7 @@ int main(int argc, char** argv) {
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));
       node->shutdown();
-      delete node;
-      return 1;
+	  return 1;
    }
 }
 
