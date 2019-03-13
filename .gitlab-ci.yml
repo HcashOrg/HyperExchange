@@ -1,19 +1,9 @@
-image: docker:latest
-
-variables:
-  DOCKER_DRIVER: overlay
-
-services:
-  - docker:dind
+image: zoowii/hxcore_hxbuild:latest
 
 before_script:
     - echo hello
-    - apk --update add curl
-    - apk add --no-cache python py2-pip
     - docker info
-    - pip install --no-cache-dir docker-compose
-    - export PATH=/usr/local/bin:$PATH
-    - echo $PATH
+    - git submodule update --init --recursive
 
 stages:
   - build
@@ -22,11 +12,9 @@ stages:
 build:
   stage: build
   script:
-    - docker-compose build
-    - docker-compose up -d
+    - cmake .
+    - make
 
 test:
   script:
-    - git submodule update --init --recursive
-    - cmake .
-    - make
+    - echo hello
