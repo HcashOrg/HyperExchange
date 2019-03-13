@@ -93,7 +93,7 @@ namespace graphene {
 		return precision;
 	}
 
-	int64_t token_native_contract::get_balance_of_user(const string& owner_addr) const
+	int64_t token_native_contract::get_balance_of_user(const std::string& owner_addr) const
 	{
 		auto user_balance_cbor = fast_map_get(contract_id, "users", owner_addr);
 		if (!user_balance_cbor->is_integer())
@@ -396,13 +396,11 @@ namespace graphene {
 			contract_invoke_result res = apis[api_name](api_name, api_arg);
 			res.invoker = caller_address();
 			add_gas(gas_count_for_api_invoke(api_name));
-			res.gas_used = _contract_invoke_result.gas_used;
+			// res.gas_used = _contract_invoke_result.gas_used;
 			return res;
 		}
 		throw_error("token api not found");
 		return contract_invoke_result{};
-	}
-
 
 		}
 	}

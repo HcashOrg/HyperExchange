@@ -36,7 +36,8 @@ namespace graphene {
 			int64_t get_storage_precision();
 			cbor::CborMapValue get_storage_users();
 			cbor::CborMapValue get_storage_allowed();
-			int64_t get_balance_of_user(const string& owner_addr);
+			int64_t get_balance_of_user(const string& owner_addr) const;
+			cbor::CborMapValue get_allowed_of_user(const std::string& from_addr) const;
 			std::string get_from_address();
 
 			contract_invoke_result init_api(const std::string& api_name, const std::string& api_arg);
