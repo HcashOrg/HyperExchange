@@ -2,7 +2,6 @@ image: zoowii/hxcore_hxbuild:latest
 
 before_script:
     - echo hello
-    - docker info
     - git submodule update --init --recursive
 
 stages:
