@@ -12,7 +12,7 @@ build:
   stage: build
   script:
     - cmake .
-    - make
+    - cd programs/witness_node && make -j2
 
 test:
   script:
