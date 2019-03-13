@@ -423,7 +423,6 @@ third_libs
 /libleveldb.a
 /libraries/egenesis/debuglog
 /libraries/egenesis/egenesis_brief.cpp
-/programs/witness_node
 /programs/cli_wallet
 /programs/key_decryptor
 /programs/cli_wallet/before-import-key-*
@@ -432,4 +431,7 @@ third_libs
 /libraries/egenesis/egenesis_full.cpp
 /libraries/fc/libfc_debug.a
 /libraries/fc/stucJin8
-
+/programs/witness_node/CMakeCache.txt
+/programs/witness_node/debuglog
+/programs/witness_node/gmon.out
+/programs/witness_node/p2p.log.*

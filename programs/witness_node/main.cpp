@@ -171,12 +171,12 @@ int main(int argc, char** argv) {
 			if (logging_config)
 				fc::configure_logging(*logging_config);
 			else
-				fc::configure_logging(fc::logging_config::default_config());
+				fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
          catch (const fc::exception&)
          {
             wlog("Error parsing logging config from config file ${config}, using default config", ("config", config_ini_path.preferred_string()));
-			fc::configure_logging(fc::logging_config::default_config());
+			fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
       }
       else 
@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 		 if (logging_config)
 			 fc::configure_logging(*logging_config);
 		 else
-			 fc::configure_logging(fc::logging_config::default_config());
+			 fc::configure_logging(fc::logging_config::default_config(config_ini_path));
       }
 
       bpo::notify(options);
@@ -249,8 +249,7 @@ int main(int argc, char** argv) {
       ilog("Exiting from signal ${n}", ("n", signal));
       node->shutdown_plugins();
       node->shutdown();
-      delete node;
-      return 0;
+	  return 0;
    } catch( const fc::exception& e ) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
@@ -269,8 +268,7 @@ int main(int argc, char** argv) {
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));
       node->shutdown();
-      delete node;
-      return 1;
+	  return 1;
    }
 }
 
