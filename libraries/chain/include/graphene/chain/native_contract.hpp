@@ -7,6 +7,7 @@
 #include <graphene/chain/contract.hpp>
 #include <graphene/chain/vesting_balance_object.hpp>
 #include <cborcpp/cbor.h>
+#include <native_contract/native_contract_api.h>
 
 namespace graphene {
 	namespace chain {
@@ -17,112 +18,107 @@ namespace graphene {
 
 #define THROW_CONTRACT_ERROR(...) FC_ASSERT(false, __VA_ARGS__)
 
-		class abstract_native_contract
+		class abstract_native_contract : public uvm::contract::native_contract_interface
 		{
 		protected:
 			contract_common_evaluate* _evaluate;
 			contract_invoke_result _contract_invoke_result;
+		private:
+			address contract_id;
 		public:
-            address contract_id;
 			abstract_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : _evaluate(evaluate), contract_id(_contract_id) {}
 			virtual ~abstract_native_contract() {}
 
-			// unique key to identify native contract
-			virtual std::string contract_key() const = 0;
-			virtual address contract_address() const = 0;
-			virtual std::set<std::string> apis() const = 0;
-			virtual std::set<std::string> offline_apis() const = 0;
-			virtual std::set<std::string> events() const = 0;
+			virtual std::shared_ptr<uvm::contract::native_contract_interface> get_proxy() const {
+				return nullptr;
+			}
 
-			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg) = 0;
+			virtual std::string contract_key() const {
+				return "abstract";
+			}
+
+			virtual std::set<std::string> apis() const {
+				return std::set<std::string>{};
+			}
+			virtual std::set<std::string> offline_apis() const {
+				return std::set<std::string>{};
+			}
+			virtual std::set<std::string> events() const {
+				return std::set<std::string>{};
+			}
+
+			virtual void invoke(const std::string& api_name, const std::string& api_arg) {
+				throw_error("can't call native_contract_store::invoke");
+			}
+
+			virtual address contract_address() const;
+
 
 			virtual gas_count_type gas_count_for_api_invoke(const std::string& api_name) const
 			{
-				return 100; // now all native api call requires 100 gas count
+				return 100; // now all native api call requires 100 gas count TODO: add storage gas
 			}
-			bool has_api(const string& api_name);
 
-			void set_contract_storage(const address& contract_address, const string& storage_name, const StorageDataType& value);
-			void set_contract_storage(const address& contract_address, const string& storage_name, cbor::CborObjectP cbor_value);
-			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name);
+			void set_contract_storage(const address& contract_address, const std::string& storage_name, const StorageDataType& value);
+			void set_contract_storage(const address& contract_address, const std::string& storage_name, cbor::CborObjectP cbor_value);
+			void fast_map_set(const address& contract_address, const std::string& storage_name, const std::string& key, cbor::CborObjectP cbor_value);
+			StorageDataType get_contract_storage(const address& contract_address, const string& storage_name) const;
+			cbor::CborObjectP get_contract_storage_cbor(const address& contract_address, const std::string& storage_name) const;
+			cbor::CborObjectP fast_map_get(const address& contract_address, const std::string& storage_name, const std::string& key) const;
+			std::string get_string_contract_storage(const address& contract_address, const std::string& storage_name) const;
+			int64_t get_int_contract_storage(const address& contract_address, const std::string& storage_name) const;
+
 			void emit_event(const address& contract_address, const string& event_name, const string& event_arg);
-		};
 
-		// FIXME: remove the demo native contract
-		class demo_native_contract : public abstract_native_contract
-		{
-		public:
-			static std::string native_contract_key() { return "demo"; }
+			virtual void current_fast_map_set(const std::string& storage_name, const std::string& key, cbor::CborObjectP cbor_value) {
+				fast_map_set(contract_address(), storage_name, key, cbor_value);
+			}
+			virtual StorageDataType get_current_contract_storage(const std::string& storage_name) const {
+				return get_contract_storage(contract_address(), storage_name);
+			}
+			virtual cbor::CborObjectP get_current_contract_storage_cbor(const std::string& storage_name) const {
+				return get_contract_storage_cbor(contract_address(), storage_name);
+			}
+			virtual cbor::CborObjectP current_fast_map_get(const std::string& storage_name, const std::string& key) const {
+				return fast_map_get(contract_address(), storage_name, key);
+			}
+			virtual std::string get_string_current_contract_storage(const std::string& storage_name) const {
+				return get_string_contract_storage(contract_address(), storage_name);
+			}
+			virtual int64_t get_int_current_contract_storage(const std::string& storage_name) const {
+				return get_int_contract_storage(contract_address(), storage_name);
+			}
+			virtual void set_current_contract_storage(const std::string& storage_name, cbor::CborObjectP cbor_value) {
+				set_contract_storage(contract_address(), storage_name, cbor_value);
+			}
+			virtual void set_current_contract_storage(const std::string& storage_name, const StorageDataType& value) {
+				set_contract_storage(contract_address(), storage_name, value);
+			}
+			virtual void emit_event(const std::string& event_name, const std::string& event_arg) {
+				emit_event(contract_address(), event_name, event_arg);
+			}
 
-			demo_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
-			virtual ~demo_native_contract() {}
-			virtual std::string contract_key() const;
-			virtual address contract_address() const;
-			virtual std::set<std::string> apis() const;
-			virtual std::set<std::string> offline_apis() const;
-			virtual std::set<std::string> events() const;
+			uint64_t head_block_num() const;
+			std::string caller_address_string() const;
+			address caller_address() const;
+			void throw_error(const std::string& err) const;
 
-			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
+			void add_gas(uint64_t gas);
+			void set_invoke_result_caller();
+
+			virtual void* get_result() { return &_contract_invoke_result; }
+			virtual void set_api_result(const std::string& api_result) {
+				_contract_invoke_result.api_result = api_result;
+			}
 		};
 
 		// native合约的storage的json dumps和遍历都必须是确定性的
-
-		// this is native contract for token
-		class token_native_contract : public abstract_native_contract
-		{
-		public:
-			static std::string native_contract_key() { return "token"; }
-
-			token_native_contract(contract_common_evaluate* evaluate, const address& _contract_id) : abstract_native_contract(evaluate, _contract_id) {}
-			virtual ~token_native_contract() {}
-
-			virtual std::string contract_key() const;
-			virtual address contract_address() const;
-			virtual std::set<std::string> apis() const;
-			virtual std::set<std::string> offline_apis() const;
-			virtual std::set<std::string> events() const;
-
-			virtual contract_invoke_result invoke(const std::string& api_name, const std::string& api_arg);
-			string check_admin();
-			string get_storage_state();
-			string get_storage_token_name();
-			string get_storage_token_symbol();
-			int64_t get_storage_supply();
-			int64_t get_storage_precision();
-			cbor::CborMapValue get_storage_users();
-			cbor::CborMapValue get_storage_allowed();
-			int64_t get_balance_of_user(const string& owner_addr);
-			std::string get_from_address();
-
-			contract_invoke_result init_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result init_token_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result transfer_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result balance_of_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result state_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result token_name_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result token_symbol_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result supply_api(const std::string& api_name, const std::string& api_arg);
-			contract_invoke_result precision_api(const std::string& api_name, const std::string& api_arg);
-			// 授权另一个用户可以从自己的余额中提现
-			// arg format : spenderAddress, amount(with precision)
-			contract_invoke_result approve_api(const std::string& api_name, const std::string& api_arg);
-			// spender用户从授权人授权的金额中发起转账
-			// arg format : fromAddress, toAddress, amount(with precision)
-			contract_invoke_result transfer_from_api(const std::string& api_name, const std::string& api_arg);
-			// 查询一个用户被另外某个用户授权的金额
-			// arg format : spenderAddress, authorizerAddress
-			contract_invoke_result approved_balance_from_api(const std::string& api_name, const std::string& api_arg);
-			// 查询用户授权给其他人的所有金额
-			// arg format : fromAddress
-			contract_invoke_result all_approved_from_user_api(const std::string& api_name, const std::string& api_arg);
-			
-		};
 
 		class native_contract_finder
 		{
 		public:
 			static bool has_native_contract_with_key(const std::string& key);
-			static shared_ptr<abstract_native_contract> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
+			static shared_ptr<uvm::contract::native_contract_interface> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
 
 		};
 
@@ -159,6 +155,5 @@ namespace graphene {
 	}
 }
 
-FC_REFLECT(graphene::chain::demo_native_contract, (contract_id))
 FC_REFLECT(graphene::chain::native_contract_register_operation::fee_parameters_type, (fee)(price_per_kbyte))
 FC_REFLECT(graphene::chain::native_contract_register_operation, (fee)(init_cost)(gas_price)(owner_addr)(owner_pubkey)(register_time)(contract_id)(native_contract_key)(guarantee_id))

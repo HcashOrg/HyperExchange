@@ -7,14 +7,14 @@ WORKDIR /code_deps
 RUN git clone https://github.com/BlockLink/blocklink_crosschain_privatekey
 WORKDIR /code_deps/blocklink_crosschain_privatekey
 RUN cmake -DCMAKE_BUILD_TYPE=Release .
-RUN make
+RUN make -j
 WORKDIR /code_deps
 RUN git clone https://github.com/BlockLink/eth_crosschain_privatekey.git
 WORKDIR /code_deps/eth_crosschain_privatekey/eth_sign/cryptopp/
-RUN make
+RUN make -j
 WORKDIR /code_deps/eth_crosschain_privatekey/eth_sign
 RUN cmake .
-RUN make
+RUN make -j
 ENV CROSSCHAIN_PRIVATEKEY_PROJECT=/code_deps/blocklink_crosschain_privatekey
 ENV ETH_CROSSCHAIN_PROJECT=/code_deps/eth_crosschain_privatekey
 
