@@ -1,7 +1,9 @@
 #!/bin/bash
 image="zoowii/hxcore_hxbuild:latest"
 project_dir=`pwd`
-container_id=`docker run -t $image -v $project_dir:/code /bin/bash`
-docker exec -t $container_id cmake .
-docker exec -t $container_id make -j2
+container_name="hxcoredev-ci"
+docker run -t $image -v $project_dir:/code --name $container_name /bin/bash
+echo $container_name
+docker exec $container_name cmake .
+docker exec $container_name ./build_node.sh
 
