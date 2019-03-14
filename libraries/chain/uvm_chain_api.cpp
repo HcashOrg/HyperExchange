@@ -7,6 +7,7 @@
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/hex.hpp>
+#include <fc/log/logger.hpp>
 #include <Keccak.hpp>
 
 namespace graphene {
@@ -467,9 +468,6 @@ namespace graphene {
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
 
-						if (txid.str() == "bbac8579c37e7985c3577d2195e5e79741d38c43") {
-							printf("storage change diff: %s\n", fc::json::to_string(cbor_diff_value->to_json()).c_str());
-						}
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
@@ -493,7 +491,7 @@ namespace graphene {
 				}
 				// printf("changes size: %d bytes\n", changes_size);
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
-				printf("txid %s storage gas: %lld\n", txid.str().c_str(), storage_gas);
+				dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
 
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
@@ -507,9 +505,9 @@ namespace graphene {
 					return false;
 				}
 			}
-			if (txid.str() == "bbac8579c37e7985c3577d2195e5e79741d38c43") {
+			//if (txid.str() == "bbac8579c37e7985c3577d2195e5e79741d38c43") {
 				// storage_gas = 10740;      // hardcode fix a bug
-			}
+			//}
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, storage_gas);
 			return true;
 		}
