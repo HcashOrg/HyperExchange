@@ -89,6 +89,12 @@ void object_database::wipe(const fc::path& data_dir)
    close();
    ilog("Wiping object database...");
    fc::remove_all(data_dir / "object_database");
+   if(fc::exists(data_dir / "undo_dbstorage"))
+		fc::remove_all(data_dir / "undo_dbstorage");
+   if (fc::exists(data_dir / "fork_db"))
+	   fc::remove_all(data_dir / "fork_db");
+   if (fc::exists(data_dir / "undo_dbstack"))
+		fc::remove_all(data_dir / "undo_dbstack");
    ilog("Done wiping object databse.");
 }
 

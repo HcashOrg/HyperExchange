@@ -46,21 +46,183 @@ database::~database()
 {
    clear_pending();
 }
+bool copyDir(
+	boost::filesystem::path const & source,
+	boost::filesystem::path const & destination
+)
+{
+	namespace fs = boost::filesystem;
+	try
+	{
+		// Check whether the function call is valid
+		if (
+			!fs::exists(source) ||
+			!fs::is_directory(source)
+			)
+		{
+			std::cerr << "Source directory " << source.string()
+				<< " does not exist or is not a directory." << '\n'
+				;
+			return false;
+		}
+		if (fs::exists(destination))
+		{
+			std::cerr << "Destination directory " << destination.string()
+				<< " already exists." << '\n'
+				;
+			return false;
+		}
+		// Create the destination directory
+		if (!fs::create_directory(destination))
+		{
+			std::cerr << "Unable to create destination directory"
+				<< destination.string() << '\n'
+				;
+			return false;
+		}
+	}
+	catch (fs::filesystem_error const & e)
+	{
+		std::cerr << e.what() << '\n';
+		return false;
+	}
+	// Iterate through the source directory
+	for (
+		fs::directory_iterator file(source);
+		file != fs::directory_iterator(); ++file
+		)
+	{
+		try
+		{
+			fs::path current(file->path());
+			if (fs::is_directory(current))
+			{
+				// Found directory: Recursion
+				if (
+					!copyDir(
+						current,
+						destination / current.filename()
+					)
+					)
+				{
+					return false;
+				}
+			}
+			else
+			{
+				// Found file: Copy
+				fs::copy_file(
+					current,
+					destination / current.filename()
+				);
+			}
+		}
+		catch (fs::filesystem_error const & e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
+	return true;
+}
+void database::read_backup_info(const fc::path& dir)
+{
+	ifstream backup_info((dir / "backup_info").string());
+	if (!backup_info)
+	{
+		backup_block_num = 0;
+		backup_path = dir;
+	}
 
-void database::reindex(fc::path data_dir, const genesis_state_type& initial_allocation)
+	backup_path = dir;
+	int32_t num;
+	string bid;
+	try
+	{
+		backup_info >> num >> bid;
+	    //check  whether id matched num
+	}
+	catch (const std::exception&)
+	{
+		backup_block_num = 0;
+	}
+	if(backup_info)
+		backup_info.close();
+}
+void graphene::chain::database::restore_from_backup(const fc::path& dir)
+{
+	std::cout << backup_path.string() << std::endl;
+	FC_ASSERT(boost::filesystem::exists(backup_path));
+	copyDir(backup_path / "object_database", dir / "object_database");
+	copyDir(backup_path / "undo_dbstorage", dir / "undo_dbstorage");
+	boost::filesystem::copy_file(backup_path / "fork_db", dir / "fork_db");
+	boost::filesystem::copy_file(backup_path / "undo_dbstack", dir / "undo_dbstack");
+}
+
+void database::backup()
+{
+	auto num = head_block_num();
+	auto bid = head_block_id();
+	close();
+	try {
+		if (boost::filesystem::exists(backup_path))
+			boost::filesystem::remove_all(backup_path);
+		if (!boost::filesystem::exists(backup_path))
+			boost::filesystem::create_directory(backup_path);
+		copyDir(data_dir_using / "object_database", backup_path/ "object_database");
+		copyDir(data_dir_using / "undo_dbstorage", backup_path/ "undo_dbstorage");
+		boost::filesystem::copy_file(data_dir_using / "fork_db", backup_path/ "fork_db");
+		boost::filesystem::copy_file(data_dir_using / "undo_dbstack", backup_path/ "undo_dbstack");
+		ofstream backup_info;
+		backup_info.open((backup_path /"backup_info").string(), std::ios::trunc);
+		backup_info << num <<" "<< bid.str();
+		backup_info.close();
+
+	}
+	catch (std::exception& e)
+	{
+		cout << e.what() << std::endl;
+	}
+	open(data_dir_using, genesis_loader_using);
+}
+void database::reindex(fc::path data_dir, const genesis_state_type& initial_allocation,bool completely)
 { try {
    ilog( "reindexing blockchain" );
-   wipe(data_dir, false);
+   wipe(data_dir, false);   
+   uint64_t start_block = 1;
+   if (!completely)
+   {
+	   try {
+		   restore_from_backup(data_dir);
+		   start_block = backup_block_num;
+	   }
+	   catch (...)
+	   {
+
+	   }
+   }
+   bool restore_failed = false;
    try {
-	   open(data_dir, [&initial_allocation] {return initial_allocation; });
-   }
-   catch (deserialize_fork_database_failed& e)
+		   open(data_dir, [&initial_allocation] {return initial_allocation; });
+		   start_block = head_block_num() + 1;
+	   }
+	   catch (...)
+	   {
+		   restore_failed = true;
+	}
+   if (restore_failed)
    {
-
-   }
-   catch (deserialize_undo_database_failed& e)
-   {
-
+	   start_block = 1;
+	   ilog("restore from backup failed");
+	   wipe(data_dir, false);
+	   try {
+		   open(data_dir, [&initial_allocation] {return initial_allocation; });
+	   }
+	   catch (const deserialize_fork_database_failed& e)
+	   {
+	   }
+	   catch (const deserialize_undo_database_failed& e)
+	   {
+	   }
    }
    auto start = fc::time_point::now();
    auto last_block = _block_id_to_block.last();
@@ -82,7 +244,7 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _undo_db.enable();
    _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
    uint32_t undo_enable_num = last_block_num - 1440;
-   for( uint32_t i = 1; i <= last_block_num; ++i )
+   for( uint32_t i = start_block; i <= last_block_num; ++i )
    {
       if( i % 10000 == 0 ) std::cerr << "   " << double(i*100)/last_block_num << "%   "<<i << " of " <<last_block_num<<"   \n";
       fc::optional< signed_block > block = _block_id_to_block.fetch_by_number(i);
@@ -136,10 +298,12 @@ void database::open(
 {
    try
    {
+
       object_database::open(data_dir);
 
       _block_id_to_block.open(data_dir / "database" / "block_num_to_block");
-
+	  data_dir_using = data_dir;
+	  genesis_loader_using = genesis_loader;
       if( !find(global_property_id_type()) )
          init_genesis(genesis_loader());
 
@@ -151,7 +315,7 @@ void database::open(
          idump((head_block_id())(head_block_num()));
          if( last_block->id() != head_block_id() )
          {
-              FC_ASSERT( head_block_num() == 0, "last block ID does not match current chain state",
+              FC_ASSERT( head_block_num() == 0||get_block_id_for_num(head_block_num())== head_block_id(), "last block ID does not match current chain state",
                          ("last_block->id", last_block->id())("head_block_num",head_block_num()) );
          }
       }

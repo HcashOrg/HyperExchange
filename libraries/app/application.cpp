@@ -599,13 +599,13 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-
+		 _chain_db->read_backup_info(_data_dir / "blockchain_backup");
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
 
             fc::remove_all( _data_dir / "db_version" );
-            _chain_db->reindex( _data_dir / "blockchain", initial_state() );
+            _chain_db->reindex( _data_dir / "blockchain", initial_state() ,false);
 
             const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
             std::ofstream db_version( (_data_dir / "db_version").generic_string().c_str(), mode );
@@ -729,6 +729,14 @@ namespace detail {
                  ("l", (latency.count()/1000))
                  ("w",miner_account.name)
                  ("i",last_irr)("d",blk_msg.block.block_num()-last_irr) );
+			if (blk_msg.block.block_num() % 200000 == 0)
+			{
+				ilog("start back_up at: #${n}  end", ("n", blk_msg.block.block_num()));
+				auto time_before_backup= fc::time_point::now();
+				_chain_db->backup();
+				auto bk_latency = fc::time_point::now() - time_before_backup;
+				ilog("backup end,cost  ${l}", ("l", (bk_latency.count() / 1000)));
+			}
          }
          FC_ASSERT( (latency.count()/1000) > -5000, "Rejecting block with timestamp in the future" );
 

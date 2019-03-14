@@ -105,7 +105,7 @@ namespace graphene { namespace chain {
           * This method may be called after or instead of @ref database::open, and will rebuild the object graph by
           * replaying blockchain history. When this method exits successfully, the database will be open.
           */
-         void reindex(fc::path data_dir, const genesis_state_type& initial_allocation = genesis_state_type());
+         void reindex(fc::path data_dir, const genesis_state_type& initial_allocation = genesis_state_type(), bool Completely=true);
 
          /**
           * @brief wipe Delete database from disk, and potentially the raw chain as well.
@@ -641,9 +641,17 @@ namespace graphene { namespace chain {
 		 share_type						   _gas_limit_in_in_block = 2000000;
 		 share_type						   _current_gas_in_block= 0;
 	public:
+
+		void read_backup_info(const fc::path& dir);
+		void restore_from_backup(const fc::path& dir);
+		void backup();
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
 		std::mutex                         db_lock;
+		fc::path backup_path;
+		uint64_t backup_block_num;
+		fc::path data_dir_using;
+		std::function<genesis_state_type()> genesis_loader_using;
    };
 
    namespace detail

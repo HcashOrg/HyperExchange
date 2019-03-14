@@ -413,7 +413,7 @@ void undo_database::pop_commit()
 			   FC_ASSERT(state_storage->remove(_stack.back()), "pop_commit remove stack back failed");
 
 			   DL("undo_storage::popcommit   popback", _stack.back().str());
-			   DL("back_size:", _stack.size());
+			   DL("stack_size:", _stack.size());
 			   std::cout << "stack_size:" << _stack.size() << std::endl;
 			   _stack.pop_back();
 		   }
