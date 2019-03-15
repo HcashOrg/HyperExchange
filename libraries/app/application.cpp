@@ -552,6 +552,7 @@ namespace detail {
          _chain_db->add_checkpoints( loaded_checkpoints );
 
          bool replay = false;
+		 bool replay_all = false;
          std::string replay_reason = "reason not provided";
 
          // never replay if data dir is empty
@@ -560,6 +561,7 @@ namespace detail {
             if( _options->count("replay-blockchain") )
             {
                replay = true;
+			   replay_all = true;
                replay_reason = "replay-blockchain argument specified";
             }
             else if( !clean )
@@ -605,7 +607,7 @@ namespace detail {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
 
             fc::remove_all( _data_dir / "db_version" );
-            _chain_db->reindex( _data_dir / "blockchain", initial_state() ,false);
+            _chain_db->reindex( _data_dir / "blockchain", initial_state() ,replay_all);
 
             const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
             std::ofstream db_version( (_data_dir / "db_version").generic_string().c_str(), mode );

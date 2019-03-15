@@ -139,7 +139,7 @@ void database::read_backup_info(const fc::path& dir)
 	string bid;
 	try
 	{
-		backup_info >> num >> bid;
+		backup_info >> backup_block_num >> bid;
 	    //check  whether id matched num
 	}
 	catch (const std::exception&)
@@ -187,10 +187,11 @@ void database::backup()
 		backup_info.open((backup_path /"backup_info").string(), std::ios::trunc);
 		backup_info << num <<" "<< bid.str();
 		backup_info.close();
-
+		backup_block_num = num;
 	}
 	catch (std::exception& e)
 	{
+		backup_block_num = 0;
 		cout << e.what() << std::endl;
 	}
 	open(data_dir_using, genesis_loader_using);
@@ -341,6 +342,7 @@ void database::open(
 		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
+
 
 
    }
