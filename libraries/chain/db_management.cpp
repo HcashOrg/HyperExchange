@@ -131,6 +131,7 @@ void database::read_backup_info(const fc::path& dir)
 	{
 		backup_block_num = 0;
 		backup_path = dir;
+		return;
 	}
 
 	backup_path = dir;
@@ -156,6 +157,16 @@ void graphene::chain::database::restore_from_backup(const fc::path& dir)
 	copyDir(backup_path / "undo_dbstorage", dir / "undo_dbstorage");
 	boost::filesystem::copy_file(backup_path / "fork_db", dir / "fork_db");
 	boost::filesystem::copy_file(backup_path / "undo_dbstack", dir / "undo_dbstack");
+}
+
+void database::remove_backup()
+{
+	try {
+		backup_block_num = 0;
+		if (boost::filesystem::exists(backup_path))
+			boost::filesystem::remove_all(backup_path);
+	}catch(...)
+	{}
 }
 
 void database::backup()
@@ -330,6 +341,7 @@ void database::open(
 		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
+
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )

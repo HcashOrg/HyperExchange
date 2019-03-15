@@ -718,6 +718,18 @@ namespace detail {
 		  {
 			  latency_chk = 0;
 		  }
+		  //backup
+
+			  if (_chain_db->backup_block_num != 0)
+			  {
+				  if (((time_point::now() - _chain_db->head_block_time()).to_seconds() / 60 / 60 / 24) > 15)
+					  _chain_db->remove_backup();
+			  }
+			  else if (blk_msg.block.block_num()>=200000&& (fc::time_point::now()- blk_msg.block.timestamp).to_seconds()<5*60)
+			  {
+				  _chain_db->backup();
+			  }
+
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
             const auto& miner = blk_msg.block.miner(*_chain_db);
@@ -729,14 +741,14 @@ namespace detail {
                  ("l", (latency.count()/1000))
                  ("w",miner_account.name)
                  ("i",last_irr)("d",blk_msg.block.block_num()-last_irr) );
-			if (blk_msg.block.block_num() % 200000 == 0)
-			{
-				ilog("start back_up at: #${n}  end", ("n", blk_msg.block.block_num()));
-				auto time_before_backup= fc::time_point::now();
-				_chain_db->backup();
-				auto bk_latency = fc::time_point::now() - time_before_backup;
-				ilog("backup end,cost  ${l}", ("l", (bk_latency.count() / 1000)));
-			}
+			//if (blk_msg.block.block_num() % 200000 == 0)
+			//{
+			//	ilog("start back_up at: #${n}  end", ("n", blk_msg.block.block_num()));
+			//	auto time_before_backup= fc::time_point::now();
+			//	_chain_db->backup();
+			//	auto bk_latency = fc::time_point::now() - time_before_backup;
+			//	ilog("backup end,cost  ${l}", ("l", (bk_latency.count() / 1000)));
+			//}
          }
          FC_ASSERT( (latency.count()/1000) > -5000, "Rejecting block with timestamp in the future" );
 

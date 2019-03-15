@@ -644,6 +644,7 @@ namespace graphene { namespace chain {
 
 		void read_backup_info(const fc::path& dir);
 		void restore_from_backup(const fc::path& dir);
+		void remove_backup();
 		void backup();
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
