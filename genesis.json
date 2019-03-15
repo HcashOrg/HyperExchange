@@ -1,5 +1,5 @@
 {
-  "initial_timestamp": "2019-01-10T04:02:35",
+  "initial_timestamp": "2019-03-15T03:25:45",
   "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
@@ -488,6 +488,20 @@
           116,{
             "fee": 100
           }
+        ],[
+          117,{
+            "fee": 100
+          }
+        ],[
+          118,{
+            "fee": 100
+          }
+        ],[
+          119,{
+            "fee": 100
+          }
+        ],[
+          120,{}
         ]
       ],
       "scale": 10000
