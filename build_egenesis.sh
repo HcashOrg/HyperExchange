@@ -1,3 +1,3 @@
 #!/bin/bash
-cd libraries/fc && make -j2 && cd ../..
+cd libraries/egenesis && make -j2 && cd ../..
 
