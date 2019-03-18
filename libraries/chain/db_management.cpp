@@ -318,7 +318,7 @@ void database::open(
 	  genesis_loader_using = genesis_loader;
       if( !find(global_property_id_type()) )
          init_genesis(genesis_loader());
-
+	  bool fork_undo_load = false;
       fc::optional<signed_block> last_block = _block_id_to_block.last();
       if( last_block.valid() )
       {
@@ -327,11 +327,45 @@ void database::open(
          idump((head_block_id())(head_block_num()));
          if( last_block->id() != head_block_id() )
          {
-              FC_ASSERT( head_block_num() == 0||get_block_id_for_num(head_block_num())== head_block_id(), "last block ID does not match current chain state",
-                         ("last_block->id", last_block->id())("head_block_num",head_block_num()) );
+			 if (head_block_num() == 0 || get_block_id_for_num(head_block_num()) == head_block_id())
+			 {
+			 }
+			 else 
+			 {
+				 fc::path data_dir = get_data_dir() / "undo_db";
+				 try {
+					 _undo_db.from_file(data_dir.string());
+				 }
+				 catch (...)
+				 {
+					 FC_CAPTURE_AND_THROW(deserialize_fork_database_failed, (data_dir));
+				 }
+				 fc::path fork_data_dir = get_data_dir() / "fork_db";
+				 _fork_db.from_file(fork_data_dir.string());
+				 fork_undo_load = true;
+				 bool found = false;
+				 while (_fork_db.head() != nullptr)
+				 {
+					
+					 _fork_db.pop_block();
+					 pop_undo();
+					 if (get_block_id_for_num(head_block_num()) == head_block_id())
+					 {
+						 found = true;
+						 break;
+					 }
+				 }
+				 if (!found)
+				 {
+					 FC_ASSERT(head_block_num() == 0 || get_block_id_for_num(head_block_num()) == head_block_id(), "last block ID does not match current chain state",
+						 ("last_block->id", last_block->id())("head_block_num", head_block_num()));
+				 }
+			 }
+
          }
       }
-
+	  if (!fork_undo_load)
+	  {
 		  fc::path data_dir = get_data_dir() / "undo_db";
 		  try {
 			  _undo_db.from_file(data_dir.string());
@@ -343,7 +377,7 @@ void database::open(
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 
-
+	  }
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
