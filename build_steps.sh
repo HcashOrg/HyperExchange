@@ -4,6 +4,7 @@
 ./build_net.sh
 ./build_uvm.sh
 ./build_egenesis.sh
+./build_app.sh
 ./build_chain.sh
 ./build_node.sh
 
