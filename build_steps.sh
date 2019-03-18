@@ -1,6 +1,5 @@
 #!/bin/bash
 ./build_fc.sh
-./build_leveldb.sh
 ./build_jsondiff.sh
 ./build_net.sh
 ./build_uvm.sh
