@@ -1,3 +1,3 @@
 #!/bin/bash
-cd libraries/net && make -j2 && cd ../..
+cd libraries/fc && make -j2 && cd ../..
 
