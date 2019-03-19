@@ -317,7 +317,7 @@ namespace graphene {
 				if (is_fast_map) {
 					key = name + "." + fast_map_key;
 				}
-				ilog("storage ${addr}.${key}:\n", ("addr", contract_address), ("key", key));
+				ilog("storage ${addr}.${key}:\n", ("addr", contract_address)("key", key));
 				auto storage_data = evaluator->get_storage(contract_id, key);
 				// TODO: cost more gas when read large storage
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
@@ -465,7 +465,7 @@ namespace graphene {
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
-						ilog("contract ${addr} change diff ${change}", ("addr", "contract_name"), ("change", cbor_diff_value->str()));
+						ilog("contract ${addr} change diff ${change}", ("addr", "contract_name")("change", cbor_diff_value->str()));
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
