@@ -766,55 +766,61 @@ namespace graphene {
 		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::get_midware_from_server()
 		{
-			std::vector<fc::ip::endpoint> midware_seeds;
-			boost::asio::ip::tcp::resolver resolver(fc::asio::default_io_service());
-			boost::asio::ip::tcp::resolver::query queryEndpoints("1000896736104835.cn-hongkong.fc.aliyuncs.com", "80");
-			boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(queryEndpoints);
-			;
-			for (boost::asio::ip::tcp::resolver::iterator iterNull;
-				endpoint_iterator != iterNull;
-				endpoint_iterator++)
-			{
-				try {
-					midware_seeds.push_back(fc::ip::endpoint::from_string(endpoint_iterator->endpoint().address().to_string() + ":" + std::to_string(endpoint_iterator->endpoint().port())));
-				}
-				catch (...)
+			try {
+				std::vector<fc::ip::endpoint> midware_seeds;
+				boost::asio::ip::tcp::resolver resolver(fc::asio::default_io_service());
+				boost::asio::ip::tcp::resolver::query queryEndpoints("1000896736104835.cn-hongkong.fc.aliyuncs.com", "80");
+				boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(queryEndpoints);
+				;
+				for (boost::asio::ip::tcp::resolver::iterator iterNull;
+					endpoint_iterator != iterNull;
+					endpoint_iterator++)
 				{
-				}
-			}
-			for (auto& seed_ep : midware_seeds)
-			{
-				try {
-					fc::http::connection_sync conn;
-					conn.connect_to(seed_ep);
-					//auto res = conn.parse_reply();
-					auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_hx_middleware_endpoint/query_middleware_endpoint/", "");
-					if (response.status == fc::http::reply::OK)
+					try {
+						midware_seeds.push_back(fc::ip::endpoint::from_string(endpoint_iterator->endpoint().address().to_string() + ":" + std::to_string(endpoint_iterator->endpoint().port())));
+					}
+					catch (...)
 					{
-						auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
-						std::cout << std::string(response.body.begin(), response.body.end());
-						auto result = resp.get_object();
-						if (result.contains("result"))
-						{
-
-							vector<fc::ip::endpoint> midware_sers;
-							auto eps = result["result"].get_array();
-							for (auto ep : eps)
-							{
-								auto str = ep["ip"].get_string() + ":" + std::to_string(ep["port"].as_int64());
-								midware_sers.push_back(fc::ip::endpoint::from_string(str));
-							}
-							srand(time(NULL));
-							int idx = rand() % midware_sers.size();
-							if(idx!=0)
-								swap(midware_sers[0], midware_sers[idx]);
-							return midware_sers;
-						}
 					}
 				}
-				catch (...)
+				for (auto& seed_ep : midware_seeds)
 				{
+					try {
+						fc::http::connection_sync conn;
+						conn.connect_to(seed_ep);
+						//auto res = conn.parse_reply();
+						auto response = conn.request("GET", "http://1000896736104835.cn-hongkong.fc.aliyuncs.com/2016-08-15/proxy/query_hx_middleware_endpoint/query_middleware_endpoint/", "");
+						if (response.status == fc::http::reply::OK)
+						{
+							auto resp = fc::json::from_string(std::string(response.body.begin(), response.body.end()));
+							std::cout << std::string(response.body.begin(), response.body.end());
+							auto result = resp.get_object();
+							if (result.contains("result"))
+							{
+
+								vector<fc::ip::endpoint> midware_sers;
+								auto eps = result["result"].get_array();
+								for (auto ep : eps)
+								{
+									auto str = ep["ip"].get_string() + ":" + std::to_string(ep["port"].as_int64());
+									midware_sers.push_back(fc::ip::endpoint::from_string(str));
+								}
+								srand(time(NULL));
+								int idx = rand() % midware_sers.size();
+								if (idx != 0)
+									swap(midware_sers[0], midware_sers[idx]);
+								return midware_sers;
+							}
+						}
+					}
+					catch (...)
+					{
+					}
 				}
+			}
+			catch (...)
+			{
+
 			}
 			return std::vector<fc::ip::endpoint>();
 		}

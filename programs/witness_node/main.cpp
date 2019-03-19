@@ -71,7 +71,7 @@ inline void CreateMiniDump(EXCEPTION_POINTERS* pep, LPCTSTR strFileName)
 
 		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)0x0000ffff;
 
-		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, &mdei, NULL, NULL);
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &mdei, NULL, NULL);
 
 		CloseHandle(hFile);
 	}
