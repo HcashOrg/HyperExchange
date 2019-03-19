@@ -8,6 +8,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/hex.hpp>
 #include <Keccak.hpp>
+#include <fc/log/logger.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -316,7 +317,7 @@ namespace graphene {
 				if (is_fast_map) {
 					key = name + "." + fast_map_key;
 				}
-				// printf("storage %s.%s:\n", contract_address, key.c_str());
+				ilog("storage ${addr}.${key}:\n", ("addr", contract_address), ("key", key));
 				auto storage_data = evaluator->get_storage(contract_id, key);
 				// TODO: cost more gas when read large storage
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
@@ -464,6 +465,7 @@ namespace graphene {
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
+						ilog("contract ${addr} change diff ${change}", ("addr", "contract_name"), ("change", cbor_diff_value->str()));
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
@@ -485,7 +487,7 @@ namespace graphene {
 					const auto& changes_parsed_to_array = nested_json_object_to_array(json_nested_changes);
 					changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
 				}
-				// printf("changes size: %d bytes\n", changes_size);
+				ilog("changes size: ${size} bytes", ("size", changes_size));
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
