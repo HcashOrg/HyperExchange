@@ -434,6 +434,7 @@ namespace detail {
 						 midware_sers.push_back(fc::ip::endpoint::from_string(str));
 					 }
 					 abstract_crosschain_interface::set_midwares(midware_sers);
+					 abstract_crosschain_interface::b_get_eps_from_service = false;
 				 }
 				 else
 				 {

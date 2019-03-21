@@ -743,6 +743,7 @@ namespace graphene {
 			return std::string();
 		}
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps;
+		bool abstract_crosschain_interface::b_get_eps_from_service = true;
 		std::vector<fc::ip::endpoint> abstract_crosschain_interface::midware_eps_backup;
 		std::map<fc::ip::endpoint, std::pair<int, int>> abstract_crosschain_interface::connect_counts;
 		std::mutex abstract_crosschain_interface::eps_lock;
@@ -853,7 +854,7 @@ namespace graphene {
 				{
 					caught = true;
 				}
-				if (caught) {
+				if (caught&&b_get_eps_from_service) {
 					try
 					{
 						ep_idx = -1;

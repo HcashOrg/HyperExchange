@@ -145,6 +145,7 @@ namespace graphene {
 			static std::mutex eps_lock;
 			static std::vector<fc::ip::endpoint> midware_eps;
 			static std::vector<fc::ip::endpoint> midware_eps_backup;
+			static bool b_get_eps_from_service;
 			static std::map<fc::ip::endpoint, std::pair<int, int>> connect_counts;
 			void connect_midware(fc::http::connection_sync& con);
 			static void set_midwares(const std::vector<fc::ip::endpoint>& midware_eps);
