@@ -71,7 +71,7 @@ inline void CreateMiniDump(EXCEPTION_POINTERS* pep, LPCTSTR strFileName)
 
 		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)0x0000ffff;
 
-		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, &mdei, NULL, NULL);
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &mdei, NULL, NULL);
 
 		CloseHandle(hFile);
 	}
@@ -168,12 +168,15 @@ int main(int argc, char** argv) {
          try
          {
             fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path);
-            if (logging_config)
-               fc::configure_logging(*logging_config);
+			if (logging_config)
+				fc::configure_logging(*logging_config);
+			else
+				fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
          catch (const fc::exception&)
          {
             wlog("Error parsing logging config from config file ${config}, using default config", ("config", config_ini_path.preferred_string()));
+			fc::configure_logging(fc::logging_config::default_config(config_ini_path));
          }
       }
       else 
@@ -209,8 +212,10 @@ int main(int argc, char** argv) {
          out_cfg.close(); 
          // read the default logging config we just wrote out to the file and start using it
          fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path);
-         if (logging_config)
-            fc::configure_logging(*logging_config);
+		 if (logging_config)
+			 fc::configure_logging(*logging_config);
+		 else
+			 fc::configure_logging(fc::logging_config::default_config(config_ini_path));
       }
 
       bpo::notify(options);
@@ -244,8 +249,7 @@ int main(int argc, char** argv) {
       ilog("Exiting from signal ${n}", ("n", signal));
       node->shutdown_plugins();
       node->shutdown();
-      delete node;
-      return 0;
+	  return 0;
    } catch( const fc::exception& e ) {
       // deleting the node can yield, so do this outside the exception handler
       unhandled_exception = e;
@@ -264,8 +268,7 @@ int main(int argc, char** argv) {
    {
       elog("Exiting with error:\n${e}", ("e", unhandled_exception->to_detail_string()));
       node->shutdown();
-      delete node;
-      return 1;
+	  return 1;
    }
 }
 

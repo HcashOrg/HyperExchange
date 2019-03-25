@@ -205,7 +205,8 @@ namespace graphene {
 				if (!global_uvm_chain_api)
                                 	global_uvm_chain_api = new UvmChainApi();
 
-				auto invoke_result = native_contract->invoke("init", "");
+				native_contract->invoke("init", "");
+				auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 
 				gas_used_counts = native_contract->gas_count_for_api_invoke("init");
 				FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
@@ -283,7 +284,8 @@ namespace graphene {
 					gas_limit = limit;
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
-					auto invoke_result = native_contract->invoke(o.contract_api, o.contract_arg);
+					native_contract->invoke(o.contract_api, o.contract_arg);
+					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke(o.contract_api);
                     gas_count = gas_used_counts;
@@ -398,7 +400,8 @@ namespace graphene {
 					gas_limit = limit;
 					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
 					FC_ASSERT(native_contract);
-					auto invoke_result = native_contract->invoke("on_upgrade", o.contract_name);
+					native_contract->invoke("on_upgrade", o.contract_name);
+					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke("on_upgrade");
 					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
@@ -797,8 +800,9 @@ namespace graphene {
                         param.num= o.amount.amount;
                         param.symbol = o.amount.asset_id(d).symbol;
                         param.param = o.param;
-
-                        auto invoke_result = native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
+			
+			native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
+                        auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 
 						gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
                         gas_count = gas_used_counts;

@@ -1,0 +1,24 @@
+image: zoowii/hxcore_hxbuild:latest
+
+before_script:
+    - echo hello
+    - apt install -y python3
+    - git submodule update --init --recursive
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+   - cmake .
+   - cd programs/witness_node && make -j2 && cd ../..
+   - cd programs/cli_wallet && make -j2 && cd ../..
+#    - sh -x build.sh
+
+test:
+  script:
+    - echo hello
+    - ci_tests/test_runner.sh
+

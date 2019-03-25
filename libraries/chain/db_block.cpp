@@ -733,6 +733,9 @@ void database::_apply_block( const signed_block& next_block )
       ++_current_trx_in_block;
 	  //store_transactions(signed_transaction(trx));
    }
+   if(next_block_num == 1901662) {
+	printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
+   }
    FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
