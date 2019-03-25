@@ -24,7 +24,7 @@
   #include <fcntl.h>
 # endif
 #endif
-
+#include <iostream>
 namespace fc {
   // when converting to and from a variant, store utf-8 in the variant
   void to_variant( const fc::path& path_to_convert, variant& variant_output ) 
@@ -263,18 +263,28 @@ namespace fc {
 			  FC_ASSERT(fc::is_directory(t), "${dstfile} should be director", ("dstfile", t));
 		  else
 			  fc::create_directories(t);
+		  auto dst = t;
 		  recursive_directory_iterator end;
+		  auto begin = 0;
 		  std::vector<fc::path> src_files;
 		  for (recursive_directory_iterator pos(f); pos != end; ++pos)
 		  {
-			  src_files.push_back(*pos);
+			  if (pos.level() == begin)
+				  src_files.push_back(*pos);
 		  }
 
 		  for (const auto& p : src_files)
 		  {
 			  if (fc::is_directory(p))
-				  return copy_file(p,t/p.filename());
-			  boost::filesystem::copy_file(boost::filesystem::path(p), boost::filesystem::path(t/p.filename()));
+				  copy_file(p, dst / p.filename());
+			  else
+			  {
+				  if (!fc::exists(dst / p.filename()))
+				  {
+					  copy(p, dst / p.filename());
+				  }
+
+			  }
 		  }
 	  }
 	  catch (boost::system::system_error& e) {
