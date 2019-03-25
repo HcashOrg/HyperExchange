@@ -254,6 +254,42 @@ namespace fc {
 	         ("srcfile",f)("dstfile",t)("inner", fc::except_str() ) );
      }
   }
+
+  void copy_file(const path& f, const path& t)
+  {
+	  try {
+		  FC_ASSERT(fc::exists(f),"${srcfile} should exist.",("srcfile",f));
+		  if (fc::exists(t))
+			  FC_ASSERT(fc::is_directory(t), "${dstfile} should be director", ("dstfile", t));
+		  else
+			  fc::create_directories(t);
+		  recursive_directory_iterator end;
+		  std::vector<fc::path> src_files;
+		  for (recursive_directory_iterator pos(f); pos != end; ++pos)
+		  {
+			  src_files.push_back(*pos);
+		  }
+
+		  for (const auto& p : src_files)
+		  {
+			  if (fc::is_directory(p))
+				  return copy_file(p,t/p.filename());
+			  boost::filesystem::copy_file(boost::filesystem::path(p), boost::filesystem::path(t/p.filename()));
+		  }
+	  }
+	  catch (boost::system::system_error& e) {
+		  FC_THROW("Copy from ${srcfile} to ${dstfile} failed because ${reason}",
+			  ("srcfile", f)("dstfile", t)("reason", e.what()));
+	  }
+	  catch (...) {
+		  FC_THROW("Copy from ${srcfile} to ${dstfile} failed",
+			  ("srcfile", f)("dstfile", t)("inner", fc::except_str()));
+	  }
+
+  }
+
+
+
   void resize_file( const path& f, size_t t ) 
   { 
     try {
