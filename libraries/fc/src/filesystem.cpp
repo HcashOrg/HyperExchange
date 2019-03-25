@@ -279,11 +279,7 @@ namespace fc {
 				  copy_file(p, dst / p.filename());
 			  else
 			  {
-				  if (!fc::exists(dst / p.filename()))
-				  {
-					  copy(p, dst / p.filename());
-				  }
-
+				  copy(p, dst / p.filename());
 			  }
 		  }
 	  }
