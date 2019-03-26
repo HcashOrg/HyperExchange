@@ -8,6 +8,7 @@
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/io/json.hpp>
+#include <fc/log/logger.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/contract_evaluate.hpp>
@@ -15,6 +16,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
+
 namespace graphene {
 	namespace chain {
 
@@ -47,6 +49,66 @@ namespace graphene {
             exec_succeed = false;
             acctual_fee = fee;
         }
+
+	int64_t contract_invoke_result::count_storage_gas() const {
+		cbor_diff::CborDiff differ;
+		int64_t storage_gas = 0;
+		uvm::lua::lib::UvmStateScope scope;
+		for (auto all_con_chg_iter = storage_changes.begin(); all_con_chg_iter != storage_changes.end(); ++all_con_chg_iter)
+		{
+			// commit change to evaluator
+			contract_storage_changes_type contract_storage_change;
+			std::string contract_id = all_con_chg_iter->first;
+			auto contract_change = all_con_chg_iter->second;
+			cbor::CborMapValue nested_changes;
+			jsondiff::JsonObject json_nested_changes;
+
+			for (auto con_chg_iter = contract_change.begin(); con_chg_iter != contract_change.end(); ++con_chg_iter)
+			{
+				std::string contract_name = con_chg_iter->first;
+
+				StorageDataChangeType storage_change;
+				// storage_op from before and after to diff
+				auto storage_after = con_chg_iter->second.after;
+				auto cbor_storage_before = uvm_storage_value_to_cbor(StorageDataType::create_lua_storage_from_storage_data(scope.L(), con_chg_iter->second.before));
+				auto cbor_storage_after = uvm_storage_value_to_cbor(StorageDataType::create_lua_storage_from_storage_data(scope.L(), con_chg_iter->second.after));
+				auto change_cbor_diff = *(differ.diff(cbor_storage_before, cbor_storage_after));
+				auto cbor_diff_value = std::make_shared<cbor::CborObject>(change_cbor_diff.value());
+				const auto& cbor_diff_chars = cbor_diff::cbor_encode(cbor_diff_value);
+				storage_change.storage_diff.storage_data = cbor_diff_chars;
+				storage_change.after = storage_after;
+				contract_storage_change[contract_name] = storage_change;
+				nested_changes[contract_name] = cbor_diff_value;
+			}
+			// count gas by changes size
+			size_t changes_size = 0;
+			auto nested_changes_cbor = cbor::CborObject::create_map(nested_changes);
+			const auto& changes_parsed_to_array = uvm::util::nested_cbor_object_to_array(nested_changes_cbor.get());
+			changes_size = cbor_diff::cbor_encode(changes_parsed_to_array).size();
+			// printf("changes size: %d bytes\n", changes_size);
+			storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
+
+			if (storage_gas < 0) {
+				return -1;
+			}
+		}
+		dlog("storage gas: " + std::to_string(storage_gas));
+		return storage_gas;
+	}
+
+	int64_t contract_invoke_result::count_event_gas() const {
+		int64_t total_event_gas = 0;
+		for (const auto& event_change : events) {
+			auto event_size = event_change.event_name.size() + event_change.event_arg.size();
+			auto event_gas = event_size * 2; // 1 byte event cost 2 gas
+			total_event_gas += event_gas;
+			if (total_event_gas < 0) {
+				return -1;
+			}
+		}
+		dlog("event gas: " + std::to_string(total_event_gas));
+		return total_event_gas;
+	}
 
         string contract_invoke_result::ordered_digest() const
 		{
