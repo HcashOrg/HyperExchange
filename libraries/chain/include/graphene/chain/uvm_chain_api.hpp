@@ -161,6 +161,8 @@ namespace graphene {
 
 			virtual bool use_fast_map_set_nil(lua_State *L) const override;
 
+			virtual std::string pubkey_to_address_string(const fc::ecc::public_key& pub) const override;
+
 		};
 	}
 }
