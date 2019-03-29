@@ -590,15 +590,16 @@ namespace detail {
          {
             try
             {
-				if (fc::exists(_data_dir / "blockchain_previous"))
-				{
-					fc::remove_all(_data_dir/"blockchain");
-					fc::copy_file(_data_dir / "blockchain_previous",_data_dir/"blockchain");
-			    }
-				else
-				{
-					fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
-				}
+				if (_options->count("no-need-secure") == 0)
+					if (fc::exists(_data_dir / "blockchain_previous"))
+					{
+						fc::remove_all(_data_dir / "blockchain");
+						fc::copy_file(_data_dir / "blockchain_previous", _data_dir / "blockchain");
+					}
+					else
+					{
+						fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
+					}
                _chain_db->open( _data_dir / "blockchain", initial_state );
             }
             catch( const fc::exception& e )
@@ -1187,6 +1188,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
 	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
+	     ("no-need-secure","need to replay after being get interrupted exceptionally")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);
