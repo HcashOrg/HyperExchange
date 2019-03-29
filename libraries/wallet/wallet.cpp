@@ -59,6 +59,9 @@
 #include <graphene/crosschain_privatekey_management/private_key.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/time.hpp>
+#include <cborcpp/cbor.h>
+#include <cbor_diff/cbor_diff.h>
+
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -8023,11 +8026,14 @@ void wallet_api::set_gas_limit_in_block(const share_type& new_limit)
 	return my->_remote_db->set_gas_limit_in_block(new_limit);
 }
 
-contract_storage_object wallet_api::get_contract_storage(const address& contract_address, const string& storage_name)
+contract_storage_view wallet_api::get_contract_storage(const address& contract_address, const string& storage_name)
 {
 	auto res= my->_remote_db->get_contract_storage(contract_address,storage_name);
 	FC_ASSERT(res.valid(),"contract storage object not found");
-	return *res;
+	contract_storage_view storage_view(*res);
+	auto cbor_value = cbor_diff::cbor_decode(storage_view.storage_value);
+	storage_view.storage_value_string = cbor_value->str();
+	return storage_view;
 }
 
 address wallet_api::wallet_create_account(string account_name)
