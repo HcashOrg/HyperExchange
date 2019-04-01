@@ -7,6 +7,23 @@ namespace graphene {
 				const database& d = db();
 				auto& payback_db = d.get_index_type<payback_index>().indices().get<by_payback_address>();
 				auto pay_back_iter = payback_db.find(o.pay_back_owner);
+
+				bool no_effect_balance = true;
+				if (o.pay_back_balance.size() > 0)
+				{
+					for (auto& obj : o.pay_back_balance)
+					{
+						if (obj.second.amount != 0)
+						{
+							no_effect_balance = false;
+							break;
+						}
+					}
+				}
+				if (no_effect_balance)
+				{
+					return void_result();
+				}
 				FC_ASSERT(pay_back_iter != payback_db.end(),"This address doesnt own pay back balace!");
 				auto temp_payback_balance = pay_back_iter->owner_balance;
 				share_type min_payback_balance = d.get_global_properties().parameters.min_pay_back_balance;

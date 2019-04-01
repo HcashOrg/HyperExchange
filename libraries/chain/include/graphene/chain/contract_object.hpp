@@ -69,15 +69,26 @@ namespace graphene {
         >> contract_storage_change_object_multi_index_type;
 
         typedef generic_index<contract_storage_change_object, contract_storage_change_object_multi_index_type> contract_storage_change_index;
-		class contract_storage_object : public abstract_object<contract_storage_object> {
+	
+	class contract_storage_object : public abstract_object<contract_storage_object> {
 		public:
 			static const uint8_t space_id = protocol_ids;
 			static const uint8_t type_id = contract_storage_object_type;
 
-            address contract_address;
+			address contract_address;
 			string storage_name;
 			std::vector<char> storage_value;
-		};
+	};
+
+	class contract_storage_view {
+	public:
+		address contract_address;
+                string storage_name;
+                std::vector<char> storage_value;
+		string storage_value_string;
+		contract_storage_view(const contract_storage_object& obj) : contract_address(obj.contract_address), storage_name(obj.storage_name), storage_value(obj.storage_value) {}
+	};
+
 		struct by_contract_id_storage_name {};
 		typedef multi_index_container<
 			contract_storage_object,
@@ -201,6 +212,8 @@ FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
+FC_REFLECT(graphene::chain::contract_storage_view,
+	(contract_address)(storage_name)(storage_value)(storage_value_string))
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),

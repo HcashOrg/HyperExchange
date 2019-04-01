@@ -973,5 +973,10 @@ namespace graphene {
                         return use_cbor_diff(L);
 		}
 
+		std::string UvmChainApi::pubkey_to_address_string(const fc::ecc::public_key& pub) const {
+			address addr(pub, addressVersion::NORMAL);
+			return addr.address_to_string();
+		}
+
 	}
 }
