@@ -269,13 +269,14 @@ namespace fc {
 		}
 
 		void connection_sync::handle_reply(const boost::system::error_code & error) {
-			if (is_timeout)
-				return;
 			
 			if (error&&error.value() != 2) {
 				std::cout << "handle_reply error" << error.value() << error.message() << std::endl;
 				return;
 			}
+			if (is_timeout)
+				return;
+
 			if (is_release)
 				return;
 			std::lock_guard<std::mutex> lk(read_lock);
@@ -383,12 +384,13 @@ namespace fc {
 
 		void connection_sync::check_deadline(const boost::system::error_code & error)
 		{
-			if (is_timeout || is_done || is_release)
-				return;
 			if (error) {
 				//std::cout << "check_deadline error" << error.value() << "  " << error.message() << std::endl;
 				return;
 			}
+			if (is_timeout || is_done || is_release)
+				return;
+			
 
 			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 			{
@@ -397,7 +399,7 @@ namespace fc {
 
 				close_socket();
 
-				boost::this_thread::sleep(boost::posix_time::seconds(1));
+				boost::this_thread::sleep(boost::posix_time::seconds(3));
 
 				//close_socket();
 
