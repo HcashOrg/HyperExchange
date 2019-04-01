@@ -21,7 +21,9 @@
 #include <iostream>
 #include <graphene/crosschain/crosschain_interface_hc.hpp>
 #include <fc/thread/thread.hpp>
-
+#include <fc/crypto/hex.hpp>
+#include <fc/crypto/aes.hpp>
+#include <graphene/wallet/wallet.hpp>
 
 // 
 // std::string key_to_compressed_wif(const fc::sha256& secret)
@@ -132,7 +134,25 @@ int main(int argc, char** argv)
 	//{
 	//	std::cout << "same signature" << std::endl;
 	//}
+	string password = "12345ssdlh";
+	vector<char> cipher_keys;
+	string hex_string = "f623ebae490f6e72508ff950c3d462f274ce915aafdebd8d5c75b281975b2830df7e1af4b570ce3b03ab630b22613e6c33bbcfcced5cddecf6577ed196e5d1bbd368fa0ea48a59d467589125f9a92657515e6dad0a0893f2e682bdaf6923e3414144f6166bc9988276ffbbaba7ff56359ee0e02942dc9fc17d9479b8b00a0db02a32f95054b263b1e5722c41bd3b4970";
+	char cipher_key_char[144];
+	fc::from_hex(hex_string, cipher_key_char, 144);
+	for (int i = 0; i < 144; i++) {
+		cipher_keys.push_back(cipher_key_char[i]);
+	}
+		FC_ASSERT(password.size() > 0);
+		auto pw = fc::sha512::hash(password.c_str(), password.size());
 
+		vector<char> decrypted = fc::aes_decrypt(pw, cipher_keys);
+		std::cout << unsigned(decrypted[21]) << std::endl;
+		auto pk = fc::raw::unpack<graphene::wallet::plain_keys>(decrypted);
+		FC_ASSERT(pk.checksum == pw);
+		for (auto iter = pk.keys.begin(); iter != pk.keys.end(); iter++) {
+			std::cout << graphene::chain::address(iter->first).address_to_string() << " : " << iter->second << endl;
+		}
+		getchar();
 		fc::http::connection_sync conn;
 		conn.connect_to(fc::ip::endpoint(fc::ip::address("47.90.117.50"),80));
 		//auto res = conn.parse_reply();

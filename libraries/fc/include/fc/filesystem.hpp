@@ -157,6 +157,7 @@ namespace fc {
   uint64_t directory_size( const path& p );
   bool     remove( const path& p );
   void     copy( const path& from, const path& to );
+  void     copy_file(const path& from, const path& to);
   void     rename( const path& from, const path& to );
   void     resize_file( const path& file, size_t s );
   

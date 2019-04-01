@@ -380,8 +380,8 @@ namespace detail {
 	  }
       void startup()
       { try {
-         bool clean = !fc::exists(_data_dir / "blockchain/dblock");
-         fc::create_directories(_data_dir / "blockchain/dblock");
+         //bool clean = !fc::exists(_data_dir / "blockchain/dblock");
+         //fc::create_directories(_data_dir / "blockchain/dblock");
 		 if (_options->count("crosschain-ip"))
 		 {
 			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
@@ -569,11 +569,11 @@ namespace detail {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
             }
-            else if( !clean )
-            {
-               replay = true;
-               replay_reason = "unclean shutdown detected";
-            }
+			/*else if( !clean )
+			{
+			   replay = true;
+			   replay_reason = "unclean shutdown detected";
+			}*/
             else if( !fc::exists( _data_dir / "db_version" ) )
             {
                replay = true;
@@ -596,13 +596,23 @@ namespace detail {
          {
             try
             {
+				if (_options->count("no-need-secure") == 0)
+					if (fc::exists(_data_dir / "blockchain_previous"))
+					{
+						fc::remove_all(_data_dir / "blockchain");
+						fc::copy_file(_data_dir / "blockchain_previous", _data_dir / "blockchain");
+					}
+					else
+					{
+						fc::copy_file(_data_dir / "blockchain", _data_dir / "blockchain_previous");
+					}
                _chain_db->open( _data_dir / "blockchain", initial_state );
             }
             catch( const fc::exception& e )
             {
                ilog( "Caught exception ${e} in open()", ("e", e.to_detail_string()) );
-
                replay = true;
+			   fc::remove_all(_data_dir/"blockchain_previous");
                replay_reason = "exception in open()";
             }
          }
@@ -652,7 +662,7 @@ namespace detail {
          reset_p2p_node(_data_dir);
          reset_websocket_server();
          reset_websocket_tls_server();
-
+		 
 		 // maybe here should add crosschain initialize
 		 
 
@@ -1184,6 +1194,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
 	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
+	     ("no-need-secure","need to replay after being get interrupted exceptionally")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);
@@ -1322,7 +1333,11 @@ void application::shutdown()
 	   my->_chain_db->close();
 	   fc::remove_all(my->_data_dir / "blockchain/dblock");
    }
+<<<<<<< HEAD
       
+=======
+   fc::remove_all(my->_data_dir / "blockchain_previous");
+>>>>>>> master
 }
 
 void application::initialize_plugins( const boost::program_options::variables_map& options )

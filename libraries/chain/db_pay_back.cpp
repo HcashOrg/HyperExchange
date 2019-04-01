@@ -25,7 +25,22 @@ namespace graphene {
 				}
 				else {
 					if (payback_asset.amount < 0) {
-						FC_ASSERT((itr->owner_balance.at(miner) >= -payback_asset), "balance is not enough");
+						auto& ba=itr->owner_balance.at(miner);
+						FC_ASSERT((ba >= -payback_asset), "balance is not enough");
+						if (ba== -payback_asset)
+						{
+							if (itr->owner_balance.size()>1)
+							{
+								modify(*itr, [payback_owner, miner](pay_back_object& b) {
+									b.owner_balance.erase(miner);
+								});
+							}
+							else
+							{
+								remove(*itr);
+							}
+							return;
+						}
 					}
 					modify(*itr, [payback_owner, payback_asset, asset_symbol,miner](pay_back_object& b) {
 						b.owner_balance[miner] += payback_asset;

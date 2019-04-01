@@ -171,12 +171,12 @@ namespace graphene {
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
 		}
 
-        contract_operation_result_info native_contract_register_evaluate::do_evaluate(const operation_type& o) {
+        	contract_operation_result_info native_contract_register_evaluate::do_evaluate(const operation_type& o) {
 			auto &d = db();
-            if (d.get_node_properties().skip_flags&database::validation_steps::check_gas_price)
-            {
-                FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
-            }
+            		if (d.get_node_properties().skip_flags&database::validation_steps::check_gas_price)
+           		{
+                		FC_ASSERT(o.gas_price >= d.get_min_gas_price(), "gas is too cheap");
+            		}
 			bool throw_over_limit = false;
 			if (d.get_node_properties().skip_flags&database::validation_steps::throw_over_limit)
 			{
@@ -185,14 +185,14 @@ namespace graphene {
 			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			// check contract id unique
 
-            //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
+            		//FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 
-            invoke_contract_result.invoker = o.owner_addr;
+            		invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
 			this->caller_address = std::make_shared<address>(o.owner_addr);
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
-            total_fee = o.fee.amount;
-            gas_count = o.init_cost;
+            		total_fee = o.fee.amount;
+            		gas_count = o.init_cost;
 			try {
 				FC_ASSERT(native_contract_finder::has_native_contract_with_key(o.native_contract_key));
 				auto limit = o.init_cost;
@@ -209,12 +209,18 @@ namespace graphene {
 				auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 
 				gas_used_counts = native_contract->gas_count_for_api_invoke("init");
+				auto storage_gas = invoke_result.count_storage_gas();
+				auto event_gas = invoke_result.count_event_gas();
+				FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+				FC_ASSERT(event_gas >= 0, "event gas invalid");
+				gas_used_counts += storage_gas;
+				gas_used_counts += event_gas;
 				FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
 				auto register_fee = native_contract_register_fee;
 
 				// TODO: deposit margin balance to contract
 
-                gas_count = gas_used_counts;
+                		gas_count = gas_used_counts;
 
 				this->invoke_contract_result = invoke_result;
 
@@ -223,11 +229,11 @@ namespace graphene {
 				new_contract.native_contract_key = o.native_contract_key;
 				new_contract.owner_address = o.owner_addr;
 				new_contract.create_time = o.register_time;
-                new_contract.inherit_from = address();
-                new_contract.registered_block = d.head_block_num() + 1;
-                unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
-                invoke_result.acctual_fee = total_fee - unspent_fee;
-                invoke_result.exec_succeed = true;
+                		new_contract.inherit_from = address();
+                		new_contract.registered_block = d.head_block_num() + 1;
+                		unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
+                		invoke_result.acctual_fee = total_fee - unspent_fee;
+                		invoke_result.exec_succeed = true;
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -288,10 +294,16 @@ namespace graphene {
 					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke(o.contract_api);
-                    gas_count = gas_used_counts;
+                                	auto storage_gas = invoke_result.count_storage_gas();
+                                	auto event_gas = invoke_result.count_event_gas();
+                                	FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+                                	FC_ASSERT(event_gas >= 0, "event gas invalid");
+                                	gas_used_counts += storage_gas;
+                                	gas_used_counts += event_gas;
+                    			gas_count = gas_used_counts;
 					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
-                    //gas_fees.push_back(asset(required, asset_id_type(0)));
-                    unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
+                    			//gas_fees.push_back(asset(required, asset_id_type(0)));
+                    			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
 				else
 				{
@@ -402,6 +414,16 @@ namespace graphene {
 					FC_ASSERT(native_contract);
 					native_contract->invoke("on_upgrade", o.contract_name);
 					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+<<<<<<< HEAD
+=======
+					gas_used_counts = native_contract->gas_count_for_api_invoke("init");
+                                	auto storage_gas = invoke_result.count_storage_gas();
+                                	auto event_gas = invoke_result.count_event_gas();
+                                	FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+                                	FC_ASSERT(event_gas >= 0, "event gas invalid");
+                                	gas_used_counts += storage_gas;
+                                	gas_used_counts += event_gas;
+>>>>>>> master
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke("on_upgrade");
 					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
@@ -804,7 +826,17 @@ namespace graphene {
 			native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
                         auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 
+<<<<<<< HEAD
 						gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
+=======
+			gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
+                        auto storage_gas = invoke_result.count_storage_gas();
+                        auto event_gas = invoke_result.count_event_gas();
+                        FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+                        FC_ASSERT(event_gas >= 0, "event gas invalid");
+                        gas_used_counts += storage_gas;
+                        gas_used_counts += event_gas;
+>>>>>>> master
                         gas_count = gas_used_counts;
                         FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 						auto register_fee = native_contract_register_fee;
