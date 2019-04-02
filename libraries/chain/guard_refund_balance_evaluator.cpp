@@ -454,7 +454,10 @@ namespace graphene {
 				FC_ASSERT(source_trx.contains("gas"));
 				auto receipt_logs = respit_trx["logs"].get_array();
 				FC_ASSERT(receipt_logs.size() == 0, "this trasnaction not fail");
+				if (current_blockNum < COLDHOT_TRANSFER_EVALUATE_HEIGHT)
+				{
 				FC_ASSERT(source_trx["gas"].as_string() == respit_trx["gasUsed"].as_string());
+				}
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
 		void_result eth_cancel_fail_crosschain_trx_evaluate::do_apply(const eth_cancel_fail_crosschain_trx_operation& o) {

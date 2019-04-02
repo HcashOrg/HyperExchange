@@ -253,7 +253,7 @@ namespace graphene {
 					auto& coldhot_db_objs = get_index_type<coldhot_transfer_index>().indices().get<by_current_trx_id>();
 					auto eth_final_iter = coldhot_db_objs.find(relate_trx_id);
 					auto range_sign_objs = get_index_type<coldhot_transfer_index>().indices().get<by_relate_trx_id>().equal_range(eth_final_iter->relate_trx_id);
-					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(relate_trx_id);
+					auto tx_coldhot_without_sign_iter = coldhot_db_objs.find(eth_final_iter->relate_trx_id);
 					auto tx_coldhot_original_iter = coldhot_db_objs.find(tx_coldhot_without_sign_iter->relate_trx_id);
 					//change without sign trx status
 					modify(*tx_coldhot_without_sign_iter, [&](coldhot_transfer_object& obj) {

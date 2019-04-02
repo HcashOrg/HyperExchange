@@ -661,7 +661,10 @@ namespace graphene {
 				FC_ASSERT(eth_source_trx.contains("gas"));
 				auto receipt_logs = respit_trx["logs"].get_array();
 				FC_ASSERT(receipt_logs.size() == 0, "this trasnaction not fail");
+				if (current_blockNum < COLDHOT_TRANSFER_EVALUATE_HEIGHT)
+				{
 				FC_ASSERT(eth_source_trx["gas"].as_string() == respit_trx["gasUsed"].as_string());
+				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 

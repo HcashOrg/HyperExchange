@@ -414,8 +414,7 @@ namespace graphene {
 					FC_ASSERT(native_contract);
 					native_contract->invoke("on_upgrade", o.contract_name);
 					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
-<<<<<<< HEAD
-=======
+
 					gas_used_counts = native_contract->gas_count_for_api_invoke("init");
                                 	auto storage_gas = invoke_result.count_storage_gas();
                                 	auto event_gas = invoke_result.count_event_gas();
@@ -423,7 +422,6 @@ namespace graphene {
                                 	FC_ASSERT(event_gas >= 0, "event gas invalid");
                                 	gas_used_counts += storage_gas;
                                 	gas_used_counts += event_gas;
->>>>>>> master
 					this->invoke_contract_result = invoke_result;
 					gas_used_counts = native_contract->gas_count_for_api_invoke("on_upgrade");
 					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
@@ -826,9 +824,7 @@ namespace graphene {
 			native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
                         auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
 
-<<<<<<< HEAD
-						gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
-=======
+
 			gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
                         auto storage_gas = invoke_result.count_storage_gas();
                         auto event_gas = invoke_result.count_event_gas();
@@ -836,7 +832,6 @@ namespace graphene {
                         FC_ASSERT(event_gas >= 0, "event gas invalid");
                         gas_used_counts += storage_gas;
                         gas_used_counts += event_gas;
->>>>>>> master
                         gas_count = gas_used_counts;
                         FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 						auto register_fee = native_contract_register_fee;

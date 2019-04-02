@@ -198,15 +198,10 @@ namespace detail {
 				"47.74.2.123:9034",
 				"47.74.23.176:9034",
 				"47.74.37.107:9034",
-<<<<<<< HEAD
-				"52.194.253.245:9034"
-				
-=======
 				"52.194.253.245:9034",
 				"36.152.8.188:9034",
 				"172.81.250.51:9034"
 				/*
->>>>>>> master
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
                "23.92.53.182:1776",                 // sahkan       (USA)
@@ -1333,11 +1328,8 @@ void application::shutdown()
 	   my->_chain_db->close();
 	   fc::remove_all(my->_data_dir / "blockchain/dblock");
    }
-<<<<<<< HEAD
-      
-=======
+
    fc::remove_all(my->_data_dir / "blockchain_previous");
->>>>>>> master
 }
 
 void application::initialize_plugins( const boost::program_options::variables_map& options )

@@ -468,11 +468,8 @@ namespace graphene {
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
-<<<<<<< HEAD
 						ilog("contract ${addr} change diff ${change}", ("addr", "contract_name")("change", cbor_diff_value->str()));
-=======
 
->>>>>>> master
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
