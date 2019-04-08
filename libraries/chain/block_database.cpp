@@ -42,6 +42,8 @@ namespace graphene { namespace chain {
 void block_database::open( const fc::path& dbdir )
 { try {
    fc::create_directories(dbdir);
+   _block_num_to_pos.clear();
+   _blocks.clear();
    _block_num_to_pos.exceptions(std::ios_base::failbit | std::ios_base::badbit);
    _blocks.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
@@ -64,8 +66,10 @@ bool block_database::is_open()const
 
 void block_database::close()
 {
-  _blocks.close();
-  _block_num_to_pos.close();
+	if (_blocks.is_open())
+		_blocks.close();
+	if (_block_num_to_pos.is_open())
+		_block_num_to_pos.close();
 }
 
 void block_database::flush()
