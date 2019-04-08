@@ -626,13 +626,13 @@ namespace detail {
 			catch (const fc::exception& e)
 			{
 				ilog("Caught exception ${e} in open(),remove all blockchain dir and start again.", ("e", e.to_detail_string()));
-				_chain_db->wipe(_data_dir / "blockchain", false);
+				//_chain_db->wipe(_data_dir / "blockchain", false);
 				_chain_db->close();
-				fc::remove_all(_data_dir / "blockchain");
+				//fc::remove_all(_data_dir / "blockchain");
 				fc::remove_all(_data_dir / "blockchain_previous");
-				_chain_db->initialize_indexes();
-				_chain_db->initialize_evaluators();
-				_chain_db->open(_data_dir / "blockchain", initial_state);
+				//_chain_db->initialize_indexes();
+				//_chain_db->initialize_evaluators();
+				//_chain_db->open(_data_dir / "blockchain", initial_state);
 			}
          }
 
