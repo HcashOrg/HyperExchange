@@ -130,6 +130,8 @@ namespace graphene {
 		class contract_history_object : public abstract_object<contract_history_object>
 		{
 		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = contract_history_object_type;
 			address contract_id;
 			transaction_id_type trx_id;
 			uint64_t block_num;
