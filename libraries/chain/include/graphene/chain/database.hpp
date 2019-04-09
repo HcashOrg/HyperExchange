@@ -115,7 +115,7 @@ namespace graphene { namespace chain {
           */
          void wipe(const fc::path& data_dir, bool include_blocks);
          void close();
-
+		 void clear();
          //////////////////// db_block.cpp ////////////////////
 
          /**
