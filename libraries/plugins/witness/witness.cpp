@@ -402,9 +402,15 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 							temp_address_hot += ptr->get_address_by_pubkey(public_hot);
 						}
 						auto hot_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(temp_address_hot);
-						//auto cold_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(temp_address_cold);
-						//if (hot_range.first != hot_range.second || cold_range.first != cold_range.second){
-						if (hot_range.first != hot_range.second){
+						auto cold_range = db.get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(temp_address_cold);
+						bool check_coldhot = false;
+						if (db.head_block_num() <= COLDHOT_TRANSFER_EVALUATE_HEIGHT) {
+							check_coldhot = ((hot_range.first != hot_range.second) || (cold_range.first != cold_range.second));
+						}
+						else {
+							check_coldhot = (hot_range.first != hot_range.second);
+						}
+						if (check_coldhot){
 							continue;
 						}
 						std::string temp_cold, temp_hot; 
