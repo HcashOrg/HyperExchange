@@ -1200,7 +1200,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
 	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
-	     ("need-secure","need to replay after being get interrupted exceptionally")
+	     ("need-secure","no need to replay after being get interrupted exceptionally")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);
