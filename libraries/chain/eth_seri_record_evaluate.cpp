@@ -42,7 +42,9 @@ namespace graphene {
 				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
 				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
 				FC_ASSERT(hot_range.first == hot_range.second);
-				FC_ASSERT(cold_range.first == cold_range.second);
+				if (db().head_block_num() <= COLDHOT_TRANSFER_EVALUATE_HEIGHT) {
+					FC_ASSERT(cold_range.first == cold_range.second);
+				}
 				const auto& guard_dbs = db().get_index_type<guard_member_index>().indices().get<by_id>();
 				auto sign_guard_iter = guard_dbs.find(o.guard_to_sign);
 				FC_ASSERT(sign_guard_iter != guard_dbs.end());
@@ -66,8 +68,9 @@ namespace graphene {
 					temp_address_hot += ptr->get_address_by_pubkey(public_hot);
 				}
 				FC_ASSERT(o.multi_hot_address == temp_address_hot);
-				FC_ASSERT(o.multi_cold_address == temp_address_cold);
-				
+				if (db().head_block_num() <= COLDHOT_TRANSFER_EVALUATE_HEIGHT) {
+					FC_ASSERT(o.multi_cold_address == temp_address_cold);
+				}
 				std::string temp_cold, temp_hot;
 				for (auto guard_account_id : eth_guard_account_ids) {
 					if (guard_account_id.first == sign_guard_iter->guard_member_account){
