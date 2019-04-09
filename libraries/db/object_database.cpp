@@ -40,6 +40,7 @@ object_database::~object_database(){}
 
 void object_database::close()
 {
+	
 }
 
 const object* object_database::find_object( object_id_type id )const

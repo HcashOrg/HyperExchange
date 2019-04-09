@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
       bpo::variables_map options;
 
       auto witness_plug = node->register_plugin<miner_plugin::miner_plugin>();
-      auto history_plug = node->register_plugin<account_history::account_history_plugin>();
+      //auto history_plug = node->register_plugin<account_history::account_history_plugin>();
 	  auto transaction_plg = node->register_plugin<graphene::transaction::transaction_plugin>();
 	  auto crosschain_record_plug = node->register_plugin<crosschain::crosschain_record_plugin>();
 	  

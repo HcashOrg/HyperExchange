@@ -166,9 +166,8 @@ void database::open(
    try
    {
       object_database::open(data_dir);
-
-      _block_id_to_block.open(data_dir / "database" / "block_num_to_block");
-
+	  _block_id_to_block.open(data_dir / "database" / "block_num_to_block");
+	 
       if( !find(global_property_id_type()) )
          init_genesis(genesis_loader());
 
@@ -199,6 +198,12 @@ void database::open(
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 }
+
+void database::clear()
+{
+
+}
+
 
 void database::close()
 {
@@ -258,9 +263,9 @@ void database::close()
    }
 
 
-   if( _block_id_to_block.is_open() )
+   //if( _block_id_to_block.is_open() )
       _block_id_to_block.close();
-
+   _undo_db.reset();
    _fork_db.reset();
 }
 
