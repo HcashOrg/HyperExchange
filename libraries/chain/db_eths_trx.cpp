@@ -55,17 +55,19 @@ namespace graphene {
 						hot_state = true;
 					}
 					modify(*multi_account_withsign_iter, [&](eth_multi_account_trx_object& obj) {
-						obj.cold_trx_success = cold_state | obj.cold_trx_success;
-						obj.hot_trx_success = hot_state | obj.hot_trx_success;
+						obj.cold_trx_success = cold_state || obj.cold_trx_success;
+						obj.hot_trx_success = hot_state || obj.hot_trx_success;
 					});
 					modify(*multi_acc_without_sign_iter, [&](eth_multi_account_trx_object& obj) {
-						obj.cold_trx_success = cold_state | obj.cold_trx_success;
-						obj.hot_trx_success = hot_state | obj.hot_trx_success;
+						obj.cold_trx_success = cold_state || obj.cold_trx_success;
+						obj.hot_trx_success = hot_state || obj.hot_trx_success;
 					});
 					create<eth_multi_account_trx_object>([&](eth_multi_account_trx_object& obj) {
 						obj.multi_account_create_trx_id = current_trx_id;
 						obj.multi_account_pre_trx_id = pre_trx_id;
 						obj.object_transaction = current_trx;
+						obj.cold_trx_success = cold_state;
+						obj.hot_trx_success = hot_state;
 						obj.op_type = op_type;
 						obj.state = sol_multi_account_ethchain_create;
 					});
@@ -91,6 +93,8 @@ namespace graphene {
 						obj.multi_account_create_trx_id = current_trx_id;
 						obj.multi_account_pre_trx_id = pre_trx_id;
 						obj.object_transaction = current_trx;
+						obj.cold_trx_success = true;
+						obj.hot_trx_success = true;
 						obj.op_type = op_type;
 						obj.state = sol_create_comlete;
 					});
