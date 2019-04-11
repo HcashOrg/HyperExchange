@@ -3016,7 +3016,7 @@ namespace graphene { namespace net { namespace detail {
       try
       {
         std::vector<fc::uint160_t> contained_transaction_message_ids;
-        _delegate->handle_block(block_message_to_send, true, contained_transaction_message_ids);
+        _delegate->handle_block(block_message_to_send, true, contained_transaction_message_ids,true);
         ilog("Successfully pushed sync block ${num} (id:${id})",
              ("num", block_message_to_send.block.block_num())
              ("id", block_message_to_send.block_id));

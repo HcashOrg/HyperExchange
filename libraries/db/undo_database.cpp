@@ -64,8 +64,7 @@
 #include <fc/smart_ref_impl.hpp>
 #define STACK_FILE_NAME  "stack"
 #define STORAGE_FILE_NAME "storage"
-ofstream  debuglog("debuglog",ios::app);
-#define DL(x,y) debuglog<<(string(x)+":")<<(y)<<std::endl
+
 namespace graphene { namespace db {
     using namespace graphene::chain;
 
@@ -106,10 +105,7 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
 	   {
 		   if (back.size() < max_size())
 		   {
-
-			   DL("start_undo_session: move back.front to db:", "id unknown");
 			   auto id = state_storage->store_undo_state(back.front());
-			   DL("start_undo_session: move back.front to db:", id.str());
 			   _stack.push_back(id);
 		   }
 		   back.pop_front();
@@ -119,8 +115,7 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
    {
 	   //在pop将对应的db中的存储删掉
 	   if (size() > max_back_size&&_stack.size()>0) {
-		   DL("start_undo_session: remove state tool old:", _stack.front().str());
-		   FC_ASSERT(state_storage->remove(_stack.front()));
+	   FC_ASSERT(state_storage->remove(_stack.front()));
 		   _stack.pop_front();
 	   }else
 	   {
@@ -212,12 +207,8 @@ void undo_database::undo()
 	   while (_stack.size() > 0 && back.size() < max_back_size)
 	   {
 		   back.emplace_front();
-
-		   DL("undo_database::undo get_state", _stack.back().str());
 		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "undo load stack back failed");
-		   DL("undo_database::undo remove  ", _stack.back().str());
 		   FC_ASSERT(state_storage->remove(_stack.back()), "undo remove stack back failed");
-		   DL("undo_database::undo pop     ", _stack.back().str());
 		   _stack.pop_back();
 	   }
    }
@@ -348,13 +339,9 @@ void undo_database::merge()
    {
 	   while (_stack.size() > 0 && back.size() < max_back_size)
 	   {
-		   DL("undo_database::merge   get", _stack.back().str());
 		   back.emplace_front();
 		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "merge load stack back");
-		   DL("undo_database::merge   remove", _stack.back().str());
 		   FC_ASSERT(state_storage->remove(_stack.back()), "merge remove stack back failed");
-
-		   DL("undo_database::merge   popback", _stack.back().str());
 		   _stack.pop_back();
 	   }
 
@@ -403,22 +390,16 @@ void undo_database::pop_commit()
 		   while (_stack.size() > 0 && back.size() < max_back_size)
 		   {
 			   back.emplace_front();
-
-			   DL("undo_storage::popcommit   get", _stack.back().str());
+			    
 			   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "pop_commit load stack back failed");
 			   //auto da = back.get_serializable_undo_state();
 			   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
-
-			   DL("undo_storage::popcommit   remove", _stack.back().str());
 			   FC_ASSERT(state_storage->remove(_stack.back()), "pop_commit remove stack back failed");
-
-			   DL("undo_storage::popcommit   popback", _stack.back().str());
-			   DL("back_size:", _stack.size());
+			    
 			   std::cout << "stack_size:" << _stack.size() << std::endl;
 			   _stack.pop_back();
 		   }
-	   }
-	   DL("back_size:", back.size());
+	   } 
 	   std::cout << "back_size:" << back.size() << std::endl;
    }
 
@@ -447,10 +428,8 @@ const undo_state& undo_database::head()const
 	 if (state_storage == NULL||!state_storage->is_open())
 		 return;
 	 for (auto& sta : back)
-	 {
-		 DL("save_to_file save:", "noid");
-		 auto id = state_storage->store_undo_state(sta);
-		 DL("save_to_file save:",id.str() );
+	 { 
+		 auto id = state_storage->store_undo_state(sta); 
 		 _stack.push_back(id);
 	 }
 	if (_stack.size() > 0)
@@ -466,24 +445,18 @@ const undo_state& undo_database::head()const
      _stack.clear();
  }
  void undo_database::remove_storage()
- {
-	 DL("remove_storage","");
+ { 
 	 state_storage->close();
 	 boost::filesystem::remove_all(storage_path + STORAGE_FILE_NAME);
-	 boost::filesystem::remove_all(storage_path + STACK_FILE_NAME);
-	 DL("open db in remove storage","");
-	 state_storage->open(storage_path + STORAGE_FILE_NAME);
-	 DL("open db in ssssss","");
+	 boost::filesystem::remove_all(storage_path + STACK_FILE_NAME); 
+	 state_storage->open(storage_path + STORAGE_FILE_NAME); 
  }
  void undo_database::from_file(const fc::string & path)
 {
-
-	 DL("from file","");
+	  
 	 std::cout << "from file" << std::endl;
-	 std::cout << "close in from file" << std::endl;
-	 DL("close in from file","");
-	 state_storage->close();
-	 DL("open in from file","");
+	 std::cout << "close in from file" << std::endl; 
+	 state_storage->close(); 
 	 std::cout << "open in from file" << std::endl;
 	 state_storage->open(path + STORAGE_FILE_NAME);
 	 storage_path = path;
@@ -496,12 +469,9 @@ const undo_state& undo_database::head()const
 		 int ssize = _stack.size();
 		 int back_size = ssize > max_back_size ? max_back_size : ssize;
 			 for (int i = 0; i < back_size;i++) {
-			 back.emplace_front();
-			 DL("from_file load stack back" , _stack.back().str());
-			 FC_ASSERT(state_storage->get_state(_stack.back(), back.front()));
-			 DL("from_file remove stack back" , _stack.back().str());
-			 FC_ASSERT(state_storage->remove(_stack.back()));
-			 DL("from_file pop stack back" , _stack.back().str());
+			 back.emplace_front(); 
+			 FC_ASSERT(state_storage->get_state(_stack.back(), back.front())); 
+			 FC_ASSERT(state_storage->remove(_stack.back())); 
 			 _stack.pop_back();
 		 }
 	 }
@@ -868,13 +838,12 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 		leveldb::Status sta = db->Put(write_options, _id.str(), fc::json::to_string(b));
 		if (!sta.ok())
 		{
-			DL("undo_storage::store" , _id.str()+" false:"+ sta.ToString().c_str());
 			elog("Put error: ${error}", ("error", (_id.str()+":"+sta.ToString()).c_str()));
 			FC_ASSERT(false, "Put Data to undo_storage failed");
 			return false;
 		}
 
-		DL("undo_storage::store" , _id.str() + " true");
+		 
 		return true;
 	} FC_CAPTURE_AND_RETHROW((_id)(b))
 }
@@ -891,13 +860,11 @@ bool undo_storage::remove(const undo_state_id_type& id)
 
 		if (!sta.ok())
 		{
-
-			DL("undo_storage::remove" , id.str() + " false");
+			 
 			elog("delete error: ${key}", ("key", id.str()));
 			FC_ASSERT(false, "Delete Data to undo_storage failed");
 			return false;
-		}
-		DL("undo_storage::remove" , id.str() + " true");
+		} 
 		return true;
 	} FC_CAPTURE_AND_RETHROW((id))
 }
@@ -911,14 +878,12 @@ optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_
 		leveldb::Status sta = db->Get(read_options, id.str(), &out);
 		if (!sta.ok())
 		{
-
-			DL("undo_storage::fetch_optional" , id.str() + " false");
+			 
 			elog("read error: ${key}", ("key", id.str().c_str()));
 			FC_ASSERT(false, "fetch_optional Data from undo_storage failed");
 		}
 		serializable_undo_state state = fc::json::from_string(out).as<serializable_undo_state>();
-
-		DL("undo_storage::fetch_optional" , id.str() + " true");
+		 
 		return state;
 	}
 	catch (const fc::exception&)
