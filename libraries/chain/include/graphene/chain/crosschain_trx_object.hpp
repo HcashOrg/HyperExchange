@@ -29,8 +29,8 @@ namespace graphene {
 			std::string cold_addresses;
 			std::string hot_sol_trx_id;
 			std::string cold_sol_trx_id;
-			bool cold_trx_success;
-			bool hot_trx_success;
+			bool cold_trx_success=false;
+			bool hot_trx_success=false;
 			eth_multi_account_trx_state state;
 			uint64_t op_type;
 		};
