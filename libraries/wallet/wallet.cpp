@@ -2150,6 +2150,10 @@ public:
 			   raw = trx["without_sign"].as_string();
 			   raw = prk_ptr->sign_trx(raw, 0);
 		   }
+		   else if (symbol == "BTM") {
+			   raw = trx["hex"].as_string();
+			   raw = prk_ptr->sign_trx(raw, 1);
+		   }
 		   else {
 		   auto vins = trx["trx"].get_object()["vin"].get_array();
 				raw = trx["hex"].as_string();

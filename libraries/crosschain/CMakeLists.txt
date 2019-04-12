@@ -13,6 +13,7 @@ set(sources
    crosschain.cpp
    crosschain_interface_emu.cpp
    crosschain_interface_btc.cpp
+   crosschain_interface_btm.cpp
    crosschain_interface_ltc.cpp
    crosschain_interface_ub.cpp
    crosschain_interface_hc.cpp

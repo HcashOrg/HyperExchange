@@ -54,8 +54,24 @@ namespace graphene {
 int main(int argc, char** argv)
 {
 	using namespace graphene::privatekey_management;
+	btm_privatekey btm_pri;
+	btm_pri.generate();
+
+	fc::mutable_variant_object a;
+	a["hex"] = "";
+	std::string sign_msg = btm_pri.mutisign_trx("ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad",a );
+	std::cout << std::endl;
+	std::cout << btm_pri.get_public_key()<<std::endl;
+
+	std::cout << "------------------------------" << std::endl;
+	std::cout << sign_msg << std::endl;
+	std::cout << "------------------------------" << std::endl;
 	
-	
+	std::vector<std::string> trxs;
+	trxs.push_back("0701a8d30203016c016a3be505d4752f4b171224ba2ddde886752fac0c61cb36a42187eef3fca79ca7d7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80bcc1960b010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa01024086933ea5fa7af57940cfc60f57c7c98cb46e805292964e6e177c9aca0c4c23273710985fa3ac0f6af30d522c3b4cbe0cd47f4ab300285967bc47e878f737ff0467ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad016c016a9ae7f1b495e68d7c1f0222588cf9ee710a61fcd1799c2136466132fd846b4193ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80dea0cb05010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa0102405471e40ff4f3eaebd3f2bcfb53263852a608f1156c1ed099e3fb0255fa9ebc9cd91c86370fde746fe486c0abc1354f994720d82f7e3257e812187e67f3a8eb0a67ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad016c016ae0ee032f12b1725bf2e00db00b5ae50ad3cee223edd492c8e4c5b66a4540fc2cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80989abc04010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa01024014cf6e31d1465ac22c1dc64fe3d3b73d56d4a670a84b603c62ee7dd0991d17fc98fb5694e6170bfd8aac0cbf2084450a7cb484f30f3108c90511a4791d80270367ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad02013dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80aecdbe1401160014215e7131a0a4d5d0b9090dc7ee987c9dcaf27c76000148ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80c2d72f0122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc081400");
+	trxs.push_back("0701a8d30203016c016a3be505d4752f4b171224ba2ddde886752fac0c61cb36a42187eef3fca79ca7d7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80bcc1960b010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa0102401592d20dcbef89346a7c809227f6d5aaf58dd02b3a74bf2baefaa57e53786628b9cdc8f289c42e32e57523e477427fca171716a2d3e6a269d7292a341719a30067ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad016c016a9ae7f1b495e68d7c1f0222588cf9ee710a61fcd1799c2136466132fd846b4193ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80dea0cb05010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa010240487b5dc5a3b9256b8124480e1224c7af1cc5a4a6ad946763883085e98301f3218ab5d8083c3ce820eca5f3ac195c156ab346221fbc07ab58bdf6d1dffc58bd0b67ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad016c016ae0ee032f12b1725bf2e00db00b5ae50ad3cee223edd492c8e4c5b66a4540fc2cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80989abc04010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814aa0102403f708353900ccc71d625058f10aa3af8b1dfaa157d7b79a8ce89f4555bc14348370c3990706f4cf0eefcd323820c6be51743aed36f76a02418fa9aebf3f1720167ae20ed67d9ba9d53f8e57dcc5792f9a457d72d24347d2e504a7113a2d899e96fca962001682f3268bd44734681a8adb5cca2c76ec20caddc7b29ba30a177f9201cd11020816327354195a02254bb09a9c67e2408bb93fe333582ecc0f588ba990df3081d5253ad02013dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80aecdbe1401160014215e7131a0a4d5d0b9090dc7ee987c9dcaf27c76000148ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80c2d72f0122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc081400");
+	sign_msg = btm_pri.btm_combine_trx(trxs);
+	std::cout << sign_msg << std::endl;
 // 	// test private key generation
 // 	btc_privatekey btc_priv;
 // 	auto btc_wif_key = btc_priv.get_wif_key();
@@ -153,6 +169,9 @@ int main(int argc, char** argv)
 			std::cout << graphene::chain::address(iter->first).address_to_string() << " : " << iter->second << endl;
 		}
 		getchar();
+
+	/*
+>>>>>>> Stashed changes
 		fc::http::connection_sync conn;
 		conn.connect_to(fc::ip::endpoint(fc::ip::address("47.90.117.50"),80));
 		//auto res = conn.parse_reply();
@@ -287,7 +306,7 @@ int main(int argc, char** argv)
 //graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 //std::cout << wif_pub_key.operator fc::string() << std::endl;
 //std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
-	getchar();
+	getchar();*/
 	return 0;
 }
 

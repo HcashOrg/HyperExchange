@@ -1,4 +1,4 @@
-file(GLOB HEADERS "include/graphene/chain/*.hpp" "../uvm/include/uvm/*.hpp" "../jsondiff/jsondiff-cpp/include/jsondiff/*.h"  "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" )
+file(GLOB HEADERS "include/graphene/chain/*.hpp" "../uvm/include/uvm/*.hpp" "../jsondiff/jsondiff-cpp/include/jsondiff/*.h"  "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" "../ed25519-donna/*.hpp")
 file(GLOB PROTOCOL_HEADERS "include/graphene/chain/protocol/*.hpp")
 
 if( GRAPHENE_DISABLE_UNITY_BUILD )
@@ -116,9 +116,9 @@ add_library( graphene_chain
              ${HEADERS}
              ${PROTOCOL_HEADERS}
            )
-target_link_libraries( graphene_chain fc graphene_db crosschain uvm jsondiff)
+target_link_libraries( graphene_chain fc graphene_db crosschain uvm jsondiff ed25519-donna)
 target_include_directories( graphene_chain
-                            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../jsondiff/jsondiff-cpp/include" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" )
+                            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../jsondiff/jsondiff-cpp/include" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include/*.h" "../ed25519-donna/")
 
 if(MSVC)
   set_source_files_properties( db_init.cpp db_block.cpp database.cpp database_impl.cpp block_database.cpp fork_database.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )

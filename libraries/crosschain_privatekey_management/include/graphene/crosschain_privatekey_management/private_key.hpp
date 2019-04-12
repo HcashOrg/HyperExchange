@@ -34,6 +34,8 @@ const int hc_pubkey = 0x0f21;
 const int hc_script = 0x0efc;
 const int hc_privkey = 0x230e;
 
+const int btm_script = 0x02;
+
 namespace graphene {
 	namespace privatekey_management {
 
@@ -190,7 +192,30 @@ namespace graphene {
 			
 
 		};
-		
+		class btm_privatekey : public crosschain_privatekey_base
+		{
+		public:
+			btm_privatekey() { init(); };
+			btm_privatekey(fc::ecc::private_key& priv_key) : crosschain_privatekey_base(priv_key) { init(); };
+
+			virtual bool  verify_message(const std::string& address, const std::string& msg, const std::string& signature);
+			virtual bool  validate_transaction(const std::string& addr, const std::string& redeemscript, const std::string& sig);
+			virtual std::string get_wif_key();
+			virtual std::string get_address();
+			virtual std::string get_public_key();
+			virtual std::string  sign_message(const std::string& msg);
+			virtual std::string  sign_trx(const std::string& raw_trx, int index);
+			virtual std::string get_address_by_pubkey(const std::string& pub);
+			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
+			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			std::string btm_combine_trx(const std::vector<std::string>& trxs);
+			virtual bool validate_address(const std::string& addr);
+			virtual fc::variant_object combine_trxs(const std::vector<std::string>& trxs);
+		private:
+			void init();
+
+		};
 		typedef fc::variant_object(*FuncPtr)(const std::string& trx);
 		class crosschain_management
 		{

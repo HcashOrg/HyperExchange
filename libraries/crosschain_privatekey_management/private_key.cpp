@@ -23,9 +23,89 @@
 #include <libdevcore/RLP.h>
 #include <libdevcore/FixedHash.h>
 #include <libethcore/TransactionBase.h>
+#include "bytomlib.hpp"
+#include <SHA3IUF/sha3.h>
 namespace graphene { namespace privatekey_management {
 
+	bool  from_hex(const char *pSrc, std::vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
+	{
+		if (pSrc == 0)
+		{
+			return false;
+		}
 
+		nDstLength = 0;
+
+		if (pSrc[0] == 0) // nothing to convert  
+			return 0;
+
+		// 计算需要转换的字节数  
+		for (int j = 0; pSrc[j]; j++)
+		{
+			if (isxdigit(pSrc[j]))
+				nDstLength++;
+		}
+
+		// 判断待转换字节数是否为奇数，然后加一  
+		if (nDstLength & 0x01) nDstLength++;
+		nDstLength /= 2;
+
+		if (nDstLength > nSrcLength)
+			return false;
+
+		nDstLength = 0;
+
+		int phase = 0;
+		char temp_char;
+
+		for (int i = 0; pSrc[i]; i++)
+		{
+			if (!isxdigit(pSrc[i]))
+				continue;
+
+			unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
+
+			if (phase == 0)
+			{
+				temp_char = val << 4;
+				phase++;
+			}
+			else
+			{
+				temp_char |= val;
+				phase = 0;
+				pDst.push_back(temp_char);
+				nDstLength++;
+			}
+		}
+
+		return true;
+	}
+	std::string BinToHex(const std::vector<char> &strBin, bool bIsUpper)
+	{
+		std::string strHex;
+		strHex.resize(strBin.size() * 2);
+		for (size_t i = 0; i < strBin.size(); i++)
+		{
+			uint8_t cTemp = strBin[i];
+			for (size_t j = 0; j < 2; j++)
+			{
+				uint8_t cCur = (cTemp & 0x0f);
+				if (cCur < 10)
+				{
+					cCur += '0';
+				}
+				else
+				{
+					cCur += ((bIsUpper ? 'A' : 'a') - 10);
+				}
+				strHex[2 * i + 1 - j] = cCur;
+				cTemp >>= 4;
+			}
+		}
+
+		return strHex;
+	}
 	crosschain_privatekey_base::crosschain_privatekey_base()
 	{
 		_key = fc::ecc::private_key();
@@ -77,7 +157,6 @@ namespace graphene { namespace privatekey_management {
 	{
 		if (!k.valid())
 		{
-
 			_key = fc::ecc::private_key::generate();
 		}
 		else
@@ -143,6 +222,7 @@ namespace graphene { namespace privatekey_management {
 		set_privkey_prefix(btc_privkey);
 	}
 
+	
 
 
 	std::string  btc_privatekey::get_wif_key()
@@ -227,7 +307,954 @@ namespace graphene { namespace privatekey_management {
 			return trx;
 		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
 	}
+	void btm_privatekey::init() {
+		set_id(0);
+		set_script_prefix(btm_script);
+	}
+	std::string  btm_privatekey::get_wif_key(){
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+		fc::sha256 secret = get_private_key().get_secret();
+		//one byte for prefix, one byte for compressed sentinel
+		const size_t size_of_data_to_hash = sizeof(secret) + 2;
+		const size_t size_of_hash_bytes = 4;
+		char data[size_of_data_to_hash + size_of_hash_bytes];
+		data[0] = (char)get_privkey_prefix();
+		memcpy(&data[1], (char*)&secret, sizeof(secret));
+		data[size_of_data_to_hash - 1] = (char)0x01;
+		fc::sha256 digest = fc::sha256::hash(data, size_of_data_to_hash);
+		digest = fc::sha256::hash(digest);
+		memcpy(data + size_of_data_to_hash, (char*)&digest, size_of_hash_bytes);
+		return fc::to_base58(data, sizeof(data));
+	}
 
+	std::string   btm_privatekey::get_address()
+	{
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+		fc::sha256 secret = get_private_key().get_secret();
+		std::string btm_real_prv = bytom::GenerateBytomKey(secret.str());
+		std::string btm_pub = bytom::GetBytomPubKeyFromPrv(btm_real_prv);
+		std::string btm_prifix = "mainnet";
+		int script_version = get_script_prefix();
+		if (script_version == 0x00){
+			btm_prifix = "mainnet";
+		}
+		else if (script_version == 0x01){
+			btm_prifix = "wisdom";
+		}
+		else if (script_version == 0x02){
+			btm_prifix = "solonet";
+		}
+		std::string addr =bytom::GetBytomAddressFromPub(btm_pub, btm_prifix);
+		return addr;
+	}
+	std::string btm_privatekey::get_address_by_pubkey(const std::string& pub)
+	{
+		//std::string btm_pub = bytom::GetBytomPubKeyFromPrv(pub);
+		std::string btm_prifix = "mainnet";
+		int script_version = get_script_prefix();
+		if (script_version == 0x00) {
+			btm_prifix = "mainnet";
+		}
+		else if (script_version == 0x01) {
+			btm_prifix = "wisdom";
+		}
+		else if (script_version == 0x02) {
+			btm_prifix = "solonet";
+		}
+		std::string addr = bytom::GetBytomAddressFromPub(pub, btm_prifix);
+		return addr;
+	}
+	std::string btm_privatekey::get_public_key()
+	{
+		FC_ASSERT(is_empty() == false, "private key is empty!");
+		fc::sha256 secret = get_private_key().get_secret();
+		std::string btm_real_prv = bytom::GenerateBytomKey(secret.str());
+		std::string btm_pub = bytom::GetBytomPubKeyFromPrv(btm_real_prv);
+		return btm_pub;
+	}
+	std::string StringToHex(const std::string& data)
+	{
+		const std::string hex = "0123456789abcdef";
+		std::stringstream ss;
+		for (std::string::size_type i = 0; i < data.size(); ++i)
+			ss << hex[(unsigned char)data[i] >> 4] << hex[(unsigned char)data[i] & 0xf];
+		std::cout << ss.str() << std::endl;
+		return ss.str();
+	}
+	std::string HexToStr(const std::string& str)
+	{
+		std::string result;
+		for (size_t i = 0; i < str.length(); i += 2)
+		{
+			std::string byte = str.substr(i, 2);
+			char chr = (char)(int)strtol(byte.c_str(), NULL, 16);
+			result.push_back(chr);
+		}
+		return result;
+	}
+	std::string btm_privatekey::sign_message(const std::string& msg)
+	{
+		std::string hex_msg = StringToHex(msg);
+		fc::sha256 secret = get_private_key().get_secret();
+		std::string btm_real_prv = bytom::GenerateBytomKey(secret.str());
+
+		//std::string btm_pub = bytom::GetBytomPubKeyFromPrv(btm_real_prv);
+		return bytom::SignMessage(hex_msg, btm_real_prv);
+		//return this->crosschain_privatekey_base::sign_message(msg);
+	}
+	bool btm_privatekey::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig){
+		fc::variant_object decodeRawTrx = decoderawtransaction(sig);
+		FC_ASSERT(decodeRawTrx.contains("inputs"));
+		FC_ASSERT(decodeRawTrx.contains("tx_id"));
+		auto trx_id = decodeRawTrx["tx_id"].as_string();
+		std::vector<char> bin_head_id;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(trx_id.data(), bin_head_id, trx_id.size(), nDeplength);
+		auto inputs = decodeRawTrx["inputs"].get_array();
+		auto sep_pos = addr.find("|");
+		if (sep_pos == addr.npos)
+		{
+			return false;
+		}
+		std::string pubkey = addr.substr(0, sep_pos);
+		std::string real_addr = addr.substr(sep_pos + 1);
+		for (auto input : inputs) {
+			FC_ASSERT(input.get_object().contains("witness_arguments"));
+			FC_ASSERT(input.get_object().contains("input_id"));
+			auto spend_id = input.get_object()["input_id"].as_string();
+			auto witness_args = input.get_object()["witness_arguments"].get_array();
+			if (witness_args.size() < 2){
+				return false;
+			}
+			for (int i = 0; i < witness_args.size(); i++) {
+				if (i == witness_args.size()-1){
+					FC_ASSERT(witness_args[i].as_string() == redeemscript,"redeemscript error");
+				}
+				else {
+					auto sign_msg = witness_args[i].as_string();
+					std::vector<char> bin_spend_id;
+					unsigned int nDeplength = 0;
+					bool b_converse = from_hex(spend_id.data(), bin_spend_id, spend_id.size(), nDeplength);
+					sha3_context c_sign_msg;
+					sha3_SetFlags(&c_sign_msg, SHA3_FLAGS_KECCAK);
+					sha3_Init256(&c_sign_msg);
+					sha3_Update(&c_sign_msg, bin_spend_id.data(), bin_spend_id.size());
+					sha3_Update(&c_sign_msg, bin_head_id.data(), bin_head_id.size());
+					auto sign_msg_id = sha3_Finalize(&c_sign_msg);
+					std::vector<char> sign_msg_vector;
+					for (int i = 0; i < 32; i++)
+					{
+						sign_msg_vector.push_back(((uint8_t*)sign_msg_id)[i]);
+					}
+					std::string sig_pub = sign_msg + "|" + pubkey;
+					auto ver = verify_message(real_addr, BinToHex(sign_msg_vector, false), sig_pub);
+					if (!ver)
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	bool  btm_privatekey::verify_message(const std::string& address, const std::string& msg, const std::string& signature) {
+		auto sep_pos = signature.find("|");
+		if (sep_pos == signature.npos)
+		{
+			return false;
+		}
+		std::string btm_prifix = "mainnet";
+		int script_version = get_script_prefix();
+		if (script_version == 0x00) {
+			btm_prifix = "mainnet";
+		}
+		else if (script_version == 0x01) {
+			btm_prifix = "wisdom";
+		}
+		else if (script_version == 0x02) {
+			btm_prifix = "solonet";
+		}
+		std::string hex_msg = StringToHex(msg);
+		std::string btm_sig = signature.substr(0, sep_pos);
+		std::string btm_pub = signature.substr(sep_pos + 1);
+		std::string btm_addr = bytom::GetBytomAddressFromPub(btm_pub, btm_prifix);
+		bool sign_check = bytom::VerifySignBytomMessage(btm_sig, hex_msg, btm_pub);
+		return ((btm_addr == address) && sign_check);
+	}
+	uint64_t ReadUvarint(libbitcoin::istream_reader& r) {
+		uint64_t x = 0;
+		uint32_t s = 0;
+		for (int i = 0; ; i++) {
+			auto b = r.read_byte();
+			if (b < (uint8_t)0x80) {
+				if (i > 9 || i == 9 && b > 1) {
+					return x;
+				}
+				return x | uint64_t(b) << s;
+			}
+			x |= uint64_t(b & 0x7f) << s;
+			s += 7;
+		}
+	}
+	int GetBtmWriteSize(uint64_t x) {
+		int length_real = 0;
+		for (; x >= 0x80;) {
+			x >>= 7;
+			length_real++;
+		}
+		return length_real + 1;
+	}
+	void WriteUvarint(libbitcoin::ostream_writer& w, uint64_t x) {
+		uint8_t buf[9];
+		int length_real = 0;
+		for (; x >= 0x80;) {
+			buf[length_real] = uint8_t(x) | 0x80;
+			x >>= 7;
+			length_real++;
+		}
+		buf[length_real] = uint8_t(x);
+		for (int i = 0; i < length_real+1; i++) {
+			w.write_byte(buf[i]);
+		}
+	}
+	std::vector<char> CalcSha3Hash(std::string type, libbitcoin::data_chunk hash_msg) {
+		std::cout << "Sha3 Source is " << BinToHex(std::vector<char>(hash_msg.begin(),hash_msg.end()), false) << std::endl;
+		sha3_context c_msg_hash;
+		sha3_SetFlags(&c_msg_hash, SHA3_FLAGS_KECCAK);
+		sha3_Init256(&c_msg_hash);
+		sha3_Update(&c_msg_hash, hash_msg.data(), hash_msg.size());
+		auto msg_hash = sha3_Finalize(&c_msg_hash);
+		std::vector<char> msg_hash_for_show;
+		for (int i = 0; i < 32; i++)
+		{
+			msg_hash_for_show.push_back(((uint8_t*)msg_hash)[i]);
+		}
+		std::cout<<"Sha3 Msg is " << BinToHex(msg_hash_for_show, false) << std::endl;
+		std::vector<char> msg_hash_vector;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(StringToHex("entryid:"+ type+":").data(), msg_hash_vector, StringToHex("entryid:" + type + ":").size(), nDeplength);
+		sha3_context c_final_hash;
+		sha3_SetFlags(&c_final_hash, SHA3_FLAGS_KECCAK);
+		sha3_Init256(&c_final_hash);
+		sha3_Update(&c_final_hash, msg_hash_vector.data(), msg_hash_vector.size());
+		sha3_Update(&c_final_hash, msg_hash_for_show.data(), msg_hash_for_show.size());
+		auto id_hash = sha3_Finalize(&c_final_hash);
+		std::vector<char> ret;
+		for (int i = 0;i < 32;i++)
+		{
+			ret.push_back(((uint8_t*)id_hash)[i]);
+		}
+		std::cout << "Sha3 ID is " << BinToHex(ret, false) << std::endl;
+		return ret;
+	}
+	std::string AddWitnessSign(std::string source_msg, std::string sign_msg,std::string pubkey,uint32_t pos) {
+		
+		std::vector<char> temp;
+		std::vector<char> bin_pubkey;
+		std::vector<char> bin_sign_msg;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(source_msg.data(), temp, source_msg.size(), nDeplength);
+		b_converse = from_hex(pubkey.data(), bin_pubkey, pubkey.size(), nDeplength);
+		b_converse = from_hex(sign_msg.data(), bin_sign_msg, sign_msg.size(), nDeplength);
+		libbitcoin::data_chunk raw_trx_read(temp.begin(), temp.end());
+		libbitcoin::data_source raw_trx_source(raw_trx_read);
+		libbitcoin::istream_reader raw_trx_reader(raw_trx_source);
+
+		libbitcoin::data_chunk raw_trx_write;
+		libbitcoin::data_sink raw_trx_wstream(raw_trx_write);
+		libbitcoin::ostream_writer writer_raw_trx(raw_trx_wstream);
+
+		auto serflags = raw_trx_reader.read_byte();
+		auto version = ReadUvarint(raw_trx_reader);
+		auto TimeRange = ReadUvarint(raw_trx_reader);
+		auto InputCount = ReadUvarint(raw_trx_reader);
+		writer_raw_trx.write_byte(serflags);
+		WriteUvarint(writer_raw_trx, version);
+		WriteUvarint(writer_raw_trx, TimeRange);
+		WriteUvarint(writer_raw_trx, InputCount);
+		for (int i = 0; i < InputCount; i++)
+		{
+			auto AssetVersion = ReadUvarint(raw_trx_reader);
+			WriteUvarint(writer_raw_trx, AssetVersion);
+			//std::cout << "AssetVersion " << AssetVersion << std::endl;
+			//CommitmentSuffix ReadExtensibleString
+			auto CommitmentSuffix_length = ReadUvarint(raw_trx_reader);
+			WriteUvarint(writer_raw_trx, CommitmentSuffix_length);
+			//std::cout << "CommitmentSuffix_length " << CommitmentSuffix_length << std::endl;
+			auto CommitmentSuffix_msg = raw_trx_reader.read_bytes(CommitmentSuffix_length);
+			writer_raw_trx.write_bytes(CommitmentSuffix_msg);
+			if (i == pos){
+				std::vector<char> temp;
+				unsigned int nDeplength = 0;
+				auto WitnessSuffix_length = ReadUvarint(raw_trx_reader);
+				auto WitnessSuffix_msg = raw_trx_reader.read_bytes(WitnessSuffix_length);
+				if (WitnessSuffix_length != 1)
+				{
+					libbitcoin::data_chunk witness_data_chunk(WitnessSuffix_msg.begin(), WitnessSuffix_msg.end());
+					libbitcoin::data_source witness_data_source(witness_data_chunk);
+					libbitcoin::istream_reader witnessreader_source(witness_data_source);
+					auto length_witness_array = ReadUvarint(witnessreader_source);
+					auto cur_length_witness_array = GetBtmWriteSize(length_witness_array + 1);
+					auto old_length_witness_array = GetBtmWriteSize(length_witness_array);
+					if (cur_length_witness_array != old_length_witness_array)
+					{
+						WriteUvarint(writer_raw_trx, WitnessSuffix_length+1 + bin_sign_msg.size() + 1);
+					}
+					else {
+						WriteUvarint(writer_raw_trx, WitnessSuffix_length + bin_sign_msg.size() + 1);
+					}
+					
+					WriteUvarint(writer_raw_trx, length_witness_array + 1);
+					WriteUvarint(writer_raw_trx, bin_sign_msg.size());
+					writer_raw_trx.write_bytes(libbitcoin::data_chunk(bin_sign_msg.begin(), bin_sign_msg.end()));
+					auto rest_witness = witnessreader_source.read_bytes();
+					writer_raw_trx.write_bytes(rest_witness);
+				}
+				else {
+					auto real_pubkey_size = GetBtmWriteSize(bin_pubkey.size());
+					auto real_sign_size = GetBtmWriteSize(bin_sign_msg.size());
+					WriteUvarint(writer_raw_trx, 1+ real_sign_size + bin_sign_msg.size()+ real_pubkey_size + bin_pubkey.size());
+					WriteUvarint(writer_raw_trx, 2);
+					WriteUvarint(writer_raw_trx, bin_sign_msg.size());
+					writer_raw_trx.write_bytes(libbitcoin::data_chunk(bin_sign_msg.begin(), bin_sign_msg.end()));
+					WriteUvarint(writer_raw_trx, bin_pubkey.size());
+					writer_raw_trx.write_bytes(libbitcoin::data_chunk(bin_pubkey.begin(), bin_pubkey.end()));
+				}
+				break;
+			}
+			else {
+				auto WitnessSuffix_length = ReadUvarint(raw_trx_reader);
+				auto WitnessSuffix_msg = raw_trx_reader.read_bytes(WitnessSuffix_length);
+				WriteUvarint(writer_raw_trx, WitnessSuffix_length);
+				writer_raw_trx.write_bytes(WitnessSuffix_msg);
+			}
+		}
+		auto rest_msg = raw_trx_reader.read_bytes();
+		//std::cout << "rest msg is " << BinToHex(std::vector<char>(rest_msg.begin(), rest_msg.end()),false)<<std::endl;
+		writer_raw_trx.write_bytes(rest_msg);
+		raw_trx_wstream.flush();
+		return BinToHex(std::vector<char>(raw_trx_write.begin(), raw_trx_write.end()), false);
+	}
+	
+	std::string btm_privatekey::sign_trx(const std::string& raw_trx, int index)
+	{
+		libbitcoin::data_chunk writ;
+		libbitcoin::data_sink ostream(writ);
+		libbitcoin::ostream_writer w(ostream);
+		
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(raw_trx.data(), temp, raw_trx.size(), nDeplength);
+		libbitcoin::data_chunk aa(temp.begin(), temp.end());
+		libbitcoin::data_source va(aa);
+		libbitcoin::istream_reader source(va);
+		auto serflags = source.read_byte();
+		auto version = ReadUvarint(source);
+		//std::cout << version << std::endl;
+		auto TimeRange = ReadUvarint(source);
+		//std::cout << TimeRange << std::endl;
+		w.write_8_bytes_little_endian(version);
+		w.write_8_bytes_little_endian(TimeRange);
+		auto InputCount = ReadUvarint(source);
+		//std::cout << InputCount << std::endl;
+		libbitcoin::data_chunk writ_mux;
+		libbitcoin::data_sink ostream_mux(writ_mux);
+		libbitcoin::ostream_writer w_mux(ostream_mux);
+		uint64_t mux_size = 0;
+		std::vector< libbitcoin::hash_digest> vec_spend_ids;
+		
+		for (int i = 0;i < InputCount;i++)
+		{
+			libbitcoin::hash_digest spend_id_bytearr;
+			auto AssetVersion = ReadUvarint(source);
+			//std::cout << "AssetVersion " << AssetVersion << std::endl;
+			//CommitmentSuffix ReadExtensibleString
+			auto CommitmentSuffix_length = ReadUvarint(source);
+			//std::cout << "CommitmentSuffix_length " << CommitmentSuffix_length << std::endl;
+			auto CommitmentSuffix_msg = source.read_bytes(CommitmentSuffix_length);
+			//std::cout << "CommitmentSuffix_msg " << BinToHex(std::vector<char>(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end()), false) << std::endl;
+			libbitcoin::data_chunk vaa(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end());
+			libbitcoin::data_source va(vaa);
+			libbitcoin::istream_reader commit_suffix_source(va);
+			auto icType = commit_suffix_source.read_byte();
+			if (icType == (uint8_t)1)
+			{
+				auto solo_input_length = ReadUvarint(commit_suffix_source);
+				//std::cout << "solo_input_length " << solo_input_length << std::endl;
+				/*auto input_msg = commit_suffix_source.read_bytes();
+				std::cout << "vaa " << BinToHex(std::vector<char>(input_msg.begin(), input_msg.end()), false) << std::endl;*/
+				libbitcoin::data_chunk writ_input;
+				libbitcoin::data_sink ostream_input(writ_input);
+				libbitcoin::ostream_writer w_input(ostream_input);
+				auto sourceId = commit_suffix_source.read_hash();
+				w_input.write_hash(sourceId);
+				//std::cout<<"sourceId " << BinToHex(std::vector<char>(sourceId.begin(),sourceId.end()),false) << std::endl;
+				auto assetID = commit_suffix_source.read_hash();
+				w_input.write_hash(assetID);
+				//std::cout << "assetID " << BinToHex(std::vector<char>(assetID.begin(), assetID.end()), false) << std::endl;
+				auto amount = ReadUvarint(commit_suffix_source);
+				w_input.write_8_bytes_little_endian(amount);
+				//std::cout << "amount " << amount << std::endl;
+				auto SourcePosition = ReadUvarint(commit_suffix_source);
+				w_input.write_8_bytes_little_endian(SourcePosition);
+				//std::cout << "SourcePosition " << SourcePosition << std::endl;
+				auto VMVersion = ReadUvarint(commit_suffix_source);
+				w_input.write_8_bytes_little_endian(VMVersion);
+				//std::cout << "VMVersion " << VMVersion << std::endl;
+				auto a = commit_suffix_source.read_bytes();
+				w_input.write_bytes(a);
+				ostream_input.flush();
+				auto prev_out_id = CalcSha3Hash("output1", writ_input);
+				//std::cout << " -------------------------calc prev out id end -------------------------" << std::endl;
+				auto spend_id = CalcSha3Hash("spend1", libbitcoin::data_chunk(prev_out_id.begin(),prev_out_id.end()));
+				//std::cout << " -------------------------calc spend id end -------------------------" << std::endl;
+				/*
+				sha3_context c_input;
+				sha3_SetFlags(&c_input, SHA3_FLAGS_KECCAK);
+				sha3_Init256(&c_input);
+				sha3_Update(&c_input, writ_input.data(), writ_input.size());
+				auto new_hash = sha3_Finalize(&c_input);
+				std::vector<char> temp_for_show;
+				for (int i = 0; i < 32; i++)
+				{
+					temp_for_show.push_back(((uint8_t*)new_hash)[i]);
+				}
+				std::cout<<"source hash is" << BinToHex(temp_for_show, false)<<std::endl;
+				std::cout << BinToHex(std::vector<char>(writ_input.begin(), writ_input.end()), false)<<std::endl;
+				/*
+				auto ControlProgramLength = ReadUvarint(commit_suffix_source);
+				std::cout << "ControlProgramLength " << ControlProgramLength << std::endl;
+				auto ControlProgram = commit_suffix_source.read_bytes(ControlProgramLength);
+				std::cout << ControlProgram.size() << std::endl;
+				std::cout << "ControlProgram " << BinToHex(std::vector<char>(ControlProgram.begin(), ControlProgram.end()), false)  << std::endl;
+				std::vector<char> entry_vector;
+				
+				bool b_converse = from_hex(StringToHex("entryid:output1:").data(), entry_vector, StringToHex("entryid:output1:").size(), nDeplength);
+				sha3_context c;
+				sha3_SetFlags(&c, SHA3_FLAGS_KECCAK);
+				sha3_Init256(&c);
+				sha3_Update(&c, entry_vector.data(), entry_vector.size());
+				sha3_Update(&c, temp_for_show.data(), temp_for_show.size());
+				auto id_hash = sha3_Finalize(&c);
+				std::vector<char> temp_for_showout;
+				for (int i = 0; i < 32; i++)
+				{
+					temp_for_showout.push_back(((uint8_t*)id_hash)[i]);
+				}
+				std::cout << "first final hash is" << BinToHex(temp_for_showout, false) << std::endl; */
+				/*
+				std::vector<char> entry_vector_spend;
+				b_converse = from_hex(StringToHex("entryid:spend1:").data(), entry_vector_spend, StringToHex("entryid:spend1:").size(), nDeplength);
+				sha3_context c_final;
+				sha3_SetFlags(&c_final, SHA3_FLAGS_KECCAK);
+				sha3_Init256(&c_final);
+				sha3_Update(&c_final, prev_out_id.data(), prev_out_id.size());
+				auto id_hash_spend = sha3_Finalize(&c_final);
+				std::vector<char> temp_spend;
+				for (int i = 0; i < 32; i++)
+				{
+					temp_spend.push_back(((uint8_t*)id_hash_spend)[i]);
+				}
+				sha3_context c_final_spend;
+				sha3_SetFlags(&c_final_spend, SHA3_FLAGS_KECCAK);
+				sha3_Init256(&c_final_spend);
+				sha3_Update(&c_final_spend, entry_vector_spend.data(), entry_vector_spend.size());
+				sha3_Update(&c_final_spend, temp_spend.data(), temp_spend.size());
+				auto id_hash_spend_ren = sha3_Finalize(&c_final_spend);
+				std::vector<char> temp_spend_final;
+				libbitcoin::hash_digest spend_id;
+				for (int i = 0; i < 32; i++)
+				{
+					temp_spend_final.push_back(((uint8_t*)id_hash_spend_ren)[i]);
+					spend_id[0] = ((uint8_t*)id_hash_spend_ren)[i];
+				}*/
+				
+				for (int i = 0;i < spend_id.size();i++)
+				{
+					spend_id_bytearr[i] = spend_id[i];
+				}
+				vec_spend_ids.push_back(spend_id_bytearr);
+				w_mux.write_hash(spend_id_bytearr);
+				w_mux.write_hash(assetID);
+				w_mux.write_8_bytes_little_endian(amount);
+				w_mux.write_8_bytes_little_endian(uint64_t(0));
+				mux_size += 1;
+			}
+			else {
+				FC_ASSERT(false, "Unrecognize operation in btm Source trx");
+			}
+			//WitnessSuffix ReadExtensibleString
+			auto WitnessSuffix_length= ReadUvarint(source);
+			auto WitnessSuffix_msg = source.read_bytes(WitnessSuffix_length);
+		}
+		ostream_mux.flush();
+		libbitcoin::data_chunk writ_mux_end;
+		libbitcoin::data_sink ostream_mux_end(writ_mux_end);
+		libbitcoin::ostream_writer w_mux_end(ostream_mux_end);
+		WriteUvarint(w_mux_end, mux_size);
+		w_mux_end.write_bytes(writ_mux);
+		w_mux_end.write_8_bytes_little_endian(uint64_t(1));
+		std::vector<char> vec_muxprog;
+		from_hex(std::string("51").data(), vec_muxprog, std::string("51").size(), nDeplength);
+		WriteUvarint(w_mux_end, uint64_t(vec_muxprog.size()));
+		w_mux_end.write_bytes(libbitcoin::data_chunk(vec_muxprog.begin(),vec_muxprog.end()));
+		ostream_mux_end.flush();
+		auto mux_id = CalcSha3Hash("mux1", libbitcoin::data_chunk(writ_mux_end.begin(), writ_mux_end.end()));
+		//std::cout << "mux id is " << BinToHex(mux_id, false) << std::endl;
+		libbitcoin::hash_digest muxid;
+		for (int i = 0; i < mux_id.size(); i++)
+		{
+			muxid[i] = mux_id[i];
+		}
+		/*sha3_context c_mux_hash;
+		sha3_SetFlags(&c_mux_hash, SHA3_FLAGS_KECCAK);
+		sha3_Init256(&c_mux_hash);
+		sha3_Update(&c_mux_hash, writ_mux_end.data(), writ_mux_end.size());
+		auto mux_first_hash = sha3_Finalize(&c_mux_hash);
+		std::vector<char> temp_mux_hash;
+		for (int i = 0; i < 32; i++)
+		{
+			temp_mux_hash.push_back(((uint8_t*)mux_first_hash)[i]);
+		}
+		
+		
+		std::vector<char> vec_mux_id_header;
+		b_converse = from_hex(StringToHex("entryid:mux1:").data(), vec_mux_id_header, StringToHex("entryid:mux1:").size(), nDeplength);
+		sha3_context c_mux_id;
+		sha3_SetFlags(&c_mux_id, SHA3_FLAGS_KECCAK);
+		sha3_Init256(&c_mux_id);
+		sha3_Update(&c_mux_id, temp_mux_hash.data(), temp_mux_hash.size());
+		auto mux_entry_id = sha3_Finalize(&c_mux_id);
+		std::vector<char> temp_mux_entry_id;
+		libbitcoin::hash_digest muxid;
+		for (int i = 0; i < 32; i++)
+		{
+			temp_mux_entry_id.push_back(((uint8_t*)mux_entry_id)[i]);
+			muxid[i] = ((uint8_t*)mux_entry_id)[i];
+		}
+		*/
+		auto OutputCount = ReadUvarint(source);
+		WriteUvarint(w, OutputCount);
+		for (int i = 0;i < OutputCount;i ++)
+		{
+			libbitcoin::data_chunk writ_output;
+			libbitcoin::data_sink ostream_output(writ_output);
+			libbitcoin::ostream_writer w_output(ostream_output);
+			auto AssetVersion = ReadUvarint(source);
+			//std::cout << "AssetVersion " << AssetVersion << std::endl;
+			//CommitmentSuffix ReadExtensibleString
+			auto CommitmentSuffix_length = ReadUvarint(source);
+			//std::cout << "CommitmentSuffix_length " << CommitmentSuffix_length << std::endl;
+			auto CommitmentSuffix_msg = source.read_bytes(CommitmentSuffix_length);
+			//std::cout << "CommitmentSuffix_msg " << BinToHex(std::vector<char>(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end()), false) << std::endl;
+			libbitcoin::data_chunk vaa(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end());
+			libbitcoin::data_source va(vaa);
+			libbitcoin::istream_reader commit_suffix_source(va);
+			/*
+			auto solo_output_length = ReadUvarint(commit_suffix_source);
+			//std::cout << "solo_output_length " << solo_output_length << std::endl;*/
+			auto assetID = commit_suffix_source.read_hash();
+			//std::cout << "Output Asset ID " << BinToHex(std::vector<char>(assetID.begin(), assetID.end()), false) << std::endl;
+			auto amount = ReadUvarint(commit_suffix_source);
+			//std::cout << "Output Asset amount " << amount << std::endl;;
+			auto VMVersion = ReadUvarint(commit_suffix_source);
+			//std::cout << "Output Asset VMVersion " << VMVersion << std::endl;
+			auto CtrlProgLen = ReadUvarint(commit_suffix_source);
+			auto CtrlProg = commit_suffix_source.read_bytes(CtrlProgLen);
+			std::vector<char> vec_ctrlprog;
+			from_hex(std::string("6a").data(), vec_ctrlprog, std::string("6a").size(),nDeplength);
+			libbitcoin::hash_digest result_id_hash_digest;
+			if (CtrlProgLen > 0 && CtrlProg[0] == vec_ctrlprog[0]) {
+				//std::cout << " IN R" << std::endl;
+				w_output.write_hash(muxid);
+				w_output.write_hash(assetID);
+				w_output.write_8_bytes_little_endian(amount);
+				w_output.write_8_bytes_little_endian((uint64_t)i);
+				ostream_output.flush();
+				auto result_id = CalcSha3Hash("retirement1", writ_output);
+				//std::cout << "result_id id is " << BinToHex(result_id, false) << std::endl;
+				for (int i = 0; i < result_id.size(); i++)
+				{
+					result_id_hash_digest[i] = result_id[i];
+				}
+				
+			}
+			else {
+				//std::cout << " IN NON-R" << std::endl;
+				w_output.write_hash(muxid);
+				w_output.write_hash(assetID);
+				w_output.write_8_bytes_little_endian(amount);
+				w_output.write_8_bytes_little_endian((uint64_t)i);
+				w_output.write_8_bytes_little_endian(VMVersion);
+				WriteUvarint(w_output, CtrlProgLen);
+				w_output.write_bytes(CtrlProg);
+				ostream_output.flush();
+				auto result_id = CalcSha3Hash("output1", writ_output);
+				//std::cout << "result_id id is " << BinToHex(result_id, false) << std::endl;
+				for (int i = 0; i < result_id.size(); i++)
+				{
+					result_id_hash_digest[i] = result_id[i];
+				}
+			}
+			w.write_hash(result_id_hash_digest);
+			auto output_witness_length = ReadUvarint(source);
+			source.read_bytes(output_witness_length);
+		}
+		ostream.flush();
+		auto head_id = CalcSha3Hash("txheader", writ);
+		std::string signed_temp_trx = raw_trx;
+		for (int i = 0; i < vec_spend_ids.size(); i++)
+		{
+			sha3_context c_sign_msg;
+			sha3_SetFlags(&c_sign_msg, SHA3_FLAGS_KECCAK);
+			sha3_Init256(&c_sign_msg);
+			sha3_Update(&c_sign_msg, vec_spend_ids[i].data(), vec_spend_ids[i].size());
+			sha3_Update(&c_sign_msg, head_id.data(), head_id.size());
+			auto sign_msg_id = sha3_Finalize(&c_sign_msg);
+			std::vector<char> sign_msg_vector;
+			for (int i = 0; i < 32; i++)
+			{
+				sign_msg_vector.push_back(((uint8_t*)sign_msg_id)[i]);
+			}
+			//std::cout << "sign msg hash is " << BinToHex(sign_msg_vector, false) << std::endl;
+			auto signed_msg = sign_message(HexToStr(BinToHex(sign_msg_vector, false)));
+			auto pubkey = get_public_key();
+			//std::cout << "pubkey is " << pubkey << std::endl;
+			signed_temp_trx = AddWitnessSign(signed_temp_trx, signed_msg, pubkey.substr(0, 64), i);
+		}
+		
+		return signed_temp_trx;
+	}
+
+	fc::optional<fc::ecc::private_key>   btm_privatekey::import_private_key(const std::string& wif_key)
+	{
+		auto key = graphene::utilities::wif_to_key(wif_key);
+		set_key(*key);
+		return key;
+
+	}
+	std::string btm_privatekey::mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx)
+	{
+		try {
+			FC_ASSERT(raw_trx.contains("hex"));
+			std::string trx = raw_trx["hex"].as_string();
+			//trx = "0701a8d30203016c016a3be505d4752f4b171224ba2ddde886752fac0c61cb36a42187eef3fca79ca7d7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80bcc1960b010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc08140100016c016a9ae7f1b495e68d7c1f0222588cf9ee710a61fcd1799c2136466132fd846b4193ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80dea0cb05010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc08140100016c016ae0ee032f12b1725bf2e00db00b5ae50ad3cee223edd492c8e4c5b66a4540fc2cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80989abc04010122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc0814010002013dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80aecdbe1401160014215e7131a0a4d5d0b9090dc7ee987c9dcaf27c76000148ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80c2d72f0122002024e0c8bc2fe99a7a8bded232a847cfc64ba6729ed6829cd245c0ef5a11dc081400";
+			libbitcoin::data_chunk writ;
+			libbitcoin::data_sink ostream(writ);
+			libbitcoin::ostream_writer w(ostream);
+
+			std::vector<char> temp;
+			unsigned int nDeplength = 0;
+			bool b_converse = from_hex(trx.data(), temp, trx.size(), nDeplength);
+			libbitcoin::data_chunk aa(temp.begin(), temp.end());
+			libbitcoin::data_source va(aa);
+			libbitcoin::istream_reader source(va);
+			auto serflags = source.read_byte();
+			auto version = ReadUvarint(source);
+			auto TimeRange = ReadUvarint(source);
+			w.write_8_bytes_little_endian(version);
+			w.write_8_bytes_little_endian(TimeRange);
+			auto InputCount = ReadUvarint(source);
+			libbitcoin::data_chunk writ_mux;
+			libbitcoin::data_sink ostream_mux(writ_mux);
+			libbitcoin::ostream_writer w_mux(ostream_mux);
+			uint64_t mux_size = 0;
+			std::vector<libbitcoin::hash_digest> vec_spend_ids;
+			
+			for (int i = 0; i < InputCount; i++)
+			{
+				libbitcoin::hash_digest spend_id_bytearr;
+				auto AssetVersion = ReadUvarint(source);
+				//CommitmentSuffix ReadExtensibleString
+				auto CommitmentSuffix_length = ReadUvarint(source);
+				auto CommitmentSuffix_msg = source.read_bytes(CommitmentSuffix_length);
+				libbitcoin::data_chunk vaa(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end());
+				libbitcoin::data_source va(vaa);
+				libbitcoin::istream_reader commit_suffix_source(va);
+				auto icType = commit_suffix_source.read_byte();
+				if (icType == (uint8_t)1)
+				{
+					auto solo_input_length = ReadUvarint(commit_suffix_source);
+					libbitcoin::data_chunk writ_input;
+					libbitcoin::data_sink ostream_input(writ_input);
+					libbitcoin::ostream_writer w_input(ostream_input);
+					auto sourceId = commit_suffix_source.read_hash();
+					w_input.write_hash(sourceId);
+					auto assetID = commit_suffix_source.read_hash();
+					w_input.write_hash(assetID);
+					auto amount = ReadUvarint(commit_suffix_source);
+					w_input.write_8_bytes_little_endian(amount);
+					auto SourcePosition = ReadUvarint(commit_suffix_source);
+					w_input.write_8_bytes_little_endian(SourcePosition);
+					auto VMVersion = ReadUvarint(commit_suffix_source);
+					w_input.write_8_bytes_little_endian(VMVersion);
+					auto a = commit_suffix_source.read_bytes();
+					w_input.write_bytes(a);
+					ostream_input.flush();
+					auto prev_out_id = CalcSha3Hash("output1", writ_input);
+					auto spend_id = CalcSha3Hash("spend1", libbitcoin::data_chunk(prev_out_id.begin(), prev_out_id.end()));
+
+					for (int i = 0; i < spend_id.size(); i++)
+					{
+						spend_id_bytearr[i] = spend_id[i];
+					}
+					vec_spend_ids.push_back(spend_id_bytearr);
+					w_mux.write_hash(spend_id_bytearr);
+					w_mux.write_hash(assetID);
+					w_mux.write_8_bytes_little_endian(amount);
+					w_mux.write_8_bytes_little_endian(uint64_t(0));
+					mux_size += 1;
+				}
+				//WitnessSuffix ReadExtensibleString
+				auto WitnessSuffix_length = ReadUvarint(source);
+				auto WitnessSuffix_msg = source.read_bytes(WitnessSuffix_length);
+			}
+			ostream_mux.flush();
+			libbitcoin::data_chunk writ_mux_end;
+			libbitcoin::data_sink ostream_mux_end(writ_mux_end);
+			libbitcoin::ostream_writer w_mux_end(ostream_mux_end);
+			WriteUvarint(w_mux_end, mux_size);
+			w_mux_end.write_bytes(writ_mux);
+			w_mux_end.write_8_bytes_little_endian(uint64_t(1));
+			std::vector<char> vec_muxprog;
+			from_hex(std::string("51").data(), vec_muxprog, std::string("51").size(), nDeplength);
+			WriteUvarint(w_mux_end, uint64_t(vec_muxprog.size()));
+			w_mux_end.write_bytes(libbitcoin::data_chunk(vec_muxprog.begin(), vec_muxprog.end()));
+			ostream_mux_end.flush();
+			auto mux_id = CalcSha3Hash("mux1", libbitcoin::data_chunk(writ_mux_end.begin(), writ_mux_end.end()));
+			//std::cout << "mux id is " << BinToHex(mux_id, false) << std::endl;
+			libbitcoin::hash_digest muxid;
+			for (int i = 0; i < mux_id.size(); i++)
+			{
+				muxid[i] = mux_id[i];
+			}
+			auto OutputCount = ReadUvarint(source);
+			WriteUvarint(w, OutputCount);
+			for (int i = 0; i < OutputCount; i++)
+			{
+				libbitcoin::data_chunk writ_output;
+				libbitcoin::data_sink ostream_output(writ_output);
+				libbitcoin::ostream_writer w_output(ostream_output);
+				auto AssetVersion = ReadUvarint(source);
+				//std::cout << "AssetVersion " << AssetVersion << std::endl;
+				//CommitmentSuffix ReadExtensibleString
+				auto CommitmentSuffix_length = ReadUvarint(source);
+				//std::cout << "CommitmentSuffix_length " << CommitmentSuffix_length << std::endl;
+				auto CommitmentSuffix_msg = source.read_bytes(CommitmentSuffix_length);
+				//std::cout << "CommitmentSuffix_msg " << BinToHex(std::vector<char>(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end()), false) << std::endl;
+				libbitcoin::data_chunk vaa(CommitmentSuffix_msg.begin(), CommitmentSuffix_msg.end());
+				libbitcoin::data_source va(vaa);
+				libbitcoin::istream_reader commit_suffix_source(va);
+				auto assetID = commit_suffix_source.read_hash();
+				//std::cout << "Output Asset ID " << BinToHex(std::vector<char>(assetID.begin(), assetID.end()), false) << std::endl;
+				auto amount = ReadUvarint(commit_suffix_source);
+				//std::cout << "Output Asset amount " << amount << std::endl;;
+				auto VMVersion = ReadUvarint(commit_suffix_source);
+				//std::cout << "Output Asset VMVersion " << VMVersion << std::endl;
+				auto CtrlProgLen = ReadUvarint(commit_suffix_source);
+				auto CtrlProg = commit_suffix_source.read_bytes(CtrlProgLen);
+				std::vector<char> vec_ctrlprog;
+				from_hex(std::string("6a").data(), vec_ctrlprog, std::string("6a").size(), nDeplength);
+				libbitcoin::hash_digest result_id_hash_digest;
+				if (CtrlProgLen > 0 && CtrlProg[0] == vec_ctrlprog[0]) {
+					//std::cout << " IN R" << std::endl;
+					w_output.write_hash(muxid);
+					w_output.write_hash(assetID);
+					w_output.write_8_bytes_little_endian(amount);
+					w_output.write_8_bytes_little_endian((uint64_t)i);
+					ostream_output.flush();
+					auto result_id = CalcSha3Hash("retirement1", writ_output);
+					//std::cout << "result_id id is " << BinToHex(result_id, false) << std::endl;
+					for (int i = 0; i < result_id.size(); i++)
+					{
+						result_id_hash_digest[i] = result_id[i];
+					}
+
+				}
+				else {
+					//std::cout << " IN NON-R" << std::endl;
+					w_output.write_hash(muxid);
+					w_output.write_hash(assetID);
+					w_output.write_8_bytes_little_endian(amount);
+					w_output.write_8_bytes_little_endian((uint64_t)i);
+					w_output.write_8_bytes_little_endian(VMVersion);
+					WriteUvarint(w_output, CtrlProgLen);
+					w_output.write_bytes(CtrlProg);
+					ostream_output.flush();
+					auto result_id = CalcSha3Hash("output1", writ_output);
+					//std::cout << "result_id id is " << BinToHex(result_id, false) << std::endl;
+					for (int i = 0; i < result_id.size(); i++)
+					{
+						result_id_hash_digest[i] = result_id[i];
+					}
+				}
+				w.write_hash(result_id_hash_digest);
+				auto output_witness_length = ReadUvarint(source);
+				source.read_bytes(output_witness_length);
+			}
+			ostream.flush();
+			auto signed_temp_trx = trx;
+			auto head_id = CalcSha3Hash("txheader", writ);
+			for (int i = 0;i < vec_spend_ids.size();i++)
+			{
+				sha3_context c_sign_msg;
+				sha3_SetFlags(&c_sign_msg, SHA3_FLAGS_KECCAK);
+				sha3_Init256(&c_sign_msg);
+				sha3_Update(&c_sign_msg, vec_spend_ids[i].data(), vec_spend_ids[i].size());
+				sha3_Update(&c_sign_msg, head_id.data(), head_id.size());
+				auto sign_msg_id = sha3_Finalize(&c_sign_msg);
+				std::vector<char> sign_msg_vector;
+				for (int i = 0; i < 32; i++)
+				{
+					sign_msg_vector.push_back(((uint8_t*)sign_msg_id)[i]);
+				}
+				//std::cout << "sign msg hash is " << BinToHex(sign_msg_vector, false) << std::endl;
+				auto signed_msg = sign_message(HexToStr(BinToHex(sign_msg_vector, false)));
+				signed_temp_trx = AddWitnessSign(signed_temp_trx, signed_msg, redeemscript, i);
+			}
+			return signed_temp_trx;
+		}FC_CAPTURE_AND_RETHROW((redeemscript)(raw_trx));
+	}
+	std::string btm_privatekey::btm_combine_trx(const std::vector<std::string>& trxs) {
+		if (trxs.size() < 2) {
+			FC_ASSERT(false, "trx count is least than min required");
+		}
+		auto trx = trxs[0];
+		std::map<int, std::vector<libbitcoin::data_chunk>> bak_signature;
+		for (const auto& signed_trx : trxs) {
+			std::vector<char> temp;
+			unsigned int nDeplength = 0;
+			bool b_converse = from_hex(signed_trx.data(), temp, signed_trx.size(), nDeplength);
+			libbitcoin::data_chunk trx_read_chunk(temp.begin(), temp.end());
+			libbitcoin::data_source trx_read_source(trx_read_chunk);
+			libbitcoin::istream_reader trx_read_stream(trx_read_source);
+			auto serflags = trx_read_stream.read_byte();
+			auto version = ReadUvarint(trx_read_stream);
+			auto TimeRange = ReadUvarint(trx_read_stream);
+			auto InputCount = ReadUvarint(trx_read_stream);
+			for (int i = 0; i < InputCount; i++) {
+				libbitcoin::data_chunk sign_msg_chunk;
+				libbitcoin::data_sink sign_msg_sink(sign_msg_chunk);
+				libbitcoin::ostream_writer write_sign_msg(sign_msg_sink);
+				auto AssetVersion = ReadUvarint(trx_read_stream);
+				auto CommitmentSuffix_length = ReadUvarint(trx_read_stream);
+				auto CommitmentSuffix_msg = trx_read_stream.read_bytes(CommitmentSuffix_length);
+				auto WitnessSuffix_length = ReadUvarint(trx_read_stream);
+				auto WitnessSuffix_msg = trx_read_stream.read_bytes(WitnessSuffix_length);
+				if (WitnessSuffix_length != 1)
+				{
+					libbitcoin::data_chunk witness_data_chunk(WitnessSuffix_msg.begin(), WitnessSuffix_msg.end());
+					libbitcoin::data_source witness_data_source(witness_data_chunk);
+					libbitcoin::istream_reader witnessreader_source(witness_data_source);
+					auto length_witness_array = ReadUvarint(witnessreader_source);
+					auto sign_length = ReadUvarint(witnessreader_source);
+					auto sign_msg = witnessreader_source.read_bytes(sign_length);
+					WriteUvarint(write_sign_msg, sign_length);
+					write_sign_msg.write_bytes(sign_msg);
+					sign_msg_sink.flush();
+					std::vector<libbitcoin::data_chunk> vec;
+					auto iter_bak_sign = bak_signature.find(i);
+					if (iter_bak_sign != bak_signature.end()){
+						vec = bak_signature[i];
+					}
+					vec.push_back(sign_msg_chunk);
+					bak_signature[i] = vec;
+				}
+			}
+		}
+		libbitcoin::data_chunk trx_writ_chunk;
+		libbitcoin::data_sink trx_writ_sink(trx_writ_chunk);
+		libbitcoin::ostream_writer trx_write_stream(trx_writ_sink);
+		std::vector<char> temp;
+		unsigned int nDeplength = 0;
+		bool b_converse = from_hex(trx.data(), temp, trx.size(), nDeplength);
+		libbitcoin::data_chunk trx_read_chunk(temp.begin(), temp.end());
+		libbitcoin::data_source trx_read_source(trx_read_chunk);
+		libbitcoin::istream_reader trx_read_stream(trx_read_source);
+		auto serflags = trx_read_stream.read_byte();
+		auto version = ReadUvarint(trx_read_stream);
+		auto TimeRange = ReadUvarint(trx_read_stream);
+		auto InputCount = ReadUvarint(trx_read_stream);
+		trx_write_stream.write_byte(serflags);
+		WriteUvarint(trx_write_stream, version);
+		WriteUvarint(trx_write_stream, TimeRange);
+		WriteUvarint(trx_write_stream, InputCount);
+		for (int i = 0; i < InputCount; i++)
+		{
+			auto AssetVersion = ReadUvarint(trx_read_stream);
+			WriteUvarint(trx_write_stream, AssetVersion);
+			//CommitmentSuffix ReadExtensibleString
+			auto CommitmentSuffix_length = ReadUvarint(trx_read_stream);
+			WriteUvarint(trx_write_stream, CommitmentSuffix_length);
+			auto CommitmentSuffix_msg = trx_read_stream.read_bytes(CommitmentSuffix_length);
+			trx_write_stream.write_bytes(CommitmentSuffix_msg);
+			
+			std::vector<char> temp;
+			unsigned int nDeplength = 0;
+			auto WitnessSuffix_length = ReadUvarint(trx_read_stream);
+			auto WitnessSuffix_msg = trx_read_stream.read_bytes(WitnessSuffix_length);
+			if (WitnessSuffix_length != 1)
+			{
+				libbitcoin::data_chunk witness_data_chunk(WitnessSuffix_msg.begin(), WitnessSuffix_msg.end());
+				libbitcoin::data_source witness_data_source(witness_data_chunk);
+				libbitcoin::istream_reader witnessreader_source(witness_data_source);
+				libbitcoin::data_chunk script;
+				auto length_witness_array = ReadUvarint(witnessreader_source);
+				for (int i = 0;i < length_witness_array;i++)
+				{
+					auto length = ReadUvarint(witnessreader_source);
+					auto str = witnessreader_source.read_bytes(length);
+					if (i == length_witness_array - 1) {
+						script = str;
+					}
+				}
+				auto input_signs = bak_signature[i];
+				libbitcoin::data_chunk sign_chunk;
+				libbitcoin::data_sink sign_sink(sign_chunk);
+				libbitcoin::ostream_writer write_sign_stream(sign_sink);
+				for (auto input_sign : input_signs){
+					write_sign_stream.write_bytes(input_sign);
+				}
+				sign_sink.flush();
+				int length_array = GetBtmWriteSize(input_signs.size() + 1);
+				int script_size = GetBtmWriteSize(script.size());
+				WriteUvarint(trx_write_stream, length_array + sign_chunk.size() + script_size + script.size());
+				WriteUvarint(trx_write_stream, input_signs.size()+1);
+				trx_write_stream.write_bytes(sign_chunk);
+				WriteUvarint(trx_write_stream, script.size());
+				trx_write_stream.write_bytes(script);
+			}
+			else {
+				FC_ASSERT(false, "trx has input not sign");
+			}
+
+		}
+		auto rest_msg = trx_read_stream.read_bytes();
+		trx_write_stream.write_bytes(rest_msg);
+		trx_writ_sink.flush();
+		return BinToHex(std::vector<char>(trx_writ_chunk.begin(), trx_writ_chunk.end()), false);
+	}
+	bool btm_privatekey::validate_address(const std::string& addr) {
+		std::string btm_prifix = "mainnet";
+		int script_version = get_script_prefix();
+		if (script_version == 0x00) {
+			btm_prifix = "mainnet";
+		}
+		else if (script_version == 0x01) {
+			btm_prifix = "wisdom";
+		}
+		else if (script_version == 0x02) {
+			btm_prifix = "solonet";
+		}
+		return bytom::ValidateAddress(addr, btm_prifix);
+	}
+	fc::variant_object btm_privatekey::combine_trxs(const std::vector<std::string>& trxs) {
+		auto hex = btm_combine_trx(trxs);
+		fc::mutable_variant_object result;
+		result["trx"] = btm_privatekey::decoderawtransaction(hex);
+		result["hex"] = hex;
+		return result;
+	}
 
 
 	void ltc_privatekey::init()
@@ -1318,85 +2345,7 @@ namespace graphene { namespace privatekey_management {
 			return false;
 		}
 	}
-	bool  from_hex(const char *pSrc, std::vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
-	{
-		if (pSrc == 0)
-		{
-			return false;
-		}
-
-		nDstLength = 0;
-
-		if (pSrc[0] == 0) // nothing to convert  
-			return 0;
-
-		// 计算需要转换的字节数  
-		for (int j = 0; pSrc[j]; j++)
-		{
-			if (isxdigit(pSrc[j]))
-				nDstLength++;
-		}
-
-		// 判断待转换字节数是否为奇数，然后加一  
-		if (nDstLength & 0x01) nDstLength++;
-		nDstLength /= 2;
-
-		if (nDstLength > nSrcLength)
-			return false;
-
-		nDstLength = 0;
-
-		int phase = 0;
-		char temp_char;
-
-		for (int i = 0; pSrc[i]; i++)
-		{
-			if (!isxdigit(pSrc[i]))
-				continue;
-
-			unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
-
-			if (phase == 0)
-			{
-				temp_char = val << 4;
-				phase++;
-			}
-			else
-			{
-				temp_char |= val;
-				phase = 0;
-				pDst.push_back(temp_char);
-				nDstLength++;
-			}
-		}
-
-		return true;
-	}
-	std::string BinToHex(const std::vector<char> &strBin, bool bIsUpper)
-	{
-		std::string strHex;
-		strHex.resize(strBin.size() * 2);
-		for (size_t i = 0; i < strBin.size(); i++)
-		{
-			uint8_t cTemp = strBin[i];
-			for (size_t j = 0; j < 2; j++)
-			{
-				uint8_t cCur = (cTemp & 0x0f);
-				if (cCur < 10)
-				{
-					cCur += '0';
-				}
-				else
-				{
-					cCur += ((bIsUpper ? 'A' : 'a') - 10);
-				}
-				strHex[2 * i + 1 - j] = cCur;
-				cTemp >>= 4;
-			}
-		}
-
-		return strHex;
-	}
+	
 	std::string eth_privatekey::get_address() {
 		FC_ASSERT(is_empty() == false, "private key is empty!");
 		auto pubkey = get_private_key().get_public_key();
@@ -1641,6 +2590,7 @@ namespace graphene { namespace privatekey_management {
 		crosschain_decode.insert(std::make_pair("ETH", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("ERC", &graphene::privatekey_management::eth_privatekey::decoderawtransaction));
 		crosschain_decode.insert(std::make_pair("USDT", &graphene::privatekey_management::btc_privatekey::decoderawtransaction));
+		crosschain_decode.insert(std::make_pair("BTM", &graphene::privatekey_management::btm_privatekey::decoderawtransaction));
 	}
 	crosschain_privatekey_base * crosschain_management::get_crosschain_prk(const std::string& name)
 	{
@@ -1672,6 +2622,10 @@ namespace graphene { namespace privatekey_management {
 		}
 		else if (name == "HC") {
 			auto itr = crosschain_prks.insert(std::make_pair(name, new hc_privatekey()));
+			return itr.first->second;
+		}
+		else if (name == "BTM") {
+			auto itr = crosschain_prks.insert(std::make_pair(name, new btm_privatekey()));
 			return itr.first->second;
 		}
 		else if (name == "ETH") {

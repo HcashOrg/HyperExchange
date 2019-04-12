@@ -424,6 +424,7 @@ namespace detail {
 					 chain_type_vector.push_back("ERCPAX");
 					 chain_type_vector.push_back("ERCELF");
 					 chain_type_vector.push_back("USDT");
+					 chain_type_vector.push_back("BTM");
 				 }
 				 if (_options->count("midware_servers"))
 				 {

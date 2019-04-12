@@ -16,7 +16,7 @@ endif()
 # build library crosschain_privatekey_management
 message(STATUS "build library crosschain_privatekey_management")
 
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/ )
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/secp256k1/include $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libbitcoin/include $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/ "../ed25519-donna/")
 message(STATUS "HEADERS: ${HEADERS}")
 
 set(sources
