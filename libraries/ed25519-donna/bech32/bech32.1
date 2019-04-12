@@ -1,0 +1,271 @@
+.\" By nullius <nullius@nym.zone>
+.\" PGP:	0xC2E91CD74A4C57A105F6C21B5A00591B2F307E0C
+.\" Bitcoin:	3NULL3ZCUXr7RDLxXeLPDMZDZYxuaYkCnG
+.\"		bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h
+.\"
+.\" Copyright (c) 2017.  All rights reserved.
+.\"
+.\" The Antiviral License (AVL) v0.0.1, with added Bitcoin Consensus Clause:
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\" 1. Redistributions of the source code must retain the above copyright
+.\"    and credit notices, this list of conditions, and the following
+.\"    disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    and credit notices, this list of conditions, and the following
+.\"    disclaimer in the documentation and/or other materials provided
+.\"    with the distribution.
+.\" 3. Derivative works hereof MUST NOT be redistributed under any license
+.\"    containing terms which require derivative works and/or usages to
+.\"    publish source code, viz. what is commonly known as a "copyleft"
+.\"    or "viral" license.
+.\" 4. Derivative works hereof which have any functionality related to
+.\"    digital money (so-called "cryptocurrency") MUST EITHER adhere to
+.\"    consensus rules fully compatible with Bitcoin Core, OR use a name
+.\"    which does not contain the word "Bitcoin".
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd December 31, 2017
+.Dt BECH32 1
+.Os Bitcoin
+.Sh NAME
+.Nm bech32
+.Nd "Encode and decode Bech32 strings and Bitcoin Segwit addresses"
+.Sh SYNOPSIS
+General-purpose encoding and decoding:
+.Pp
+.Nm
+.Fl e
+.Fl h Ar hrp
+.Ar hexdata
+.Nm
+.Fl e
+.Fl 5
+.Fl h Ar hrp
+.Ar base32data
+.Nm
+.Fl d
+.Op Fl 5
+.Op Fl u
+.Ar bech32string
+.Pp
+For Bitcoin
+.Sy "Bravo Charlie"
+addresses
+.Pq Dq bc1 :
+.Pp
+.Nm
+.Fl s Ar witver
+.Ar hexdata
+.Nm
+.Fl S
+.Ar bc1addr
+.Pp
+For .onion domains:
+.Pp
+.Nm
+.Fl e
+.Ar base32domain.onion
+.Nm
+.Fl d
+.Ar onion1bech32
+.Sh DESCRIPTION
+The
+.Nm
+utility is a powerful general-purpose tool for encoding and decoding
+of BIP 173 standard Bech32 strings and Bitcoin Bech32 addresses.
+.Pp
+Hexadecimal data may be input with or without a leading
+.Dq 0x
+prefix.
+It is output with such a prefix, to prevent ambiguity.
+.Pp
+It has the following modes, some of which overlap:
+.Bl -tag -width ".Fl d Ar argument"
+.It Fl e
+Encoder mode.
+Output is a Bech32 string.
+.It Fl d
+Decoder mode.
+Output is the input string
+.Ap
+s human-readable part
+.Pq HRP ,
+followed by a delimiting colon
+.Pq Dq ":" ,
+followed by the
+.Dq "data part"
+data in hexadecimal with a
+.Dq 0x
+prefix.
+.It Fl s Ar witver
+Encode a Bitcoin Segwit address with witness version
+.Ar witver .
+.It Fl S
+Decode a Bitcoin Segwit address.
+Output its witness version in
+.Em decimal
+.Pq "0\(en16 inclusive" ,
+followed by a delimiting colon
+.Pq Dq ":" ,
+followed by the address data in
+.Em hexadecimal
+with a
+.Dq 0x
+prefix.
+.It Pq ".onion autodetect"
+Dot-onion mode.
+When encoding,
+.Nm
+will automatically detect a dot-onion domain and read its second level
+as RFC 4648 Base32 data.
+When decoding,
+.Nm
+will detect a
+.Dq onion
+HRP, and output a dot-onion domain.
+.El
+.Pp
+The options are as follows:
+.Bl -tag -width ".Fl d Ar argument"
+.It Fl h Ar hrp
+General encoding only, and required therefor.
+Provide the Human-Readable Portion
+.Pq HRP
+for the Bech32 string.
+.It Fl 5
+Read RFC 4648 Base32 data when encoding, or write RFC 4648 Base32 data
+when decoding.
+.It Fl u
+.Pq "Decoding only."
+.\" XXX: What about Base32?
+Output hexadecimal characters in uppercase.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Extract the witness version and Hash160 from the
+.Nm
+utility author
+.Ap
+s Bech32 tip address:
+.Pp
+.Dl bech32 -S bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h
+.Dl 0:0xc76172ea149002114027b90f0759084f93aea326
+.Pp
+Get a
+.Dq "hello, world"
+introduction to Bech32:
+.Pp
+.Dl bech32 -e -h hello_world 48656c6c6f2c20776f726c6421
+.Dl hello_world1fpjkcmr09ss8wmmjd3jzzwhs4ff
+.Pp
+Generate a
+.Dq "burn address"
+with a Hash160 of all zeroes, which would be spendable by the same unknown
+private keys as the infamous 1111111111111111111114oLvT2.
+.Sy "Warning:  Do NOT send coins here:"
+.Pp
+.Dl bech32 -s 0 0x0000000000000000000000000000000000000000
+.Dl bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs
+.Pp
+Bech32-encode the address for Wikileaks, to add error-correcting codes:
+.Pp
+.Dl bech32 -e wlupld3ptjvsgwqw.onion
+.Dl onion1kt50trm0nf4jxkskpcjy74
+.Pp
+Now, decode the address someone gave you:
+.Pp
+.Dl bech32 -d onion1kt50trm0nf4jxkskpcjy74
+.Dl wlupld3ptjvsgwqw.onion
+.Sh STANDARDS
+The
+.Nm
+utility conforms to:
+.Bl -bullet
+.It
+The Bech32 standard:
+P. Wuille, G. Maxwell,
+.Dq "Base32 address format for native v0\(en16 witness outputs" ,
+2016-03-20, Bitcoin
+.Lk https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki "BIP 173" .
+.It
+S. Josefsson,
+.Dq "The Base16, Base32, and Base64 Data Encodings" ,
+2006-10,
+.Lk https://tools.ietf.org/html/rfc4648 "RFC 4648" .
+.Pq "For transcoding RFC standard Base32 input data and .onion domains."
+.It
+J. Appelbaum, A. Muffett,
+.Do "The" So .onion Sc "Special-Use Domain Name" Dc ,
+2015-10,
+.Lk https://tools.ietf.org/html/rfc7686 "RFC 7686" .
+.El
+.Pp
+The term
+.Dq Sy "Bravo Charlie Address"
+and the motto
+.Dq Sy "Bravo Charlie One means money"
+are from a
+.Lk https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2017-December/015477.html "proposal by this author" .
+.Sh AUTHORS
+The
+.Nm
+utility was written by
+.An nullius
+.Aq Mt nullius@nym.zone .
+.Pp
+PGP:
+.Li 0xC2E91CD74A4C57A105F6C21B5A00591B2F307E0C
+.Pp
+Tips:
+.Lk bitcoin:3NULL3ZCUXr7RDLxXeLPDMZDZYxuaYkCnG 3NULL3ZCUXr7RDLxXeLPDMZDZYxuaYkCnG ,
+.Lk bitcoin:bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h .
+.Pp
+The internal Bech32 encoding and decoding is done by the open-source
+.Lk https://github.com/sipa/bech32/tree/master/ref/c "Bech32 reference code"
+written by Pieter Wuille
+.Pq sipa
+.Pq "no affiliation with this author" .
+.Sh BUGS
+This code started as a quickly-made utility for personal use, and kept
+growing as such things are wont to do.
+The user interface is reasonably logical, given the tool
+.Ap
+s flexibility.
+However, the source code needs some substantial refactoring.
+.Pp
+This manpage could use more and better examples, plus some other general
+editing.
+.Pp
+Test cases are needed.
+Unfortunately, the Bech32 standard does not currently provide full roundtrip
+test vectors for arbitrary Bech32 strings.
+.Pp
+Special support is planned for a concept which this author calls
+.Dq Sy "PGP Descriptors" .
+However, a spec must be drawn before releasing such a thing into the wild.
+.Sh SECURITY CONSIDERATIONS
+This is an early release, which should be considered alpha-quality software.
+It
+.Sy should not
+be used on untrusted inputs, such as anything blindly accepted by a webserver.
+High on the author
+.Ap
+s TODO list is to beef up input validation.
+At this time, aside from a few simple checks, the utility will happily
+pass the buck to the Bech32 reference functions.

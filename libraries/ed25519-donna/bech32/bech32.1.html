@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    table.head, table.foot { width: 100%; }
+    td.head-rtitle, td.foot-os { text-align: right; }
+    td.head-vol { text-align: center; }
+    div.Pp { margin: 1ex 0ex; }
+  </style>
+  <title>BECH32(1)</title>
+</head>
+<body>
+<table class="head">
+  <tr>
+    <td class="head-ltitle">BECH32(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">BECH32(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<h1 class="Sh" title="Sh" id="NAME"><a class="selflink" href="#NAME">NAME</a></h1>
+<b class="Nm" title="Nm">bech32</b> &#x2014; <span class="Nd" title="Nd">Encode
+  and decode Bech32 strings and Bitcoin Segwit addresses</span>
+<h1 class="Sh" title="Sh" id="SYNOPSIS"><a class="selflink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+General-purpose encoding and decoding:
+<div class="Pp"></div>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-e</b> <b class="Fl" title="Fl">-h</b>
+      <var class="Ar" title="Ar">hrp</var>
+      <var class="Ar" title="Ar">hexdata</var></td>
+  </tr>
+</table>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-e</b> <b class="Fl" title="Fl">-5</b>
+      <b class="Fl" title="Fl">-h</b> <var class="Ar" title="Ar">hrp</var>
+      <var class="Ar" title="Ar">base32data</var></td>
+  </tr>
+</table>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-d</b>
+      [<span class="Op"><b class="Fl" title="Fl">-5</b></span>]
+      [<span class="Op"><b class="Fl" title="Fl">-u</b></span>]
+      <var class="Ar" title="Ar">bech32string</var>
+    <div class="Pp"></div>
+    For Bitcoin <b class="Sy" title="Sy">Bravo Charlie</b> addresses
+      (&#x201C;bc1&#x201D;):</td>
+  </tr>
+</table>
+<div class="Pp"></div>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-s</b> <var class="Ar" title="Ar">witver</var>
+      <var class="Ar" title="Ar">hexdata</var></td>
+  </tr>
+</table>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-S</b> <var class="Ar" title="Ar">bc1addr</var>
+    <div class="Pp"></div>
+    For .onion domains:</td>
+  </tr>
+</table>
+<div class="Pp"></div>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-e</b>
+      <var class="Ar" title="Ar">base32domain.onion</var></td>
+  </tr>
+</table>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><b class="Nm" title="Nm">bech32</b></td>
+    <td><b class="Fl" title="Fl">-d</b>
+      <var class="Ar" title="Ar">onion1bech32</var></td>
+  </tr>
+</table>
+<h1 class="Sh" title="Sh" id="DESCRIPTION"><a class="selflink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+The <b class="Nm" title="Nm">bech32</b> utility is a powerful general-purpose
+  tool for encoding and decoding of BIP 173 standard Bech32 strings and Bitcoin
+  Bech32 addresses.
+<div class="Pp"></div>
+Hexadecimal data may be input with or without a leading &#x201C;0x&#x201D;
+  prefix. It is output with such a prefix, to prevent ambiguity.
+<div class="Pp"></div>
+It has the following modes, some of which overlap:
+<dl class="Bl-tag" style="margin-left: 23.40ex;">
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#e"><b class="Fl" title="Fl" id="e">-e</b></a></dt>
+  <dd class="It-tag">Encoder mode. Output is a Bech32 string.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#d"><b class="Fl" title="Fl" id="d">-d</b></a></dt>
+  <dd class="It-tag">Decoder mode. Output is the input string's human-readable
+      part (HRP), followed by a delimiting colon (&#x201C;:&#x201D;), followed
+      by the &#x201C;data part&#x201D; data in hexadecimal with a
+      &#x201C;0x&#x201D; prefix.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#s"><b class="Fl" title="Fl" id="s">-s</b></a>
+    <var class="Ar" title="Ar">witver</var></dt>
+  <dd class="It-tag">Encode a Bitcoin Segwit address with witness version
+      <var class="Ar" title="Ar">witver</var>.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#S"><b class="Fl" title="Fl" id="S">-S</b></a></dt>
+  <dd class="It-tag">Decode a Bitcoin Segwit address. Output its witness version
+      in <i class="Em" title="Em">decimal</i> (0&#x2013;16 inclusive), followed
+      by a delimiting colon (&#x201C;:&#x201D;), followed by the address data in
+      <i class="Em" title="Em">hexadecimal</i> with a &#x201C;0x&#x201D;
+    prefix.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;">(.onion autodetect)</dt>
+  <dd class="It-tag">Dot-onion mode. When encoding,
+      <b class="Nm" title="Nm">bech32</b> will automatically detect a dot-onion
+      domain and read its second level as RFC 4648 Base32 data. When decoding,
+      <b class="Nm" title="Nm">bech32</b> will detect a &#x201C;onion&#x201D;
+      HRP, and output a dot-onion domain.</dd>
+</dl>
+<div class="Pp"></div>
+The options are as follows:
+<dl class="Bl-tag" style="margin-left: 23.40ex;">
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#h"><b class="Fl" title="Fl" id="h">-h</b></a>
+    <var class="Ar" title="Ar">hrp</var></dt>
+  <dd class="It-tag">General encoding only, and required therefor. Provide the
+      Human-Readable Portion (HRP) for the Bech32 string.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#5"><b class="Fl" title="Fl" id="5">-5</b></a></dt>
+  <dd class="It-tag">Read RFC 4648 Base32 data when encoding, or write RFC 4648
+      Base32 data when decoding.</dd>
+  <dt class="It-tag" style="margin-left: -23.40ex;"><a class="selflink" href="#u"><b class="Fl" title="Fl" id="u">-u</b></a></dt>
+  <dd class="It-tag">(Decoding only.) Output hexadecimal characters in
+      uppercase.</dd>
+</dl>
+<h1 class="Sh" title="Sh" id="EXIT_STATUS"><a class="selflink" href="#EXIT_STATUS">EXIT
+  STATUS</a></h1>
+The <b class="Nm" title="Nm">bech32</b> utility exits&#x00A0;0 on success,
+  and&#x00A0;&gt;0 if an error occurs.
+<h1 class="Sh" title="Sh" id="EXAMPLES"><a class="selflink" href="#EXAMPLES">EXAMPLES</a></h1>
+Extract the witness version and Hash160 from the
+  <b class="Nm" title="Nm">bech32</b> utility author's Bech32 tip address:
+<div class="Pp"></div>
+<div class="D1"><code class="Li">bech32 -S
+  bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h</code></div>
+<div class="D1"><code class="Li">0:0xc76172ea149002114027b90f0759084f93aea326</code></div>
+<div class="Pp"></div>
+Get a &#x201C;hello, world&#x201D; introduction to Bech32:
+<div class="Pp"></div>
+<div class="D1"><code class="Li">bech32 -e -h hello_world
+  48656c6c6f2c20776f726c6421</code></div>
+<div class="D1"><code class="Li">hello_world1fpjkcmr09ss8wmmjd3jzzwhs4ff</code></div>
+<div class="Pp"></div>
+Generate a &#x201C;burn address&#x201D; with a Hash160 of all zeroes, which
+  would be spendable by the same unknown private keys as the infamous
+  1111111111111111111114oLvT2. <b class="Sy" title="Sy">Warning: Do NOT send
+  coins here:</b>
+<div class="Pp"></div>
+<div class="D1"><code class="Li">bech32 -s 0
+  0x0000000000000000000000000000000000000000</code></div>
+<div class="D1"><code class="Li">bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs</code></div>
+<div class="Pp"></div>
+Bech32-encode the address for Wikileaks, to add error-correcting codes:
+<div class="Pp"></div>
+<div class="D1"><code class="Li">bech32 -e wlupld3ptjvsgwqw.onion</code></div>
+<div class="D1"><code class="Li">onion1kt50trm0nf4jxkskpcjy74</code></div>
+<div class="Pp"></div>
+Now, decode the address someone gave you:
+<div class="Pp"></div>
+<div class="D1"><code class="Li">bech32 -d
+  onion1kt50trm0nf4jxkskpcjy74</code></div>
+<div class="D1"><code class="Li">wlupld3ptjvsgwqw.onion</code></div>
+<h1 class="Sh" title="Sh" id="STANDARDS"><a class="selflink" href="#STANDARDS">STANDARDS</a></h1>
+The <b class="Nm" title="Nm">bech32</b> utility conforms to:
+<ul class="Bl-bullet">
+  <li class="It-bullet">The Bech32 standard: P. Wuille, G. Maxwell,
+      &#x201C;Base32 address format for native v0&#x2013;16 witness
+      outputs&#x201D;, 2016-03-20, Bitcoin
+      <a class="Lk" title="Lk" href="https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki">BIP
+      173</a>.</li>
+  <li class="It-bullet">S. Josefsson, &#x201C;The Base16, Base32, and Base64
+      Data Encodings&#x201D;, 2006-10,
+      <a class="Lk" title="Lk" href="https://tools.ietf.org/html/rfc4648">RFC
+      4648</a>. (For transcoding RFC standard Base32 input data and .onion
+      domains.)</li>
+  <li class="It-bullet">J. Appelbaum, A. Muffett, &#x201C;The
+      &#x2018;.onion&#x2019; Special-Use Domain Name&#x201D;, 2015-10,
+      <a class="Lk" title="Lk" href="https://tools.ietf.org/html/rfc7686">RFC
+      7686</a>.</li>
+</ul>
+<div class="Pp"></div>
+The term &#x201C;<b class="Sy" title="Sy">Bravo Charlie Address</b>&#x201D; and
+  the motto &#x201C;<b class="Sy" title="Sy">Bravo Charlie One means
+  money</b>&#x201D; are from a
+  <a class="Lk" title="Lk" href="https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2017-December/015477.html">proposal
+  by this author</a>.
+<h1 class="Sh" title="Sh" id="AUTHORS"><a class="selflink" href="#AUTHORS">AUTHORS</a></h1>
+The <b class="Nm" title="Nm">bech32</b> utility was written by
+  <span class="An" title="An">nullius</span>
+  &lt;<a class="Mt" title="Mt" href="mailto:nullius@nym.zone">nullius@nym.zone</a>&gt;.
+<div class="Pp"></div>
+PGP: <code class="Li">0xC2E91CD74A4C57A105F6C21B5A00591B2F307E0C</code>
+<div class="Pp"></div>
+Tips:
+  <a class="Lk" title="Lk" href="bitcoin:3NULL3ZCUXr7RDLxXeLPDMZDZYxuaYkCnG">3NULL3ZCUXr7RDLxXeLPDMZDZYxuaYkCnG</a>,
+  <a class="Lk" title="Lk" href="bitcoin:bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h">bc1qcash96s5jqppzsp8hy8swkggf7f6agex98an7h</a>.
+<div class="Pp"></div>
+The internal Bech32 encoding and decoding is done by the open-source
+  <a class="Lk" title="Lk" href="https://github.com/sipa/bech32/tree/master/ref/c">Bech32
+  reference code</a> written by Pieter Wuille (sipa) (no affiliation with this
+  author).
+<h1 class="Sh" title="Sh" id="BUGS"><a class="selflink" href="#BUGS">BUGS</a></h1>
+This code started as a quickly-made utility for personal use, and kept growing
+  as such things are wont to do. The user interface is reasonably logical, given
+  the tool's flexibility. However, the source code needs some substantial
+  refactoring.
+<div class="Pp"></div>
+This manpage could use more and better examples, plus some other general
+  editing.
+<div class="Pp"></div>
+Test cases are needed. Unfortunately, the Bech32 standard does not currently
+  provide full roundtrip test vectors for arbitrary Bech32 strings.
+<div class="Pp"></div>
+Special support is planned for a concept which this author calls
+  &#x201C;<b class="Sy" title="Sy">PGP Descriptors</b>&#x201D;. However, a spec
+  must be drawn before releasing such a thing into the wild.
+<h1 class="Sh" title="Sh" id="SECURITY_CONSIDERATIONS"><a class="selflink" href="#SECURITY_CONSIDERATIONS">SECURITY
+  CONSIDERATIONS</a></h1>
+This is an early release, which should be considered alpha-quality software. It
+  <b class="Sy" title="Sy">should not</b> be used on untrusted inputs, such as
+  anything blindly accepted by a webserver. High on the author's TODO list is to
+  beef up input validation. At this time, aside from a few simple checks, the
+  utility will happily pass the buck to the Bech32 reference functions.</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">December 31, 2017</td>
+    <td class="foot-os">Bitcoin</td>
+  </tr>
+</table>
+</body>
+</html>

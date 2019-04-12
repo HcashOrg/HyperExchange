@@ -1,0 +1,14 @@
+CFLAGS+=-O2 -std=c99
+
+LDADD=
+
+all: bech32
+
+include Makefile.inc
+
+bech32: $(OBJS)
+	cc -o $@ $(OBJS) $(LDADD)
+
+install:
+	install $(PROG) /usr/local/bin
+	install $(PROG).$(MANSEC) /usr/local/man/man1
