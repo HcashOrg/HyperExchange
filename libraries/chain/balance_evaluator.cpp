@@ -144,10 +144,10 @@ void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
 			{
 				auto citizen = lockbalance_obj.lockto_miner_account;
 				d.adjust_lock_balance(citizen, deposited_account_id, -asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id));
-				if (d.head_block_num() >= LOCKBALANCE_CORRECT)
-					d.modify(d.get_lockbalance_records(), [&](lockbalance_record_object& obj) {
+				d.modify(d.get_lockbalance_records(), [&](lockbalance_record_object& obj) {
 					obj.record_list[op.addr_to_deposit][lockbalance_obj.lock_asset_id] -= lockbalance_obj.lock_asset_amount;
 				});
+					
 			}
 			d.adjust_balance(op.addr_to_deposit, -balance);
 			d.adjust_balance(op.addr_to_deposit, op.claimed);
