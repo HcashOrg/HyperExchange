@@ -105,7 +105,27 @@ bool database::is_white(const address& addr, const int& op) const
 		return true;
 	return false;
 }
-
+map<account_id_type, vector<asset>> database::get_citizen_lockbalance_info(const miner_id_type& id) const
+{
+	map<account_id_type, vector<asset>> result;
+	const auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
+	auto range = index.equal_range(boost::make_tuple(id));
+	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
+		if (localbalance_obj.lockto_miner_account != id)
+			continue;
+		if (result.count(localbalance_obj.lock_balance_account) == 0)
+		{
+			vector<asset> temp;
+			temp.push_back(asset(localbalance_obj.lock_asset_amount, localbalance_obj.lock_asset_id));
+			result[localbalance_obj.lock_balance_account] = temp;
+		}
+		else
+		{
+			result[localbalance_obj.lock_balance_account].push_back(asset(localbalance_obj.lock_asset_amount, localbalance_obj.lock_asset_id));
+		}
+	}
+	return result;
+}
 
 void database::update_witness_random_seed(const SecretHashType& new_secret)
 {

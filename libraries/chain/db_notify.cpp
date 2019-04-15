@@ -38,7 +38,7 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.account_id );
    }
-
+   
    void operator()( const account_create_operation& op )
    {
       _impacted.insert( op.registrar );
@@ -86,6 +86,7 @@ struct get_impacted_account_visitor
       _impacted.insert( op.issue_to_account );
    }
    void operator()(const set_balance_operation& op) {}
+   void operator()(const correct_chain_data_operation& op) {}
    void operator()(const add_whiteOperation_list_operation& op) {}
    void operator()(const cancel_whiteOperation_list_operation& op) {}
    void operator()( const asset_reserve_operation& op ) {}
