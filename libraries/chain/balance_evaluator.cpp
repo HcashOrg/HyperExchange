@@ -24,6 +24,7 @@
 #include <graphene/chain/balance_evaluator.hpp>
 #include <graphene/chain/transfer_evaluator.hpp>
 #include <graphene/chain/committee_member_object.hpp>
+#include <graphene/chain/witness_object.hpp>
 namespace graphene { namespace chain {
 
 void_result balance_claim_evaluator::do_evaluate(const balance_claim_operation& op)
@@ -105,7 +106,7 @@ void_result set_balance_evaluator::do_evaluate(const set_balance_operation& op)
 		FC_ASSERT(iter != idx.end(),"${addr} should be registerd on the chain.",("addr",op.addr_to_deposit));
 		deposited_account_id = iter->get_id();
 		iter = idx.find(op.addr_from_claim);
-		FC_ASSERT(iter != idx.end(), "${addr} should be a senator.", ("addr", op.addr_to_deposit));
+		FC_ASSERT(iter != idx.end(), "${addr} should be a senator.", ("addr", op.addr_from_claim));
 		const auto& guards_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
 		auto senator_itr = guards_index.find(iter->get_id());
 		FC_ASSERT(senator_itr != guards_index.end() && senator_itr->senator_type == PERMANENT,"need to be permanent senator.");
@@ -143,9 +144,14 @@ void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
 			{
 				auto citizen = lockbalance_obj.lockto_miner_account;
 				d.adjust_lock_balance(citizen, deposited_account_id, -asset(lockbalance_obj.lock_asset_amount, lockbalance_obj.lock_asset_id));
+				d.modify(d.get_lockbalance_records(), [&](lockbalance_record_object& obj) {
+					obj.record_list[op.addr_to_deposit][lockbalance_obj.lock_asset_id] -= lockbalance_obj.lock_asset_amount;
+				});
+					
 			}
 			d.adjust_balance(op.addr_to_deposit, -balance);
 			d.adjust_balance(op.addr_to_deposit, op.claimed);
+			
 		}
 		else
 		{
@@ -156,5 +162,82 @@ void_result set_balance_evaluator::do_apply(const set_balance_operation& op)
 		});
 	}FC_CAPTURE_AND_RETHROW((op))
 }
+
+
+void_result correct_chain_data_evaluator::do_evaluate(const correct_chain_data_operation& op)
+{
+	try {
+		const database& d = db();
+		const auto& idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto iter = idx.find(op.payer);
+		FC_ASSERT(iter != idx.end(), "${addr} should be registerd on the chain.", ("addr", op.payer));
+		const auto& guards_index = d.get_index_type<guard_member_index>().indices().get<by_account>();
+		const auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+		auto senator_itr = guards_index.find(iter->get_id());
+		FC_ASSERT(senator_itr != guards_index.end() && senator_itr->senator_type == PERMANENT, "need to be permanent senator.");
+
+		for (const auto& addr : op.correctors)
+		{
+			iter = idx.find(addr);
+			FC_ASSERT(iter != idx.end(), "${addr} should be registerd on the chain.", ("addr", addr));
+			FC_ASSERT(citizen_idx.find(iter->get_id()) != citizen_idx.end(),"${addr} should be a citizen",("addr",addr));
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((op))
+}
+void_result correct_chain_data_evaluator::do_apply(const correct_chain_data_operation& op)
+{
+	try {
+		database& d = db();
+		std::map<miner_id_type, map<string,asset>> citizens;
+		const auto& citizen_idx = d.get_index_type<miner_index>();
+		const auto& citizen_itrs = citizen_idx.indices().get<by_account>();
+		if (op.correctors.size() == 0)
+		{
+			//const auto& citizen_idx = d.get_index_type<miner_index>();
+			citizen_idx.inspect_all_objects([&](const object& obj) {
+				const miner_object& c = static_cast<const miner_object&>(obj);
+				citizens[c.id] = c.lockbalance_total;
+			});
+
+		}
+		else
+		{
+			const auto& idx = d.get_index_type<account_index>().indices().get<by_address>();
+			for (const auto& addr : op.correctors)
+			{
+				auto iter = idx.find(addr);
+				const auto citizen_itr = citizen_itrs.find(iter->get_id());
+				citizens[citizen_itr->id] = citizen_itr->lockbalance_total;
+			}
+		}
+		for (const auto& ctzen : citizens)
+		{
+			std::map<string, asset> citizen_locks;
+			const auto& vec_locks = d.get_citizen_lockbalance_info(ctzen.first);
+			for (const auto& lock : vec_locks)
+			{
+				for (const auto& t : lock.second)
+				{
+					const auto& asset_obj = d.get(t.asset_id);
+					if (citizen_locks.count(asset_obj.symbol))
+					{
+						citizen_locks[asset_obj.symbol] += t;
+					}
+					else
+						citizen_locks[asset_obj.symbol] = t;
+				}
+			}
+			if (citizen_locks != ctzen.second)
+			{
+				d.modify(d.get(ctzen.first), [&](miner_object& obj) {
+					obj.lockbalance_total = citizen_locks;
+				});
+			}
+		}
+
+	}FC_CAPTURE_AND_RETHROW((op))
+}
+
 
 } } // namespace graphene::chain

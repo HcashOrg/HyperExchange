@@ -3398,6 +3398,24 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((proposer)(addr)(ops)(expiration_time)(broadcast))
    }
 
+   full_transaction correct_chain_data(const string& payer, vector<address> addresses, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   correct_chain_data_operation op;
+		   auto acc = get_account(payer);
+		   op.payer = acc.addr;
+		   op.correctors = addresses;
+
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((payer)(addresses)(broadcast))
+   }
+
    full_transaction set_balance_for_addr(const string& account, const address& addr, const asset& balance, bool broadcast/* = false */)
    {
 	   try {
@@ -8384,6 +8402,10 @@ full_transaction wallet_api::set_balance_for_addr(const string& account, const a
 	return my->set_balance_for_addr(account ,addr, balance ,broadcast);
 }
 
+full_transaction wallet_api::correct_chain_data(const string& payer, vector<address> addresses, bool broadcast/* =true */)
+{
+	return my->correct_chain_data(payer,addresses,broadcast);
+}
 
 map<string, guard_member_id_type> wallet_api::list_all_senators(const string& lowerbound, uint32_t limit)
 {

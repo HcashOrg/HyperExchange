@@ -32,18 +32,22 @@ namespace graphene{
 					d.adjust_balance(o.lock_balance_addr, asset(-o.lock_asset_amount,o.lock_asset_id));
 					d.adjust_lock_balance(o.lockto_miner_account, o.lock_balance_account,asset(o.lock_asset_amount,o.lock_asset_id));
 					//optional<miner_object> itr = d.get(o.lockto_miner_account);
-					d.modify(d.get(o.lockto_miner_account), [o, asset_type](miner_object& b) {
-						auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
-						if (map_lockbalance_total != b.lockbalance_total.end())	{
-							map_lockbalance_total->second += asset(o.lock_asset_amount, o.lock_asset_id);
-						}
-						else {
-							b.lockbalance_total[asset_type.symbol] = asset(o.lock_asset_amount, o.lock_asset_id);
-						}
-					});
+					if (d.head_block_num() < LOCKBALANCE_CORRECT)
+					{
+						d.modify(d.get(o.lockto_miner_account), [o, asset_type](miner_object& b) {
+							auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
+							if (map_lockbalance_total != b.lockbalance_total.end()) {
+								map_lockbalance_total->second += asset(o.lock_asset_amount, o.lock_asset_id);
+							}
+							else {
+								b.lockbalance_total[asset_type.symbol] = asset(o.lock_asset_amount, o.lock_asset_id);
+							}
+						});
+					}
 					d.modify(d.get_lockbalance_records(), [o](lockbalance_record_object& obj) {
 						obj.record_list[o.lock_balance_addr][o.lock_asset_id] += o.lock_asset_amount;
 					});
+					
 				}
 				else {
 					//TODO : ADD Handle Contact lock balance
@@ -78,13 +82,15 @@ namespace graphene{
 				d.adjust_balance(o.foreclose_addr, asset(o.foreclose_asset_amount,o.foreclose_asset_id));
 
 				//optional<miner_object> itr = d.get(o.foreclose_miner_account);
-				d.modify(d.get(o.foreclose_miner_account), [o, asset_type](miner_object& b) {
+				if (d.head_block_num() < LOCKBALANCE_CORRECT)
+					d.modify(d.get(o.foreclose_miner_account), [o, asset_type](miner_object& b) {
 					auto map_lockbalance_total = b.lockbalance_total.find(asset_type.symbol);
 					if (map_lockbalance_total != b.lockbalance_total.end()) {
-						map_lockbalance_total->second -= asset(o.foreclose_asset_amount,o.foreclose_asset_id);
+						map_lockbalance_total->second -= asset(o.foreclose_asset_amount, o.foreclose_asset_id);
 					}
-					
+
 				});
+				
 				d.modify(d.get_lockbalance_records(), [o](lockbalance_record_object& obj) {
 					obj.record_list[o.foreclose_addr][o.foreclose_asset_id] -= o.foreclose_asset_amount;
 				});

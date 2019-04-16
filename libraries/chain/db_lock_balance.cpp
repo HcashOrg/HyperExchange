@@ -104,6 +104,20 @@ namespace graphene {
 					}
 
 				}
+				if (head_block_num() >= LOCKBALANCE_CORRECT)
+				{ 
+					const auto& asset_obj = get(delta.asset_id);
+					modify(get(miner_account), [&](miner_object& b) {
+						auto map_lockbalance_total = b.lockbalance_total.find(asset_obj.symbol);
+						if (map_lockbalance_total != b.lockbalance_total.end()) {
+							map_lockbalance_total->second += delta;
+						}
+						else {
+							b.lockbalance_total[asset_obj.symbol] = delta;
+						}
+					});
+				}
+				
 			}FC_CAPTURE_AND_RETHROW((miner_account)(lock_account)(delta))
 		}
 	}
