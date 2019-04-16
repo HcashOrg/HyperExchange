@@ -733,9 +733,9 @@ void database::_apply_block( const signed_block& next_block )
       ++_current_trx_in_block;
 	  //store_transactions(signed_transaction(trx));
    }
-   if(next_block_num == 1901662) {
-	printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
-   }
+ //  if(next_block_num == 1901662) {
+	//printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
+ //  }
    FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
@@ -908,9 +908,9 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    unique_ptr<op_evaluator>& eval = _operation_evaluators[ u_which ];
    if( !eval )
       assert( "No registered evaluator for this operation" && false );
-   auto op_id = push_applied_operation( op );
+  // auto op_id = push_applied_operation( op );
    auto result = eval->evaluate( eval_state, op, true );
-   set_applied_operation_result( op_id, result );
+  // set_applied_operation_result( op_id, result );
    eval_state.op_num++;
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }

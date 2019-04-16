@@ -491,7 +491,7 @@ namespace graphene {
 				}
 				// printf("changes size: %d bytes\n", changes_size);
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
-				dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
+				//dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
 
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);

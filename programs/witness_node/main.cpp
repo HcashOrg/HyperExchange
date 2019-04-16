@@ -25,7 +25,6 @@
 
 #include <graphene/witness/witness.hpp>
 #include <graphene/account_history/account_history_plugin.hpp>
-#include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
 #include <fc/exception/exception.hpp>
