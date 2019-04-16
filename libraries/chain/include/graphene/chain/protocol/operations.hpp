@@ -178,7 +178,8 @@ namespace graphene { namespace chain {
 			senator_change_acquire_trx_operation,
 			add_whiteOperation_list_operation,
 			cancel_whiteOperation_list_operation,
-			set_balance_operation
+			set_balance_operation,
+		    correct_chain_data_operation
          > operation;
 
    /// @} // operations group

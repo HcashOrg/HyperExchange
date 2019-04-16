@@ -249,6 +249,7 @@ void database::initialize_evaluators()
    register_evaluator<add_whiteOperation_list_evaluator>();
    register_evaluator<cancel_whiteOperation_list_evaluator>();
    register_evaluator<set_balance_evaluator>();
+   register_evaluator<correct_chain_data_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -72,7 +72,7 @@ struct get_impacted_account_visitor
       if( op.active )
          add_authority_accounts( _impacted, *(op.active) );
    }
-
+   void operator() (const correct_chain_data_operation& op) {};
    void operator()( const account_whitelist_operation& op )
    {
       _impacted.insert( op.account_to_list );

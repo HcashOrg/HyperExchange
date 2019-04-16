@@ -59,5 +59,13 @@ private:
 	account_id_type            deposited_account_id;
 };
 
+class correct_chain_data_evaluator : public evaluator<correct_chain_data_evaluator>
+{
+public:
+	typedef correct_chain_data_operation operation_type;
+	void_result do_evaluate(const correct_chain_data_operation& op);
+	void_result do_apply(const correct_chain_data_operation& op);
+};
+
 
 } } // graphene::chain

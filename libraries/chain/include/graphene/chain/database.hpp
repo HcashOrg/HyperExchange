@@ -469,6 +469,7 @@ namespace graphene { namespace chain {
          void globally_settle_asset( const asset_object& bitasset, const price& settle_price );
          void cancel_order(const force_settlement_object& order, bool create_virtual_op = true);
          void cancel_order(const limit_order_object& order, bool create_virtual_op = true);
+		 map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
          
          /**
           * @brief Process a new limit order through the markets
