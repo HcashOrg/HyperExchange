@@ -55,6 +55,13 @@ namespace graphene {
 			return set_contract_storage(contract_address, storage_name, value);
 		}
 
+		void abstract_native_contract::transfer_to_address(const address& from_contract_address, const address& to_address, const std::string& asset_symbol, const uint64_t amount) {
+			auto a = _evaluate->asset_from_string(asset_symbol, std::to_string(amount));
+			_evaluate->invoke_contract_result = _contract_invoke_result;
+			_evaluate->transfer_to_address(from_contract_address, a, to_address);
+			_contract_invoke_result = _evaluate->invoke_contract_result;
+		}
+
 		StorageDataType abstract_native_contract::get_contract_storage(const address& contract_address, const std::string& storage_name) const
 		{
 			if (_contract_invoke_result.storage_changes.find(contract_address.operator fc::string()) == _contract_invoke_result.storage_changes.end())
