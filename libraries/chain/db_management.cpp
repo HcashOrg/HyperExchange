@@ -263,9 +263,9 @@ void database::close()
    }
 
 
-   //if( _block_id_to_block.is_open() )
+   if( _block_id_to_block.is_open() )
       _block_id_to_block.close();
-   _undo_db.reset();
+   //_undo_db.reset();
    _fork_db.reset();
 }
 

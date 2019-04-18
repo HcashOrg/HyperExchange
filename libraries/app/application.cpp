@@ -374,8 +374,8 @@ namespace detail {
 	  }
       void startup()
       { try {
-         //bool clean = !fc::exists(_data_dir / "blockchain/dblock");
-         //fc::create_directories(_data_dir / "blockchain/dblock");
+         bool clean = !fc::exists(_data_dir / "blockchain/dblock");
+         fc::create_directories(_data_dir / "blockchain/dblock");
 		 if (_options->count("crosschain-ip"))
 		 {
 			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
@@ -563,11 +563,11 @@ namespace detail {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
             }
-			/*else if( !clean )
-			{
-			   replay = true;
-			   replay_reason = "unclean shutdown detected";
-			}*/
+            else if( !clean )
+            {
+               replay = true;
+               replay_reason = "unclean shutdown detected";
+            }
             else if( !fc::exists( _data_dir / "db_version" ) )
             {
                replay = true;
@@ -614,26 +614,13 @@ namespace detail {
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
-			try {
-				fc::remove_all(_data_dir / "db_version");
-				_chain_db->reindex(_data_dir / "blockchain", initial_state());
-				const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
-				std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
-				std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
-				db_version.write(version_string.c_str(), version_string.size());
-				db_version.close();
-			}
-			catch (const fc::exception& e)
-			{
-				ilog("Caught exception ${e} in open(),remove all blockchain dir and start again.", ("e", e.to_detail_string()));
-				//_chain_db->wipe(_data_dir / "blockchain", false);
-				_chain_db->close();
-				//fc::remove_all(_data_dir / "blockchain");
-				fc::remove_all(_data_dir / "blockchain_previous");
-				//_chain_db->initialize_indexes();
-				//_chain_db->initialize_evaluators();
-				//_chain_db->open(_data_dir / "blockchain", initial_state);
-			}
+			fc::remove_all(_data_dir / "db_version");
+			_chain_db->reindex(_data_dir / "blockchain", initial_state());
+			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
+			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
+			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
+			db_version.write(version_string.c_str(), version_string.size());
+			db_version.close();
          }
 
          if( _options->count("force-validate") )
