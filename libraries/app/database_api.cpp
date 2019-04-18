@@ -3279,10 +3279,15 @@ std::map<std::string, share_type> database_api_impl::get_bonus_balances(const ad
 }
 
 std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
-	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>();
-	auto pay_back_iter = payback_db.find(pay_back_owner);
-	FC_ASSERT(pay_back_iter != payback_db.end(),"pay back owner doesnt exist");
-	return pay_back_iter->owner_balance;
+	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(pay_back_owner);
+	std::map<string, asset> results;
+	FC_ASSERT(payback_db.first != payback_db.second, "pay back owner doesnt exist");
+	for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
+		const auto& miner_obj = _db.get(payback_address_iter.miner_id);
+		const auto& miner_acc = _db.get(miner_obj.miner_account);
+		results[miner_acc.name] = payback_address_iter.one_owner_balance;
+	}
+	return results;
 }
 vector<optional<multisig_address_object>> database_api_impl::get_multi_account_guard(const string & multi_address, const string& symbol)const {
 	vector<optional<multisig_address_object>> result;
