@@ -8,7 +8,7 @@ namespace graphene {
 			std::map<string, asset> temp_payback_balance;
 			try {
 				const database& d = db();
-				auto& payback_db = d.get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(o.pay_back_owner);
+				auto payback_db = d.get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(o.pay_back_owner);
 				FC_ASSERT(payback_db.first != payback_db.second, "This address doesnt own pay back balace!");
 
 				
@@ -62,7 +62,7 @@ namespace graphene {
 					FC_ASSERT(p_back.second.amount >= min_payback_balance, "${request} should exceed the ${min_payback_balance}",("request",p_back.second.amount)("min_payback_balance", min_payback_balance));
 				}
 				return void_result();
-			}FC_CAPTURE_AND_RETHROW((o,temp_payback_balance))
+			}FC_CAPTURE_AND_RETHROW((o))
 			
 		}
 		void_result pay_back_evaluator::do_apply(const pay_back_operation& o) {

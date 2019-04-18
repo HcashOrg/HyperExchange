@@ -34,7 +34,7 @@ namespace graphene {
 		std::map<string,asset> database::get_pay_back_balacne(address payback_owner,std::string symbol_type)const {
 			try {
 				std::map<string,asset> results;
-				auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(payback_owner);
+				auto payback_db = get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(payback_owner);
 
 				FC_ASSERT(payback_db.first != payback_db.second);
 				for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
