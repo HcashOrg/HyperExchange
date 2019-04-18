@@ -120,33 +120,33 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    auto end = fc::time_point::now();
    ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
 
-   //chk
-   auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>();
-   uint64_t objc = 0;
-   uint64_t zero_count = 0;
-   uint64_t bc_count = 0;
-   uint64_t almc = 0;
-   for (auto it = payback_db.begin(); it != payback_db.end(); it++)
-   {
-	   objc++;
-	   auto& obj = (*it);
-	   bool all_em = false;
-	   for (auto& ait : obj.owner_balance)
-	   {
-		   bc_count++;
-		   if (ait.second.amount == 0)
-		   {
-			   zero_count++;
-		   }
-		   else
-		   {
-			   all_em = false;
-		   }
-	   }
-	   if (all_em)
-		   almc++;
-   }
-   std::cout << "all object:" << objc << "\nEmpty obj:" << almc << "\nbalance_count:" << bc_count << "\nzero:" << zero_count << std::endl;
+   ////chk
+   //auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>();
+   //uint64_t objc = 0;
+   //uint64_t zero_count = 0;
+   //uint64_t bc_count = 0;
+   //uint64_t almc = 0;
+   //for (auto it = payback_db.begin(); it != payback_db.end(); it++)
+   //{
+	  // objc++;
+	  // auto& obj = (*it);
+	  // bool all_em = false;
+	  // for (auto& ait : obj.owner_balance)
+	  // {
+		 //  bc_count++;
+		 //  if (ait.second.amount == 0)
+		 //  {
+			//   zero_count++;
+		 //  }
+		 //  else
+		 //  {
+			//   all_em = false;
+		 //  }
+	  // }
+	  // if (all_em)
+		 //  almc++;
+   //}
+   //std::cout << "all object:" << objc << "\nEmpty obj:" << almc << "\nbalance_count:" << bc_count << "\nzero:" << zero_count << std::endl;
    //
 } FC_CAPTURE_AND_RETHROW( (data_dir) ) }
 

@@ -224,11 +224,11 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		auto all_guard_infos = get_guard_members();
 		for (int i = 0; i < committee_count - 1; i++) {
 			auto committe_obj = get(all_guard_infos.at(i).guard_member_account);
-			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), miner_acc.name);
+			adjust_pay_back_balance(committe_obj.addr, asset(end_value, asset_id_type(0)), miner_id);
 			committee_pay += end_value;
 		}
 		auto committe_obj = get(all_guard_infos.at(committee_count-1).guard_member_account);
-		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)),miner_acc.name);
+		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)), miner_id);
 		
 		uint64_t develop_team_paid = current_block_reward.value *(HX_DEVELOP_TEAM_PAY_TATIO) / 100;
 		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),miner_acc.name);
@@ -261,7 +261,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
@@ -277,17 +277,17 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 						continue;
 					}
 					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)),miner_acc.name);
+					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
 				}
 			}
 			FC_ASSERT(cal_cur_pledge <= all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and  all_pledge is ${all_pledge}", ("cal_cur_pledge",cal_cur_pledge.str())("all_pledge", all_pledge.str()));
-			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)),miner_acc.name);
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid - all_pledge_paid, asset_id_type(0)), miner_id);
 		}
 		else
 		{
 			auto miner_account_obj = get(miner_obj.miner_account);
 			auto all_paid = current_block_reward.value *(GRAPHENE_ALL_MINER_PAY_RATIO) / 100 + trxfee.amount.value;
-			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)),miner_acc.name);
+			adjust_pay_back_balance(miner_account_obj.addr, asset(all_paid, asset_id_type(0)), miner_id);
 		}
 		auto supply_added = current_block_reward;
 		modify(get(asset_id_type()).dynamic_asset_data_id(*this), [supply_added](asset_dynamic_data_object& d) {
