@@ -164,6 +164,7 @@ namespace graphene { namespace chain {
 	   contract_history_object_type,
 	   eth_multi_account_trx_object_type,
 	   vote_object_type,
+	   vote_result_object_type,
       OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
    };
 
@@ -234,6 +235,7 @@ namespace graphene { namespace chain {
    class eth_multi_account_trx_object;
    class total_fees_object;
    class vote_object;
+   class vote_result_object;
    typedef object_id< protocol_ids, account_object_type,            account_object>               account_id_type;
    typedef object_id< protocol_ids, asset_object_type,              asset_object>                 asset_id_type;
    typedef object_id< protocol_ids, force_settlement_object_type,   force_settlement_object>      force_settlement_id_type;
@@ -267,6 +269,7 @@ namespace graphene { namespace chain {
    typedef object_id<protocol_ids, contract_history_object_type, contract_history_object> contract_history_object_id_type;
    typedef object_id<protocol_ids, eth_multi_account_trx_object_type, eth_multi_account_trx_object> eth_multi_account_id_type;
    typedef object_id<protocol_ids, vote_object_type, vote_object> vote_object_id_type;
+   typedef object_id<protocol_ids, vote_result_object_type, vote_result_object> vote_result_object_id_type;
    // implementation types
    class global_property_object;
    class dynamic_global_property_object;

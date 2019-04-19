@@ -65,11 +65,18 @@ public:
 	string               title;
 	std::map<int, string>      options;
 	std::map<int, fc::uint128_t>      result;
-	flat_set<address>     approved_key_approvals;
-	flat_set<address>     disapproved_key_approvals;
 	bool                  finished = false;
 };
-	
+
+class vote_result_object :public abstract_object<vote_result_object>
+{
+public:
+	static const uint8_t space_id = protocol_ids;
+	static const uint8_t type_id = vote_result_object_type;
+	vote_object_id_type vote_id;
+	address voter;
+	int index;
+};
 
 struct by_expiration;
 struct by_pledge;
@@ -87,10 +94,35 @@ typedef boost::multi_index_container<
 > referendum_multi_index_container;
 typedef generic_index<referendum_object, referendum_multi_index_container> referendum_index;
 
+typedef boost::multi_index_container<
+	vote_object,
+	indexed_by<
+	ordered_unique< tag< by_id >, member< object, object_id_type, &object::id > >,
+	ordered_non_unique< tag< by_expiration >, member< vote_object, time_point_sec, &vote_object::expiration_time > >
+	>  > vote_object_multi_index_container;
+typedef generic_index<vote_object, vote_object_multi_index_container> vote_index;
+
+struct by_vote;
+typedef boost::multi_index_container<
+	vote_result_object,
+	indexed_by<
+	ordered_unique< tag< by_id >, member< object, object_id_type, &object::id > >,
+	ordered_unique< tag< by_vote >, composite_key<vote_result_object, 
+	                    member<vote_result_object,vote_object_id_type, &vote_result_object::vote_id >,
+	                    member<vote_result_object,address, &vote_result_object::voter>
+	>
+	>  
+	> >vote_result_multi_index_container;
+typedef generic_index<vote_result_object, vote_result_multi_index_container> vote_result_index;
+
+
+
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object),(proposer)
                     (expiration_time)(review_period_time)(proposed_transaction)(pledge)(citizen_pledge)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(finished))
 
 FC_REFLECT_DERIVED(graphene::chain::vote_object, (graphene::chain::object), (voter)
-	(expiration_time)(title)(options)(result)(approved_key_approvals)(disapproved_key_approvals)(finished))
+	(expiration_time)(title)(options)(result)(finished))
+FC_REFLECT_DERIVED(graphene::chain::vote_result_object, (graphene::chain::object), (voter)
+	(index))
