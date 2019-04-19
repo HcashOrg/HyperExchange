@@ -64,7 +64,7 @@ public:
 	time_point_sec       expiration_time;
 	string               title;
 	std::map<int, string>      options;
-	std::map<int, share_type>      result;
+	std::map<int, fc::uint128_t>      result;
 	flat_set<address>     approved_key_approvals;
 	flat_set<address>     disapproved_key_approvals;
 	bool                  finished = false;
