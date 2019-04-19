@@ -796,7 +796,6 @@ namespace graphene {
             invoke_contract_result.invoker = o.caller_addr;
             FC_ASSERT(d.has_contract(o.contract_id));
             const auto &contract = d.get_contract(o.contract_id);
-            deposit_to_contract(o.contract_id, o.amount);
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
@@ -811,6 +810,9 @@ namespace graphene {
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
+			if (o.amount.amount > 0) {
+				native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
+			}
 					if (native_contract->has_api("on_deposit_asset"))
 					{
                         gas_count = o.invoke_cost;
@@ -844,6 +846,7 @@ namespace graphene {
                 }
                 else
                 {
+			deposit_to_contract(o.contract_id, o.amount);
 					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
 					{
 
@@ -1125,6 +1128,72 @@ namespace graphene {
                 get_db().add_contract_event_notify(trx_id, obj.contract_address, obj.event_name, obj.event_arg, obj.block_num,obj.op_num);
             }
         }
+
+	void contract_common_evaluate::transfer_to_address_only_update_invoke_result(const address& contract, const asset & amount, const address & to)
+	{
+		related_contract.insert(contract);
+            //withdraw
+			share_type to_withdraw = amount.amount;
+            std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
+            auto balance = invoke_contract_result.contract_balances.find(index);
+            if (balance == invoke_contract_result.contract_balances.end())
+            {
+                auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_balance(index.first, index.second).amount));
+                if (res.second)
+                {
+                    balance = res.first;
+                }
+            }
+            share_type all_balance = balance->second;
+            auto deposit = invoke_contract_result.deposit_contract.find(index);
+            if (deposit != invoke_contract_result.deposit_contract.end())
+            {
+                all_balance += deposit->second;
+            }
+            auto withdraw = invoke_contract_result.contract_withdraw.find(index);
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
+            {
+                all_balance -= withdraw->second;
+            }
+            if (all_balance<to_withdraw)
+                FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_insufficient_balance, ("insufficient contract balance"));
+
+            if (deposit != invoke_contract_result.deposit_contract.end())
+            {
+                if (deposit->second >= to_withdraw)
+                {
+                    deposit->second -= to_withdraw;
+                    to_withdraw = 0;
+                }
+                else
+                {
+                    to_withdraw -= deposit->second;
+                    deposit->second = 0;
+                }
+            }
+            if (withdraw != invoke_contract_result.contract_withdraw.end())
+            {
+                withdraw->second += to_withdraw;
+            }
+            else
+            {
+				invoke_contract_result.contract_withdraw.insert(std::make_pair(index, to_withdraw));
+            }
+
+            //deposit
+            std::pair<address, asset_id_type> deposit_index;
+            deposit_index.first = to;
+			deposit_index.second = amount.asset_id;
+			share_type transfer_fee_amount = 0;
+
+            share_type transfer_amount = amount.amount- transfer_fee_amount;
+
+            if (invoke_contract_result.deposit_to_address.find(deposit_index) != invoke_contract_result.deposit_to_address.end())
+				invoke_contract_result.deposit_to_address[deposit_index] += transfer_amount;
+            else
+				invoke_contract_result.deposit_to_address[deposit_index] = transfer_amount;
+	}
+
          void contract_common_evaluate::transfer_to_address(const address & contract, const asset & amount, const address & to)
         {
 

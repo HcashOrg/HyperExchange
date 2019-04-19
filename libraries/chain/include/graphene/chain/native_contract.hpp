@@ -59,7 +59,7 @@ namespace graphene {
 				return 100; // now all native api call requires 100 gas count TODO: add storage gas
 			}
 
-			virtual void transfer_to_address(const address& from_contract_address, const address& to_address, const std::string& asset_symbol, const uint64_t amount);
+ 			virtual void transfer_to_address(const address& from_contract_address, const address& to_address, const std::string& asset_symbol, const uint64_t amount);
 
 			void set_contract_storage(const address& contract_address, const std::string& storage_name, const StorageDataType& value);
 			void set_contract_storage(const address& contract_address, const std::string& storage_name, cbor::CborObjectP cbor_value);

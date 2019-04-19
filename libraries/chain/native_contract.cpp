@@ -56,9 +56,10 @@ namespace graphene {
 		}
 
 		void abstract_native_contract::transfer_to_address(const address& from_contract_address, const address& to_address, const std::string& asset_symbol, const uint64_t amount) {
-			auto a = _evaluate->asset_from_string(asset_symbol, std::to_string(amount));
+			auto a = _evaluate->asset_from_string(asset_symbol, "0");
+			a.amount.value = amount;
 			_evaluate->invoke_contract_result = _contract_invoke_result;
-			_evaluate->transfer_to_address(from_contract_address, a, to_address);
+			_evaluate->transfer_to_address_only_update_invoke_result(from_contract_address, a, to_address);
 			_contract_invoke_result = _evaluate->invoke_contract_result;
 		}
 
