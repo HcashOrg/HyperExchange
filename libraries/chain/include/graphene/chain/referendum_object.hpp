@@ -55,6 +55,22 @@ class referendum_object : public abstract_object<referendum_object>
 	  
 };
 
+class vote_object :public abstract_object<vote_object>
+{
+public:
+	static const uint8_t space_id = protocol_ids;
+	static const uint8_t type_id = vote_object_type;
+	account_id_type      voter;
+	time_point_sec       expiration_time;
+	string               title;
+	std::map<int, string>      options;
+	std::map<int, share_type>      result;
+	flat_set<address>     approved_key_approvals;
+	flat_set<address>     disapproved_key_approvals;
+	bool                  finished = false;
+};
+	
+
 struct by_expiration;
 struct by_pledge;
 typedef boost::multi_index_container<
@@ -75,3 +91,6 @@ typedef generic_index<referendum_object, referendum_multi_index_container> refer
 
 FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object),(proposer)
                     (expiration_time)(review_period_time)(proposed_transaction)(pledge)(citizen_pledge)(approved_key_approvals)(disapproved_key_approvals)(required_account_approvals)(finished))
+
+FC_REFLECT_DERIVED(graphene::chain::vote_object, (graphene::chain::object), (voter)
+	(expiration_time)(title)(options)(result)(approved_key_approvals)(disapproved_key_approvals)(finished))
