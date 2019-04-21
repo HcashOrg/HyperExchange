@@ -9,6 +9,7 @@
 #include <fc/io/json.hpp>
 #include <jsondiff/jsondiff.h>
 #include <native_contract/native_token_contract.h>
+#include <native_contract/native_exchange_contract.h>
 
 namespace graphene {
 	namespace chain {
@@ -137,6 +138,14 @@ namespace graphene {
 			_contract_invoke_result.invoker = caller_address();
 		}
 
+		bool abstract_native_contract::is_valid_address(const std::string& addr) {
+			return address::is_valid(addr);
+		}
+
+		uint32_t abstract_native_contract::get_chain_now() const {
+			return _evaluate->get_db().head_block_time().sec_since_epoch();
+		}
+
 		void abstract_native_contract::emit_event(const address& contract_address, const string& event_name, const string& event_arg)
 		{
 			FC_ASSERT(!event_name.empty());
@@ -155,6 +164,7 @@ namespace graphene {
 		{
 			std::vector<std::string> native_contract_keys = {
 				uvm::contract::token_native_contract::native_contract_key()
+				// , uvm::contract::exchange_native_contract::native_contract_key() 
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
@@ -166,6 +176,10 @@ namespace graphene {
 			{
 				return std::make_shared<uvm::contract::token_native_contract>(store);
 			}
+			//else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			//{
+			//	return std::make_shared<uvm::contract::exchange_native_contract>(store);
+			//}
 			else
 			{
 				return nullptr;

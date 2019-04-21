@@ -121,6 +121,10 @@ namespace graphene {
 			virtual void set_api_result(const std::string& api_result) {
 				_contract_invoke_result.api_result = api_result;
 			}
+
+			virtual bool is_valid_address(const std::string& addr);
+			virtual uint32_t get_chain_now() const;
+
 		};
 
 		// native合约的storage的json dumps和遍历都必须是确定性的

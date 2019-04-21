@@ -281,6 +281,9 @@ namespace graphene {
             total_fee = o.fee.amount;
             gas_count = o.invoke_cost;
 			try {
+				if (!global_uvm_chain_api)
+                                                global_uvm_chain_api = new UvmChainApi();
+
 				if (contract.type_of_contract==contract_type::native_contract)
 				{
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
@@ -308,8 +311,6 @@ namespace graphene {
 				else
 				{
 					FC_ASSERT(d.has_contract(o.contract_id,o.contract_api));
-					if (!global_uvm_chain_api)
-						global_uvm_chain_api = new UvmChainApi();
 
 					::blockchain::contract_engine::ContractEngineBuilder builder;
 					auto engine = builder.build();
@@ -813,8 +814,8 @@ namespace graphene {
 			if (o.amount.amount > 0) {
 				native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
 			}
-					if (native_contract->has_api("on_deposit_asset"))
-					{
+		   if (native_contract->has_api("on_deposit_asset"))
+		   {
                         gas_count = o.invoke_cost;
                         transfer_contract_operation::transfer_param param;
                         
@@ -824,7 +825,7 @@ namespace graphene {
 			
 			native_contract->invoke("on_deposit_asset", fc::json::to_string(param));
                         auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
-
+			this->invoke_contract_result = invoke_result;
 			gas_used_counts = native_contract->gas_count_for_api_invoke("on_deposit_asset");
                         auto storage_gas = invoke_result.count_storage_gas();
                         auto event_gas = invoke_result.count_event_gas();
@@ -834,15 +835,14 @@ namespace graphene {
                         gas_used_counts += event_gas;
                         gas_count = gas_used_counts;
                         FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
-						auto register_fee = native_contract_register_fee;
+			auto register_fee = native_contract_register_fee;
 
                         //gas_fees.push_back(asset(required, asset_id_type(0)));
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
-					}
-					else
-					{
-						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
-					}
+		    }
+		    else {
+			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
+		    }
                 }
                 else
                 {
