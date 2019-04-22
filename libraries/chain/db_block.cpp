@@ -318,7 +318,30 @@ void database::set_gas_limit_in_block(const share_type & new_limit)
 {
 	_gas_limit_in_in_block = new_limit;
 }
+void database::clear_votes()
+{
+	try {
+		const auto& vote_idx = get_index_type<vote_index>().indices().get<by_state>();
+		auto range = vote_idx.equal_range(false);
+		const auto& vote_result_idx = get_index_type<vote_result_index>().indices().get<by_vote>();
+		vector<vote_object> votes;
+		std::for_each(range.first, range.second, [&votes](const vote_object& b) { votes.push_back(b); });
+		for (const auto& v : votes)
+		{
+			if (head_block_time() < v.expiration_time)
+				continue;
+			auto id = v.id;
+			auto range_result = vote_result_idx.equal_range(boost::make_tuple(id));
+			vector<vote_result_object> vote_results;
+			std::for_each(range_result.first, range_result.second, [&vote_results](const vote_result_object& b) {
+				vote_results.push_back(b);
+			});
 
+		}
+
+
+	}FC_LOG_AND_RETHROW();
+}
 processed_transaction database::push_referendum(const referendum_object& referendum)
 {
 	try {

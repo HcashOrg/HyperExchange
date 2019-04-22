@@ -93,12 +93,13 @@ typedef boost::multi_index_container<
    >
 > referendum_multi_index_container;
 typedef generic_index<referendum_object, referendum_multi_index_container> referendum_index;
-
+struct by_state;
 typedef boost::multi_index_container<
 	vote_object,
 	indexed_by<
 	ordered_unique< tag< by_id >, member< object, object_id_type, &object::id > >,
-	ordered_non_unique< tag< by_expiration >, member< vote_object, time_point_sec, &vote_object::expiration_time > >
+	ordered_non_unique< tag< by_expiration >, member< vote_object, time_point_sec, &vote_object::expiration_time > >,
+	ordered_non_unique< tag< by_state >, member< vote_object, bool, &vote_object::finished > >
 	>  > vote_object_multi_index_container;
 typedef generic_index<vote_object, vote_object_multi_index_container> vote_index;
 

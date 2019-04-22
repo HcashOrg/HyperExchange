@@ -149,6 +149,7 @@ namespace graphene { namespace chain {
 		 void determine_referendum_detailes();
          processed_transaction push_proposal( const proposal_object& proposal );
 		 processed_transaction push_referendum(const referendum_object& referendum);
+		 void clear_votes();
          signed_block generate_block(
             const fc::time_point_sec when,
             miner_id_type miner_id,

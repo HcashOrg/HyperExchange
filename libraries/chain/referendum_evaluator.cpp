@@ -194,4 +194,69 @@ void referendum_accelerate_pledge_evaluator::pay_fee()
 	});
 }
 
+void_result vote_create_evaluator::do_evaluate(const vote_create_operation& o)
+{
+	try {
+		const database& d = db();
+		const auto& global_parameters = d.get_global_properties().parameters;
+		//proposer has to be a formal guard
+		auto  proposer = o.fee_payer();
+		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto iter_acc = acct_idx.find(proposer);
+		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a citizen.");
+		auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+		auto iter = citizen_idx.find(iter_acc->get_id());
+		FC_ASSERT(iter != citizen_idx.end(), "vote proposer must be a citizen.");
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
+{
+	try {
+		database& d = db();
+		auto  proposer = o.fee_payer();
+		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto iter_acc = acct_idx.find(proposer);
+		const auto& ref_obj = d.create<vote_object>([&](vote_object& obj) {
+			obj.expiration_time = d.head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
+			obj.title = vector<char>(o.title.begin(),o.title.end());
+			int nindex = 0;
+			for (const auto& opt : o.options)
+			{
+				obj.options[nindex++] = vector<char>(opt.begin(), opt.end());
+			}
+			obj.voter = iter_acc->get_id();
+		});
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result vote_update_evaluator::do_evaluate(const vote_update_operation& o)
+{
+	try {
+		const database& d = db();
+		const auto vote_obj = &o.vote(d);
+		auto  proposer = o.fee_payer();
+		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto iter_acc = acct_idx.find(proposer);
+		FC_ASSERT(iter_acc != acct_idx.end(), "vote proposer must be a citizen.");
+		auto& citizen_idx = d.get_index_type<miner_index>().indices().get<by_account>();
+		auto iter = citizen_idx.find(iter_acc->get_id());
+		FC_ASSERT(iter != citizen_idx.end(), "vote proposer must be a citizen.");
+		FC_ASSERT(vote_obj->finished == false, "the vote has been finished.");
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result vote_update_evaluator::do_apply(const vote_update_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& ref_obj = d.create<vote_result_object>([&](vote_result_object& obj) {
+			obj.voter = o.fee_payer();
+			obj.vote_id = o.vote;
+			obj.index = o.index;
+		});
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 } } // graphene::chain
