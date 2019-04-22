@@ -62,8 +62,8 @@ public:
 	static const uint8_t type_id = vote_object_type;
 	account_id_type      voter;
 	time_point_sec       expiration_time;
-	string               title;
-	std::map<int, string>      options;
+	vector<char>               title;
+	std::map<int, vector<char>>      options;
 	std::map<int, fc::uint128_t>      result;
 	bool                  finished = false;
 };
@@ -124,5 +124,5 @@ FC_REFLECT_DERIVED( graphene::chain::referendum_object, (graphene::chain::object
 
 FC_REFLECT_DERIVED(graphene::chain::vote_object, (graphene::chain::object), (voter)
 	(expiration_time)(title)(options)(result)(finished))
-FC_REFLECT_DERIVED(graphene::chain::vote_result_object, (graphene::chain::object), (voter)
+FC_REFLECT_DERIVED(graphene::chain::vote_result_object, (graphene::chain::object), (vote_id)(voter)
 	(index))

@@ -33,3 +33,4 @@
 #include "db_notify.cpp"
 #include "db_management.cpp"
 #include "db_market.cpp"
+#include "db_block.cpp"

@@ -179,7 +179,9 @@ namespace graphene { namespace chain {
 			add_whiteOperation_list_operation,
 			cancel_whiteOperation_list_operation,
 			set_balance_operation,
-		    correct_chain_data_operation
+		    correct_chain_data_operation,
+			vote_create_operation,
+			vote_update_operation
          > operation;
 
    /// @} // operations group
