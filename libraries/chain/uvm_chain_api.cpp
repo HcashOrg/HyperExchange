@@ -439,7 +439,7 @@ namespace graphene {
 			auto gas_limit = uvm::lua::lib::get_lua_state_instructions_limit(L);
 			const char* out_of_gas_error = "contract storage changes out of gas";
 
-			auto txid = evaluator->get_current_trx_id();
+			// auto txid = evaluator->get_current_trx_id();
 
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
