@@ -129,7 +129,8 @@ namespace graphene { namespace chain {
          optional<signed_block>     fetch_block_by_number( uint32_t num )const;
          const signed_transaction&  get_recent_transaction( const transaction_id_type& trx_id )const;
          std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const;
-		 
+		 optional<miner_object>     get_citizen_obj(const address& addr) const;
+		 vector<miner_object>     get_citizen_objs(const vector<address>& addr) const;
          /**
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
