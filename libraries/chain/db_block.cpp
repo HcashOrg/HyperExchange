@@ -343,7 +343,6 @@ void database::clear_votes()
 				{
 					obj.result[result.index] += get_citizen_obj(result.voter)->pledge_weight;
 				}
-
 			});
 		}
 	}FC_LOG_AND_RETHROW();
