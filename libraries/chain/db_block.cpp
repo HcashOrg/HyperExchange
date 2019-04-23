@@ -336,10 +336,16 @@ void database::clear_votes()
 			std::for_each(range_result.first, range_result.second, [&vote_results](const vote_result_object& b) {
 				vote_results.push_back(b);
 			});
+			const auto& v_obj = object_database::get<vote_object>(id);
+			modify(v_obj, [this,&vote_results](vote_object& obj) {
+				obj.finished = true;
+				for (const auto& result : vote_results)
+				{
+					obj.result[result.index] += get_citizen_obj(result.voter)->pledge_weight;
+				}
 
+			});
 		}
-
-
 	}FC_LOG_AND_RETHROW();
 }
 processed_transaction database::push_referendum(const referendum_object& referendum)

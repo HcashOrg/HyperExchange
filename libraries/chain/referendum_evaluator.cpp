@@ -231,6 +231,15 @@ void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void vote_create_evaluator::pay_fee()
+{
+	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
+		d.current_supply -= this->core_fees_paid.amount;
+	});
+}
+
 void_result vote_update_evaluator::do_evaluate(const vote_update_operation& o)
 {
 	try {

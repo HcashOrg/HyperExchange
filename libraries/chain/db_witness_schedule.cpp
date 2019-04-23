@@ -441,9 +441,41 @@ void database::update_miner_schedule()
 		}
 		
 		
-	}	FC_CAPTURE_AND_RETHROW((block_num))
+	}	FC_CAPTURE_AND_RETHROW((block_num))	
+}
+optional<miner_object> database::get_citizen_obj(const address& addr) const
+{
+	try {
+		optional<miner_object> result;
+		const auto& acc_idx = get_index_type<account_index>().indices().get<by_address>();
+		const auto acc_iter = acc_idx.find(addr);
+		FC_ASSERT(acc_iter != acc_idx.end());
 
-		
+		const auto& citizen_idx = get_index_type<miner_index>().indices().get<by_account>();
+		const auto& citizen_iter = citizen_idx.find(acc_iter->get_id());
+		FC_ASSERT(citizen_iter != citizen_idx.end());
+		result = *citizen_iter;
+		return result;
+	}FC_CAPTURE_AND_RETHROW((addr))
+
 }
 
+vector<miner_object> database::get_citizen_objs(const vector<address>& addrs) const
+{
+	try {
+		vector<miner_object> result;
+		const auto& acc_idx = get_index_type<account_index>().indices().get<by_address>();
+		const auto& citizen_idx = get_index_type<miner_index>().indices().get<by_account>();
+		for (const auto& addr : addrs)
+		{
+			const auto acc_iter = acc_idx.find(addr);
+			FC_ASSERT(acc_iter != acc_idx.end());
+			const auto& citizen_iter = citizen_idx.find(acc_iter->get_id());
+			FC_ASSERT(citizen_iter != citizen_idx.end());
+			result.push_back(*citizen_iter);
+		}
+		return result;
+	}FC_CAPTURE_AND_RETHROW((addrs))
+
+}
 } }
