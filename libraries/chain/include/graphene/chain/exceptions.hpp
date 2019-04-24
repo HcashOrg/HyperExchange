@@ -92,7 +92,8 @@ namespace graphene { namespace chain {
 
    FC_DECLARE_DERIVED_EXCEPTION( pop_empty_chain,                   graphene::chain::undo_database_exception, 3070001, "there are no blocks to pop" )
    FC_DECLARE_DERIVED_EXCEPTION( deserialize_undo_database_failed,  graphene::chain::undo_database_exception, 3070002, "deserialize undo database failed")
-   FC_DECLARE_DERIVED_EXCEPTION( deserialize_fork_database_failed,  graphene::chain::undo_database_exception, 3070003, "deserialize fork database failed")
+   FC_DECLARE_DERIVED_EXCEPTION(deserialize_fork_database_failed,   graphene::chain::undo_database_exception, 3070003, "deserialize fork database failed")
+   FC_DECLARE_DERIVED_EXCEPTION(deserialize_object_failed,          graphene::chain::undo_database_exception, 3070004, "deserialize object failed")
 
    GRAPHENE_DECLARE_OP_BASE_EXCEPTIONS( transfer );
    GRAPHENE_DECLARE_OP_EVALUATE_EXCEPTION( from_account_not_whitelisted, transfer, 1, "owner mismatch" )

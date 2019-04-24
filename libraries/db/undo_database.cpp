@@ -687,6 +687,7 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
     }
 	std::cout << (fc::json::to_string(var) + " fail to deserialized ").c_str() << std::endl;
 	exit(0);
+	FC_CAPTURE_AND_THROW(deserialize_object_failed, (var));
     return NULL;
 }
 inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant& var)
@@ -752,6 +753,8 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
     }
 	std::cout<<(fc::json::to_string(var) + " fail to deserialized ").c_str()<<std::endl;
 	exit(0);
+	FC_CAPTURE_AND_THROW(deserialize_object_failed,(var));
+	return NULL;
 }
 std::unique_ptr<object> db::serializable_obj::to_object() const
 {
