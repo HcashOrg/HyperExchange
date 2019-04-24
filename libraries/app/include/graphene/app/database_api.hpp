@@ -407,7 +407,7 @@ class database_api
        *  @return all open margin positions for a given account id.
        */
       vector<call_order_object> get_margin_positions( const account_id_type& id )const;
-
+	  vector<vote_result_object> get_vote_result_objs(const vote_object_id_type& id) const;
       /**
        * @brief Request notification when the active orders in the market between two assets changes
        * @param callback Callback method which is called when the market changes
@@ -865,4 +865,5 @@ FC_API(graphene::app::database_api,
 	(get_whiteOperation)
 	(get_midware_eps)
 	(get_contract_storage)
+	(get_vote_result_objs)
 );

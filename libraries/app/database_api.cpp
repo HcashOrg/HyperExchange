@@ -164,6 +164,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<optional<crosschain_trx_object>> get_crosschain_transaction_by_blocknum(const string& symbol,const string& account,const uint32_t& start_block_num,const uint32_t& stop_block_num,const transaction_stata& crosschain_trx_state)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
+	  vector<vote_result_object> get_vote_result_objs(const vote_object_id_type& id) const;
 	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<coldhot_transfer_object>> get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const;
@@ -3135,6 +3136,11 @@ vector<optional<multisig_address_object>> database_api::get_multi_account_guard(
 std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
 	return my->get_pay_back_balances(pay_back_owner);
 }
+
+vector<vote_result_object> database_api::get_vote_result_objs(const vote_object_id_type& id) const {
+	return my->get_vote_result_objs(id);
+}
+
 std::map<std::string, share_type> database_api::get_bonus_balances(const address & owner)const {
 	return my->get_bonus_balances(owner);
 }
@@ -3276,6 +3282,18 @@ vector<optional<crosschain_trx_object>> database_api_impl::get_crosschain_transa
 
 std::map<std::string, share_type> database_api_impl::get_bonus_balances(const address& owner) const {
 	return _db.get_bonus_balance(owner);
+}
+
+vector<vote_result_object> database_api_impl::get_vote_result_objs(const vote_object_id_type& id) const {
+	vector<vote_result_object> result;
+	const auto& vote_result_idx = _db.get_index_type<vote_result_index>().indices().get<by_vote>();
+	auto range = vote_result_idx.equal_range(boost::make_tuple(id));
+
+	for (const auto iter : boost::make_iterator_range(range.first, range.second))
+	{
+		result.push_back(iter);
+	}
+	return result;
 }
 
 std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
