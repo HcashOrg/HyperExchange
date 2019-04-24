@@ -461,7 +461,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						trx.sign(pk, db.get_chain_id());
 						db.push_transaction(trx);
-						continue;
+						break;
 					}
 				}catch(...){
 					continue;

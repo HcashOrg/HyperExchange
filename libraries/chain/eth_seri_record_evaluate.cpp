@@ -28,17 +28,46 @@ namespace graphene {
 				vector<pair<account_id_type, pair<string, string>>> eth_guard_account_ids;
 				const auto& addr = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 				auto addr_range = addr.equal_range(boost::make_tuple(o.chain_type));
-				std::for_each(
-					addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot,&eth_guard_account_ids](const multisig_address_object& obj) {
-					if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
+				const auto& guard_ids = db().get_guard_members();
+				auto func = [&guard_ids](account_id_type id)->bool {
+					for (const auto guard : guard_ids)
 					{
-						symbol_addrs_cold.push_back(obj.new_pubkey_cold);
-						symbol_addrs_hot.push_back(obj.new_pubkey_hot);
-						auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
-						eth_guard_account_ids.push_back(account_pair);
+						if (guard.guard_member_account == id)
+							return true;
 					}
+					return false;
+				};
+				if (db().head_block_num() > ETH_SER_MULTI_SOL_CREATE)
+				{
+					std::for_each(
+						addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot,&func, &eth_guard_account_ids](const multisig_address_object& obj) {
+
+						if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
+						{
+							if (func(obj.guard_account)) {
+								symbol_addrs_cold.push_back(obj.new_pubkey_cold);
+								symbol_addrs_hot.push_back(obj.new_pubkey_hot);
+								auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
+								eth_guard_account_ids.push_back(account_pair);
+							}
+						}
+					}
+					);
 				}
-				);
+				else {
+					std::for_each(
+						addr_range.first, addr_range.second, [&symbol_addrs_cold, &symbol_addrs_hot, &eth_guard_account_ids](const multisig_address_object& obj) {
+						if (obj.multisig_account_pair_object_id == multisig_account_pair_id_type())
+						{
+							symbol_addrs_cold.push_back(obj.new_pubkey_cold);
+							symbol_addrs_hot.push_back(obj.new_pubkey_hot);
+							auto account_pair = make_pair(obj.guard_account, make_pair(obj.new_pubkey_hot, obj.new_pubkey_cold));
+							eth_guard_account_ids.push_back(account_pair);
+						}
+					}
+					);
+				}
+				
 				const auto hot_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_hot_multi>().equal_range(o.multi_hot_address);
 				const auto cold_range = db().get_index_type<eth_multi_account_trx_index>().indices().get<by_eth_cold_multi>().equal_range(o.multi_cold_address);
 				FC_ASSERT(hot_range.first == hot_range.second);
@@ -84,7 +113,7 @@ namespace graphene {
 				FC_ASSERT(o.guard_sign_hot_address == temp_hot);
 				FC_ASSERT(o.guard_sign_cold_address == temp_cold);
 
-				const auto& guard_ids = db().get_global_properties().active_committee_members;
+				//const auto& guard_ids = db().get_global_properties().active_committee_members;
 				FC_ASSERT(symbol_addrs_cold.size() == guard_ids.size() && symbol_addrs_hot.size() == guard_ids.size()&& eth_guard_account_ids.size() == guard_ids.size());
 				std::map<std::string, std::string> multi_addr_cold;
 				std::map<std::string, std::string> multi_addr_hot;
