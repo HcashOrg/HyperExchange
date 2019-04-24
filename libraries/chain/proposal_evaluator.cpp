@@ -370,6 +370,13 @@ void_result proposal_update_evaluator::do_apply(const proposal_update_operation&
    {
       // All required approvals are satisfied. Execute!
       _executed_proposal = true;
+	  std::cout << fc::variant(_proposal->id).as_string() << std::endl;
+	  if (fc::variant(_proposal->id).as_string() == std::string("1.10.137"))
+	  {
+		  db().remove(*_proposal);
+		  _proposal_failed = true;
+		  return void_result();
+	  }
       try {
          _processed_transaction = d.push_proposal(*_proposal);
       } catch(fc::exception& e) {
