@@ -62,8 +62,8 @@ public:
 	static const uint8_t type_id = vote_object_type;
 	account_id_type      voter;
 	time_point_sec       expiration_time;
-	vector<char>               title;
-	std::map<int, vector<char>>      options;
+	string               title;
+	std::map<int, string>      options;
 	std::map<int, fc::uint128_t>      result;
 	bool                  finished = false;
 };

@@ -220,11 +220,11 @@ void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
 		auto iter_acc = acct_idx.find(proposer);
 		const auto& ref_obj = d.create<vote_object>([&](vote_object& obj) {
 			obj.expiration_time = d.head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
-			obj.title = vector<char>(o.title.begin(),o.title.end());
+			obj.title = o.title;
 			int nindex = 0;
 			for (const auto& opt : o.options)
 			{
-				obj.options[nindex++] = vector<char>(opt.begin(), opt.end());
+				obj.options[nindex++] = opt;
 			}
 			obj.voter = iter_acc->get_id();
 		});

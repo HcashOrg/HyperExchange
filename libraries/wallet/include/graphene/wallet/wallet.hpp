@@ -2127,6 +2127,7 @@ class wallet_api
 	  fc::variant extra_imp(const fc::variant_object& param_list);
 	  void set_gas_limit_in_block(const share_type& new_limit);
 	  contract_storage_view get_contract_storage(const address& contract_address, const string& storage_name);
+	  vector<fc::variant> get_votes(const string& account) const;
 	  /*void testaaa1() {}
 	  void testaaa2() {}
 	  void testaaa3() {}
@@ -3364,10 +3365,7 @@ FC_API( graphene::wallet::wallet_api,
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
 		(cancel_eth_sign_transaction)
-		(dump_brain_key_usage_info)
 		(wallet_create_account_with_brain_key)
-		(derive_wif_key)
-		(set_brain_key)
 		(get_pending_transactions)
 		(update_asset_private_with_keys)
 		(add_whiteOperation)
@@ -3381,4 +3379,5 @@ FC_API( graphene::wallet::wallet_api,
 		(signrawmultransaction)
 		(combinemultisigtransaction)
 		(correct_chain_data)
+		(get_votes)
       )

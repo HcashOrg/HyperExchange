@@ -1461,6 +1461,39 @@ public:
       _builder_transactions.erase(handle);
    }
 
+   vector<fc::variant> get_votes(const string& account)  
+   {
+	   vector<fc::variant> result;
+	   try {
+		   get_miner(account);
+		   const auto& acc = get_account(account);
+		   vector<vote_object> votes = _remote_db->get_votes_by_addr(acc.addr);
+		   for (const auto& vote : votes)
+		   {
+			   map<int, vector<address>> temp_voters;
+			   map<int, fc::uint128_t> temp;
+			   vector<vote_result_object> vote_results = _remote_db->get_vote_result_objs(vote.id);
+			   fc::mutable_variant_object ret;
+			   ret["id"] = vote.id;
+			   ret["title"] = vote.title;
+			   ret["options"] = vote.options;
+			   for (const auto& vote_result : vote_results)
+			   {
+				   auto& acc = get_account_by_addr(vote_result.voter);
+				   auto& citi = get_miner(acc->name);
+				   temp_voters[vote_result.index].push_back(vote_result.voter);
+				   temp[vote_result.index] += citi.pledge_weight;
+			   }
+			   ret["result"] = temp_voters;
+			   ret["plege"] = temp;
+			   result.push_back(ret);
+		   }
+		   return result;
+
+	   }FC_LOG_AND_RETHROW();
+   }
+
+
    full_transaction register_account(string name, bool broadcast)
    {
 	   try {
@@ -7970,6 +8003,10 @@ variant wallet_api::info()
 variant_object wallet_api::about() const
 {
     return my->about();
+}
+vector<fc::variant> wallet_api::get_votes(const string& account) const
+{
+	return my->get_votes(account);
 }
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
