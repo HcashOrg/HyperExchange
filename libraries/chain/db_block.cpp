@@ -797,7 +797,7 @@ void database::_apply_block( const signed_block& next_block )
       apply_debug_updates();
    // notify observers that the block has been applied
    applied_block( next_block ); //emit
-   
+   clear_votes();
    _applied_ops.clear();
 
    notify_changed_objects();

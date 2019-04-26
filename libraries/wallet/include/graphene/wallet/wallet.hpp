@@ -2084,6 +2084,8 @@ class wallet_api
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  full_transaction add_whiteOperation(const string& proposer,const address& addr, const fc::flat_set<int>& ops,int64_t expiration_time, bool broadcast = true);
 	  full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast = true);
+	  full_transaction create_vote(const string& proposer,const string& title, const vector<string>& options , int64_t expiration,bool broadcast=true);
+	  full_transaction cast_vote(const string& caster, const vote_object_id_type& id ,const int index, bool broadcast= true);
 	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
@@ -3380,4 +3382,6 @@ FC_API( graphene::wallet::wallet_api,
 		(combinemultisigtransaction)
 		(correct_chain_data)
 		(get_votes)
+		(create_vote)
+		(cast_vote)
       )

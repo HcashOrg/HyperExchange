@@ -1385,6 +1385,46 @@ public:
       return trx = sign_transaction(trx, broadcast);
    }
 
+   full_transaction cast_vote(const string& caster, const vote_object_id_type& id, const int index, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   get_miner(caster);
+		   const auto& acc = get_account(caster);
+		   vote_update_operation op;
+		   op.fee_paying_account = acc.addr;
+		   op.vote = id;
+		   op.index = index;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((caster)(id)(index)(broadcast))
+   }
+
+   full_transaction create_vote(const string& proposer, const string& title, const vector<string>& options, int64_t expiration, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   get_miner(proposer);
+		   const auto& acc = get_account(proposer);
+		   vote_create_operation op;
+		   op.fee_paying_account = acc.addr;
+		   op.title = title;
+		   op.expiration = expiration;
+		   op.options = options;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((proposer)(title)(options)(expiration)(broadcast))
+   }
+
    full_transaction propose_builder_transaction2(
       transaction_handle_type handle,
       string account_name_or_id,
@@ -1479,8 +1519,8 @@ public:
 			   ret["options"] = vote.options;
 			   for (const auto& vote_result : vote_results)
 			   {
-				   auto& acc = get_account_by_addr(vote_result.voter);
-				   auto& citi = get_miner(acc->name);
+				   const auto& acc = get_account_by_addr(vote_result.voter);
+				   const auto& citi = get_miner(acc->name);
 				   temp_voters[vote_result.index].push_back(vote_result.voter);
 				   temp[vote_result.index] += citi.pledge_weight;
 			   }
@@ -8331,6 +8371,16 @@ full_transaction wallet_api::publish_asset_feed(string publishing_account,
 {
    return my->publish_asset_feed(publishing_account, symbol, feed, broadcast);
 }
+
+full_transaction wallet_api::create_vote(const string& proposer,const string& title, const vector<string>& options ,int64_t expiration, bool broadcast/* =true */)
+{
+	return my->create_vote(proposer,title,options,expiration,broadcast);
+}
+full_transaction wallet_api::cast_vote(const string& caster, const vote_object_id_type& id, const int index, bool broadcast/* = true */)
+{
+	return my->cast_vote(caster,id,index,broadcast);
+}
+
 full_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
 	string symbol,
 	price_feed feed,
