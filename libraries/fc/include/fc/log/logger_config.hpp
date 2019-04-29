@@ -34,7 +34,7 @@ namespace fc {
 
    struct logging_config {
       static logging_config default_config();
-	  static logging_config default_config(const fc::path& config_path);
+	  static logging_config default_config(const fc::path& config_path,bool log2p2=true);
       std::vector<string>          includes;
       std::vector<appender_config> appenders;
       std::vector<logger_config>   loggers;

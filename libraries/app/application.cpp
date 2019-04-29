@@ -1182,6 +1182,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
 		 ("testnet", "Start for testnet")
+		 ("nop2plog","Do not log p2p info")
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
