@@ -165,6 +165,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
 	  vector<vote_result_object> get_vote_result_objs(const vote_object_id_type& id) const;
+	  vector<vote_object> get_votes_by_addr(const address& addr) const;
 	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<coldhot_transfer_object>> get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const;
@@ -3140,6 +3141,11 @@ std::map<std::string, asset> database_api::get_pay_back_balances(const address &
 vector<vote_result_object> database_api::get_vote_result_objs(const vote_object_id_type& id) const {
 	return my->get_vote_result_objs(id);
 }
+vector<vote_object> database_api::get_votes_by_addr(const address& addr)const
+{
+	return my->get_votes_by_addr(addr);
+}
+
 
 std::map<std::string, share_type> database_api::get_bonus_balances(const address & owner)const {
 	return my->get_bonus_balances(owner);
@@ -3293,6 +3299,18 @@ vector<vote_result_object> database_api_impl::get_vote_result_objs(const vote_ob
 	{
 		result.push_back(iter);
 	}
+	return result;
+}
+
+vector<vote_object> database_api_impl::get_votes_by_addr(const address& addr) const {
+	vector<vote_object> result;
+	const auto citizen_obj = _db.get_citizen_obj(addr);
+	FC_ASSERT(citizen_obj.valid());
+	const auto& vote_idx = _db.get_index_type<vote_index>().indices().get<by_state>();
+	const auto range = vote_idx.equal_range(false);
+	std::for_each(range.first, range.second, [&result](const vote_object& obj ) {
+		result.push_back(obj);
+	});
 	return result;
 }
 

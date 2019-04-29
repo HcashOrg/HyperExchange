@@ -2084,6 +2084,8 @@ class wallet_api
 	  full_transaction referendum_accelerate_pledge(const referendum_id_type referendum_id,const string& amount, bool broadcast = true);
 	  full_transaction add_whiteOperation(const string& proposer,const address& addr, const fc::flat_set<int>& ops,int64_t expiration_time, bool broadcast = true);
 	  full_transaction remove_whiteOperation(const string& proposer, const address& addr, int64_t expiration_time, bool broadcast = true);
+	  full_transaction create_vote(const string& proposer,const string& title, const vector<string>& options , int64_t expiration,bool broadcast=true);
+	  full_transaction cast_vote(const string& caster, const vote_object_id_type& id ,const int index, bool broadcast= true);
 	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
@@ -2127,6 +2129,7 @@ class wallet_api
 	  fc::variant extra_imp(const fc::variant_object& param_list);
 	  void set_gas_limit_in_block(const share_type& new_limit);
 	  contract_storage_view get_contract_storage(const address& contract_address, const string& storage_name);
+	  vector<fc::variant> get_votes(const string& account) const;
 	  /*void testaaa1() {}
 	  void testaaa2() {}
 	  void testaaa3() {}
@@ -3364,10 +3367,7 @@ FC_API( graphene::wallet::wallet_api,
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
 		(cancel_eth_sign_transaction)
-		(dump_brain_key_usage_info)
 		(wallet_create_account_with_brain_key)
-		(derive_wif_key)
-		(set_brain_key)
 		(get_pending_transactions)
 		(update_asset_private_with_keys)
 		(add_whiteOperation)
@@ -3381,4 +3381,7 @@ FC_API( graphene::wallet::wallet_api,
 		(signrawmultransaction)
 		(combinemultisigtransaction)
 		(correct_chain_data)
+		(get_votes)
+		(create_vote)
+		(cast_vote)
       )
