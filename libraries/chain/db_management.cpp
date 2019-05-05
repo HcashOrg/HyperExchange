@@ -190,14 +190,14 @@ void database::open(
 		  }
 		  catch (...)
 		  {
-			  FC_CAPTURE_AND_THROW(deserialize_fork_database_failed, (data_dir));
+			  FC_CAPTURE_AND_THROW(deserialize_undo_database_failed, (data_dir));
 		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
-}
+} 
 
 void database::clear()
 {
@@ -212,7 +212,7 @@ void database::close()
    clear_pending();
    // pop all of the blocks that we can given our undo history, this should
    // throw when there is no more undo history to pop
-   if( rewind_on_close)
+   if( rewind_on_close) 
    {
       try
       {
