@@ -137,6 +137,7 @@ namespace graphene { namespace chain {
 	   address            fee_paying_account;
 	   string             title;
 	   vector<string>     options;
+	   int64_t expiration;
 	   optional<guarantee_object_id_type> guarantee_id;
 	   extensions_type    extensions;
 
@@ -153,7 +154,7 @@ namespace graphene { namespace chain {
    struct vote_update_operation : public base_operation
    {
 	   struct fee_parameters_type {
-		   uint64_t fee = 100 * GRAPHENE_HXCHAIN_PRECISION;
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
 	   };
 	   asset              fee;
 	   address            fee_paying_account;
@@ -187,5 +188,5 @@ FC_REFLECT( graphene::chain::referendum_create_operation,(fee)(proposer)(fee_pay
 FC_REFLECT(graphene::chain::referendum_update_operation, (fee)(fee_paying_account)
 	(referendum)(key_approvals_to_add)(key_approvals_to_remove)(extensions))
 FC_REFLECT(graphene::chain::referendum_accelerate_pledge_operation,(fee)(fee_paying_account)(guarantee_id)(referendum_id))
-FC_REFLECT(graphene::chain::vote_create_operation, (fee)(fee_paying_account)(title)(options)(guarantee_id))
+FC_REFLECT(graphene::chain::vote_create_operation, (fee)(fee_paying_account)(title)(options)(expiration)(guarantee_id))
 FC_REFLECT(graphene::chain::vote_update_operation, (fee)(fee_paying_account)(vote)(index)(guarantee_id))

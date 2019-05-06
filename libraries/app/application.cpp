@@ -510,6 +510,7 @@ namespace detail {
                std::string egenesis_json;
 			   if (_options->count("testnet")) 
 			   {
+				   _chain_db->ontestnet = true;
 				   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
 				   FC_ASSERT(egenesis_json != "");
 				   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
@@ -611,7 +612,7 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-
+		 replay = true;
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
@@ -1183,6 +1184,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
 		 ("testnet", "Start for testnet")
+		 ("nop2plog","Do not log p2p info")
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")

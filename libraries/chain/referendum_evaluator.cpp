@@ -219,12 +219,12 @@ void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
 		auto& acct_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto iter_acc = acct_idx.find(proposer);
 		const auto& ref_obj = d.create<vote_object>([&](vote_object& obj) {
-			obj.expiration_time = d.head_block_time() + fc::seconds(HX_REFERENDUM_VOTING_PERIOD);
-			obj.title = vector<char>(o.title.begin(),o.title.end());
+			obj.expiration_time = d.head_block_time() + fc::seconds(o.expiration);
+			obj.title = o.title;
 			int nindex = 0;
 			for (const auto& opt : o.options)
 			{
-				obj.options[nindex++] = vector<char>(opt.begin(), opt.end());
+				obj.options[nindex++] = opt;
 			}
 			obj.voter = iter_acc->get_id();
 		});
@@ -235,8 +235,9 @@ void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
 void vote_create_evaluator::pay_fee()
 {
 	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
-	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
-		d.current_supply -= this->core_fees_paid.amount;
+	vote_create_evaluator::operation_type::fee_parameters_type fee_type;
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this,fee_type](asset_dynamic_data_object& d) {
+		d.current_supply -= fee_type.fee;
 	});
 }
 

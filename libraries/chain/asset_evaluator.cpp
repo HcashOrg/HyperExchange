@@ -527,9 +527,14 @@ void_result asset_real_create_evaluator::do_evaluate(const asset_real_create_ope
 void_result asset_real_create_evaluator::do_apply(const asset_real_create_operation& o)
 {
 	try {
+		share_type cur_sup = 0;
+		if (db().ontestnet)
+		{
+			cur_sup = o.max_supply / 2;
+		}
 		const asset_dynamic_data_object& dyn_asset =
 			db().create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-			a.current_supply = 0;
+			a.current_supply = cur_sup;
 			a.fee_pool = o.core_fee_paid; //op.calculate_fee(db().current_fee_schedule()).value / 2;
 			a.withdraw_limition = 10 * o.core_fee_paid;
 		});
@@ -547,6 +552,10 @@ void_result asset_real_create_evaluator::do_apply(const asset_real_create_operat
 			a.options.max_supply = o.max_supply * scaled_precision;
 			a.dynamic_asset_data_id = dyn_asset.id;
 		});
+		if (db().ontestnet)
+		{
+			db().adjust_balance(o.issuer_addr, asset(cur_sup,new_asset.id));
+		}
 		assert(new_asset.id == next_asset_id);
 	}FC_CAPTURE_AND_RETHROW((o))
 }
@@ -570,9 +579,14 @@ void_result asset_eth_create_evaluator::do_evaluate(const asset_eth_create_opera
 void_result asset_eth_create_evaluator::do_apply(const asset_eth_create_operation& o)
 {
 	try {
+		share_type cur_sup = 0;
+		if (db().ontestnet)
+		{
+			cur_sup = o.max_supply / 2;
+		}
 		const asset_dynamic_data_object& dyn_asset =
 			db().create<asset_dynamic_data_object>([&](asset_dynamic_data_object& a) {
-			a.current_supply = 0;
+			a.current_supply = cur_sup;
 			a.fee_pool = o.core_fee_paid; //op.calculate_fee(db().current_fee_schedule()).value / 2;
 			a.withdraw_limition = o.core_fee_paid;
 		});
@@ -591,6 +605,10 @@ void_result asset_eth_create_evaluator::do_apply(const asset_eth_create_operatio
 			a.dynamic_asset_data_id = dyn_asset.id;
 			a.options.description = o.erc_address + '|' + o.erc_real_precision;
 		});
+		if (db().ontestnet)
+		{
+			db().adjust_balance(o.issuer_addr, asset(cur_sup, new_asset.id));
+		}
 		assert(new_asset.id == next_asset_id);
 	}FC_CAPTURE_AND_RETHROW((o))
 }

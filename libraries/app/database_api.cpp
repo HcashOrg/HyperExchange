@@ -3311,6 +3311,7 @@ vector<vote_object> database_api_impl::get_votes_by_addr(const address& addr) co
 	std::for_each(range.first, range.second, [&result](const vote_object& obj ) {
 		result.push_back(obj);
 	});
+	return result;
 }
 
 std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
