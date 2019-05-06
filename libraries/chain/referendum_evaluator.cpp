@@ -235,8 +235,9 @@ void_result vote_create_evaluator::do_apply(const vote_create_operation& o)
 void vote_create_evaluator::pay_fee()
 {
 	FC_ASSERT(core_fees_paid.asset_id == asset_id_type());
-	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this](asset_dynamic_data_object& d) {
-		d.current_supply -= this->core_fees_paid.amount;
+	vote_create_evaluator::operation_type::fee_parameters_type fee_type;
+	db().modify(db().get(asset_id_type()).dynamic_asset_data_id(db()), [this,fee_type](asset_dynamic_data_object& d) {
+		d.current_supply -= fee_type.fee;
 	});
 }
 

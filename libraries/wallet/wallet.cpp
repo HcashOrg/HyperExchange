@@ -1515,6 +1515,7 @@ public:
 			   vector<vote_result_object> vote_results = _remote_db->get_vote_result_objs(vote.id);
 			   fc::mutable_variant_object ret;
 			   ret["id"] = vote.id;
+			   ret["expiration"] = vote.expiration_time;
 			   ret["title"] = vote.title;
 			   ret["options"] = vote.options;
 			   for (const auto& vote_result : vote_results)
