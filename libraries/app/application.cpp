@@ -509,6 +509,7 @@ namespace detail {
                std::string egenesis_json;
 			   if (_options->count("testnet")) 
 			   {
+				   _chain_db->ontestnet = true;
 				   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
 				   FC_ASSERT(egenesis_json != "");
 				   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
@@ -610,7 +611,7 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-
+		 replay = true;
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );

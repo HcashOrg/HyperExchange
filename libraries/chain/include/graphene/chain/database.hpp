@@ -644,6 +644,7 @@ namespace graphene { namespace chain {
 		 share_type						   _gas_limit_in_in_block = 2000000;
 		 share_type						   _current_gas_in_block= 0;
 	public:
+		bool ontestnet = false;
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
 		std::mutex                         db_lock;
