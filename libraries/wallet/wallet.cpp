@@ -2155,7 +2155,13 @@ public:
 				raw = trx["hex"].as_string();
 		   for (auto index=0;index < vins.size(); index++)
 		   {
-			   raw=prk_ptr->sign_trx(raw,index);
+			   if (symbol == "BCH"){
+				   std::string amount = vins[index]["amount"].as_string();
+				   raw = prk_ptr->sign_trx(raw+'|'+ amount, index);
+			   }
+			   else {
+				   raw = prk_ptr->sign_trx(raw, index);
+			   }
 		   }
 		   }
 		   

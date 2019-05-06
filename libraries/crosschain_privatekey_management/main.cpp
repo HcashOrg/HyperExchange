@@ -55,7 +55,15 @@ namespace graphene {
 int main(int argc, char** argv)
 {
 	using namespace graphene::privatekey_management;
-	
+	bch_privatekey bch_key;
+	pts_address_bch aa("bitcoincash:qp6cau6h37j0ycul3nm7esgwm4v62tuqpc2npc3rkc");
+	std::cout << aa.is_valid() << std::endl;
+	bch_key.import_private_key("KxoTU3PWKPtgMSpUpKnMHu8ksWmBTKWbTe3FbjMHrBuFqyVni7Pm");
+	auto signedtrx = bch_key.sign_trx("020000004e07afa3bd3cb5b2d69d1ef0344e37454523e3cce9a64827436d6088cb578fd93bb13029ce7b1f559ef5e747fcac439f1455a2ec7c5f09b72290795e7066504406bafa081332a41a051f564cde6ef09b10cd93d87ecc6fcac4c4a8f9db0e4159000000001976a9145c6d896e03ddfdf543f7ecd34c0b0cb75557878d88ac00e8764817000000ffffffff905f630979972173689df6147abb6437f8a54ffe7de033a0f605867084a1e6fc0000000041000000", 0);
+	//auto ba = bch_key.decoderawtransaction("0200000002c78061b9d603434512b0a8add815caef98cc9909ea69cb798dcb984d716cb0ff010000006b483045022100be0d52dac483168b9e6e8125f76dd23a329f6fbb66e4be4d44d3c69e15f38b4702201869380bd45b71e25687c5b26a23caed219cb8f21f39a81078186888b79b8fdc412103569f77c479a5a1f50e0a7f50a59370acdbb30c19dca165833b215cc7abc63111ffffffffa662e5b88c97b4917d1e9b52f555c2fa7b7a2ab95df39e0039bcd6f1f19bbc1c010000006a4730440220644ba7b688a5b9305dfc5cdc917dd80071ad3ddb32dbf2931fce61b8d8e1b21d0220178030b10347b02154576215eba9d5425f9a91c2c5f1b58d5205c3bfbdc94f5e412103569f77c479a5a1f50e0a7f50a59370acdbb30c19dca165833b215cc7abc63111ffffffff02ca691e00000000001976a914daa2a123c81be9e4c88162adfcbfefa1f05ae36388acb0f20200000000001976a914dafd12e028e3099be81045af640cdbfd2f7fb39688ac00000000");
+	std::cout << signedtrx << std::endl;
+	//auto signed_msg = bch_key.sign_message("hello");
+	//std::cout << signed_msg << std::endl;
 	
 // 	// test private key generation
 // 	btc_privatekey btc_priv;
@@ -135,6 +143,7 @@ int main(int argc, char** argv)
 	//{
 	//	std::cout << "same signature" << std::endl;
 	//}
+	/*
 	string password = "12345ssdlh";
 	vector<char> cipher_keys;
 	string hex_string = "f623ebae490f6e72508ff950c3d462f274ce915aafdebd8d5c75b281975b2830df7e1af4b570ce3b03ab630b22613e6c33bbcfcced5cddecf6577ed196e5d1bbd368fa0ea48a59d467589125f9a92657515e6dad0a0893f2e682bdaf6923e3414144f6166bc9988276ffbbaba7ff56359ee0e02942dc9fc17d9479b8b00a0db02a32f95054b263b1e5722c41bd3b4970";
@@ -288,7 +297,7 @@ int main(int argc, char** argv)
 //graphene::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 //std::cout << wif_pub_key.operator fc::string() << std::endl;
 //std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
-	getchar();
+	getchar();*/
 	return 0;
 }
 
