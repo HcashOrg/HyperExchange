@@ -3039,9 +3039,13 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 			cont = get_contract_object(contract_address_or_name);
 			contract_address = string(cont.contract_address);
 		}
-		auto& abi = cont.code.offline_abi;
-		if (abi.find(contract_api) == abi.end())
-			FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		if(cont.type_of_contract == contract_type::native_contract) {
+			// ignore check of api
+		} else {
+			auto& abi = cont.code.offline_abi;
+			if (abi.find(contract_api) == abi.end())
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		}
 
 		contract_invoke_op.gas_price = 0;
 		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
