@@ -153,6 +153,7 @@ namespace graphene {
             info.op_num = _evaluate->get_gen_eval()->get_trx_eval_state()->op_num;
             info.event_name = event_name;
             info.event_arg = event_arg;
+			info.contract_address = contract_address;
             //todo
 		    //info.caller_addr = caller_address->address_to_string();
             info.block_num = 1 + head_block_num();
@@ -164,7 +165,7 @@ namespace graphene {
 		{
 			std::vector<std::string> native_contract_keys = {
 				uvm::contract::token_native_contract::native_contract_key()
-				// , uvm::contract::exchange_native_contract::native_contract_key() 
+				, uvm::contract::exchange_native_contract::native_contract_key() 
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
@@ -176,10 +177,10 @@ namespace graphene {
 			{
 				return std::make_shared<uvm::contract::token_native_contract>(store);
 			}
-			//else if (key == uvm::contract::exchange_native_contract::native_contract_key())
-			//{
-			//	return std::make_shared<uvm::contract::exchange_native_contract>(store);
-			//}
+			else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			{
+				return std::make_shared<uvm::contract::exchange_native_contract>(store);
+			}
 			else
 			{
 				return nullptr;
