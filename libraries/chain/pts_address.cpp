@@ -30,6 +30,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <algorithm>
 #include <graphene/chain/cashaddr.h>
+const std::string bch_prefix = "bitcoincash";
 namespace graphene { namespace chain {
 
    pts_address::pts_address()
@@ -222,8 +223,8 @@ namespace graphene { namespace chain {
    }
    pts_address_bch::pts_address_bch(const std::string& bitcoincashstr)
    {
-	   auto decode_addr = cashaddr::Decode(bitcoincashstr, "bitcoincash");
-	   if (decode_addr.first == "" || decode_addr.first != "bitcoincash"){
+	   auto decode_addr = cashaddr::Decode(bitcoincashstr, bch_prefix);
+	   if (decode_addr.first == "" || decode_addr.first != bch_prefix){
 		   FC_THROW_EXCEPTION(invalid_pts_address, "invalid pts_address ${a}", ("a", bitcoincashstr));
 	   }
 	   cashaddr::data combined =  decode_addr.second;
@@ -252,9 +253,9 @@ namespace graphene { namespace chain {
 	   memcpy(temp, (char *)&rep, sizeof(rep));
 	   std::string addr_str_temp(temp, 20);
 	   auto packed_addr = PackAddrData(addr_str_temp, 0);
-	   auto prefix = cashaddr::ExpandPrefix("bitcoincash");
+	   auto prefix = cashaddr::ExpandPrefix(bch_prefix);
 	   //auto prefix_addr = cashaddr::Cat(prefix, addrdata);
-	   cashaddr::data checksum = cashaddr::CreateChecksum("bitcoincash", packed_addr);
+	   cashaddr::data checksum = cashaddr::CreateChecksum(bch_prefix, packed_addr);
 	   cashaddr::data combined = cashaddr::Cat(packed_addr, checksum);
 	   string addWithCheck(combined.begin(),combined.end());
 	   memcpy(addr.data, addWithCheck.data(),42);
@@ -278,9 +279,9 @@ namespace graphene { namespace chain {
 		   addr_type = 1;
 	   }
 	   auto packed_addr = PackAddrData(addr_str_temp, addr_type);
-	   auto prefix = cashaddr::ExpandPrefix("bitcoincash");
+	   auto prefix = cashaddr::ExpandPrefix(bch_prefix);
 	   //auto prefix_addr = cashaddr::Cat(prefix, addrdata);
-	   cashaddr::data checksum = cashaddr::CreateChecksum("bitcoincash", packed_addr);
+	   cashaddr::data checksum = cashaddr::CreateChecksum(bch_prefix, packed_addr);
 	   cashaddr::data combined = cashaddr::Cat(packed_addr, checksum);
 	   string addWithCheck(combined.begin(), combined.end());
 	   memcpy(addr.data, addWithCheck.data(), 42);
@@ -292,7 +293,7 @@ namespace graphene { namespace chain {
    bool pts_address_bch::is_valid()const
    {
 	   cashaddr::data values(addr.begin(), addr.end());
-	   std::string prefix("bitcoincash");
+	   std::string prefix(bch_prefix);
 	   return cashaddr::VerifyChecksum(prefix, values);
 	   /*
 	   auto check = fc::sha256::hash(addr.data, sizeof(fc::ripemd160) + 1);
@@ -302,7 +303,7 @@ namespace graphene { namespace chain {
 
    pts_address_bch::operator std::string()const
    {
-	   std::string prefix = "bitcoincash";
+	   std::string prefix = bch_prefix;
 	   std::string ret = prefix + ':';
 	   std::vector<unsigned char> combined(addr.begin(), addr.end());
 	   ret.reserve(ret.size() + combined.size());
