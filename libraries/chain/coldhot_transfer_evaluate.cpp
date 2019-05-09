@@ -108,7 +108,16 @@ namespace graphene {
 					return void_result();
 				auto coldhot_without_sign_tx_iter = coldhot_without_sign_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_without_sign_tx_iter == coldhot_without_sign_tx_dbs.end(), "coldhot trx without sign has been created");
-				
+				if (o.asset_symbol == "BCH") {
+					auto temp_trx = o.coldhot_trx_original_chain;
+					FC_ASSERT(temp_trx.contains("hex"));
+					FC_ASSERT(temp_trx.contains("trx"));
+					auto tx = temp_trx["trx"].get_object();
+					auto vins = tx["vin"].get_array();
+					for (int index = 0; index < vins.size(); index++) {
+						FC_ASSERT(vins[index].get_object().contains("amount"), "No amount in bch vin");
+					}
+				}
 				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 				if (!instance.contain_crosschain_handles(o.asset_symbol))
 					return void_result();
@@ -306,7 +315,23 @@ namespace graphene {
 				}
 				FC_ASSERT(index < senator_pubks.size());
 				auto multisig_account_obj = db().get(senator_pubks[index].multisig_account_pair_object_id);
-				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
+				if (o.asset_symbol == "BCH")
+				{
+					auto without_trx = coldhot_without_sign_tx_iter->current_trx;
+					FC_ASSERT(without_trx.operations.size() == 1);
+					auto without_sign_op = without_trx.operations[0].get<coldhot_transfer_without_sign_operation>();
+					auto source_trx = fc::json::to_string(without_sign_op.coldhot_trx_original_chain);
+					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot,
+						multisig_account_obj.redeemScript_hot,
+						o.coldhot_transfer_sign + "|" + source_trx)
+						|| hdl->validate_transaction(senator_pubks[index].new_pubkey_cold,
+							multisig_account_obj.redeemScript_cold,
+							o.coldhot_transfer_sign + "|" + source_trx));
+
+				}
+				else {
+					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
+				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			
@@ -551,7 +576,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
 				FC_ASSERT(source_trx != coldhot_db.end(), "source trx exist error");
 				if (trx_state->_trx == nullptr)
@@ -568,7 +593,7 @@ namespace graphene {
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 		}
-#define PASS_HX_BLOCK_NUM 220000
+#define PASS_HX_BLOCK_NUM 100
 		void_result coldhot_pass_combine_trx_evaluate::do_evaluate(const coldhot_pass_combine_trx_operation& o) {
 			try {
 				database & d = db();
@@ -635,7 +660,7 @@ namespace graphene {
 				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
 				FC_ASSERT(trx_history_iter != trx_history_db.end());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
-				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
+				FC_ASSERT(trx_history_iter->block_num + 20 < current_blockNum);
 				auto op = coldhot_iter->current_trx.operations[0];
 				FC_ASSERT(op.which() == operation::tag<eths_coldhot_guard_sign_final_operation>::value, "operation type error");
 				auto eths_guard_sign_final_op = op.get<eths_coldhot_guard_sign_final_operation>();

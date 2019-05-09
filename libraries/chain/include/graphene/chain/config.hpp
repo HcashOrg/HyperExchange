@@ -43,7 +43,7 @@
 #define GRAPHENE_MAX_SIG_CHECK_DEPTH 2
 #define GRAPHENE_MIN_PLEDGE_WEIGHT_LINE 50
 #define GRAPHENE_BONUS_DISTRIBUTE_LIMIT int64_t(1000000000ll)
-#define GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM  int64_t(100000ll)
+#define GRAPHENE_BONUS_DISTRIBUTE_BLOCK_NUM  int64_t(500ll)
 #define  GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD 2*3600
 /**
  * Don't allow the committee_members to publish a limit that would
@@ -170,8 +170,8 @@
 #define GRAPHENE_GUARD_PAY_RATIO							 30
 #define GRAPHENE_ALL_MINER_PAY_RATIO						 50
 #define HX_DEVELOP_TEAM_PAY_TATIO                            20
-#define HX_REFERENDUM_PACKING_PERIOD                         24*3600
-#define HX_REFERENDUM_VOTING_PERIOD                          7*24*3600
+#define HX_REFERENDUM_PACKING_PERIOD                         600
+#define HX_REFERENDUM_VOTING_PERIOD                          3600
 #define HX_CHECK_POINT                                       "001b77403468c26f49ebae2febd0dfb6ff0bd2ba"
 #define HX_CHECK_POINT_BLOCK                                 1800000
 /**

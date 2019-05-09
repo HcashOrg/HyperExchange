@@ -542,6 +542,7 @@ namespace graphene {
 							coldhot_op.asset_symbol,
 							coldhot_op.memo);
 					}
+					
 					trx_op.withdraw_account_count = withdraw_account_count;
 					trx_op.coldhot_trx_id = coldhot_transfer_trx.current_id;
 					trx_op.miner_broadcast = miner;
@@ -550,7 +551,6 @@ namespace graphene {
 					optional<miner_object> miner_iter = get(miner);
 					optional<account_object> account_iter = get(miner_iter->miner_account);
 					trx_op.miner_address = account_iter->addr;
-
 					signed_transaction tx;
 					uint32_t expiration_time_offset = 0;
 					auto dyn_props = get_dynamic_global_properties();

@@ -629,6 +629,7 @@ namespace graphene {
 		bool crosschain_interface_bch::validate_transaction(const std::string& addr,const std::string& redeemscript,const std::string& sig)
 		{
 			try {
+				//return true;
 				graphene::privatekey_management::bch_privatekey btk;
 				return btk.validate_transaction( addr,redeemscript,sig);
 			}FC_CAPTURE_AND_LOG((addr)(redeemscript)(sig));

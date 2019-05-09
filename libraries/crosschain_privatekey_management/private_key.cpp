@@ -421,6 +421,7 @@ namespace graphene { namespace privatekey_management {
 		set_script_prefix(btc_script);
 		set_privkey_prefix(btc_privkey);
 	}
+
 	std::string  bch_privatekey::get_wif_key()
 	{
 		FC_ASSERT(is_empty() == false, "private key is empty!");
@@ -457,7 +458,9 @@ namespace graphene { namespace privatekey_management {
 	}
 	std::string bch_privatekey::get_address_by_pubkey(const std::string& pub)
 	{
-		return graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
+		auto old_address = graphene::privatekey_management::get_address_by_pubkey(pub, get_pubkey_prefix());
+		
+		return std::string(graphene::chain::pts_address_bch(graphene::chain::pts_address(old_address), btc_pubkey, btc_script));
 	}
 	std::string bch_privatekey::get_public_key()
 	{
@@ -645,6 +648,108 @@ namespace graphene { namespace privatekey_management {
 		trx.inputs()[index].set_script(libbitcoin_script);
 		std::string signed_trx = libbitcoin::encode_base16(trx.to_data());
 		return signed_trx;
+	}
+	libbitcoin::hash_digest create_digest_bch(const std::string& redeemscript_hex, const std::string& raw_trx, int vin_index, const uint64_t& value) {
+		libbitcoin::chain::transaction  trx;
+		libbitcoin::chain::script   libbitcoin_script;
+		libbitcoin_script.from_data(libbitcoin::config::base16(redeemscript_hex), false);
+		const auto stripped = strip_code_seperators(libbitcoin_script);
+		trx.from_data(libbitcoin::config::base16(raw_trx));
+		BITCOIN_ASSERT(vin_index < tx.inputs().size());
+		const auto& input = trx.inputs()[vin_index];
+		//const auto size = libbitcoin::chain::preimage_size(script_code.serialized_size(true));
+		uint32_t sighash_type = libbitcoin::machine::sighash_algorithm::all | 0x40;
+		libbitcoin::data_chunk data;
+		//data.reserve(size);
+		libbitcoin::data_sink ostream(data);
+		libbitcoin::ostream_writer sink(ostream);
+
+		// Flags derived from the signature hash byte.
+		//const auto sighash = to_sighash_enum(sighash_type);
+		const auto any = (sighash_type & libbitcoin::machine::sighash_algorithm::anyone_can_pay) != 0;
+		const auto single = (sighash_type & libbitcoin::machine::sighash_algorithm::single) != 0;
+		const auto none = (sighash_type & libbitcoin::machine::sighash_algorithm::none) != 0;
+		const auto all = (sighash_type & libbitcoin::machine::sighash_algorithm::all) != 0;
+
+		// 1. transaction version (4-byte little endian).
+		sink.write_little_endian(trx.version());
+
+		// 2. inpoints hash (32-byte hash).
+		sink.write_hash(!any ? trx.inpoints_hash() : libbitcoin::null_hash);
+
+		// 3. sequences hash (32-byte hash).
+		sink.write_hash(!any && all ? trx.sequences_hash() : libbitcoin::null_hash);
+
+		// 4. outpoint (32-byte hash + 4-byte little endian).
+		input.previous_output().to_data(sink);
+
+		// 5. script of the input (with prefix).
+		stripped.to_data(sink, true);
+		//uint64_t value = 500000000;
+		// 6. value of the output spent by this input (8-byte little endian).
+		sink.write_little_endian(value);
+
+		// 7. sequence of the input (4-byte little endian).
+		sink.write_little_endian(input.sequence());
+
+		// 8. outputs hash (32-byte hash).
+		sink.write_hash(all ? trx.outputs_hash() :
+			(single && vin_index < trx.outputs().size() ?
+				libbitcoin::bitcoin_hash(trx.outputs()[vin_index].to_data()) : libbitcoin::null_hash));
+
+		// 9. transaction locktime (4-byte little endian).
+		sink.write_little_endian(trx.locktime());
+
+		// 10. sighash type of the signature (4-byte [not 1] little endian).
+		sink.write_4_bytes_little_endian(sighash_type);
+
+		ostream.flush();
+		return libbitcoin::bitcoin_hash(data);
+	}
+	bool bch_privatekey::validate_transaction(const std::string& addr, const std::string& redeemscript, const std::string& sig) {
+		auto sep_pos = sig.find("|");
+		FC_ASSERT(sep_pos != sig.npos, "BCH need Amount");
+		auto real_raw_trx = sig.substr(0, sep_pos);
+		auto source_raw_trx = sig.substr(sep_pos + 1);
+		auto handled_source_raw_trx = fc::json::from_string(source_raw_trx).get_object();
+		FC_ASSERT(handled_source_raw_trx.contains("hex"));
+		FC_ASSERT(handled_source_raw_trx.contains("trx"));
+		auto source_tx = handled_source_raw_trx["trx"].get_object();
+		auto vins = source_tx["vin"].get_array();
+		libbitcoin::chain::transaction  tx;
+		tx.from_data(libbitcoin::config::base16(real_raw_trx));
+		libbitcoin::wallet::ec_public libbitcoin_pub(addr);
+		FC_ASSERT(libbitcoin_pub != libbitcoin::wallet::ec_public(), "the pubkey hex str is in valid!");
+		libbitcoin::data_chunk pubkey_out;
+		FC_ASSERT(libbitcoin_pub.to_data(pubkey_out));
+		auto ins = tx.inputs();
+		auto int_size = ins.size();
+		FC_ASSERT(int_size == vins.size());
+		uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
+		int vin_index = int_size - 1;
+
+		for (; vin_index >= 0; vin_index--)
+		{
+			auto input = tx.inputs().at(vin_index);
+			std::string script_str = input.script().to_string(libbitcoin::machine::all_rules);
+			auto pos_first = script_str.find('[');
+			FC_ASSERT(pos_first != std::string::npos);
+			auto pos_end = script_str.find(']');
+			FC_ASSERT(pos_end != std::string::npos);
+			std::string hex = script_str.assign(script_str, pos_first + 1, pos_end - pos_first - 1);
+			libbitcoin::endorsement out;
+			FC_ASSERT(libbitcoin::decode_base16(out, hex));
+			libbitcoin::der_signature der_sig;
+			FC_ASSERT(libbitcoin::parse_endorsement(hash_type, der_sig, std::move(out)));
+			libbitcoin::ec_signature ec_sig;
+			FC_ASSERT(libbitcoin::parse_signature(ec_sig, der_sig, false));
+			auto vin = vins[vin_index].get_object();
+			FC_ASSERT(vin.contains("amount"));
+			auto sigest = create_digest_bch(redeemscript, real_raw_trx, vin_index, vin["amount"].as_uint64());
+			if (false == libbitcoin::verify_signature(pubkey_out, sigest, ec_sig))
+				return false;
+		}
+		return true;
 	}
 	bool bch_privatekey::validate_address(const std::string& addr) {
 		graphene::chain::pts_address_bch bch_addr(addr);

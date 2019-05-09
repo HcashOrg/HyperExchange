@@ -121,7 +121,7 @@ namespace graphene {
 		public:
 			bch_privatekey() { init(); };
 			bch_privatekey(fc::ecc::private_key& priv_key) : crosschain_privatekey_base(priv_key) { init(); };
-
+			virtual bool validate_transaction(const std::string& addr, const std::string& redeemscript, const std::string& sig);
 			virtual std::string get_wif_key();
 			virtual std::string get_address();
 			virtual std::string get_public_key();
