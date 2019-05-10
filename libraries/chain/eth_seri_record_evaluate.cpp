@@ -458,8 +458,8 @@ namespace graphene {
 			FC_ASSERT(sign_final_iter->trx_state == withdraw_eth_guard_sign, "cross chain trx state error");
 			FC_ASSERT(sign_final_iter->real_transaction.operations.size() == 1, "operation size error");
 			const auto& trx_history_db = d.get_index_type<trx_index>().indices().get<by_trx_id>();
-			const auto trx_history_iter = trx_history_db.find(o.change_transaction_id);
-			FC_ASSERT(trx_history_iter != trx_history_db.end());
+			const auto trx_history_iter = d.fetch_trx(o.change_transaction_id);
+			FC_ASSERT(trx_history_iter.valid());
 			auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
 			FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
 

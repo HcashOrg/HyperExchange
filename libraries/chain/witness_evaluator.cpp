@@ -238,7 +238,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 				if (guard.guard_member_account == guarad_account_id)
 					return true;
 			}
-		return false;
+		    return false;
 		};
 
 

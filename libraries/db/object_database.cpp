@@ -26,7 +26,7 @@
 #include <fc/io/raw.hpp>
 #include <fc/container/flat.hpp>
 #include <fc/uint128.hpp>
-
+#include <leveldb/db.h>
 namespace graphene { namespace db {
 
 object_database::object_database()
@@ -36,11 +36,31 @@ object_database::object_database()
    _undo_db.enable();
 }
 
-object_database::~object_database(){}
+object_database::~object_database(){
+}
+
+void object_database::initialize_leveldb()
+{
+	leveldb::Options options;
+	options.create_if_missing = true;
+	open_status = leveldb::DB::Open(options, (get_data_dir() / "transactions").string(), &db);
+	if (!open_status.ok())
+	{
+		db = nullptr;
+		elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+		FC_ASSERT(false, "database open error");
+	}
+}
+
+void object_database::destruct_leveldb()
+{
+	if (db != nullptr)
+		delete db;
+	db = nullptr;
+}
 
 void object_database::close()
 {
-	
 }
 
 const object* object_database::find_object( object_id_type id )const

@@ -611,7 +611,6 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-		 replay = true;
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
@@ -1194,11 +1193,9 @@ void application::set_program_options(boost::program_options::options_descriptio
    configuration_file_options.add(_cfg_options);
 }
 
-vector<char> application::get_data_dir() const 
+fc::path application::get_data_dir() const 
 {
-    auto ret = my->_data_dir.wstring();
-	std::cout << ret.c_str() << std::endl;
-	return vector<char>(ret.begin(),ret.end());
+	return my->_data_dir;
 }
 
 void application::initialize(const fc::path& data_dir, const boost::program_options::variables_map& options)

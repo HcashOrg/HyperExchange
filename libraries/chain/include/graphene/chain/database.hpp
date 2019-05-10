@@ -191,7 +191,7 @@ namespace graphene { namespace chain {
 		 *  released.
 		 */
 		 fc::signal<void(const signed_block&)>           applied_block;
-
+		 fc::signal<void(const vector<signed_transaction>&)>  removed_trxs;
          /**
           * This signal is emitted any time a new transaction is added to the pending
           * block state.
@@ -559,6 +559,7 @@ namespace graphene { namespace chain {
          void                  apply_block( const signed_block& next_block, uint32_t skip = skip_nothing );
          processed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
+		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
       private:
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);

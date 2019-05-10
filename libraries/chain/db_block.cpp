@@ -51,8 +51,33 @@ bool database::is_known_block( const block_id_type& id )const
  */
 bool database::is_known_transaction( const transaction_id_type& id )const
 {
-   const auto& trx_idx = get_index_type<transaction_index>().indices().get<by_trx_id>();
-   return trx_idx.find( id ) != trx_idx.end();
+	return fetch_trx(id).valid();
+}
+
+optional<trx_object> database::fetch_trx(const transaction_id_type trx_id) const
+{
+	try
+	{
+		string out;
+		leveldb::ReadOptions read_options;
+		auto db = get_levelDB();
+		FC_ASSERT(db, "transaction api closed");
+		leveldb::Status sta = db->Get(read_options, trx_id.str(), &out);
+		if (sta.ok())
+		{
+			return fc::json::from_string(out).as<trx_object>();
+		}	
+	}
+	catch (const fc::exception&)
+	{
+	}
+	catch (const std::exception&)
+	{
+	}
+	const auto& index = get_index_type<trx_index>().indices().get<by_trx_id>();
+	if (index.find(trx_id) != index.end())
+		return *index.find(trx_id);
+	return optional<trx_object>();
 }
 
 block_id_type  database::get_block_id_for_num( uint32_t block_num )const
@@ -674,6 +699,7 @@ void database::pop_block()
    pop_undo();
 
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
+   
 
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -826,7 +852,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    const chain_id_type& chain_id = get_chain_id();
    auto trx_id = trx.id();    
    FC_ASSERT( (skip & skip_transaction_dupe_check) ||
-              trx_idx.indices().get<by_trx_id>().find(trx_id) == trx_idx.indices().get<by_trx_id>().end() );
+              !fetch_trx(trx_id).valid() );
    transaction_evaluation_state eval_state(this);
    const chain_parameters& chain_parameters = get_global_properties().parameters;
    eval_state._trx = &trx;

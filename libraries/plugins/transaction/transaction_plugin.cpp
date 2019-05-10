@@ -34,7 +34,6 @@
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
 #include <iostream>
-
 namespace graphene { namespace transaction {
 
 namespace detail
@@ -44,17 +43,15 @@ namespace detail
 class transaction_plugin_impl
 {
    public:
-	   transaction_plugin_impl(transaction_plugin& _plugin)
-         : _self( _plugin )
-      { }
-      virtual ~transaction_plugin_impl();
+	   transaction_plugin_impl(transaction_plugin& _plugin);
+       virtual ~transaction_plugin_impl();
 
 
       /** this method is called as a callback after a block is applied
        * and will process/index all operations that were applied in the block.
        */
       void update_transaction_record( const signed_block& b );
-
+	  void erase_transaction_records(const vector<signed_transaction>& trxs);
       graphene::chain::database& database()
       {
          return _self.database();
@@ -63,27 +60,40 @@ class transaction_plugin_impl
 	  transaction_plugin& _self;
       flat_set<address> _tracked_addresses;
       bool _partial_operations = false;
-      primary_index< simple_index< operation_history_object > >* _oho_index;
-      uint32_t _max_ops_per_account = -1;
       /** add one history record, then check and remove the earliest history record */
       void add_transaction_history( const signed_transaction& trx );
 
 };
 
-transaction_plugin_impl::~transaction_plugin_impl()
+transaction_plugin_impl::transaction_plugin_impl(transaction_plugin& plugin):_self(plugin){}
+transaction_plugin_impl::~transaction_plugin_impl(){}
+
+void transaction_plugin_impl::erase_transaction_records(const vector<signed_transaction>& trxs)
 {
-   return;
+	const auto& db = database();
+	for (auto tx : trxs)
+	{
+		leveldb::WriteOptions write_options;
+		db.get_levelDB()->Delete(write_options, tx.id().str());
+	}
 }
 
 void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 {
    graphene::chain::database& db = database();
    for (auto trx : b.transactions) {
-	   db.create<trx_object>([&](trx_object& obj) {
-		   obj.trx = trx;
-		   obj.trx_id = trx.id();
-		   obj.block_num = b.block_num();
-	   });
+	   leveldb::WriteOptions write_options;
+	   trx_object obj;
+	   obj.trx = trx;
+	   obj.trx_id = trx.id();
+	   obj.block_num = b.block_num();
+	   leveldb::Status sta = db.get_levelDB()->Put(write_options, obj.trx_id.str(), fc::json::to_string(obj));
+	   if (!sta.ok())
+	   {
+		   elog("Put error: ${error}", ("error", (trx.id().str() + ":" + sta.ToString()).c_str()));
+		   FC_ASSERT(false, "Put Data to transaction failed");
+		   return;
+	   }
 	   add_transaction_history(trx);
    }   
 }
@@ -131,12 +141,10 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		}
 		
 	}
-
-
-	const auto& trx_ids = db.get_index_type<trx_index>().indices().get<by_trx_id>();
-	auto iter_ids = trx_ids.find(trx.id());
-	if (iter_ids == trx_ids.end())
+	auto trx_op = db.fetch_trx(trx.id());
+	if (!trx_op.valid())
 		return;
+
 	for (auto addr : addresses)
 	{
 		auto iter = _tracked_addresses.find(addr);
@@ -144,18 +152,13 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 			continue;
 		db.create<history_transaction_object>([&](history_transaction_object& obj) {
 			obj.addr = addr;
-			obj.trx_obj_id = iter_ids->id;
-			obj.block_num = iter_ids->block_num;
+			obj.trx_id = trx_op->trx_id;
+			obj.block_num = trx_op->block_num;
 		});
 	}
 }
 
 } // end namespace detail
-
-
-
-
-
 
 transaction_plugin::transaction_plugin() :
    my( new detail::transaction_plugin_impl(*this) )
@@ -184,7 +187,7 @@ void transaction_plugin::plugin_set_program_options(
 void transaction_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 {
    database().applied_block.connect( [&]( const signed_block& b){ my->update_transaction_record(b); } );
-   //database().store_history_transactions.connect([&](const signed_transaction& b) {my->add_transaction_history(b); });
+   database().removed_trxs.connect([&](const vector<signed_transaction>& b) {my->erase_transaction_records(b); });
    database().add_index <primary_index<trx_index         > >();
    database().add_index <primary_index<history_transaction_index > >();
    LOAD_VALUE_SET(options, "track-address", my->_tracked_addresses, graphene::chain::address);

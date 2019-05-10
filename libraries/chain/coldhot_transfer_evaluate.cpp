@@ -548,8 +548,8 @@ namespace graphene {
 				FC_ASSERT(coldhot_iter != coldhot_db.end());
 				FC_ASSERT(coldhot_iter->curret_trx_state == coldhot_combine_trx_create, "Coldhot transaction state error");
 				const auto& trx_history_db = d.get_index_type<trx_index>().indices().get<by_trx_id>();
-				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
-				FC_ASSERT(trx_history_iter != trx_history_db.end());
+				const auto trx_history_iter = d.fetch_trx(o.fail_trx_id);
+				FC_ASSERT(trx_history_iter.valid());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
 				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
 				auto source_trx = coldhot_db.find(coldhot_iter->relate_trx_id);
@@ -631,9 +631,8 @@ namespace graphene {
 					return  void_result();
 				FC_ASSERT(trx_state->_trx->operations.size() == 1, "operation error");
 				FC_ASSERT(coldhot_iter->current_trx.operations.size() == 1, "operation size error");
-				const auto& trx_history_db = d.get_index_type<trx_index>().indices().get<by_trx_id>();
-				const auto trx_history_iter = trx_history_db.find(o.fail_trx_id);
-				FC_ASSERT(trx_history_iter != trx_history_db.end());
+				const auto trx_history_iter = d.fetch_trx(o.fail_trx_id);
+				FC_ASSERT(trx_history_iter.valid());
 				auto current_blockNum = d.get_dynamic_global_properties().head_block_number;
 				FC_ASSERT(trx_history_iter->block_num + 720 < current_blockNum);
 				auto op = coldhot_iter->current_trx.operations[0];
