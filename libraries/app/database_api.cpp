@@ -362,9 +362,36 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
+
+static void load_apis_in_contract_object_if_native(contract_object& cont) {
+	// if is native contract, get contract apis and fill it
+    if(cont.type_of_contract == contract_type::native_contract) {
+        auto native_contract = native_contract_finder::create_native_contract_by_key(nullptr, cont.native_contract_key, cont.contract_address);
+        if(native_contract) { 
+                cont.code.abi = native_contract->apis();
+                //cont.code.abi.clear();
+                //for(const auto& api : native_contract->apis()) {
+                //      cont.code.abi.push(api);
+                //}
+                cont.code.offline_abi = native_contract->offline_apis();
+                //cont.code.offline_abi.clear();
+                //for(const auto& api : native_contract->offline_apis()) {
+                //        cont.code.offline_abi.push(api);
+                //}
+                cont.code.events = native_contract->events();
+                //cont.code.events.clear();
+                //for(const auto& event : native_contract->events()) {
+                //        cont.code.events.push(event);
+                //}
+        }
+    }
+}
+
 contract_object database_api::get_contract_object(const string& contract_address) const
 {
-    return my->get_contract_object(contract_address);
+    auto cont =  my->get_contract_object(contract_address);
+    load_apis_in_contract_object_if_native(cont);
+    return cont;
 }
 ContractEntryPrintable database_api::get_simple_contract_info(const string & contract_address_or_name) const
 {
@@ -413,12 +440,16 @@ ContractEntryPrintable database_api::get_contract_info(const string& contract_ad
 }
 contract_object database_api::get_contract_object_by_name(const string& contract_name) const
 {
-	return my->get_contract_object_by_name(contract_name);
+	auto cont =  my->get_contract_object_by_name(contract_name);
+	load_apis_in_contract_object_if_native(cont);
+	return cont;
 }
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        return _db.get_contract(contract_address);
+        auto cont = _db.get_contract(contract_address);
+	load_apis_in_contract_object_if_native(cont);
+	return cont;
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
 contract_object database_api_impl::get_contract_object_by_name(const string& contract_name) const
@@ -3039,9 +3070,13 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 			cont = get_contract_object(contract_address_or_name);
 			contract_address = string(cont.contract_address);
 		}
-		auto& abi = cont.code.offline_abi;
-		if (abi.find(contract_api) == abi.end())
-			FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		if(cont.type_of_contract == contract_type::native_contract) {
+			// ignore check of api
+		} else {
+			auto& abi = cont.code.offline_abi;
+			if (abi.find(contract_api) == abi.end())
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		}
 
 		contract_invoke_op.gas_price = 0;
 		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;

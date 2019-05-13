@@ -238,7 +238,7 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 				if (guard.guard_member_account == guarad_account_id)
 					return true;
 			}
-			return false;
+		    return false;
 		};
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)
@@ -247,9 +247,8 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 				//FC_ASSERT(false, "Add for test");
 				continue;
 			}
-			if (!is_senator(itr.guard_account)) {
+			if (!is_senator(itr.guard_account))
 				continue;
-			}
 			db().modify(itr, [&](multisig_address_object& obj) {
 				obj.multisig_account_pair_object_id = new_acnt_object.id;
 			});

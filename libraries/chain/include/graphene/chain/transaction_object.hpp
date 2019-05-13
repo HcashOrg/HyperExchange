@@ -100,7 +100,7 @@ namespace graphene { namespace chain {
 	   static const uint8_t type_id = impl_history_transaction_object_type;
 
 	   address                addr;
-	   trx_obj_id_type        trx_obj_id;
+	   transaction_id_type    trx_id;
 	   uint32_t               block_num;
    };
    struct by_addr;
@@ -179,7 +179,7 @@ namespace graphene { namespace chain {
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::transaction_object, (graphene::db::object), (trx)(trx_id))
-FC_REFLECT_DERIVED(graphene::chain::history_transaction_object, (graphene::db::object), (addr)(trx_obj_id)(block_num))
+FC_REFLECT_DERIVED(graphene::chain::history_transaction_object, (graphene::db::object), (addr)(trx_id)(block_num))
 FC_REFLECT_ENUM(graphene::chain::multisig_asset_transfer_object::tranaction_status, (success)(failure)(waiting_signtures)(waiting))
 FC_REFLECT_DERIVED(graphene::chain::multisig_asset_transfer_object, (graphene::db::object), (chain_type)(status)(trx)(signatures))
 FC_REFLECT_DERIVED(graphene::chain::transaction_contract_storage_diff_object, (graphene::db::object), (trx_id)(contract_address)(storage_name)(diff))

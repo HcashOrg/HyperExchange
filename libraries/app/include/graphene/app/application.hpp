@@ -92,7 +92,7 @@ namespace graphene { namespace app {
 		 void set_crosschain_manager_config(const string& config);
 		 void set_crosschain_chain_types(std::vector<std::string> chain_types);
 		 std::vector<string> get_crosschain_chain_types();
-		 vector<char> get_data_dir() const;
+		 fc::path get_data_dir() const;
       private:
          void add_plugin( const string& name, std::shared_ptr<abstract_plugin> p );
          std::shared_ptr<detail::application_impl> my;

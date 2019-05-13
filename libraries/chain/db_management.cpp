@@ -34,6 +34,8 @@
 #include <iostream>
 
 #include "boost/filesystem/operations.hpp"
+#include <leveldb/db.h>
+#include <leveldb/cache.h>
 namespace graphene { namespace chain {
 
 database::database()
@@ -194,7 +196,7 @@ void database::open(
 		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
-
+		  initialize_leveldb();
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 } 
@@ -267,6 +269,7 @@ void database::close()
       _block_id_to_block.close();
    //_undo_db.reset();
    _fork_db.reset();
+   destruct_leveldb();
 }
 
 } }
