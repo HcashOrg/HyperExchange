@@ -16,6 +16,7 @@
 #include <graphene/utilities/string_escape.hpp>
 #include "bytomlib.hpp"
 #include <SHA3IUF/sha3.h>
+#include <graphene/chain/pts_address.hpp>
 namespace graphene {
     namespace privatekey_management {
 
@@ -101,6 +102,11 @@ namespace graphene {
 		fc::variant_object btm_privatekey::decoderawtransaction(const std::string& trx)
 		{
 			auto decode = graphene::utxo::decoderawtransaction_btm(trx);
+			return fc::json::from_string(decode).get_object();
+		}
+		fc::variant_object bch_privatekey::decoderawtransaction(const std::string& trx)
+		{
+			auto decode = graphene::utxo::decoderawtransaction_bch(trx, btc_pubkey, btc_script);
 			return fc::json::from_string(decode).get_object();
 		}
     }
@@ -763,7 +769,53 @@ namespace graphene {
 			return obj.str();
 
 		}
+		std::string decoderawtransaction_bch(const std::string& trx, uint8_t kh, uint8_t sh)
+		{
+			std::ostringstream obj;
+			libbitcoin::chain::transaction  tx;
+			tx.from_data(libbitcoin::config::base16(trx));
+			auto hash = tx.hash(true);
+			std::reverse(hash.begin(), hash.end());
+			obj << "{\"hash\": \"" << libbitcoin::encode_base16(hash) << "\",\"vin\": [";
+			//insert input:
+			auto ins = tx.inputs();
+			auto int_size = ins.size();
+			for (auto index = 0; index < int_size; index++)
+			{
+				if (index > 0)
+					obj << ",";
+				obj << "{";
+				auto input = ins.at(index);
+				auto previous_output = input.previous_output();
+				hash = previous_output.hash();
+				std::reverse(hash.begin(), hash.end());
+				obj << "\"txid\": \"" << libbitcoin::encode_base16(hash);
+				obj << "\",\"vout\": " << previous_output.index();
 
+				obj << "\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
+				obj << "\"sequence\": " << input.sequence() << "}";
+			}
+			obj << "],\
+                \"lock_time\": " << tx.locktime() << ",\"vout\": [";
+
+			auto ons = tx.outputs();
+			auto out_size = ons.size();
+			for (auto index = 0; index < out_size; index++)
+			{
+				if (index > 0)
+					obj << ",";
+				auto output = ons.at(index);
+				std::string out_addr = graphene::chain::pts_address_bch(graphene::chain::pts_address(output.address(kh, sh).encoded()), kh, sh);
+				obj << "{";
+				obj << "\"scriptPubKey\": {";
+				obj << "\"addresses\": [\"" << out_addr << "\"],";
+				obj << "\"script\": \"" << output.script().to_string(libbitcoin::machine::all_rules) << "\"},";
+				obj << "\"value\": " << graphene::utilities::amount_to_string(output.value(), 8) << "}";
+			}
+			obj << "]}";
+			return obj.str();
+
+		}
 		static bool recover(libbitcoin::short_hash& out_hash, bool compressed,
 			const libbitcoin::ec_signature& compact, uint8_t recovery_id,
 			const libbitcoin::hash_digest& message_digest)
@@ -861,7 +913,6 @@ namespace graphene {
 			uint8_t hash_type = libbitcoin::machine::sighash_algorithm::all;
 			return libbitcoin::chain::script::generate_signature_hash(trx, index, libbitcoin_script, hash_type);
 		}
-
 		std::string combine_trx(const std::vector<std::string>& trxs)
 		{
 			std::map<int,std::vector<std::string>> signatures;

@@ -108,7 +108,16 @@ namespace graphene {
 					return void_result();
 				auto coldhot_without_sign_tx_iter = coldhot_without_sign_tx_dbs.find(trx_state->_trx->id());
 				FC_ASSERT(coldhot_without_sign_tx_iter == coldhot_without_sign_tx_dbs.end(), "coldhot trx without sign has been created");
-				
+				if (o.asset_symbol == "BCH") {
+					auto temp_trx = o.coldhot_trx_original_chain;
+					FC_ASSERT(temp_trx.contains("hex"));
+					FC_ASSERT(temp_trx.contains("trx"));
+					auto tx = temp_trx["trx"].get_object();
+					auto vins = tx["vin"].get_array();
+					for (int index = 0; index < vins.size(); index++) {
+						FC_ASSERT(vins[index].get_object().contains("amount"), "No amount in bch vin");
+					}
+				}
 				auto& instance = graphene::crosschain::crosschain_manager::get_instance();
 				if (!instance.contain_crosschain_handles(o.asset_symbol))
 					return void_result();
@@ -306,7 +315,23 @@ namespace graphene {
 				}
 				FC_ASSERT(index < senator_pubks.size());
 				auto multisig_account_obj = db().get(senator_pubks[index].multisig_account_pair_object_id);
-				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
+				if (o.asset_symbol == "BCH")
+				{
+					auto without_trx = coldhot_without_sign_tx_iter->current_trx;
+					FC_ASSERT(without_trx.operations.size() == 1);
+					auto without_sign_op = without_trx.operations[0].get<coldhot_transfer_without_sign_operation>();
+					auto source_trx = fc::json::to_string(without_sign_op.coldhot_trx_original_chain);
+					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot,
+						multisig_account_obj.redeemScript_hot,
+						o.coldhot_transfer_sign + "|" + source_trx)
+						|| hdl->validate_transaction(senator_pubks[index].new_pubkey_cold,
+							multisig_account_obj.redeemScript_cold,
+							o.coldhot_transfer_sign + "|" + source_trx));
+
+				}
+				else {
+					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
+				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))
 			

@@ -126,7 +126,25 @@ namespace graphene {
 			void init();
 
 		};
-
+		class bch_privatekey : public crosschain_privatekey_base
+		{
+		public:
+			bch_privatekey() { init(); };
+			bch_privatekey(fc::ecc::private_key& priv_key) : crosschain_privatekey_base(priv_key) { init(); };
+			virtual bool validate_transaction(const std::string& addr, const std::string& redeemscript, const std::string& sig);
+			virtual std::string get_wif_key();
+			virtual std::string get_address();
+			virtual std::string get_public_key();
+			virtual std::string get_address_by_pubkey(const std::string& pub);
+			virtual std::string  sign_message(const std::string& msg);
+			virtual std::string mutisign_trx(const std::string& redeemscript, const fc::variant_object& raw_trx);
+			virtual fc::optional<fc::ecc::private_key>  import_private_key(const std::string& wif_key);
+			static  fc::variant_object  decoderawtransaction(const std::string& trx);
+			virtual std::string  sign_trx(const std::string& raw_trx, int index);
+			virtual bool validate_address(const std::string& addr);
+		private:
+			void init();
+		};
 		class ub_privatekey : public crosschain_privatekey_base
 		{
 		public:

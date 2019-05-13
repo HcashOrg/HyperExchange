@@ -113,6 +113,7 @@ add_library( graphene_chain
              Keccak.cpp
 
 	     crosschain_record_evaluate.cpp
+		 cashaddr.cpp
              ${HEADERS}
              ${PROTOCOL_HEADERS}
            )

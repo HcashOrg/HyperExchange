@@ -201,7 +201,7 @@ namespace detail {
 				"52.194.253.245:9034",
 				"36.152.8.188:9034",
 				"172.81.250.51:9034"
-				/*
+				
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
                "23.92.53.182:1776",                 // sahkan       (USA)
@@ -418,6 +418,7 @@ namespace detail {
 				 {
 					 chain_type_vector.clear();
 					 chain_type_vector.push_back("BTC");
+					 chain_type_vector.push_back("BCH");
 					 chain_type_vector.push_back("LTC");
 					 chain_type_vector.push_back("ETH");
 					 chain_type_vector.push_back("HC");

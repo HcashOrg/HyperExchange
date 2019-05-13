@@ -240,8 +240,6 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 			}
 		    return false;
 		};
-
-
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)
 		{

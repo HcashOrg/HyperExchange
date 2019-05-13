@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 #pragma once
-
 #define ACCOUN_EVALUATE_150000                  10
 #define DB_MAINT_190000                         10
 #define DB_MAINT_480000                         10
@@ -34,9 +33,8 @@
 #define CROSSCHAIN_RECORD_EVALUATE_680000       10
 #define CROSSCHAIN_RECORD_EVALUATE_967000       10
 #define CROSSCHAIN_RECORD_EVALUATE_1000000      10
-#define USE_CBOR_DIFF_FORK_HEIGHT               100
-// #define USE_CBOR_DIFF_FORK_HEIGHT               500
-#define USE_FAST_MAP_TABLE_NIL_FORK_HEIGHT      100 
-#define COLDHOT_TRANSFER_EVALUATE_HEIGHT      240
-#define LOCKBALANCE_CORRECT      240
-#define ETH_SER_MULTI_SOL_CREATE    260
+#define USE_CBOR_DIFF_FORK_HEIGHT               10
+#define USE_FAST_MAP_TABLE_NIL_FORK_HEIGHT      10
+#define COLDHOT_TRANSFER_EVALUATE_HEIGHT      10
+#define LOCKBALANCE_CORRECT      10
+#define ETH_SER_MULTI_SOL_CREATE    10

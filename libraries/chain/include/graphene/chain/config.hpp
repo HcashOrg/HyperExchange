@@ -173,7 +173,7 @@
 #define HX_CHECK_POINT                                       "000d1f60221ca7b13761a4d8fdd68941d8869033"
 #define HX_CHECK_POINT_BLOCK                                 0
 #define HX_REFERENDUM_PACKING_PERIOD                         600
-#define HX_REFERENDUM_VOTING_PERIOD                          3600
+#define HX_REFERENDUM_VOTING_PERIOD                          1200
 /**
  *  Reserved Account IDs with special meaning
  */
