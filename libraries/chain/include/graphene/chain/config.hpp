@@ -171,7 +171,7 @@
 #define GRAPHENE_ALL_MINER_PAY_RATIO						 50
 #define HX_DEVELOP_TEAM_PAY_TATIO                            20
 #define HX_REFERENDUM_PACKING_PERIOD                         600
-#define HX_REFERENDUM_VOTING_PERIOD                          3600
+#define HX_REFERENDUM_VOTING_PERIOD                          1200
 #define HX_CHECK_POINT                                       "001b77403468c26f49ebae2febd0dfb6ff0bd2ba"
 #define HX_CHECK_POINT_BLOCK                                 1800000
 /**
