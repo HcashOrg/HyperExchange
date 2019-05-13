@@ -56,10 +56,11 @@ namespace fc {
       return false;
    }
 
-   logging_config logging_config::default_config(const fc::path& config_path)
+   logging_config logging_config::default_config(const fc::path& config_path, bool logp2p)
    {
 	   auto config = default_config();
-
+	   if (logp2p)
+	   {
 	   fc::file_appender::config file_appender_config;
 	   file_appender_config.filename = fc::absolute(config_path).parent_path() / "logs/p2p/p2p.log";
 	   file_appender_config.flush = true;
@@ -70,12 +71,12 @@ namespace fc {
 		   appender_config("p2p", "file", fc::variant(file_appender_config)
 		   ));
 
-	 logger_config p2p;
-	 p2p.name = "p2p";
-	 p2p.level = log_level::info;
-	 p2p.appenders.push_back("p2p");
-	 config.loggers.push_back(p2p);
-
+	   logger_config p2p;
+	   p2p.name = "p2p";
+	   p2p.level = log_level::info;
+	   p2p.appenders.push_back("p2p");
+	   config.loggers.push_back(p2p);
+	   }
 	 return config;
    }
 

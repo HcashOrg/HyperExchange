@@ -250,6 +250,8 @@ void database::initialize_evaluators()
    register_evaluator<cancel_whiteOperation_list_evaluator>();
    register_evaluator<set_balance_evaluator>();
    register_evaluator<correct_chain_data_evaluator>();
+   register_evaluator<vote_create_evaluator>();
+   register_evaluator<vote_update_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -321,6 +323,8 @@ void database::initialize_indexes()
    add_index<primary_index<referendum_index>>();
    add_index<primary_index<blocked_index>>  ();
    add_index<primary_index<whiteOperation_index>>();
+   add_index<primary_index<vote_index>>();
+   add_index<primary_index<vote_result_index>>();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

@@ -76,7 +76,8 @@ namespace graphene { namespace db {
          const index&  get_index(uint8_t space_id, uint8_t type_id)const;
          const index&  get_index(object_id_type id)const { return get_index(id.space(),id.type()); }
          /// @}
-
+		 void initialize_leveldb();
+		 void destruct_leveldb();
          const object& get_object( object_id_type id )const;
          const object* find_object( object_id_type id )const;
 
@@ -90,7 +91,7 @@ namespace graphene { namespace db {
          void modify( const T& obj, const Lambda& m ) {
             get_mutable_index(obj.id).modify(obj,m);
          }
-
+		 leveldb::DB*           get_levelDB()const { return db; }
          ///@}
 
          template<typename T>
@@ -166,6 +167,8 @@ namespace graphene { namespace db {
 
          fc::path                                                  _data_dir;
          vector< vector< unique_ptr<index> > >                     _index;
+		 leveldb::DB* db = nullptr;;
+		 leveldb::Status open_status;
    };
 
 } } // graphene::db

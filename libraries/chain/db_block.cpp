@@ -51,8 +51,33 @@ bool database::is_known_block( const block_id_type& id )const
  */
 bool database::is_known_transaction( const transaction_id_type& id )const
 {
-   const auto& trx_idx = get_index_type<transaction_index>().indices().get<by_trx_id>();
-   return trx_idx.find( id ) != trx_idx.end();
+	return fetch_trx(id).valid();
+}
+
+optional<trx_object> database::fetch_trx(const transaction_id_type trx_id) const
+{
+	try
+	{
+		string out;
+		leveldb::ReadOptions read_options;
+		auto db = get_levelDB();
+		FC_ASSERT(db, "transaction api closed");
+		leveldb::Status sta = db->Get(read_options, trx_id.str(), &out);
+		if (sta.ok())
+		{
+			return fc::json::from_string(out).as<trx_object>();
+		}	
+	}
+	catch (const fc::exception&)
+	{
+	}
+	catch (const std::exception&)
+	{
+	}
+	const auto& index = get_index_type<trx_index>().indices().get<by_trx_id>();
+	if (index.find(trx_id) != index.end())
+		return *index.find(trx_id);
+	return optional<trx_object>();
 }
 
 block_id_type  database::get_block_id_for_num( uint32_t block_num )const
@@ -318,7 +343,35 @@ void database::set_gas_limit_in_block(const share_type & new_limit)
 {
 	_gas_limit_in_in_block = new_limit;
 }
-
+void database::clear_votes()
+{
+	try {
+		const auto& vote_idx = get_index_type<vote_index>().indices().get<by_state>();
+		auto range = vote_idx.equal_range(false);
+		const auto& vote_result_idx = get_index_type<vote_result_index>().indices().get<by_vote>();
+		vector<vote_object> votes;
+		std::for_each(range.first, range.second, [&votes](const vote_object& b) { votes.push_back(b); });
+		for (const auto& v : votes)
+		{
+			if (head_block_time() < v.expiration_time)
+				continue;
+			auto id = v.id;
+			auto range_result = vote_result_idx.equal_range(boost::make_tuple(id));
+			vector<vote_result_object> vote_results;
+			std::for_each(range_result.first, range_result.second, [&vote_results](const vote_result_object& b) {
+				vote_results.push_back(b);
+			});
+			const auto& v_obj = object_database::get<vote_object>(id);
+			modify(v_obj, [this,&vote_results](vote_object& obj) {
+				obj.finished = true;
+				for (const auto& result : vote_results)
+				{
+					obj.result[result.index] += get_citizen_obj(result.voter)->pledge_weight;
+				}
+			});
+		}
+	}FC_LOG_AND_RETHROW();
+}
 processed_transaction database::push_referendum(const referendum_object& referendum)
 {
 	try {
@@ -646,6 +699,7 @@ void database::pop_block()
    pop_undo();
 
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
+   
 
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -733,9 +787,9 @@ void database::_apply_block( const signed_block& next_block )
       ++_current_trx_in_block;
 	  //store_transactions(signed_transaction(trx));
    }
-   if(next_block_num == 1901662) {
-	printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
-   }
+ //  if(next_block_num == 1901662) {
+	//printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
+ //  }
    FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
@@ -769,7 +823,7 @@ void database::_apply_block( const signed_block& next_block )
       apply_debug_updates();
    // notify observers that the block has been applied
    applied_block( next_block ); //emit
-   
+   clear_votes();
    _applied_ops.clear();
 
    notify_changed_objects();
@@ -798,7 +852,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    const chain_id_type& chain_id = get_chain_id();
    auto trx_id = trx.id();    
    FC_ASSERT( (skip & skip_transaction_dupe_check) ||
-              trx_idx.indices().get<by_trx_id>().find(trx_id) == trx_idx.indices().get<by_trx_id>().end() );
+              !fetch_trx(trx_id).valid() );
    transaction_evaluation_state eval_state(this);
    const chain_parameters& chain_parameters = get_global_properties().parameters;
    eval_state._trx = &trx;
@@ -908,9 +962,9 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
    unique_ptr<op_evaluator>& eval = _operation_evaluators[ u_which ];
    if( !eval )
       assert( "No registered evaluator for this operation" && false );
-   auto op_id = push_applied_operation( op );
+  // auto op_id = push_applied_operation( op );
    auto result = eval->evaluate( eval_state, op, true );
-   set_applied_operation_result( op_id, result );
+  // set_applied_operation_result( op_id, result );
    eval_state.op_num++;
    return result;
 } FC_CAPTURE_AND_RETHROW( (op) ) }

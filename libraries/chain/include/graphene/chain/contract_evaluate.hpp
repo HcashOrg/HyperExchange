@@ -29,10 +29,11 @@ namespace graphene {
             share_type unspent_fee;
             gas_count_type gas_used_counts;
 			gas_count_type gas_limit;
-			contract_invoke_result invoke_contract_result;
 			share_type transfer_fee_rate = -1;
 
 			std::set<address> related_contract;
+	public:
+		contract_invoke_result invoke_contract_result;
         public:
 			inline share_type get_contract_transfer_fee_rate() 
 			{
@@ -59,6 +60,7 @@ namespace graphene {
             transaction_id_type get_current_trx_id() const;
             void do_apply_contract_event_notifies();
             void transfer_to_address(const address& contract, const asset & amount, const address & to);
+	    void transfer_to_address_only_update_invoke_result(const address& contract, const asset & amount, const address & to);
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
 			virtual share_type origin_op_fee() const = 0;

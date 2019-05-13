@@ -42,6 +42,23 @@ namespace graphene { namespace chain {
          transaction _proposed_trx;
 		 fc::uint128_t _pledge =0;
    };
+   class vote_create_evaluator : public evaluator<vote_create_evaluator>
+   {
+   public:
+	   typedef vote_create_operation operation_type;
+
+	   void_result do_evaluate(const vote_create_operation& o);
+	   void_result do_apply(const vote_create_operation& o);
+	   void pay_fee() override;
+   };
+   class vote_update_evaluator : public evaluator<vote_update_evaluator>
+   {
+   public:
+	   typedef vote_update_operation operation_type;
+
+	   void_result do_evaluate(const vote_update_operation& o);
+	   void_result do_apply(const vote_update_operation& o);
+   };
 
    class referendum_update_evaluator :public evaluator<referendum_update_evaluator>
    {

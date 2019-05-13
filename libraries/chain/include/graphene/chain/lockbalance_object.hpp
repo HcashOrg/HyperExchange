@@ -29,11 +29,15 @@ namespace graphene {
 		};
 		//TODO: Add contract Handle
 		struct by_lock_miner_asset;
+		struct by_miner_account;
 		using lockbalance_multi_index_type = multi_index_container <
 			lockbalance_object,
 			indexed_by <
 			ordered_unique< tag<by_id>,
 			member<object, object_id_type, &object::id>
+			>,
+			ordered_non_unique<tag<by_miner_account>,
+			member< lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>
 			>,
 			ordered_unique<
 			tag<by_lock_miner_asset>,

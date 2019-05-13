@@ -650,7 +650,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.18";
+	  result["version"] = "1.2.19";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1385,6 +1385,46 @@ public:
       return trx = sign_transaction(trx, broadcast);
    }
 
+   full_transaction cast_vote(const string& caster, const vote_object_id_type& id, const int index, bool broadcast = true)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   get_miner(caster);
+		   const auto& acc = get_account(caster);
+		   vote_update_operation op;
+		   op.fee_paying_account = acc.addr;
+		   op.vote = id;
+		   op.index = index;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+
+	   }FC_CAPTURE_AND_RETHROW((caster)(id)(index)(broadcast))
+   }
+
+   full_transaction create_vote(const string& proposer, const string& title, const vector<string>& options, int64_t expiration, bool broadcast)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   get_miner(proposer);
+		   const auto& acc = get_account(proposer);
+		   vote_create_operation op;
+		   op.fee_paying_account = acc.addr;
+		   op.title = title;
+		   op.expiration = expiration;
+		   op.options = options;
+		   op.guarantee_id = get_guarantee_id();
+		   signed_transaction tx;
+		   tx.operations.push_back(op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
+	   }FC_CAPTURE_AND_RETHROW((proposer)(title)(options)(expiration)(broadcast))
+   }
+
    full_transaction propose_builder_transaction2(
       transaction_handle_type handle,
       string account_name_or_id,
@@ -1460,6 +1500,40 @@ public:
    {
       _builder_transactions.erase(handle);
    }
+
+   vector<fc::variant> get_votes(const string& account)  
+   {
+	   vector<fc::variant> result;
+	   try {
+		   get_miner(account);
+		   const auto& acc = get_account(account);
+		   vector<vote_object> votes = _remote_db->get_votes_by_addr(acc.addr);
+		   for (const auto& vote : votes)
+		   {
+			   map<int, vector<address>> temp_voters;
+			   map<int, fc::uint128_t> temp;
+			   vector<vote_result_object> vote_results = _remote_db->get_vote_result_objs(vote.id);
+			   fc::mutable_variant_object ret;
+			   ret["id"] = vote.id;
+			   ret["expiration"] = vote.expiration_time;
+			   ret["title"] = vote.title;
+			   ret["options"] = vote.options;
+			   for (const auto& vote_result : vote_results)
+			   {
+				   const auto& acc = get_account_by_addr(vote_result.voter);
+				   const auto& citi = get_miner(acc->name);
+				   temp_voters[vote_result.index].push_back(vote_result.voter);
+				   temp[vote_result.index] += citi.pledge_weight;
+			   }
+			   ret["result"] = temp_voters;
+			   ret["plege"] = temp;
+			   result.push_back(ret);
+		   }
+		   return result;
+
+	   }FC_LOG_AND_RETHROW();
+   }
+
 
    full_transaction register_account(string name, bool broadcast)
    {
@@ -7975,6 +8049,10 @@ variant_object wallet_api::about() const
 {
     return my->about();
 }
+vector<fc::variant> wallet_api::get_votes(const string& account) const
+{
+	return my->get_votes(account);
+}
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
 {
@@ -8298,6 +8376,16 @@ full_transaction wallet_api::publish_asset_feed(string publishing_account,
 {
    return my->publish_asset_feed(publishing_account, symbol, feed, broadcast);
 }
+
+full_transaction wallet_api::create_vote(const string& proposer,const string& title, const vector<string>& options ,int64_t expiration, bool broadcast/* =true */)
+{
+	return my->create_vote(proposer,title,options,expiration,broadcast);
+}
+full_transaction wallet_api::cast_vote(const string& caster, const vote_object_id_type& id, const int index, bool broadcast/* = true */)
+{
+	return my->cast_vote(caster,id,index,broadcast);
+}
+
 full_transaction wallet_api::publish_normal_asset_feed(string publishing_account,
 	string symbol,
 	price_feed feed,

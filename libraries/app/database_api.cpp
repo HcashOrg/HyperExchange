@@ -164,6 +164,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<optional<crosschain_trx_object>> get_crosschain_transaction_by_blocknum(const string& symbol,const string& account,const uint32_t& start_block_num,const uint32_t& stop_block_num,const transaction_stata& crosschain_trx_state)const;
 	  vector<optional<multisig_address_object>> get_multi_account_guard(const string & multi_address, const string& symbol)const;
 	  std::map<std::string, asset> get_pay_back_balances(const address & pay_back_owner)const;
+	  vector<vote_result_object> get_vote_result_objs(const vote_object_id_type& id) const;
+	  vector<vote_object> get_votes_by_addr(const address& addr) const;
 	  std::map<std::string, share_type> get_bonus_balances(const address & owner)const;
 	  vector<coldhot_transfer_object> get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const;
 	  vector<optional<coldhot_transfer_object>> get_coldhot_transaction_by_blocknum(const string& symbol, const uint32_t& start_block_num, const uint32_t& stop_block_num, const coldhot_trx_state& crosschain_trx_state)const;
@@ -360,9 +362,36 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
+
+static void load_apis_in_contract_object_if_native(contract_object& cont) {
+	// if is native contract, get contract apis and fill it
+    if(cont.type_of_contract == contract_type::native_contract) {
+        auto native_contract = native_contract_finder::create_native_contract_by_key(nullptr, cont.native_contract_key, cont.contract_address);
+        if(native_contract) { 
+                cont.code.abi = native_contract->apis();
+                //cont.code.abi.clear();
+                //for(const auto& api : native_contract->apis()) {
+                //      cont.code.abi.push(api);
+                //}
+                cont.code.offline_abi = native_contract->offline_apis();
+                //cont.code.offline_abi.clear();
+                //for(const auto& api : native_contract->offline_apis()) {
+                //        cont.code.offline_abi.push(api);
+                //}
+                cont.code.events = native_contract->events();
+                //cont.code.events.clear();
+                //for(const auto& event : native_contract->events()) {
+                //        cont.code.events.push(event);
+                //}
+        }
+    }
+}
+
 contract_object database_api::get_contract_object(const string& contract_address) const
 {
-    return my->get_contract_object(contract_address);
+    auto cont =  my->get_contract_object(contract_address);
+    load_apis_in_contract_object_if_native(cont);
+    return cont;
 }
 ContractEntryPrintable database_api::get_simple_contract_info(const string & contract_address_or_name) const
 {
@@ -411,12 +440,16 @@ ContractEntryPrintable database_api::get_contract_info(const string& contract_ad
 }
 contract_object database_api::get_contract_object_by_name(const string& contract_name) const
 {
-	return my->get_contract_object_by_name(contract_name);
+	auto cont =  my->get_contract_object_by_name(contract_name);
+	load_apis_in_contract_object_if_native(cont);
+	return cont;
 }
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        return _db.get_contract(contract_address);
+        auto cont = _db.get_contract(contract_address);
+	load_apis_in_contract_object_if_native(cont);
+	return cont;
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
 contract_object database_api_impl::get_contract_object_by_name(const string& contract_name) const
@@ -3037,9 +3070,13 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 			cont = get_contract_object(contract_address_or_name);
 			contract_address = string(cont.contract_address);
 		}
-		auto& abi = cont.code.offline_abi;
-		if (abi.find(contract_api) == abi.end())
-			FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		if(cont.type_of_contract == contract_type::native_contract) {
+			// ignore check of api
+		} else {
+			auto& abi = cont.code.offline_abi;
+			if (abi.find(contract_api) == abi.end())
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		}
 
 		contract_invoke_op.gas_price = 0;
 		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
@@ -3135,6 +3172,16 @@ vector<optional<multisig_address_object>> database_api::get_multi_account_guard(
 std::map<std::string, asset> database_api::get_pay_back_balances(const address & pay_back_owner)const {
 	return my->get_pay_back_balances(pay_back_owner);
 }
+
+vector<vote_result_object> database_api::get_vote_result_objs(const vote_object_id_type& id) const {
+	return my->get_vote_result_objs(id);
+}
+vector<vote_object> database_api::get_votes_by_addr(const address& addr)const
+{
+	return my->get_votes_by_addr(addr);
+}
+
+
 std::map<std::string, share_type> database_api::get_bonus_balances(const address & owner)const {
 	return my->get_bonus_balances(owner);
 }
@@ -3278,11 +3325,40 @@ std::map<std::string, share_type> database_api_impl::get_bonus_balances(const ad
 	return _db.get_bonus_balance(owner);
 }
 
+vector<vote_result_object> database_api_impl::get_vote_result_objs(const vote_object_id_type& id) const {
+	vector<vote_result_object> result;
+	const auto& vote_result_idx = _db.get_index_type<vote_result_index>().indices().get<by_vote>();
+	auto range = vote_result_idx.equal_range(boost::make_tuple(id));
+
+	for (const auto iter : boost::make_iterator_range(range.first, range.second))
+	{
+		result.push_back(iter);
+	}
+	return result;
+}
+
+vector<vote_object> database_api_impl::get_votes_by_addr(const address& addr) const {
+	vector<vote_object> result;
+	const auto citizen_obj = _db.get_citizen_obj(addr);
+	FC_ASSERT(citizen_obj.valid());
+	const auto& vote_idx = _db.get_index_type<vote_index>().indices().get<by_state>();
+	const auto range = vote_idx.equal_range(false);
+	std::for_each(range.first, range.second, [&result](const vote_object& obj ) {
+		result.push_back(obj);
+	});
+	return result;
+}
+
 std::map<std::string, asset> database_api_impl::get_pay_back_balances(const address & pay_back_owner)const {
-	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>();
-	auto pay_back_iter = payback_db.find(pay_back_owner);
-	FC_ASSERT(pay_back_iter != payback_db.end(),"pay back owner doesnt exist");
-	return pay_back_iter->owner_balance;
+	const auto & payback_db = _db.get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(pay_back_owner);
+	std::map<string, asset> results;
+	FC_ASSERT(payback_db.first != payback_db.second, "pay back owner doesnt exist");
+	for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
+		const auto& miner_obj = _db.get(payback_address_iter.miner_id);
+		const auto& miner_acc = _db.get(miner_obj.miner_account);
+		results[miner_acc.name] = payback_address_iter.one_owner_balance;
+	}
+	return results;
 }
 vector<optional<multisig_address_object>> database_api_impl::get_multi_account_guard(const string & multi_address, const string& symbol)const {
 	vector<optional<multisig_address_object>> result;
@@ -3488,43 +3564,43 @@ void database_api_impl::on_applied_block()
    if(_market_subscriptions.size() == 0)
       return;
 
-   const auto& ops = _db.get_applied_operations();
-   map< std::pair<asset_id_type,asset_id_type>, vector<pair<operation, operation_result>> > subscribed_markets_ops;
-   for(const optional< operation_history_object >& o_op : ops)
-   {
-      if( !o_op.valid() )
-         continue;
-      const operation_history_object& op = *o_op;
+   //const auto& ops = _db.get_applied_operations();
+   //map< std::pair<asset_id_type,asset_id_type>, vector<pair<operation, operation_result>> > subscribed_markets_ops;
+   //for(const optional< operation_history_object >& o_op : ops)
+   //{
+   //   if( !o_op.valid() )
+   //      continue;
+   //   const operation_history_object& op = *o_op;
 
-      std::pair<asset_id_type,asset_id_type> market;
-      switch(op.op.which())
-      {
-         /*  This is sent via the object_changed callback
-         case operation::tag<limit_order_create_operation>::value:
-            market = op.op.get<limit_order_create_operation>().get_market();
-            break;
-         */
-         case operation::tag<fill_order_operation>::value:
-            market = op.op.get<fill_order_operation>().get_market();
-            break;
-            /*
-         case operation::tag<limit_order_cancel_operation>::value:
-         */
-         default: break;
-      }
-      if(_market_subscriptions.count(market))
-         subscribed_markets_ops[market].push_back(std::make_pair(op.op, op.result));
-   }
+   //   std::pair<asset_id_type,asset_id_type> market;
+   //   switch(op.op.which())
+   //   {
+   //      /*  This is sent via the object_changed callback
+   //      case operation::tag<limit_order_create_operation>::value:
+   //         market = op.op.get<limit_order_create_operation>().get_market();
+   //         break;
+   //      */
+   //      case operation::tag<fill_order_operation>::value:
+   //         market = op.op.get<fill_order_operation>().get_market();
+   //         break;
+   //         /*
+   //      case operation::tag<limit_order_cancel_operation>::value:
+   //      */
+   //      default: break;
+   //   }
+   //   if(_market_subscriptions.count(market))
+   //      subscribed_markets_ops[market].push_back(std::make_pair(op.op, op.result));
+   //}
    /// we need to ensure the database_api is not deleted for the life of the async operation
-   auto capture_this = shared_from_this();
+  /* auto capture_this = shared_from_this();
    fc::async([this,capture_this,subscribed_markets_ops](){
-      for(auto item : subscribed_markets_ops)
-      {
-         auto itr = _market_subscriptions.find(item.first);
-         if(itr != _market_subscriptions.end())
-            itr->second(fc::variant(item.second));
-      }
-   });
+	  for(auto item : subscribed_markets_ops)
+	  {
+		 auto itr = _market_subscriptions.find(item.first);
+		 if(itr != _market_subscriptions.end())
+			itr->second(fc::variant(item.second));
+	  }
+   });*/
 }
 
 } } // graphene::app

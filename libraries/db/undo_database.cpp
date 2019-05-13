@@ -678,11 +678,16 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
 	case contract_history_object_type:
 		return create_obj_unique_ptr <contract_history_object>(var);
 		break;
+	case vote_object_type:
+		return create_obj_unique_ptr<vote_object>(var);
+	case vote_result_object_type:
+		return  create_obj_unique_ptr<vote_result_object>(var);
     default:
         break;
     }
 	std::cout << (fc::json::to_string(var) + " fail to deserialized ").c_str() << std::endl;
 	exit(0);
+	FC_CAPTURE_AND_THROW(deserialize_object_failed, (var));
     return NULL;
 }
 inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant& var)
@@ -748,6 +753,8 @@ inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant
     }
 	std::cout<<(fc::json::to_string(var) + " fail to deserialized ").c_str()<<std::endl;
 	exit(0);
+	FC_CAPTURE_AND_THROW(deserialize_object_failed,(var));
+	return NULL;
 }
 std::unique_ptr<object> db::serializable_obj::to_object() const
 {

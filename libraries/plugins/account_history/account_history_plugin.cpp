@@ -64,7 +64,7 @@ class account_history_plugin_impl
 
       account_history_plugin& _self;
       flat_set<account_id_type> _tracked_accounts;
-      bool _partial_operations = false;
+      bool _partial_operations = true;
       primary_index< simple_index< operation_history_object > >* _oho_index;
       uint32_t _max_ops_per_account = -1;
    private:

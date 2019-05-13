@@ -25,7 +25,6 @@
 
 #include <graphene/witness/witness.hpp>
 #include <graphene/account_history/account_history_plugin.hpp>
-#include <graphene/market_history/market_history_plugin.hpp>
 #include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
 #include <fc/exception/exception.hpp>
@@ -97,7 +96,7 @@ using namespace graphene;
 namespace bpo = boost::program_options;
          
 void write_default_logging_config_to_stream(std::ostream& out);
-fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename);
+fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename, const std::set<std::string> discard_logs=std::set<std::string>());
 
 int main(int argc, char** argv) {
 #ifdef WIN32
@@ -158,7 +157,15 @@ int main(int argc, char** argv) {
 	  {
 		  data_dir = data_dir/"testnet";
 	  }
+	  bool log_p2p = true;
+	  std::set<std::string> discard_log;
+	  if (options.count("nop2plog"))
+	  {
+		  discard_log.insert("p2p");
+		  log_p2p = false;
+	  }
       fc::path config_ini_path = data_dir / "config.ini";
+
       if( fc::exists(config_ini_path) )
       {
          // get the basic options
@@ -167,16 +174,16 @@ int main(int argc, char** argv) {
          // try to get logging options from the config file.
          try
          {
-            fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path);
+            fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path, discard_log);
 			if (logging_config)
 				fc::configure_logging(*logging_config);
 			else
-				fc::configure_logging(fc::logging_config::default_config(config_ini_path));
+				fc::configure_logging(fc::logging_config::default_config(config_ini_path,log_p2p));
          }
          catch (const fc::exception&)
          {
             wlog("Error parsing logging config from config file ${config}, using default config", ("config", config_ini_path.preferred_string()));
-			fc::configure_logging(fc::logging_config::default_config(config_ini_path));
+			fc::configure_logging(fc::logging_config::default_config(config_ini_path, log_p2p));
          }
       }
       else 
@@ -211,11 +218,11 @@ int main(int argc, char** argv) {
          write_default_logging_config_to_stream(out_cfg);
          out_cfg.close(); 
          // read the default logging config we just wrote out to the file and start using it
-         fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path);
+         fc::optional<fc::logging_config> logging_config = load_logging_config_from_ini_file(config_ini_path, discard_log);
 		 if (logging_config)
 			 fc::configure_logging(*logging_config);
 		 else
-			 fc::configure_logging(fc::logging_config::default_config(config_ini_path));
+			 fc::configure_logging(fc::logging_config::default_config(config_ini_path, log_p2p));
       }
 
       bpo::notify(options);
@@ -299,7 +306,7 @@ void write_default_logging_config_to_stream(std::ostream& out)
           "appenders=p2p\n\n";
 }
 
-fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename)
+fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename, const std::set<std::string> discard_logs/*=std::set<std::string>()*/)
 {
    try
    {
@@ -342,6 +349,7 @@ fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::pat
          {
             std::string file_appender_name = section_name.substr(file_appender_section_prefix.length());
             fc::path file_name = section_tree.get<std::string>("filename");
+			
             if (file_name.is_relative())
                file_name = fc::absolute(config_ini_filename).parent_path() / file_name;
             
@@ -360,6 +368,12 @@ fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::pat
          else if (boost::starts_with(section_name, logger_section_prefix))
          {
             std::string logger_name = section_name.substr(logger_section_prefix.length());
+			std::cout <<"Got a log config " << logger_name <<std::endl;
+			if (discard_logs.find(logger_name) != discard_logs.end())
+			{
+				std::cout << "Discard " << logger_name << std::endl;
+				continue;
+			}
             std::string level_string = section_tree.get<std::string>("level");
             std::string appenders_string = section_tree.get<std::string>("appenders");
             fc::logger_config logger_config(logger_name);

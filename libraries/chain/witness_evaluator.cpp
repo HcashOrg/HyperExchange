@@ -231,6 +231,17 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 		std::cout << "hellox" << std::string(new_acnt_object.id) << std::endl;
 		//FC_ASSERT(new_acnt_object.id != multisig_account_pair_id_type());
 		//we need change the status of the multisig_address_object
+		const auto& guards = db().get_guard_members();
+		const auto& is_senator = [&guards](const account_id_type& guarad_account_id) -> bool {
+			for (const auto guard : guards)
+			{
+				if (guard.guard_member_account == guarad_account_id)
+					return true;
+			}
+		    return false;
+		};
+
+
 		auto &guard_change_idx = db().get_index_type<multisig_address_index>().indices().get<by_account_chain_type>();
 		for (auto& itr : guard_change_idx)
 		{
@@ -238,6 +249,8 @@ void_result miner_generate_multi_asset_evaluator::do_apply(const miner_generate_
 				//FC_ASSERT(false, "Add for test");
 				continue;
 			}
+			if (!is_senator(itr.guard_account))
+				continue;
 			db().modify(itr, [&](multisig_address_object& obj) {
 				obj.multisig_account_pair_object_id = new_acnt_object.id;
 			});

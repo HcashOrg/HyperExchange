@@ -87,6 +87,8 @@ struct get_impacted_account_visitor
    }
    void operator()(const set_balance_operation& op) {}
    void operator()(const correct_chain_data_operation& op) {}
+   void operator()(const vote_create_operation& op) {}
+   void operator()(const vote_update_operation& op) {}
    void operator()(const add_whiteOperation_list_operation& op) {}
    void operator()(const cancel_whiteOperation_list_operation& op) {}
    void operator()( const asset_reserve_operation& op ) {}

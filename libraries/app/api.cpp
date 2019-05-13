@@ -161,7 +161,7 @@ namespace graphene { namespace app {
 	string localnode_api::get_data_dir()
 	{
 		auto ret = _app.get_data_dir();
-		return string(ret.begin(),ret.end());
+		return ret.generic_string();
 	}
 
     void miner_api::start_miner(bool start)
@@ -202,15 +202,16 @@ namespace graphene { namespace app {
 	//transaction_api
 	transaction_api::transaction_api(application& app) :_app(app) {}
 	transaction_api::~transaction_api() {}
-
+	
 	optional<graphene::chain::full_transaction> transaction_api::get_transaction(transaction_id_type id)
 	{
-		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_trx_id>();
-		if (trx_ids.find(id) == trx_ids.end())
+		const auto db = _app.chain_database();
+		const auto& trx = db->fetch_trx(id);
+		if (!trx.valid())
 			return optional<graphene::chain::full_transaction>();
-		auto res_ids = trx_ids.find(id);
-		full_transaction res= res_ids->trx;
-		res.block_num = res_ids->block_num;
+	
+		full_transaction res= trx->trx;
+		res.block_num = trx->block_num;
         auto invoke_res= _app.chain_database()->get_contract_invoke_result(id);
         if (invoke_res.size()==0)
             return res;
@@ -245,15 +246,15 @@ namespace graphene { namespace app {
 	{
 		vector<transaction_id_type> result;
 		const auto& history_idx = _app.chain_database()->get_index_type<history_transaction_index>();
-		const auto& trx_ids = _app.chain_database()->get_index_type<trx_index>().indices().get<by_id>();
 		int32_t ncount = 0;
 		history_idx.inspect_all_objects([&](const object& obj) {
 			const history_transaction_object& p = static_cast<const history_transaction_object&>(obj);
 			if (p.block_num >= blocknum && ncount <= nums)
 			{
 				ncount++;
-				auto trx_obj = _app.chain_database()->get(p.trx_obj_id);
-				result.push_back(trx_obj.trx_id);
+				auto trx_op = _app.chain_database()->fetch_trx(p.trx_id);
+				if (trx_op.valid())
+					result.push_back((*trx_op).trx_id);
 			}
 		});
 		return result;

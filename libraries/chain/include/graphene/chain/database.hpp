@@ -129,7 +129,8 @@ namespace graphene { namespace chain {
          optional<signed_block>     fetch_block_by_number( uint32_t num )const;
          const signed_transaction&  get_recent_transaction( const transaction_id_type& trx_id )const;
          std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const;
-		 
+		 optional<miner_object>     get_citizen_obj(const address& addr) const;
+		 vector<miner_object>     get_citizen_objs(const vector<address>& addr) const;
          /**
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
@@ -149,6 +150,7 @@ namespace graphene { namespace chain {
 		 void determine_referendum_detailes();
          processed_transaction push_proposal( const proposal_object& proposal );
 		 processed_transaction push_referendum(const referendum_object& referendum);
+		 void clear_votes();
          signed_block generate_block(
             const fc::time_point_sec when,
             miner_id_type miner_id,
@@ -189,7 +191,7 @@ namespace graphene { namespace chain {
 		 *  released.
 		 */
 		 fc::signal<void(const signed_block&)>           applied_block;
-
+		 fc::signal<void(const vector<signed_transaction>&)>  removed_trxs;
          /**
           * This signal is emitted any time a new transaction is added to the pending
           * block state.
@@ -303,7 +305,7 @@ namespace graphene { namespace chain {
                operation::tag<typename EvaluatorType::operation_type>::value].reset( new op_evaluator_impl<EvaluatorType>() );
          }
 		 //////////////////// db_pay_back.cpp/////////////////
-		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, const string& miner = "");
+		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, miner_id_type miner_id = miner_id_type(0));
 	     void adjust_bonus_balance(address bonus_owner, asset bonus);
 		 std::map<string, share_type> get_bonus_balance(address owner)const;
 		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
@@ -557,6 +559,7 @@ namespace graphene { namespace chain {
          void                  apply_block( const signed_block& next_block, uint32_t skip = skip_nothing );
          processed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
+		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
       private:
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
@@ -642,6 +645,7 @@ namespace graphene { namespace chain {
 		 share_type						   _gas_limit_in_in_block = 2000000;
 		 share_type						   _current_gas_in_block= 0;
 	public:
+		bool ontestnet = false;
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
 		std::mutex                         db_lock;

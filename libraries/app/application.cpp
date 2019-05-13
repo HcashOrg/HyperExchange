@@ -375,8 +375,8 @@ namespace detail {
 	  }
       void startup()
       { try {
-         //bool clean = !fc::exists(_data_dir / "blockchain/dblock");
-         //fc::create_directories(_data_dir / "blockchain/dblock");
+         bool clean = !fc::exists(_data_dir / "blockchain/dblock");
+         fc::create_directories(_data_dir / "blockchain/dblock");
 		 if (_options->count("crosschain-ip"))
 		 {
 			 auto crosschain_ip = _options->at("crosschain-ip").as<std::string>();
@@ -511,6 +511,7 @@ namespace detail {
                std::string egenesis_json;
 			   if (_options->count("testnet")) 
 			   {
+				   _chain_db->ontestnet = true;
 				   graphene::egenesis::compute_testnet_egenesis_json(egenesis_json);
 				   FC_ASSERT(egenesis_json != "");
 				   FC_ASSERT(graphene::egenesis::get_testnet_egenesis_json_hash() == fc::sha256::hash(egenesis_json));
@@ -565,11 +566,11 @@ namespace detail {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
             }
-			/*else if( !clean )
-			{
-			   replay = true;
-			   replay_reason = "unclean shutdown detected";
-			}*/
+            else if( !clean )
+            {
+               replay = true;
+               replay_reason = "unclean shutdown detected";
+            }
             else if( !fc::exists( _data_dir / "db_version" ) )
             {
                replay = true;
@@ -612,30 +613,16 @@ namespace detail {
                replay_reason = "exception in open()";
             }
          }
-
          if( replay )
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
-			try {
-				fc::remove_all(_data_dir / "db_version");
-				_chain_db->reindex(_data_dir / "blockchain", initial_state());
-				const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
-				std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
-				std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
-				db_version.write(version_string.c_str(), version_string.size());
-				db_version.close();
-			}
-			catch (const fc::exception& e)
-			{
-				ilog("Caught exception ${e} in open(),remove all blockchain dir and start again.", ("e", e.to_detail_string()));
-				//_chain_db->wipe(_data_dir / "blockchain", false);
-				_chain_db->close();
-				//fc::remove_all(_data_dir / "blockchain");
-				fc::remove_all(_data_dir / "blockchain_previous");
-				//_chain_db->initialize_indexes();
-				//_chain_db->initialize_evaluators();
-				//_chain_db->open(_data_dir / "blockchain", initial_state);
-			}
+			fc::remove_all(_data_dir / "db_version");
+			_chain_db->reindex(_data_dir / "blockchain", initial_state());
+			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
+			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
+			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
+			db_version.write(version_string.c_str(), version_string.size());
+			db_version.close();
          }
 
          if( _options->count("force-validate") )
@@ -1197,6 +1184,7 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
 		 ("testnet", "Start for testnet")
+		 ("nop2plog","Do not log p2p info")
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("midware_servers", bpo::value<string>()->composing(), "")
@@ -1207,11 +1195,9 @@ void application::set_program_options(boost::program_options::options_descriptio
    configuration_file_options.add(_cfg_options);
 }
 
-vector<char> application::get_data_dir() const 
+fc::path application::get_data_dir() const 
 {
-    auto ret = my->_data_dir.wstring();
-	std::cout << ret.c_str() << std::endl;
-	return vector<char>(ret.begin(),ret.end());
+	return my->_data_dir;
 }
 
 void application::initialize(const fc::path& data_dir, const boost::program_options::variables_map& options)

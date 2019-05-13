@@ -440,7 +440,7 @@ namespace graphene {
 			auto gas_limit = uvm::lua::lib::get_lua_state_instructions_limit(L);
 			const char* out_of_gas_error = "contract storage changes out of gas";
 
-			auto txid = evaluator->get_current_trx_id();
+			// auto txid = evaluator->get_current_trx_id();
 
 			for (auto all_con_chg_iter = changes.begin(); all_con_chg_iter != changes.end(); ++all_con_chg_iter)
 			{
@@ -493,7 +493,7 @@ namespace graphene {
 				}
 				ilog("changes size: ${size} bytes", ("size", changes_size));
 				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
-				dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
+				//dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
 
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);

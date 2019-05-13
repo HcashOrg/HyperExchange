@@ -34,6 +34,8 @@
 #include <iostream>
 
 #include "boost/filesystem/operations.hpp"
+#include <leveldb/db.h>
+#include <leveldb/cache.h>
 namespace graphene { namespace chain {
 
 database::database()
@@ -120,33 +122,33 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    auto end = fc::time_point::now();
    ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
 
-   //chk
-   auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>();
-   uint64_t objc = 0;
-   uint64_t zero_count = 0;
-   uint64_t bc_count = 0;
-   uint64_t almc = 0;
-   for (auto it = payback_db.begin(); it != payback_db.end(); it++)
-   {
-	   objc++;
-	   auto& obj = (*it);
-	   bool all_em = false;
-	   for (auto& ait : obj.owner_balance)
-	   {
-		   bc_count++;
-		   if (ait.second.amount == 0)
-		   {
-			   zero_count++;
-		   }
-		   else
-		   {
-			   all_em = false;
-		   }
-	   }
-	   if (all_em)
-		   almc++;
-   }
-   std::cout << "all object:" << objc << "\nEmpty obj:" << almc << "\nbalance_count:" << bc_count << "\nzero:" << zero_count << std::endl;
+   ////chk
+   //auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address>();
+   //uint64_t objc = 0;
+   //uint64_t zero_count = 0;
+   //uint64_t bc_count = 0;
+   //uint64_t almc = 0;
+   //for (auto it = payback_db.begin(); it != payback_db.end(); it++)
+   //{
+	  // objc++;
+	  // auto& obj = (*it);
+	  // bool all_em = false;
+	  // for (auto& ait : obj.owner_balance)
+	  // {
+		 //  bc_count++;
+		 //  if (ait.second.amount == 0)
+		 //  {
+			//   zero_count++;
+		 //  }
+		 //  else
+		 //  {
+			//   all_em = false;
+		 //  }
+	  // }
+	  // if (all_em)
+		 //  almc++;
+   //}
+   //std::cout << "all object:" << objc << "\nEmpty obj:" << almc << "\nbalance_count:" << bc_count << "\nzero:" << zero_count << std::endl;
    //
 } FC_CAPTURE_AND_RETHROW( (data_dir) ) }
 
@@ -190,14 +192,14 @@ void database::open(
 		  }
 		  catch (...)
 		  {
-			  FC_CAPTURE_AND_THROW(deserialize_fork_database_failed, (data_dir));
+			  FC_CAPTURE_AND_THROW(deserialize_undo_database_failed, (data_dir));
 		  }
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
-
+		  initialize_leveldb();
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
-}
+} 
 
 void database::clear()
 {
@@ -212,7 +214,7 @@ void database::close()
    clear_pending();
    // pop all of the blocks that we can given our undo history, this should
    // throw when there is no more undo history to pop
-   if( rewind_on_close)
+   if( rewind_on_close) 
    {
       try
       {
@@ -263,10 +265,11 @@ void database::close()
    }
 
 
-   //if( _block_id_to_block.is_open() )
+   if( _block_id_to_block.is_open() )
       _block_id_to_block.close();
-   _undo_db.reset();
+   //_undo_db.reset();
    _fork_db.reset();
+   destruct_leveldb();
 }
 
 } }

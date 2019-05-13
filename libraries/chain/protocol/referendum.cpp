@@ -55,5 +55,30 @@ void referendum_accelerate_pledge_operation::validate()const
 	FC_ASSERT(fee >= asset(0));
 }
 
+void vote_create_operation::validate() const 
+{
+	FC_ASSERT(fee > asset(0));
+}
+
+share_type vote_create_operation::calculate_fee(const fee_parameters_type& k) const
+{
+	share_type core_fee_required = k.fee;
+	core_fee_required += calculate_data_fee(title.size(), k.price_per_kbyte);
+	for (auto& option : options)
+	{
+		core_fee_required += calculate_data_fee(option.size(), k.price_per_kbyte);
+	}
+	return core_fee_required;
+}
+void vote_update_operation::validate() const 
+{
+	FC_ASSERT(fee > asset(0));
+}
+
+share_type vote_update_operation::calculate_fee(const fee_parameters_type& k) const
+{
+	return k.fee;
+}
+
 
 } } // graphene::chain
