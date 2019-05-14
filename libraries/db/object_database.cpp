@@ -52,12 +52,21 @@ void object_database::initialize_leveldb()
 	}
 }
 
+
 void object_database::destruct_leveldb()
 {
 	if (db != nullptr)
 		delete db;
 	db = nullptr;
 }
+
+void object_database::reinitialize_leveldb()
+{
+	destruct_leveldb();
+	fc::remove_all(get_data_dir() / "transactions");
+	initialize_leveldb();
+}
+
 
 void object_database::close()
 {
