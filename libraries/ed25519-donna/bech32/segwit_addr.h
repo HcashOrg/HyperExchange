@@ -20,7 +20,7 @@
  */
 #pragma once
 #include <stdint.h>
-
+#include <stdio.h>
 /** Encode a SegWit address
  *
  *  Out: output:   Pointer to a buffer of size 73 + strlen(hrp) that will be

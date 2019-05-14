@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <D:\blockchain_project\hxlink\HyperExchange\libraries\ed25519-donna\bech32.h>
+#include "../bech32.h"
 #include "segwit_addr.h"
 
 uint32_t bech32_polymod_step(uint32_t pre) {
