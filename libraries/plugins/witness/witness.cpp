@@ -97,6 +97,7 @@ void miner_plugin::plugin_set_program_options(
    string miner_id_example = fc::json::to_string(chain::miner_id_type(5));
    vector<string> chain_type;
    chain_type.push_back("BTC");
+   chain_type.push_back("BCH");
    chain_type.push_back("LTC");
    chain_type.push_back("HC");
    chain_type.push_back("ETH");

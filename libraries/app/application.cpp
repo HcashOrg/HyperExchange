@@ -417,6 +417,7 @@ namespace detail {
 				 {
 					 chain_type_vector.clear();
 					 chain_type_vector.push_back("BTC");
+					 chain_type_vector.push_back("BCH");
 					 chain_type_vector.push_back("LTC");
 					 chain_type_vector.push_back("ETH");
 					 chain_type_vector.push_back("HC");
