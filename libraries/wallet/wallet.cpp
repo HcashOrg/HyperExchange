@@ -6042,6 +6042,10 @@ public:
 		   FC_ASSERT(asset_obj->allow_withdraw_deposit,"${asset} does not allow withdraw and deposit",("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
+
+		   if (asset_symbol == "HC")
+			   FC_ASSERT(crosschain_account[1]=='s' || crosschain_account[1]=='c',"invalid address for HC to be withdrawn.");
+
 		   crosschain_withdraw_operation op;
 		   op.withdraw_account = iter.find(account_name)->addr;
 		   op.amount = amount;
