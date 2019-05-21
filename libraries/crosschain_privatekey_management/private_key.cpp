@@ -501,7 +501,7 @@ namespace graphene { namespace privatekey_management {
 		const auto stripped = strip_code_seperators(libbitcoin_script);
 		libbitcoin::chain::transaction  trx;
 		trx.from_data(libbitcoin::config::base16(raw_trx));
-		BITCOIN_ASSERT(vin_index < tx.inputs().size());
+		BITCOIN_ASSERT(vin_index < trx.inputs().size());
 		const auto& input = trx.inputs()[vin_index];
 		//const auto size = libbitcoin::chain::preimage_size(script_code.serialized_size(true));
 		uint32_t sighash_type = libbitcoin::machine::sighash_algorithm::all | 0x40;
