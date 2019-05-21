@@ -110,7 +110,7 @@ namespace graphene { namespace chain {
       void get_required_active_authorities( flat_set<account_id_type>& )const{}
       void get_required_owner_authorities( flat_set<account_id_type>& )const{}
       void validate()const{}
-
+	  address fee_payer() const { return address(); }
       static uint64_t calculate_data_fee( uint64_t bytes, uint64_t price_per_kbyte );
 	  optional<guarantee_object_id_type> get_guarantee_id()const  { return optional<guarantee_object_id_type>(); }
 	  optional<asset> get_fee()const { return optional<asset>(); }

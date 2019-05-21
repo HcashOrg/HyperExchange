@@ -181,7 +181,8 @@ namespace graphene { namespace chain {
 			set_balance_operation,
 		    correct_chain_data_operation,
 			vote_create_operation,
-			vote_update_operation
+			vote_update_operation,
+			undertaker_operation
          > operation;
 
    /// @} // operations group
@@ -198,7 +199,7 @@ namespace graphene { namespace chain {
                                             vector<authority>&  other );
 
    void operation_validate( const operation& op );
-
+   fc::variant operation_fee_payer(const operation& op);
    bool is_contract_operation(const operation& op);
    optional<guarantee_object_id_type> operation_gurantee_id(const operation& op);
   

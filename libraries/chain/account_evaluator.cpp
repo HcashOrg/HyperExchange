@@ -36,6 +36,7 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <graphene/chain/balance_object.hpp>
+#include <graphene/chain/protocol/operations.hpp>
 #include <algorithm>
 
 namespace graphene { namespace chain {
@@ -630,4 +631,44 @@ void_result cancel_whiteOperation_list_evaluator::do_apply(const cancel_whiteOpe
 		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
+{
+	try {
+		/*transaction_evaluation_state eval_state(&db());
+		for (const auto& op : o.maker_op)
+		{
+			FC_ASSERT(o.fee_payer() == operation_fee_payer(op.op).as<graphene::chain::address>());
+			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
+			eval->evaluate(eval_state, op.op, false);
+		}
+		for (const auto& op : o.taker_op)
+		{
+			FC_ASSERT(o.taker == operation_fee_payer(op.op).as<graphene::chain::address>());
+			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
+			eval->evaluate(eval_state, op.op, false);
+		}
+		return void_result();*/
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
+{
+	try {
+		/*transaction_evaluation_state eval_state(&db());
+		for (const auto& op : o.taker_op)
+		{
+			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
+			eval->evaluate(eval_state, op.op,true);
+		}
+
+		for (const auto& op : o.maker_op)
+		{
+			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
+			eval->evaluate(eval_state, op.op,true);
+		}
+		return void_result();*/
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 } } // graphene::chain
