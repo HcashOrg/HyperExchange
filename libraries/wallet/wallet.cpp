@@ -3645,7 +3645,7 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(pubs)(required)(broadcast))
    }
 
-   map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account)
+   map<address, vector<asset>> get_citizen_lockbalance_info(const string& account)
    {
 	   auto obj = get_miner(account);
 	   return _remote_db->get_citizen_lockbalance_info(obj.id);
@@ -9607,7 +9607,7 @@ address wallet_api::create_multisignature_address(const string& account, const f
 {
 	return my->create_multisignature_address(account,pubs,required,broadcast);
 }
-map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(const string& account)
+graphene::chain::map<graphene::chain::address, graphene::chain::vector<graphene::chain::asset>> wallet_api::get_citizen_lockbalance_info(const string& account)
 {
 	return my->get_citizen_lockbalance_info(account);
 }

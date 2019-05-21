@@ -105,9 +105,9 @@ bool database::is_white(const address& addr, const int& op) const
 		return true;
 	return false;
 }
-map<account_id_type, vector<asset>> database::get_citizen_lockbalance_info(const miner_id_type& id) const
+map<address, vector<asset>> database::get_citizen_lockbalance_info(const miner_id_type& id) const
 {
-	map<account_id_type, vector<asset>> result;
+	map<address, vector<asset>> result;
 	const auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 	auto range = index.equal_range(boost::make_tuple(id));
 	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
@@ -260,8 +260,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					{
 						continue;
 					}
-					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
+					adjust_pay_back_balance(one_pledge.lock_balance_account, asset(end_value, asset_id_type(0)), miner_id);
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))
 				{
@@ -276,8 +275,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					{
 						continue;
 					}
-					auto lock_account = get(one_pledge.lock_balance_account);
-					adjust_pay_back_balance(lock_account.addr, asset(end_value, asset_id_type(0)), miner_id);
+					adjust_pay_back_balance(one_pledge.lock_balance_account, asset(end_value, asset_id_type(0)), miner_id);
 				}
 			}
 			FC_ASSERT(cal_cur_pledge <= all_pledge, "cal_cur_pledge is ${cal_cur_pledge} and  all_pledge is ${all_pledge}", ("cal_cur_pledge",cal_cur_pledge.str())("all_pledge", all_pledge.str()));

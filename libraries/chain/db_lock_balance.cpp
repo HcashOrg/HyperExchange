@@ -15,8 +15,10 @@ namespace graphene {
 
 		asset database::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id) const{
 			try {
+				auto addr = get(owner).addr;
 				auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
-				auto itr = index.find(boost::make_tuple(miner, owner, asset_id));
+
+				auto itr = index.find(boost::make_tuple(miner, addr, asset_id));
 				if (itr != index.end()) {
 					return itr->get_lock_balance();
 				}
@@ -28,9 +30,10 @@ namespace graphene {
 			try {
 				const auto& lb_index = get_index_type<lockbalance_index>();
 				vector<lockbalance_object> result;
+				auto acc_addr = get(owner).addr;
 				lb_index.inspect_all_objects([&](const object& obj) {
 					const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
-					if (p.lock_balance_account == owner && p.lock_asset_amount > 0  && p.lock_asset_id == asset_id) {
+					if (p.lock_balance_account == acc_addr && p.lock_asset_amount > 0  && p.lock_asset_id == asset_id) {
 						result.push_back(p);
 					}
 				});
@@ -78,14 +81,15 @@ namespace graphene {
 				if (delta.amount == 0) {
 					return;
 				}
+				auto acc_addr = get(lock_account).addr;
 				auto& by_owner_idx = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
-				auto itr = by_owner_idx.find(boost::make_tuple(miner_account, lock_account, delta.asset_id));
+				auto itr = by_owner_idx.find(boost::make_tuple(miner_account, acc_addr, delta.asset_id));
 				//fc::time_point_sec now = head_block_time();
 				if (itr == by_owner_idx.end()){
 					FC_ASSERT(delta.amount > 0, "lock balance error");
-					create<lockbalance_object>([miner_account, lock_account, delta](lockbalance_object& a) {
+					create<lockbalance_object>([miner_account, lock_account, delta,acc_addr](lockbalance_object& a) {
 						a.lockto_miner_account = miner_account;
-						a.lock_balance_account = lock_account;
+						a.lock_balance_account = acc_addr;
 						//address lock_balance_contract_addr;
 						a.lock_asset_id = delta.asset_id;
 						a.lock_asset_amount = delta.amount;

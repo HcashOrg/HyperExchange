@@ -25,6 +25,5 @@
 #include "db_balance.cpp"
 #include "db_debug.cpp"
 #include "db_getter.cpp"
-#include "db_init.cpp"
 #include "db_maint.cpp"
 

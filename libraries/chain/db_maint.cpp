@@ -44,6 +44,7 @@
 #include <graphene/chain/vote_count.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/worker_object.hpp>
+#include <graphene/chain/pay_back_object.hpp>
 #include <fc/uint128.hpp>
 
 namespace graphene { namespace chain {
@@ -531,20 +532,19 @@ void database::process_bonus()
 			{
 				if (obj.lock_asset_id != asset_id_type(0))
 					continue;
-				const auto& acc = get(obj.lock_balance_account);
 				const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
-				const auto balance_obj = balances.find(boost::make_tuple(acc.addr, asset_id_type()));
+				const auto balance_obj = balances.find(boost::make_tuple(obj.lock_balance_account, asset_id_type()));
 				if (balance_obj->amount() >= dpo.bonus_distribute_limit)
 				{
 					sum += obj.lock_asset_amount;
-					waiting_list[acc.addr] += obj.lock_asset_amount;
+					waiting_list[obj.lock_balance_account] += obj.lock_asset_amount;
 				}
 				else
 				{
 					if (balance_obj->amount() + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
 					{
 						sum += (balance_obj->amount() + obj.lock_asset_amount);
-						waiting_list[acc.addr] += (balance_obj->amount() + obj.lock_asset_amount);
+						waiting_list[obj.lock_balance_account] += (balance_obj->amount() + obj.lock_asset_amount);
 					}
 				}
 			}
@@ -556,8 +556,7 @@ void database::process_bonus()
 			{
 				if (obj.lock_asset_id != asset_id_type(0))
 					continue;
-				const auto& acc = get(obj.lock_balance_account);
-				guard_waiting_list[acc.addr] += obj.lock_asset_amount;
+				guard_waiting_list[obj.lock_balance_account] += obj.lock_asset_amount;
 			}
 			for (const auto & obj : guard_waiting_list)
 			{

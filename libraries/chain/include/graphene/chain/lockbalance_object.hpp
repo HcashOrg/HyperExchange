@@ -9,6 +9,7 @@
 namespace graphene {
 	namespace chain {
 		using namespace graphene::db;
+		
 		class lockbalance_object;
 		class lockbalance_object : public graphene::db::abstract_object<lockbalance_object>
 		{
@@ -17,7 +18,7 @@ namespace graphene {
 			static const uint8_t type_id = lockbalance_object_type;
 
 			miner_id_type lockto_miner_account;
-			account_id_type lock_balance_account;
+			address lock_balance_account;
 			address lock_balance_contract_addr;
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
@@ -44,12 +45,12 @@ namespace graphene {
 			composite_key<
 			lockbalance_object,
 			member<lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>,
-			member<lockbalance_object, account_id_type, &lockbalance_object::lock_balance_account>,			
+			member<lockbalance_object, address, &lockbalance_object::lock_balance_account>,
 			member<lockbalance_object, asset_id_type, &lockbalance_object::lock_asset_id>
 			>,
 			composite_key_compare<
 			std::less< miner_id_type >,
-			std::less< account_id_type >,
+			std::less< address >,
 			std::less< asset_id_type >
 			>
 			>

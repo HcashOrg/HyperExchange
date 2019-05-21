@@ -7,6 +7,7 @@ namespace graphene {
 	namespace chain {
 		using namespace graphene::db;
 		class pay_back_object;
+
 		class pay_back_object : public abstract_object<pay_back_object>
 		{
 		public:
