@@ -128,10 +128,10 @@ struct get_impacted_account_visitor
    void operator() (const referendum_accelerate_pledge_operation& op) {}
    void operator() (const undertaker_operation& op) {
 	   vector<authority> other;
-	   for (const auto& op : op.maker_op)
-		   operation_get_required_authorities(op.op, _impacted, _impacted, other);
-	   for (const auto& op : op.taker_op)
-		   operation_get_required_authorities(op.op, _impacted, _impacted, other);
+	   for (const auto& mop : op.maker_op)
+		   operation_get_required_authorities(mop.op, _impacted, _impacted, other);
+	   for (const auto& top : op.taker_op)
+		   operation_get_required_authorities(top.op, _impacted, _impacted, other);
 	   for (auto& o : other)
 		   add_authority_accounts(_impacted, o);
    }
