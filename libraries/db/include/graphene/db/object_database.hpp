@@ -78,6 +78,7 @@ namespace graphene { namespace db {
          /// @}
 		 void initialize_leveldb();
 		 void destruct_leveldb();
+		 void reinitialize_leveldb();
          const object& get_object( object_id_type id )const;
          const object* find_object( object_id_type id )const;
 

@@ -650,7 +650,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.19";
+	  result["version"] = "1.2.20";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -2250,7 +2250,13 @@ public:
 				raw = trx["hex"].as_string();
 		   for (auto index=0;index < vins.size(); index++)
 		   {
+			   if (symbol == "BCH"){
+				   std::string amount = vins[index]["amount"].as_string();
+				   raw = prk_ptr->sign_trx(raw+'|'+ amount, index);
+			   }
+			   else {
 			   raw=prk_ptr->sign_trx(raw,index);
+			   }
 		   }
 		   }
 		   
@@ -6057,6 +6063,10 @@ public:
 		   FC_ASSERT(asset_obj->allow_withdraw_deposit,"${asset} does not allow withdraw and deposit",("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
+
+		   if (asset_symbol == "HC")
+			   FC_ASSERT(crosschain_account[1]=='s' || crosschain_account[1]=='c',"invalid address for HC to be withdrawn.");
+
 		   crosschain_withdraw_operation op;
 		   op.withdraw_account = iter.find(account_name)->addr;
 		   op.amount = amount;

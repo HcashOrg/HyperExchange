@@ -34,3 +34,7 @@
 #include "db_management.cpp"
 #include "db_market.cpp"
 #include "db_block.cpp"
+#include "db_balance.cpp"
+#include "db_debug.cpp"
+#include "db_getter.cpp"
+#include "db_maint.cpp"
