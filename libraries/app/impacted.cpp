@@ -135,6 +135,7 @@ struct get_impacted_account_visitor
 	   for (auto& o : other)
 		   add_authority_accounts(_impacted, o);
    }
+   void operator()(const name_transfer_operation& op) {}
    void operator()( const proposal_create_operation& op )
    {
       vector<authority> other;

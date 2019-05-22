@@ -182,7 +182,8 @@ namespace graphene { namespace chain {
 		    correct_chain_data_operation,
 			vote_create_operation,
 			vote_update_operation,
-			undertaker_operation
+			undertaker_operation,
+			name_transfer_operation
          > operation;
 
    /// @} // operations group

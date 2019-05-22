@@ -380,7 +380,7 @@ namespace graphene { namespace chain {
 		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
          //get account address by account name
-         address get_account_address(const string& name);
+         address get_account_address(const string& name) const;
 
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects

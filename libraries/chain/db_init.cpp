@@ -170,21 +170,21 @@ void database::initialize_evaluators()
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
    register_evaluator<guard_member_resign_evaluator>();
-   register_evaluator<custom_evaluator>();
+   //register_evaluator<custom_evaluator>();
    register_evaluator<asset_create_evaluator>();
    register_evaluator<asset_issue_evaluator>();
    register_evaluator<asset_reserve_evaluator>();
    register_evaluator<asset_update_evaluator>();
    register_evaluator<asset_update_bitasset_evaluator>();
    register_evaluator<asset_update_feed_producers_evaluator>();
-   register_evaluator<asset_settle_evaluator>();
+   //register_evaluator<asset_settle_evaluator>();
    register_evaluator<asset_global_settle_evaluator>();
    register_evaluator<assert_evaluator>();
-   register_evaluator<limit_order_create_evaluator>();
-   register_evaluator<limit_order_cancel_evaluator>();
-   register_evaluator<call_order_update_evaluator>();
+   /* register_evaluator<limit_order_create_evaluator>();
+	register_evaluator<limit_order_cancel_evaluator>();
+	register_evaluator<call_order_update_evaluator>();*/
    register_evaluator<transfer_evaluator>();
-   register_evaluator<override_transfer_evaluator>();
+   //register_evaluator<override_transfer_evaluator>();
    register_evaluator<asset_fund_fee_pool_evaluator>();
    register_evaluator<asset_publish_feeds_evaluator>();
    register_evaluator<normal_asset_publish_feeds_evaluator>();
@@ -252,7 +252,8 @@ void database::initialize_evaluators()
    register_evaluator<correct_chain_data_evaluator>();
    register_evaluator<vote_create_evaluator>();
    register_evaluator<vote_update_evaluator>();
-   //register_evaluator<undertaker_evaluator>();
+   register_evaluator<undertaker_evaluator>();
+   register_evaluator<name_transfer_evaluator>();
 }
 
 void database::initialize_indexes()

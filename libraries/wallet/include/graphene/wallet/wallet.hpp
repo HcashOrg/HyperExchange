@@ -1011,6 +1011,8 @@ class wallet_api
 	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
+	  string name_transfer_to_address(string from,string to, asset amount,string newname);
+	  full_transaction confirm_name_transfer(string account ,string trx,bool broadcast);
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
       * @returns the transaction id
@@ -3222,7 +3224,6 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_senator_pledge_change)
 		(propose_pay_back_asset_rate_change)
         (propose_parameter_change)
-		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
         (network_add_nodes)
@@ -3233,7 +3234,7 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_to_address)
 	    (transfer_to_account)
 		(get_account_addr)
-		(get_proposal)
+		//(get_proposal)
 		(get_proposal_for_voter)
 		(lock_balance_to_citizen)
 		(senator_lock_balance)
@@ -3384,4 +3385,6 @@ FC_API( graphene::wallet::wallet_api,
 		(get_votes)
 		(create_vote)
 		(cast_vote)
+		(name_transfer_to_address)
+		(confirm_name_transfer)
       )
