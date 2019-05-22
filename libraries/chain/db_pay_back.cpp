@@ -4,6 +4,38 @@
 
 namespace graphene {
 	namespace chain {
+		graphene::chain::address graphene::chain::database::get_contract_or_account_address(const object_id_type& id) const
+		{
+			address addr;
+			switch (id.type())
+			{
+			case contract_object_type:
+				addr = get(contract_id_type(id)).contract_address;
+				break;
+			case account_object_type:
+				addr = get(account_id_type(id)).addr;
+				break;
+			default:
+				FC_ASSERT(false, "${id} is not contract_object_type or account_object_type", ("id", id));
+			}
+			return addr;
+		}
+		void graphene::chain::database::adjust_pay_back_balance(object_id_type payback_owner, asset payback_asset, miner_id_type miner_id /*= miner_id_type(0)*/)
+		{
+			address addr;
+			switch (payback_owner.type())
+			{
+			case contract_object_type:
+				addr = get(contract_id_type(payback_owner)).contract_address;
+				break;
+			case account_object_type:
+				addr = get(account_id_type(payback_owner)).addr;
+				break;
+			default:
+				FC_ASSERT(false, "${payback_owner} is not contract_object_type or account_object_type", ("payback_owner", payback_owner));
+			}
+			return adjust_pay_back_balance(addr, payback_asset, miner_id);
+		}
 		void database::adjust_pay_back_balance(address payback_owner, asset payback_asset,miner_id_type miner_id) {
 			try {
 				if (payback_asset.amount == 0) {

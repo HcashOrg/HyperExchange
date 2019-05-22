@@ -532,19 +532,20 @@ void database::process_bonus()
 			{
 				if (obj.lock_asset_id != asset_id_type(0))
 					continue;
+				auto addr=get_contract_or_account_address(obj.lock_balance_account);
 				const auto& balances = get_index_type<balance_index>().indices().get<by_owner>();
-				const auto balance_obj = balances.find(boost::make_tuple(obj.lock_balance_account, asset_id_type()));
+				const auto balance_obj = balances.find(boost::make_tuple(addr, asset_id_type()));
 				if (balance_obj->amount() >= dpo.bonus_distribute_limit)
 				{
 					sum += obj.lock_asset_amount;
-					waiting_list[obj.lock_balance_account] += obj.lock_asset_amount;
+					waiting_list[addr] += obj.lock_asset_amount;
 				}
 				else
 				{
 					if (balance_obj->amount() + obj.lock_asset_amount >= dpo.bonus_distribute_limit)
 					{
 						sum += (balance_obj->amount() + obj.lock_asset_amount);
-						waiting_list[obj.lock_balance_account] += (balance_obj->amount() + obj.lock_asset_amount);
+						waiting_list[addr] += (balance_obj->amount() + obj.lock_asset_amount);
 					}
 				}
 			}
@@ -556,7 +557,8 @@ void database::process_bonus()
 			{
 				if (obj.lock_asset_id != asset_id_type(0))
 					continue;
-				guard_waiting_list[obj.lock_balance_account] += obj.lock_asset_amount;
+				auto addr = get_contract_or_account_address(obj.lock_balance_account);
+				guard_waiting_list[addr] += obj.lock_asset_amount;
 			}
 			for (const auto & obj : guard_waiting_list)
 			{

@@ -306,6 +306,7 @@ namespace graphene { namespace chain {
          }
 		 //////////////////// db_pay_back.cpp/////////////////
 		 void adjust_pay_back_balance(address payback_owner, asset payback_asset, miner_id_type miner_id = miner_id_type(0));
+		 void adjust_pay_back_balance(object_id_type payback_owner, asset payback_asset, miner_id_type miner_id = miner_id_type(0));
 	     void adjust_bonus_balance(address bonus_owner, asset bonus);
 		 std::map<string, share_type> get_bonus_balance(address owner)const;
 		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
@@ -366,6 +367,7 @@ namespace graphene { namespace chain {
          void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res, const share_type& gas);
 		 void store_contract_related_transaction(const transaction_id_type&,const address& contract_id);
 
+		 address get_contract_or_account_address(const object_id_type& id)const;
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 
@@ -471,7 +473,7 @@ namespace graphene { namespace chain {
          void globally_settle_asset( const asset_object& bitasset, const price& settle_price );
          void cancel_order(const force_settlement_object& order, bool create_virtual_op = true);
          void cancel_order(const limit_order_object& order, bool create_virtual_op = true);
-		 map<address, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
+		 map<object_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
          
          /**
           * @brief Process a new limit order through the markets

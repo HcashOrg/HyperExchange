@@ -188,7 +188,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<contract_object> get_contract_registered(const uint32_t start_with, const uint32_t num)const ;
 
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num , const uint32_t num)const ;
-	  map<address, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
+	  map<object_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
 
@@ -636,9 +636,9 @@ optional<multisig_account_pair_object> database_api_impl::lookup_multisig_accoun
 	return optional < multisig_account_pair_object>();
 }
 
-graphene::chain::map<graphene::chain::address, graphene::chain::vector<graphene::chain::asset>> database_api_impl::get_citizen_lockbalance_info(const miner_id_type& id) const
+graphene::chain::map<graphene::db::object_id_type, graphene::chain::vector<graphene::chain::asset>> database_api_impl::get_citizen_lockbalance_info(const miner_id_type& id) const
 {
-	map<address, vector<asset>> result;
+	map<object_id_type, vector<asset>> result;
 	const auto& index = _db.get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 	auto range = index.equal_range(boost::make_tuple(id));
 	for (auto localbalance_obj : boost::make_iterator_range(range.first, range.second)) {
@@ -2736,10 +2736,9 @@ optional<whiteOperationList_object> database_api::get_whiteOperation(const addre
 vector<lockbalance_object> database_api_impl::get_account_lock_balance(const account_id_type& id)const{
 	const auto& lb_index = _db.get_index_type<lockbalance_index>();
 	vector<lockbalance_object> result;
-	auto acc_addr = _db.get(id).addr;
 	lb_index.inspect_all_objects([&](const object& obj) {
 		const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
-		if (p.lock_balance_account == acc_addr && p.lock_asset_amount > 0) {
+		if (p.lock_balance_account == id && p.lock_asset_amount > 0) {
 			result.emplace_back(p);
 		}
 	});
@@ -2821,7 +2820,7 @@ optional<multisig_account_pair_object> database_api::get_current_multisig_accoun
 	return result;
 }
 
-graphene::chain::map<graphene::chain::address, graphene::chain::vector<graphene::chain::asset>> database_api::get_citizen_lockbalance_info(const miner_id_type& id) const
+graphene::chain::map<graphene::db::object_id_type, graphene::chain::vector<graphene::chain::asset>> database_api::get_citizen_lockbalance_info(const miner_id_type& id) const
 {
 	return my->get_citizen_lockbalance_info(id);
 }

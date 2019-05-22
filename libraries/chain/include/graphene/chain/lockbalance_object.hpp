@@ -18,8 +18,7 @@ namespace graphene {
 			static const uint8_t type_id = lockbalance_object_type;
 
 			miner_id_type lockto_miner_account;
-			address lock_balance_account;
-			address lock_balance_contract_addr;
+			object_id_type lock_balance_account;
 			asset_id_type lock_asset_id;
 			share_type lock_asset_amount;
 
@@ -45,12 +44,12 @@ namespace graphene {
 			composite_key<
 			lockbalance_object,
 			member<lockbalance_object, miner_id_type, &lockbalance_object::lockto_miner_account>,
-			member<lockbalance_object, address, &lockbalance_object::lock_balance_account>,
+			member<lockbalance_object, object_id_type, &lockbalance_object::lock_balance_account>,
 			member<lockbalance_object, asset_id_type, &lockbalance_object::lock_asset_id>
 			>,
 			composite_key_compare<
 			std::less< miner_id_type >,
-			std::less< address >,
+			std::less< object_id_type >,
 			std::less< asset_id_type >
 			>
 			>
@@ -63,7 +62,6 @@ namespace graphene {
 FC_REFLECT_DERIVED(graphene::chain::lockbalance_object, (graphene::db::object),
 (lockto_miner_account)
 (lock_balance_account)
-(lock_balance_contract_addr)
 (lock_asset_id)
 (lock_asset_amount)
 )
