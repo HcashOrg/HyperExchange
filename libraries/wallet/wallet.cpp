@@ -6282,6 +6282,51 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
+
+   string name_transfer_to_address(const string& from, const address& to, const asset& amount, const string& newname ,bool broadcast=false)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(amount.asset_id);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
+		   auto acc_obj = get_account(from);
+		   FC_ASSERT(acc_obj.addr != address());
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   transfer_operation xfer_op;
+		   xfer_op.from_addr = to;
+		   xfer_op.to_addr = acc_obj.addr;
+		   xfer_op.amount = amount;
+
+		   name_transfer_operation n_op;
+		   n_op.from = acc_obj.addr;
+		   n_op.to = address(to);
+		   if (newname != "")
+			   n_op.newname = newname;
+
+		   undertaker_operation u_op;
+		   u_op.maker = acc_obj.addr;
+		   u_op.taker = to;
+
+		   u_op.maker_op.emplace_back(n_op);
+		   u_op.taker_op.emplace_back(xfer_op);
+
+		   current_params.current_fees->set_fee(u_op.maker_op.back().op);
+		   current_params.current_fees->set_fee(u_op.taker_op.back().op);
+
+		   signed_transaction tx;
+
+		   tx.operations.push_back(u_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+		   tx.validate();
+		   auto json_str = fc::json::to_string(tx);
+		   return fc::to_base58(json_str.c_str(), json_str.size());
+	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
+   }
+
    string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
@@ -7869,6 +7914,18 @@ string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 	auto vec = fc::from_base58(trx);
 	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
 	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
+}
+
+string wallet_api::name_transfer_to_address(string from, string to, asset amount, string newname)
+{
+	string trx = my->name_transfer_to_address(from, address(to), amount, newname);
+	return sign_multisig_trx(get_account_addr(from),trx);
+}
+full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
+{
+	const address& addr = get_account_addr(account);
+	string tx = sign_multisig_trx(addr, trx);
+	return combine_transaction({ tx }, broadcast);
 }
 
 bool wallet_api::import_key(string account_name_or_id, string wif_key)

@@ -143,6 +143,12 @@ public:
 	void_result do_evaluate(const undertaker_operation& o);
 	void_result do_apply(const undertaker_operation& o);
 };
-
+class name_transfer_evaluator : public evaluator<name_transfer_evaluator>
+{
+public:
+	typedef name_transfer_operation operation_type;
+	void_result do_evaluate(const name_transfer_operation& o);
+	void_result do_apply(const name_transfer_operation& o);
+};
 
 } } // graphene::chain

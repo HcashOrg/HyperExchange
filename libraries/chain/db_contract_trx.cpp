@@ -533,7 +533,7 @@ namespace graphene {
 			return itr != index.end();
 		}
 
-        address database::get_account_address(const string& name)
+        address database::get_account_address(const string& name) const
         {
             auto& db = get_index_type<account_index>().indices().get<by_name>();
             auto it = db.find(name);
