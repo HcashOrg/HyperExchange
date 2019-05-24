@@ -687,22 +687,21 @@ void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 		auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto from_iter = acc_idx.find(o.from);
+		auto to_iter = acc_idx.find(o.to);
+		auto from_obj = *from_iter;
+		auto to_obj = *to_iter;
 		string transfered_name = from_iter->name;
-		if (o.newname.valid())
-			d.modify(*from_iter, [&o](account_object& obj) {
-			obj.name = *(o.newname);
+		d.modify(*from_iter, [&to_obj](account_object& obj) {
+			string name = obj.name;
+			obj = to_obj;
+			obj.name = name; 
 		});
-		else
-		{
-			string name = from_iter->name + fc::variant(d.head_block_num()).as_string();
-			d.modify(*from_iter, [name](account_object& obj) {
-				obj.name = name;
-			});
-		}
-		auto to_iter = d.get_index_type<account_index>().indices().get<by_address>().find(o.to);
-		d.modify(*to_iter, [transfered_name](account_object& obj) {
-			obj.name = transfered_name;
-		});
+
+		/*d.modify(*to_iter, [&from_obj](account_object& obj) {
+			string name = obj.name;
+			obj = from_obj;
+			obj.name = name;
+		});*/
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
