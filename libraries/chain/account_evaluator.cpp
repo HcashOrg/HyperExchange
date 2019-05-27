@@ -690,18 +690,20 @@ void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 		auto to_iter = acc_idx.find(o.to);
 		auto from_obj = *from_iter;
 		auto to_obj = *to_iter;
-		string transfered_name = from_iter->name;
-		d.modify(*from_iter, [&to_obj](account_object& obj) {
+
+		d.modify(*from_iter, [&to_obj,&from_obj](account_object& obj) {
 			string name = obj.name;
 			obj = to_obj;
 			obj.name = name; 
+			obj.id = from_obj.id;
 		});
 
-		/*d.modify(*to_iter, [&from_obj](account_object& obj) {
+		d.modify(*to_iter, [&from_obj,&to_obj](account_object& obj) {
 			string name = obj.name;
 			obj = from_obj;
 			obj.name = name;
-		});*/
+			obj.id = to_obj.id;
+		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 
