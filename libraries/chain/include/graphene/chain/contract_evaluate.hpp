@@ -44,6 +44,12 @@ namespace graphene {
             inline const generic_evaluator* get_gen_eval() { return gen_eval; }
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
+			bool lock_contract_balance_to_miner(const contract_id_type& cid,const asset& lock_asset,const miner_id_type& mid);
+			std::vector<lockbalance_object> get_contact_lock_balance_info(const contract_id_type& mid);
+			std::vector<lockbalance_object> get_contact_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid)const;
+			std::map<miner_id_type, asset> get_pay_back_balacne(const address& contract_addr, const asset_id_type& symbol_type);
+			bool obtain_pay_back_balance(const address& contract_addr, const miner_id_type& mid, const asset& to_obtain);
+			bool foreclose_balance_from_miners(const address& foreclose_account, const miner_id_type& mid, const asset& to_foreclose);
 			void set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes);
             std::shared_ptr<address> get_caller_address() const;
             std::shared_ptr<fc::ecc::public_key> get_caller_pubkey() const;
@@ -57,11 +63,13 @@ namespace graphene {
             void deposit_to_contract(const address& contract, const asset& amount);
             //void do_apply_fees_balance(const address& caller_addr);
             void do_apply_balance();
+			void do_lockbalance_and_payback();
             transaction_id_type get_current_trx_id() const;
             void do_apply_contract_event_notifies();
             void transfer_to_address(const address& contract, const asset & amount, const address & to);
 	    void transfer_to_address_only_update_invoke_result(const address& contract, const asset & amount, const address & to);
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
+			bool withdraw_contract_balance(const address& contract, const asset & amount);
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
 			virtual share_type origin_op_fee() const = 0;
             virtual  std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;

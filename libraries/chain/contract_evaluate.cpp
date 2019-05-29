@@ -1006,6 +1006,179 @@ namespace graphene {
         }
         contract_common_evaluate::~contract_common_evaluate() {}
 
+		bool contract_common_evaluate::lock_contract_balance_to_miner(const contract_id_type& cid, const asset& lock_asset, const miner_id_type& mid)
+		{
+			if (lock_asset.amount <= 0)
+				return false;
+			bool valid_asset = true;
+			bool valid_contract = true;
+			asset_object assobj;
+			contract_object conobj;
+			try
+			{
+				conobj = get_db().get(cid);
+				assobj = get_db().get(lock_asset.asset_id);
+			}
+			catch (...)
+			{
+				valid_contract = false;
+				valid_asset = false;
+			}
+			if (valid_asset == false|| valid_contract==false)
+				return false;
+
+			auto cba = get_contract_balance(conobj.contract_address, lock_asset.asset_id);
+			if (cba < lock_asset.amount)
+				return false;
+			if (withdraw_contract_balance(conobj.contract_address, lock_asset) == false)
+				return false;
+			std::pair<miner_id_type, contract_id_type> mkey = std::make_pair(mid,cid);
+			auto& it = invoke_contract_result.lock_to_miner.find(mkey);
+			if (it != invoke_contract_result.lock_to_miner.end())
+			{
+				auto ait = it->second.find(lock_asset.asset_id);
+				if (ait == it->second.end())
+				{
+					it->second[lock_asset.asset_id] = lock_asset.amount;
+				}
+				else
+				{
+					it->second[lock_asset.asset_id] += lock_asset.amount;
+				}
+			}
+			else
+			{
+				invoke_contract_result.lock_to_miner[mkey] = std::map<asset_id_type, share_type>{ {lock_asset.asset_id,lock_asset.amount} };
+			}
+			return true;
+		}
+
+		std::vector<lockbalance_object> contract_common_evaluate::get_contact_lock_balance_info(const contract_id_type& cid)
+		{
+			auto res = get_db().get_lockbalance_objs_by_locker(cid);
+			for (auto& it : res)
+			{
+				std::pair<miner_id_type, contract_id_type> mkey = std::make_pair(it.lockto_miner_account, cid);
+				auto iit=invoke_contract_result.lock_to_miner.find(mkey);
+				if (iit != invoke_contract_result.lock_to_miner.end())
+				{
+					auto amount_it = iit->second.find(it.lock_asset_id);
+					if(amount_it!= iit->second.end())
+						it.lock_asset_amount += amount_it->second;
+				}
+			}
+			return res;
+		}
+
+		std::vector<lockbalance_object> contract_common_evaluate::get_contact_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid) const
+		{
+
+			auto res = get_db().get_lock_balance(cid, aid);
+			for (auto& it : res)
+			{
+				std::pair<miner_id_type, contract_id_type> mkey = std::make_pair(it.lockto_miner_account, cid);
+				auto iit = invoke_contract_result.lock_to_miner.find(mkey);
+				if (iit != invoke_contract_result.lock_to_miner.end())
+				{
+					auto amount_it = iit->second.find(it.lock_asset_id);
+					if (amount_it != iit->second.end())
+						it.lock_asset_amount += amount_it->second;
+				}
+			}
+			return res;
+		}
+
+		std::map<graphene::chain::miner_id_type, graphene::chain::asset> contract_common_evaluate::get_pay_back_balacne(const address& contract_addr, const asset_id_type& symbol_type)
+{
+			std::map<miner_id_type, graphene::chain::asset> res;
+			std::pair<address, asset_id_type> mkey = std::make_pair(contract_addr, symbol_type);
+			auto it = invoke_contract_result.payback_balance.find(mkey);
+			if (it == invoke_contract_result.payback_balance.end())
+			{
+				auto res = get_db().get_pay_back_balacne_mid(contract_addr, get_db().get(symbol_type).symbol);
+				invoke_contract_result.payback_balance[mkey] = res;
+			}
+			else
+			{
+				res = it->second;
+			}
+			for (auto& r : res)
+			{
+				auto rkey = std::make_pair(contract_addr,r.first);
+				auto it = invoke_contract_result.payback_to_obtain.find(rkey);
+				if (it != invoke_contract_result.payback_to_obtain.end())
+					r.second.amount -= it->second[r.second.asset_id];
+			}
+			return res;
+		}
+
+		bool contract_common_evaluate::obtain_pay_back_balance(const address& contract_addr ,const miner_id_type& mid,const asset& to_obtain)
+		{
+			auto aid = to_obtain.asset_id;
+			auto res=get_pay_back_balacne(contract_addr,to_obtain.asset_id);
+			auto it = res.find(mid);
+			share_type obtain_already=0;
+			bool active_amit = false;
+			auto& sit=invoke_contract_result.payback_to_obtain.find(std::make_pair(contract_addr, mid));
+			std::map<asset_id_type, share_type>::iterator amountit;
+			if (sit != invoke_contract_result.payback_to_obtain.end())
+			{
+				amountit = sit->second.find(aid);
+				if (amountit != sit->second.end())
+				{
+					active_amit = true;
+					obtain_already = amountit->second;
+				}
+			}
+			if (it != res.end())
+				return false;
+			if (it->second.amount < obtain_already + to_obtain.amount)
+				return false;
+			if (active_amit)
+				amountit->second += to_obtain.amount;
+			else
+			{
+				invoke_contract_result.payback_to_obtain[std::make_pair(contract_addr, mid)][aid] += to_obtain.amount;
+			}
+			return true;
+		}
+
+		bool contract_common_evaluate::foreclose_balance_from_miners(const address& foreclose_contract,const miner_id_type& mid,const asset& to_foreclose)
+		{
+			auto contract_obj = get_db().get_contract(foreclose_contract);
+			bool already_foreclose = false;
+			auto forekey = std::make_pair(foreclose_contract,mid);
+			auto fit = invoke_contract_result.to_foreclose.find(forekey);
+			share_type foreclosed_amount = 0;
+			std::map<asset_id_type, share_type>::iterator amout_it;
+			if (fit != invoke_contract_result.to_foreclose.end())
+			{
+				amout_it = fit->second.find(to_foreclose.asset_id);
+				if (amout_it!= fit->second.end())
+				{
+					foreclosed_amount = amout_it->second;
+					already_foreclose = true;
+				}
+			}
+			auto res=get_contact_lock_balance_info(contract_obj.id, to_foreclose.asset_id);
+			for (auto& it : res)
+			{
+				if (it.lockto_miner_account == mid)
+				{
+					if (it.lock_asset_amount < to_foreclose.amount + foreclosed_amount)
+						return false;
+					break;
+				}
+			}
+			if (already_foreclose)
+				amout_it->second += to_foreclose.amount;
+			else
+			{
+				invoke_contract_result.to_foreclose[forekey] = std::map<asset_id_type, share_type>{ {to_foreclose.asset_id, to_foreclose.amount} };
+			}
+			return true;
+		}
+
 		void contract_common_evaluate::set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes)
 		{
 			related_contract.insert(address(contract_id));
@@ -1094,7 +1267,7 @@ namespace graphene {
         //    gas_fees.push_back(fee);
         //}
         void contract_common_evaluate::undo_contract_effected(const share_type& fee)
-{
+		{
 			invoke_contract_result.set_failed(fee);
         }
         void contract_common_evaluate::deposit_to_contract(const address & contract, const asset & amount)
@@ -1168,6 +1341,31 @@ namespace graphene {
 			for (auto addr : related_contract)
 			{
 				get_db().store_contract_related_transaction(trx_id, addr);
+			}
+			for (auto& loc : invoke_contract_result.lock_to_miner)
+			{
+				for (auto& asset_it : loc.second)
+				{
+					get_db().adjust_lock_balance(loc.first.first, loc.first.second, asset(asset_it.second, asset_it.first));
+				}
+
+			}
+			for (auto& pb : invoke_contract_result.payback_to_obtain)
+			{
+				for (auto& asset_it : pb.second)
+				{
+					get_db().adjust_pay_back_balance(get_db().get_contract(pb.first.first).id, -asset(asset_it.second, asset_it.first), pb.first.second);
+					//deposit_to_contract
+					get_db().adjust_balance(pb.first.first, asset(asset_it.second, asset_it.first));
+				}
+			}
+			for (auto& fcit : invoke_contract_result.to_foreclose)
+			{
+				for (auto& asset_it : fcit.second)
+				{
+					get_db().adjust_lock_balance(fcit.first.second,get_db().get_contract(fcit.first.first).id, asset(asset_it.second, asset_it.first));
+					get_db().adjust_balance(fcit.first.first, -asset(asset_it.second, asset_it.first));
+				}
 			}
         }
         transaction_id_type contract_common_evaluate::get_current_trx_id() const
@@ -1372,6 +1570,59 @@ namespace graphene {
             }
             return running_balance;
         }
+		 bool contract_common_evaluate::withdraw_contract_balance(const address & contract, const asset & amount)
+		 {
+			 related_contract.insert(contract);
+			 //withdraw
+			 share_type to_withdraw = amount.amount;
+			 auto con = get_db().get_contract(contract);
+			 std::pair<address, asset_id_type> index = std::make_pair(contract, amount.asset_id);
+			 auto balance = invoke_contract_result.contract_balances.find(index);
+			 if (balance == invoke_contract_result.contract_balances.end())
+			 {
+				 auto res = invoke_contract_result.contract_balances.insert(std::make_pair(index, get_db().get_balance(index.first, index.second).amount));
+				 if (res.second)
+				 {
+					 balance = res.first;
+				 }
+			 }
+			 share_type all_balance = balance->second;
+			 auto deposit = invoke_contract_result.deposit_contract.find(index);
+			 if (deposit != invoke_contract_result.deposit_contract.end())
+			 {
+				 all_balance += deposit->second;
+			 }
+			 auto withdraw = invoke_contract_result.contract_withdraw.find(index);
+			 if (withdraw != invoke_contract_result.contract_withdraw.end())
+			 {
+				 all_balance -= withdraw->second;
+			 }
+			 if (all_balance < to_withdraw)
+				 return false;
+
+			 if (deposit != invoke_contract_result.deposit_contract.end())
+			 {
+				 if (deposit->second >= to_withdraw)
+				 {
+					 deposit->second -= to_withdraw;
+					 to_withdraw = 0;
+				 }
+				 else
+				 {
+					 to_withdraw -= deposit->second;
+					 deposit->second = 0;
+				 }
+			 }
+			 if (withdraw != invoke_contract_result.contract_withdraw.end())
+			 {
+				 withdraw->second += to_withdraw;
+			 }
+			 else
+			 {
+				 invoke_contract_result.contract_withdraw.insert(std::make_pair(index, to_withdraw));
+			 }
+			 return true;
+		 }
 		 void contract_common_evaluate::emit_event(const address& contract_addr, const string& event_name, const string& event_arg)
 		 {
 			 contract_event_notify_info info;
@@ -1529,6 +1780,7 @@ namespace graphene {
 			 {
 				 get_db().modify_current_collected_fee(asset(fee_iter.second, fee_iter.first));
 			 }
+
 		}
 		 void_result contract_transfer_fee_evaluate::do_evaluate(const operation_type & o)
 		 {

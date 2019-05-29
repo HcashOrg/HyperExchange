@@ -131,6 +131,7 @@ namespace graphene { namespace chain {
          std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const;
 		 optional<miner_object>     get_citizen_obj(const address& addr) const;
 		 vector<miner_object>     get_citizen_objs(const vector<address>& addr) const;
+		 vector<lockbalance_object> get_lockbalance_objs_by_locker(const object_id_type& locker);
          /**
           *  Calculate the percent of block production slots that were missed in the
           *  past 128 blocks, not including the current block.
@@ -310,13 +311,14 @@ namespace graphene { namespace chain {
 	     void adjust_bonus_balance(address bonus_owner, asset bonus);
 		 std::map<string, share_type> get_bonus_balance(address owner)const;
 		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
+		 std::map<miner_id_type, asset> get_pay_back_balacne_mid(address payback_owner, std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
-		 asset get_lock_balance(account_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
-		 vector<lockbalance_object> get_lock_balance(account_id_type owner, asset_id_type asset_id)const;
+		 asset get_lock_balance(object_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
+		 vector<lockbalance_object> get_lock_balance(object_id_type owner, asset_id_type asset_id)const;
 		 asset get_guard_lock_balance(guard_member_id_type guard, asset_id_type asset_id)const;
 		 //asset get_lock_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 //asset get_lock_balance(const address& addr, const asset_id_type asset_id) const;
-		 void adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account, asset delta);
+		 void adjust_lock_balance(miner_id_type miner_account, object_id_type lock_account, asset delta);
 		 void adjust_guard_lock_balance(guard_member_id_type guard_account,asset delta);
 		 ////////db_crosschain_trx.cpp/////////////
 		 void create_result_transaction(miner_id_type miner, fc::ecc::private_key pk);

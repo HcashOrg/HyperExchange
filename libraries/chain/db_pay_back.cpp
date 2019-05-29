@@ -39,7 +39,7 @@ namespace graphene {
 		void database::adjust_pay_back_balance(address payback_owner, asset payback_asset,miner_id_type miner_id) {
 			try {
 				if (payback_asset.amount == 0) {
-					return;
+					return;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 				}
 				auto& payback_db = get_index_type<payback_index>().indices().get<by_payback_address_miner>();
 				auto itr = payback_db.find(boost::make_tuple(payback_owner, miner_id));
@@ -63,6 +63,37 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_RETHROW((payback_owner)(payback_asset))
 		}
+		std::map<graphene::chain::miner_id_type, graphene::chain::asset> graphene::chain::database::get_pay_back_balacne_mid(address payback_owner, std::string symbol_type) const
+		{
+			try {
+				std::map<miner_id_type, asset> results;
+				auto payback_db = get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(payback_owner);
+
+				FC_ASSERT(payback_db.first != payback_db.second);
+				for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
+					if (symbol_type == "") {
+
+						if (payback_address_iter.one_owner_balance > asset(0)) {
+							results[payback_address_iter.miner_id] = payback_address_iter.one_owner_balance;
+						}
+
+					}
+					else {
+						//
+						auto obj = get_asset(symbol_type);
+						FC_ASSERT(obj.valid());
+						if (payback_address_iter.one_owner_balance.asset_id == obj->get_id() && payback_address_iter.one_owner_balance.amount > 0) {
+							results[payback_address_iter.miner_id] = payback_address_iter.one_owner_balance;
+						}
+
+
+					}
+				}
+
+				return results;
+			}FC_CAPTURE_AND_RETHROW((payback_owner)(symbol_type))
+		}
+
 		std::map<string,asset> database::get_pay_back_balacne(address payback_owner,std::string symbol_type)const {
 			try {
 				std::map<string,asset> results;

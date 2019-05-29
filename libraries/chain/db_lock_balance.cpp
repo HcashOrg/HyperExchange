@@ -13,7 +13,7 @@
 namespace graphene {
 	namespace chain {
 
-		asset database::get_lock_balance(account_id_type owner, miner_id_type miner, asset_id_type asset_id) const{
+		asset database::get_lock_balance(object_id_type owner, miner_id_type miner, asset_id_type asset_id) const{
 			try {
 
 				auto& index = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
@@ -25,8 +25,21 @@ namespace graphene {
 				return asset();
 			}FC_CAPTURE_AND_RETHROW((owner)(miner)(asset_id))
 		}
-
-		vector<lockbalance_object> database::get_lock_balance(account_id_type owner, asset_id_type asset_id) const {
+		vector<lockbalance_object> database::get_lockbalance_objs_by_locker(const object_id_type& locker)
+		{
+			try {
+				const auto& lb_index = get_index_type<lockbalance_index>();
+				vector<lockbalance_object> result;
+				lb_index.inspect_all_objects([&](const object& obj) {
+					const lockbalance_object& p = static_cast<const lockbalance_object&>(obj);
+					if (p.lock_balance_account == locker && p.lock_asset_amount > 0 ) {
+						result.push_back(p);
+					}
+				});
+				return result;
+			}FC_CAPTURE_AND_RETHROW((locker))
+		}
+		vector<lockbalance_object> database::get_lock_balance(object_id_type owner, asset_id_type asset_id) const {
 			try {
 				const auto& lb_index = get_index_type<lockbalance_index>();
 				vector<lockbalance_object> result;
@@ -75,11 +88,12 @@ namespace graphene {
 				}
 			}FC_CAPTURE_AND_RETHROW((guard_account)(delta))
 		}
-		void database::adjust_lock_balance(miner_id_type miner_account, account_id_type lock_account,asset delta){
+		void database::adjust_lock_balance(miner_id_type miner_account, object_id_type lock_account,asset delta){
 			try {
 				if (delta.amount == 0) {
 					return;
 				}
+				FC_ASSERT(lock_account.type() == account_object_type || lock_account.type() == contract_object_type);
 				auto& by_owner_idx = get_index_type<lockbalance_index>().indices().get<by_lock_miner_asset>();
 				auto itr = by_owner_idx.find(boost::make_tuple(miner_account, lock_account, delta.asset_id));
 				//fc::time_point_sec now = head_block_time();
