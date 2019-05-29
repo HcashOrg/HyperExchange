@@ -120,6 +120,10 @@ namespace graphene {
 				{
 					engine->execute_contract_init_by_address(origin_op.contract_id.operator fc::string(), "", nullptr);
 				}
+				//catch(fc::exception &e)
+				//{
+				//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+				//}
 				catch (std::exception &e)
 				{
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -161,6 +165,10 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
+			//catch(fc::exception& e)
+			//{
+			//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+			//}
 			catch (std::exception &e)
 			{
 				//printf("register contract error: %s\n", e.what());
@@ -247,6 +255,10 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
+			//catch(fc::exception &e)
+			//{
+			//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+			//}
 			catch (std::exception &e)
 			{
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -332,6 +344,10 @@ namespace graphene {
 						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), o.contract_api, o.contract_arg, &contract_result_str);
 						this->invoke_contract_result.api_result = contract_result_str;
 					}
+					//catch(fc::exception &e)
+					//{
+					//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+					//}
 					catch (std::exception &e)
 					{
 						//printf("invoke contract error: %s\n", e.what());
@@ -365,6 +381,10 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
+			//catch(fc::exception &e)
+			//{
+			//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.what()));
+			//}
 			catch (std::exception &e)
 			{
 				//printf("invoke contract error: %s\n", e.what());
@@ -453,6 +473,10 @@ namespace graphene {
 					{
 						engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_upgrade", o.contract_name, &contract_result_str);
 					}
+					//catch(fc::exception& e)
+					//{
+					//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+					//}
 					catch (std::exception &e)
 					{
 						FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -482,6 +506,10 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
 			}
+			//catch(fc::exception &e)
+			//{
+			//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+			//}
 			catch (std::exception &e)
 			{
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -934,6 +962,9 @@ namespace graphene {
                             param.param = o.param;
 							engine->execute_contract_api_by_address(o.contract_id.operator fc::string(), "on_deposit_asset", fc::json::to_string(param), &contract_result_str);
 						}
+						//catch (fc::exception &e) {
+						//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+						//}
 						catch (std::exception &e)
 						{
 							FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -967,6 +998,10 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
                 // FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
             }
+	   //catch(fc::exception &e)
+	   //{
+	   //	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+	   //}
 			catch (std::exception &e)
 			{
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));

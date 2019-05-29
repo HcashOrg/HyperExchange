@@ -654,16 +654,56 @@ void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
 		transaction_evaluation_state eval_state(&db());
 		for (const auto& op : o.taker_op)
 		{
-			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
-			eval->evaluate(eval_state, op.op,true);
+			eval_state.operation_results.push_back(db().apply_operation(eval_state,op.op));
 		}
 
 		for (const auto& op : o.maker_op)
 		{
-			unique_ptr<op_evaluator>& eval = db().get_evaluator(op.op);
-			eval->evaluate(eval_state, op.op,true);
+			eval_state.operation_results.push_back(db().apply_operation(eval_state, op.op));
 		}
 		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto from_iter = acc_idx.find(o.from);
+		std::cout << "name transfer evaluator" << std::endl;
+		FC_ASSERT(from_iter != acc_idx.end(),"${from} is not a registered account",("from",o.from));
+		auto to_iter = acc_idx.find(o.to);
+		FC_ASSERT(to_iter != acc_idx.end(),"${to} is not a registered account",("to",o.to));
+		if (o.newname.valid())
+			FC_ASSERT(d.get_account_address(*(o.newname)) == address(), "${name} should not be registered in the chain.", ("name", *(o.newname)));
+		else
+			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string())==address(),"please rename your account.");
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto from_iter = acc_idx.find(o.from);
+		auto to_iter = acc_idx.find(o.to);
+		auto from_obj = *from_iter;
+		auto to_obj = *to_iter;
+
+		d.modify(*from_iter, [&to_obj,&from_obj](account_object& obj) {
+			string name = obj.name;
+			obj = to_obj;
+			obj.name = name; 
+			obj.id = from_obj.id;
+		});
+
+		d.modify(*to_iter, [&from_obj,&to_obj](account_object& obj) {
+			string name = obj.name;
+			obj = from_obj;
+			obj.name = name;
+			obj.id = to_obj.id;
+		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 

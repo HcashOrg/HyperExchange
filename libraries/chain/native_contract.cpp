@@ -8,6 +8,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/io/json.hpp>
 #include <jsondiff/jsondiff.h>
+#include <uvm/exceptions.h>
 #include <native_contract/native_token_contract.h>
 #include <native_contract/native_exchange_contract.h>
 
@@ -127,7 +128,8 @@ namespace graphene {
 		}
 
 		void abstract_native_contract::throw_error(const std::string& err) const {
-			FC_THROW_EXCEPTION(fc::assert_exception, err);
+			throw uvm::core::UvmException(err);
+			// FC_THROW_EXCEPTION(fc::assert_exception, err);
 		}
 
 		void abstract_native_contract::add_gas(uint64_t gas) {
