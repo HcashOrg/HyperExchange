@@ -5014,6 +5014,10 @@ namespace graphene { namespace net { namespace detail {
       info["node_id"] = _node_id;
       info["firewalled"] = _is_firewalled;
 	  info["connections"] = _active_connections.size();
+	  item_hash_t head_block_id = _delegate->get_head_block_id();
+	  auto current_height = _delegate->get_block_number(head_block_id);
+	  info["current_block_height"] = current_height;
+	  info["target_block_height"] = _total_number_of_unfetched_items+ current_height;
       return info;
     }
     fc::variant_object node_impl::network_get_usage_stats() const
