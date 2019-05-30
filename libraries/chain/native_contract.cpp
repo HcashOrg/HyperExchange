@@ -171,6 +171,7 @@ namespace graphene {
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
+
 		shared_ptr<uvm::contract::native_contract_interface> native_contract_finder::create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address)
 		{
 			auto store = std::make_shared<abstract_native_contract>(evaluate, contract_address);
@@ -189,7 +190,39 @@ namespace graphene {
 			}
 		}
 
-		void            native_contract_register_operation::validate()const
+		std::set<std::string> native_contract_finder::get_native_contract_apis_by_key(const std::string & key)
+		{
+			if (key == uvm::contract::token_native_contract::native_contract_key())
+			{
+				return uvm::contract::token_native_contract(NULL).apis();
+			}
+			else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			{
+				return uvm::contract::exchange_native_contract(NULL).apis();
+			}
+			else
+			{
+				return std::set<std::string>();
+			}
+		}
+
+		std::set<std::string> native_contract_finder::get_native_contract_offline_apis_by_key(const std::string& key)
+		{
+			if (key == uvm::contract::token_native_contract::native_contract_key())
+			{
+				return uvm::contract::token_native_contract(NULL).offline_apis();
+			}
+			else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			{
+				return uvm::contract::exchange_native_contract(NULL).offline_apis();
+			}
+			else
+			{
+				return std::set<std::string>();
+			}
+		}
+
+		void   native_contract_register_operation::validate()const
 		{
 			FC_ASSERT(init_cost > 0 && init_cost <= BLOCKLINK_MAX_GAS_LIMIT);
 			// FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));

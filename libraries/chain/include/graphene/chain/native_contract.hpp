@@ -134,7 +134,8 @@ namespace graphene {
 		public:
 			static bool has_native_contract_with_key(const std::string& key);
 			static shared_ptr<uvm::contract::native_contract_interface> create_native_contract_by_key(contract_common_evaluate* evaluate, const std::string& key, const address& contract_address);
-
+			static std::set<std::string> get_native_contract_apis_by_key(const std::string& key);
+			static std::set<std::string> get_native_contract_offline_apis_by_key(const std::string& key);
 		};
 
 		struct native_contract_register_operation : public base_operation
