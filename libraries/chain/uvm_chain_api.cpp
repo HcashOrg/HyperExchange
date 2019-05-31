@@ -796,10 +796,129 @@ namespace graphene {
 				return 0;
 			}
 		}
+		bool UvmChainApi::lock_contract_balance_to_miner(lua_State *L, const char* cid, const char* asset_sym,const char*amount , const char* mid)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				variant vcid(cid);
+				variant vmid(mid);
+				object_id_type id_cid;
+				object_id_type id_mid;
+				from_variant(vcid, id_cid);
+				from_variant(vmid, id_mid);
+				asset ass=evaluator->asset_from_string(asset_sym, amount);
+				return  evaluator->lock_contract_balance_to_miner(contract_id_type(id_cid), ass,miner_id_type(id_mid));
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return false;
+			}
+		}
+
+
+
+		bool UvmChainApi::obtain_pay_back_balance(lua_State *L, const char* contract_addr, const char* mid, const char* sym_to_obtain, const char* amount)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				variant vmid(mid);
+				object_id_type id_cid;
+				object_id_type id_mid;
+				from_variant(vmid, id_mid);
+				asset ass = evaluator->asset_from_string(sym_to_obtain, amount);
+				return  evaluator->obtain_pay_back_balance(address(contract_addr), miner_id_type(id_mid), ass);
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return false;
+			}
+		}
+
+		bool UvmChainApi::foreclose_balance_from_miners(lua_State * L, const char * foreclose_account, const char * mid, const char * sym_to_foreclose, const char * amount)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				variant vmid(mid);
+				object_id_type id_cid;
+				object_id_type id_mid;
+				from_variant(vmid, id_mid);
+				asset ass = evaluator->asset_from_string(sym_to_foreclose, amount);
+				return  evaluator->foreclose_balance_from_miners(address(foreclose_account), miner_id_type(id_mid), ass);
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return false;
+			}
+		}
+
+
+		std::string UvmChainApi::get_contact_lock_balance_info(lua_State *L, const char* mid)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				variant vmid(mid);
+				object_id_type id_mid;
+				from_variant(vmid, id_mid);
+				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(id_mid));
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return "";
+			}
+		}
+
+		std::string UvmChainApi::get_contact_lock_balance_info(lua_State * L, const char * cid, const char * aid) const
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				variant vcid(cid);
+				variant vaid(aid);
+				object_id_type id_cid;
+				from_variant(vcid, id_cid);
+				object_id_type id_aid;
+				from_variant(vaid, id_aid);
+				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(id_cid,id_aid));
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return "";
+			}
+		}
+
+		std::string UvmChainApi::get_pay_back_balacne(lua_State *L, const char* contract_addr, const char* symbol_type)
+		{
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				asset ass = evaluator->asset_from_string(symbol_type, "0");
+				return  fc::json::to_string(evaluator->get_pay_back_balacne(address(contract_addr), ass.asset_id));
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return "";
+			}
+		}
 
 		uint32_t UvmChainApi::wait_for_future_random(lua_State *L, int next)
 		{
-			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L,   - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				const auto& d = evaluator->get_db();
@@ -977,6 +1096,8 @@ namespace graphene {
 			address addr(pub, addressVersion::NORMAL);
 			return addr.address_to_string();
 		}
+
+
 
 	}
 }

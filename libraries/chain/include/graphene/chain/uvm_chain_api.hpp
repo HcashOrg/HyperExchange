@@ -162,6 +162,12 @@ namespace graphene {
 			virtual bool use_fast_map_set_nil(lua_State *L) const override;
 
 			virtual std::string pubkey_to_address_string(const fc::ecc::public_key& pub) const override;
+			virtual bool lock_contract_balance_to_miner(lua_State *L, const char* cid, const char* asset_sym, const char*, const char* mid);
+			virtual bool obtain_pay_back_balance(lua_State *L, const char* contract_addr, const char* mid, const char* sym_to_obtain, const char*  amount);
+			virtual bool foreclose_balance_from_miners(lua_State *L, const char* foreclose_account, const char* mid, const char* sym_to_foreclose, const char* amount);
+			virtual std::string get_contact_lock_balance_info(lua_State *L, const char* mid);
+			virtual std::string get_contact_lock_balance_info(lua_State *L, const char* cid, const char* aid)const;
+			virtual std::string get_pay_back_balacne(lua_State *L, const char* contract_addr, const char* symbol_type);
 
 		};
 	}

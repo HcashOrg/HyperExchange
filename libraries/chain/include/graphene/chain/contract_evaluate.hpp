@@ -67,7 +67,7 @@ namespace graphene {
             transaction_id_type get_current_trx_id() const;
             void do_apply_contract_event_notifies();
             void transfer_to_address(const address& contract, const asset & amount, const address & to);
-	    void transfer_to_address_only_update_invoke_result(const address& contract, const asset & amount, const address & to);
+			void transfer_to_address_only_update_invoke_result(const address& contract, const asset & amount, const address & to);
             share_type get_contract_balance(const address& contract, const asset_id_type& asset_id);
 			bool withdraw_contract_balance(const address& contract, const asset & amount);
 			void emit_event(const address& contract_addr, const string& event_name, const string& event_arg);
