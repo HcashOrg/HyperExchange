@@ -5017,7 +5017,19 @@ namespace graphene { namespace net { namespace detail {
 	  item_hash_t head_block_id = _delegate->get_head_block_id();
 	  auto current_height = _delegate->get_block_number(head_block_id);
 	  info["current_block_height"] = current_height;
-	  info["target_block_height"] = _total_number_of_unfetched_items+ current_height;
+	  uint32_t max_number_of_unfetched_items = 0;
+	  for (const peer_connection_ptr& peer : _active_connections)
+	  {
+		  if (peer->we_need_sync_items_from_peer && (uint32_t)peer->ids_of_items_to_get.size()>0) {
+			  uint32_t this_peer_number_of_unfetched_items = (uint32_t)peer->ids_of_items_to_get.size() + peer->number_of_unfetched_item_ids;
+			  max_number_of_unfetched_items = std::max(max_number_of_unfetched_items,
+				  this_peer_number_of_unfetched_items);
+		  }
+		 
+	  }
+	 
+	  auto temp_unsynced_block_count = max_number_of_unfetched_items;
+	  info["target_block_height"] = temp_unsynced_block_count + current_height;
       return info;
     }
     fc::variant_object node_impl::network_get_usage_stats() const
