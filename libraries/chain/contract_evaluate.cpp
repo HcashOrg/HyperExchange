@@ -420,7 +420,7 @@ namespace graphene {
             total_fee = o.fee.amount;
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
 			gas_count = 0;
-            if(contract.code.abi.find("on_upgrade") != contract.code.abi.end())
+            if(contract.type_of_contract != native_contract &&contract.code.abi.find("on_upgrade") != contract.code.abi.end())
             { 
 			try {
                 gas_count = o.invoke_cost;
@@ -516,7 +516,62 @@ namespace graphene {
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
             }
-            else
+			else if (contract.type_of_contract == native_contract)
+			{
+				FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+
+				try {
+					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+					auto limit = o.invoke_cost;
+					if (limit < 0 || limit == 0)
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
+					gas_limit = limit;
+					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
+					FC_ASSERT(native_contract);
+
+					if (!global_uvm_chain_api)
+						global_uvm_chain_api = new UvmChainApi();
+
+					native_contract->invoke("on_upgrade", "");
+					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+
+					gas_used_counts = native_contract->gas_count_for_api_invoke("init");
+					auto storage_gas = invoke_result.count_storage_gas();
+					auto event_gas = invoke_result.count_event_gas();
+					FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+					FC_ASSERT(event_gas >= 0, "event gas invalid");
+					gas_used_counts += storage_gas;
+					gas_used_counts += event_gas;
+					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
+					auto register_fee = native_contract_register_fee;
+
+
+					gas_count = gas_used_counts;
+					unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
+					invoke_result.acctual_fee = total_fee - unspent_fee;
+					invoke_result.exec_succeed = true;
+					this->invoke_contract_result = invoke_result;
+				}
+				catch (::blockchain::contract_engine::contract_run_out_of_money& e)
+				{
+					if (throw_over_limit)
+						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
+					undo_contract_effected(total_fee);
+					unspent_fee = 0;
+				}
+				catch (const ::blockchain::contract_engine::contract_error& e)
+				{
+					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
+					// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
+				}
+				catch (std::exception &e)
+				{
+					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
+					// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
+				}
+
+
+			}else
             {
                 unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
             }

@@ -483,7 +483,6 @@ const undo_state& undo_database::head()const
 
 inline serializable_undo_state undo_state::get_serializable_undo_state() const
 {
-			   
     serializable_undo_state res;
     for (auto i = old_values.begin(); i != old_values.end(); i++)
     {
@@ -523,8 +522,6 @@ undo_state& undo_state::operator=(const undo_state& sta)
 	{
 		removed[i->first] = i->second->clone();
 	}
-	//std::cout << "op=2 af" << sta.new_ids.size() << " " << sta.old_index_next_ids.size() << " " << sta.old_values.size() << " " << sta.removed.size()  << std::endl;
-	//std::cout << "op=2 bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
 
 	return *this;
 }
@@ -541,8 +538,6 @@ undo_state& undo_state::operator=(const serializable_undo_state& sta)
 	{
 		removed[i->first] = i->second.to_object();
 	}
-	//std::cout << "op= af" << sta.new_ids.size() << " " << sta.old_index_next_ids.size() << " " << sta.old_values.size() << " " << sta.removed.size() << "id:" << sta.undo_id().str() << std::endl;
-	//std::cout << "op= bf " << new_ids.size() << " " << old_index_next_ids.size() << " " << old_values.size() << " " << removed.size() << std::endl;
 
 	return *this;
 }
@@ -885,12 +880,10 @@ optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_
 		leveldb::Status sta = db->Get(read_options, id.str(), &out);
 		if (!sta.ok())
 		{
-			 
 			elog("read error: ${key}", ("key", id.str().c_str()));
 			FC_ASSERT(false, "fetch_optional Data from undo_storage failed");
 		}
 		serializable_undo_state state = fc::json::from_string(out).as<serializable_undo_state>();
-		 
 		return state;
 	}
 	catch (const fc::exception&)

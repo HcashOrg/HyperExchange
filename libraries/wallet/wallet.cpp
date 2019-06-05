@@ -1867,6 +1867,18 @@ public:
 			   cont = _remote_db->get_contract_object(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
+		   if (cont.type_of_contract == contract_type::native_contract) {
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto online_apis = native_contract_finder::get_native_contract_apis_by_key(cont.native_contract_key);
+			   if ( online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+
+		   }
+		   else {
+			   auto& abi = cont.code.offline_abi;
+			   if (abi.find(contract_api) == abi.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
@@ -1941,7 +1953,10 @@ public:
 			   contract_address = string(cont.contract_address);
 		   }
 		   if(cont.type_of_contract == contract_type::native_contract) {
-			   // TODO: check native key and api exist
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto online_apis = native_contract_finder::get_native_contract_apis_by_key(cont.native_contract_key);
+			   if ( online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 			
 		   } else {
 		   	auto& abi = cont.code.abi;
@@ -2021,7 +2036,12 @@ public:
 				contract_address = string(cont.contract_address);
 		   }
 		   if(cont.type_of_contract == contract_type::native_contract) {
-			// TODO: check native key and api exist
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto offline_apis = native_contract_finder::get_native_contract_offline_apis_by_key(cont.native_contract_key);
+			   auto online_apis = native_contract_finder::get_native_contract_offline_apis_by_key(cont.native_contract_key);
+			   if (offline_apis.find(contract_api) == offline_apis.end()&& online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+
 		   } else {
 		   	auto& abi = cont.code.offline_abi;
 		   	if (abi.find(contract_api) == abi.end())
@@ -2039,6 +2059,7 @@ public:
 		   //contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   //contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
+
 		   tx.operations.push_back(contract_invoke_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
 		   set_operation_fees(tx, current_fees);
@@ -9282,7 +9303,13 @@ void wallet_api::unlock(string password)
 
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
-   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+   static bool got_midware = false;
+   if (!got_midware)
+   {
+	   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+	   got_midware = true;
+   }
+  
    try
    {
 	   if (my->_wallet.mining_accounts.size())
