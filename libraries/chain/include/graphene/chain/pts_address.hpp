@@ -26,7 +26,7 @@
 #include <fc/array.hpp>
 #include <string>
 #include <iostream>
-
+const std::string bch_prefix = "bitcoincash";
 namespace fc { namespace ecc { class public_key; } }
 
 namespace graphene { namespace chain {

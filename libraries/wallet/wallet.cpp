@@ -2125,15 +2125,31 @@ public:
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   FC_ASSERT(crosschain->validate_address(from));
-		   FC_ASSERT(crosschain->validate_address(to));
+		   std::string transfer_from_account = from;
+		   std::string transfer_to_account = to;
+		   if (symbol == "BCH"){
+			   FC_ASSERT((from.size() != 0 && to.size() != 0), "address is empty !!!!");
+			   if (from[0] == 1 || from[0] == 3)
+			   {
+				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   transfer_from_account = std::string(bch_address);
+			   }
+			   if (to[0] == 1 || to[0] == 3)
+			   {
+				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   transfer_to_account = std::string(bch_address);
+			   }
+		   }
+
+		   FC_ASSERT(crosschain->validate_address(transfer_from_account));
+		   FC_ASSERT(crosschain->validate_address(transfer_to_account));
 		   auto gas_price_pos = amount.find('|');
 		   if (gas_price_pos != amount.npos)
 		   {
 			   FC_ASSERT(((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)),"only eth or erc asset need GasPrice");
 		   }
 		   map<string, string> dest;
-		   dest[to] = amount;
+		   dest[transfer_to_account] = amount;
 		   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)) {
 			   std::string real_amount = amount;
 			   string gas_price = fc::to_string(5) + "000000000";
@@ -2153,7 +2169,7 @@ public:
 			   return crosschain->create_multisig_transaction(from_acount, to_account,amount_to_trans,_symbol, memo,false);
 		   }
 		   else {
-		   return crosschain->create_multisig_transaction(from,dest,symbol,"");
+		   return crosschain->create_multisig_transaction(transfer_from_account,dest,symbol,"");
 		   }
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
@@ -2213,7 +2229,6 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		  
 		   auto iter = _crosschain_keys.find(from);
 		   FC_ASSERT(iter != _crosschain_keys.end(),"there is no private key in this wallet.");
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
@@ -4684,9 +4699,18 @@ public:
 			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
 			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
 		   }
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == 1 || tunnel_account[0] == 3)
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4719,9 +4743,18 @@ public:
 			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
 			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
 		   }
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == 1 || tunnel_account[0] == 3)
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4737,7 +4770,7 @@ public:
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
 
-		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(prk_ptr, transfer_tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
@@ -6040,6 +6073,15 @@ public:
 	   string memo,
 	   bool broadcast = false) {
 	   try {
+		   std::string transfer_crosschain_account = crosschain_account;
+		   if (asset_symbol == "BCH") {
+			   FC_ASSERT((crosschain_account.size() != 0), "address is empty !!!!");
+			   if (crosschain_account[0] == 1 || crosschain_account[0] == 3)
+			   {
+				   auto bch_address = pts_address_bch(pts_address(crosschain_account), btc_pubkey, btc_script);
+				   transfer_crosschain_account = std::string(bch_address);
+			   }
+		   }
 		   FC_ASSERT(!self.is_locked());
 		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
@@ -6051,7 +6093,7 @@ public:
 		   op.amount = amount;
 		   op.asset_id = asset_obj->id;
 		   op.asset_symbol = asset_symbol;
-		   op.crosschain_account = crosschain_account;
+		   op.crosschain_account = transfer_crosschain_account;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(op);
