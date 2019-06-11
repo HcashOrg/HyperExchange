@@ -750,6 +750,30 @@ namespace graphene {
 				return 0;
 			}
 		}
+
+
+		uint32_t UvmChainApi::get_chain_safe_random(lua_State *L) {
+			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			try {
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				const auto& d = evaluator->get_db();
+
+				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
+				const auto& pre_block = d.fetch_block_by_id(cur_block->previous);
+				fc::sha256::encoder random_generater;
+				fc::raw::pack(random_generater, cur_block->previous_secret);
+				fc::raw::pack(random_generater, pre_block->previous_secret);
+				auto hash = random_generater.result();
+				return hash._hash[3] % ((1 << 31) - 1);
+			}
+			catch (fc::exception e)
+			{
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return 0;
+			}
+		}
+
 		uint32_t UvmChainApi::get_chain_random(lua_State *L)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);

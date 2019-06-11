@@ -36,6 +36,7 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <graphene/chain/balance_object.hpp>
+#include <graphene/chain/protocol/operations.hpp>
 #include <algorithm>
 
 namespace graphene { namespace chain {
@@ -630,4 +631,80 @@ void_result cancel_whiteOperation_list_evaluator::do_apply(const cancel_whiteOpe
 		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
+{
+	try {
+		transaction_evaluation_state eval_state(&db());
+		for (const auto& op : o.maker_op)
+		{
+			FC_ASSERT(o.fee_payer() == operation_fee_payer(op.op).as<graphene::chain::address>());
+		}
+		for (const auto& op : o.taker_op)
+		{
+			FC_ASSERT(o.taker == operation_fee_payer(op.op).as<graphene::chain::address>());
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
+{
+	try {
+		transaction_evaluation_state eval_state(&db());
+		for (const auto& op : o.taker_op)
+		{
+			eval_state.operation_results.push_back(db().apply_operation(eval_state,op.op));
+		}
+
+		for (const auto& op : o.maker_op)
+		{
+			eval_state.operation_results.push_back(db().apply_operation(eval_state, op.op));
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto from_iter = acc_idx.find(o.from);
+		std::cout << "name transfer evaluator" << std::endl;
+		FC_ASSERT(from_iter != acc_idx.end(),"${from} is not a registered account",("from",o.from));
+		auto to_iter = acc_idx.find(o.to);
+		FC_ASSERT(to_iter != acc_idx.end(),"${to} is not a registered account",("to",o.to));
+		if (o.newname.valid())
+			FC_ASSERT(d.get_account_address(*(o.newname)) == address(), "${name} should not be registered in the chain.", ("name", *(o.newname)));
+		else
+			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string())==address(),"please rename your account.");
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto from_iter = acc_idx.find(o.from);
+		auto to_iter = acc_idx.find(o.to);
+		auto from_obj = *from_iter;
+		auto to_obj = *to_iter;
+
+		d.remove(*from_iter);
+		d.remove(*to_iter);
+
+		db().create<account_object>([&](account_object& obj) {
+			obj = from_obj;
+			obj.name = to_obj.name;
+		});
+
+		db().create<account_object>([&](account_object& obj) {
+			obj = to_obj;
+			obj.name = from_obj.name;
+		});
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 } } // graphene::chain

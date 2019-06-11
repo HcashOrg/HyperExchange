@@ -676,7 +676,7 @@ namespace graphene {
 							o.ccw_trx_signature + "|" + source_trx));
 				}
 				else {
-					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.ccw_trx_signature) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.ccw_trx_signature));
+				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.ccw_trx_signature) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.ccw_trx_signature));
 				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o));

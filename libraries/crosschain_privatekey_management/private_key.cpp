@@ -26,61 +26,6 @@
 #include "bytomlib.hpp"
 #include <SHA3IUF/sha3.h>
 namespace graphene { namespace privatekey_management {
-
-	bool  from_hex(const char *pSrc, std::vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
-	{
-		if (pSrc == 0)
-		{
-			return false;
-		}
-
-		nDstLength = 0;
-
-		if (pSrc[0] == 0) // nothing to convert  
-			return 0;
-
-		// 计算需要转换的字节数  
-		for (int j = 0; pSrc[j]; j++)
-		{
-			if (isxdigit(pSrc[j]))
-				nDstLength++;
-		}
-
-		// 判断待转换字节数是否为奇数，然后加一  
-		if (nDstLength & 0x01) nDstLength++;
-		nDstLength /= 2;
-
-		if (nDstLength > nSrcLength)
-			return false;
-
-		nDstLength = 0;
-
-		int phase = 0;
-		char temp_char;
-
-		for (int i = 0; pSrc[i]; i++)
-		{
-			if (!isxdigit(pSrc[i]))
-				continue;
-
-			unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
-
-			if (phase == 0)
-			{
-				temp_char = val << 4;
-				phase++;
-			}
-			else
-			{
-				temp_char |= val;
-				phase = 0;
-				pDst.push_back(temp_char);
-				nDstLength++;
-			}
-		}
-
-		return true;
-	}
 	std::string BinToHex(const std::vector<char> &strBin, bool bIsUpper)
 	{
 		std::string strHex;
@@ -106,6 +51,8 @@ namespace graphene { namespace privatekey_management {
 
 		return strHex;
 	}
+
+
 	crosschain_privatekey_base::crosschain_privatekey_base()
 	{
 		_key = fc::ecc::private_key();
@@ -1503,7 +1450,7 @@ namespace graphene { namespace privatekey_management {
 		const auto stripped = strip_code_seperators(libbitcoin_script);
 		libbitcoin::chain::transaction  trx;
 		trx.from_data(libbitcoin::config::base16(raw_trx));
-		BITCOIN_ASSERT(vin_index < tx.inputs().size());
+		BITCOIN_ASSERT(vin_index < trx.inputs().size());
 		const auto& input = trx.inputs()[vin_index];
 		//const auto size = libbitcoin::chain::preimage_size(script_code.serialized_size(true));
 		uint32_t sighash_type = libbitcoin::machine::sighash_algorithm::all | 0x40;
@@ -1657,7 +1604,7 @@ namespace graphene { namespace privatekey_management {
 		libbitcoin_script.from_data(libbitcoin::config::base16(redeemscript_hex), false);
 		const auto stripped = strip_code_seperators(libbitcoin_script);
 		trx.from_data(libbitcoin::config::base16(raw_trx));
-		BITCOIN_ASSERT(vin_index < tx.inputs().size());
+		BITCOIN_ASSERT(vin_index < trx.inputs().size());
 		const auto& input = trx.inputs()[vin_index];
 		//const auto size = libbitcoin::chain::preimage_size(script_code.serialized_size(true));
 		uint32_t sighash_type = libbitcoin::machine::sighash_algorithm::all | 0x40;
@@ -1842,7 +1789,6 @@ namespace graphene { namespace privatekey_management {
 		return libbitcoin::chain::script(std::move(ops));
 	}
 */
-
 
 	std::string create_endorsement_ub(const std::string& signer_wif, const std::string& redeemscript_hex, const std::string& raw_trx, int vin_index)
 	{
@@ -2685,6 +2631,60 @@ namespace graphene { namespace privatekey_management {
 		catch (fc::exception& e) {
 			return false;
 		}
+	}
+	bool  from_hex(const char *pSrc, std::vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
+	{
+		if (pSrc == 0)
+		{
+			return false;
+		}
+
+		nDstLength = 0;
+
+		if (pSrc[0] == 0) // nothing to convert  
+			return 0;
+
+		// 计算需要转换的字节数  
+		for (int j = 0; pSrc[j]; j++)
+		{
+			if (isxdigit(pSrc[j]))
+				nDstLength++;
+		}
+
+		// 判断待转换字节数是否为奇数，然后加一  
+		if (nDstLength & 0x01) nDstLength++;
+		nDstLength /= 2;
+
+		if (nDstLength > nSrcLength)
+			return false;
+
+		nDstLength = 0;
+
+		int phase = 0;
+		char temp_char;
+
+		for (int i = 0; pSrc[i]; i++)
+		{
+			if (!isxdigit(pSrc[i]))
+				continue;
+
+			unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
+
+			if (phase == 0)
+			{
+				temp_char = val << 4;
+				phase++;
+			}
+			else
+			{
+				temp_char |= val;
+				phase = 0;
+				pDst.push_back(temp_char);
+				nDstLength++;
+			}
+		}
+
+		return true;
 	}
 	
 	std::string bch_privatekey::sign_message(const std::string& msg)

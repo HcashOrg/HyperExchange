@@ -740,9 +740,8 @@ processed_transaction database_api_impl::get_transaction(uint32_t block_num, uin
 
 optional<graphene::chain::full_transaction> database_api_impl::get_transaction_by_id(transaction_id_type id) const
 {
-	const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_trx_id>();
-	FC_ASSERT(trx_ids.find(id) != trx_ids.end());
-	auto res_ids = trx_ids.find(id);
+	const auto res_ids = _db.fetch_trx(id);
+	FC_ASSERT(res_ids.valid());
 	full_transaction res = res_ids->trx;
 	res.block_num = res_ids->block_num;
 	auto invoke_res = _db.get_contract_invoke_result(id);

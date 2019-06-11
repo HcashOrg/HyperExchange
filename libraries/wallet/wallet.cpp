@@ -650,7 +650,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.19";
+	  result["version"] = "1.2.20";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1867,6 +1867,18 @@ public:
 			   cont = _remote_db->get_contract_object(contract_address_or_name);
 			   contract_address = string(cont.contract_address);
 		   }
+		   if (cont.type_of_contract == contract_type::native_contract) {
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto online_apis = native_contract_finder::get_native_contract_apis_by_key(cont.native_contract_key);
+			   if ( online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+
+		   }
+		   else {
+			   auto& abi = cont.code.offline_abi;
+			   if (abi.find(contract_api) == abi.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		   }
            contract_invoke_op.gas_price =  0;
            contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
            contract_invoke_op.caller_addr = acc_caller.addr;
@@ -1941,7 +1953,10 @@ public:
 			   contract_address = string(cont.contract_address);
 		   }
 		   if(cont.type_of_contract == contract_type::native_contract) {
-			   // TODO: check native key and api exist
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto online_apis = native_contract_finder::get_native_contract_apis_by_key(cont.native_contract_key);
+			   if ( online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 			
 		   } else {
 		   	auto& abi = cont.code.abi;
@@ -2021,7 +2036,12 @@ public:
 				contract_address = string(cont.contract_address);
 		   }
 		   if(cont.type_of_contract == contract_type::native_contract) {
-			// TODO: check native key and api exist
+			   FC_ASSERT(native_contract_finder::has_native_contract_with_key(cont.native_contract_key));
+			   auto offline_apis = native_contract_finder::get_native_contract_offline_apis_by_key(cont.native_contract_key);
+			   auto online_apis = native_contract_finder::get_native_contract_offline_apis_by_key(cont.native_contract_key);
+			   if (offline_apis.find(contract_api) == offline_apis.end()&& online_apis.find(contract_api) == online_apis.end())
+				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+
 		   } else {
 		   	auto& abi = cont.code.offline_abi;
 		   	if (abi.find(contract_api) == abi.end())
@@ -2039,6 +2059,7 @@ public:
 		   //contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
 		   //contract_invoke_op.guarantee_id = get_guarantee_id();
 		   signed_transaction tx;
+
 		   tx.operations.push_back(contract_invoke_op);
 		   auto current_fees = _remote_db->get_global_properties().parameters.current_fees;
 		   set_operation_fees(tx, current_fees);
@@ -2253,7 +2274,7 @@ public:
 				   raw = prk_ptr->sign_trx(raw+'|'+ amount, index);
 			   }
 			   else {
-				   raw = prk_ptr->sign_trx(raw, index);
+			   raw=prk_ptr->sign_trx(raw,index);
 			   }
 		   }
 		   }
@@ -6088,6 +6109,10 @@ public:
 		   FC_ASSERT(asset_obj->allow_withdraw_deposit,"${asset} does not allow withdraw and deposit",("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
+
+		   if (asset_symbol == "HC")
+			   FC_ASSERT(crosschain_account[1]=='s' || crosschain_account[1]=='c',"invalid address for HC to be withdrawn.");
+
 		   crosschain_withdraw_operation op;
 		   op.withdraw_account = iter.find(account_name)->addr;
 		   op.amount = amount;
@@ -6324,6 +6349,51 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
    }
+
+   string name_transfer_to_address(const string& from, const address& to, const asset& amount, const string& newname ,bool broadcast=false)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(amount.asset_id);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
+		   auto acc_obj = get_account(from);
+		   FC_ASSERT(acc_obj.addr != address());
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   transfer_operation xfer_op;
+		   xfer_op.from_addr = to;
+		   xfer_op.to_addr = acc_obj.addr;
+		   xfer_op.amount = amount;
+
+		   name_transfer_operation n_op;
+		   n_op.from = acc_obj.addr;
+		   n_op.to = address(to);
+		   if (newname != "")
+			   n_op.newname = newname;
+
+		   undertaker_operation u_op;
+		   u_op.maker = acc_obj.addr;
+		   u_op.taker = to;
+
+		   u_op.maker_op.emplace_back(n_op);
+		   u_op.taker_op.emplace_back(xfer_op);
+
+		   current_params.current_fees->set_fee(u_op.maker_op.back().op);
+		   current_params.current_fees->set_fee(u_op.taker_op.back().op);
+
+		   signed_transaction tx;
+
+		   tx.operations.push_back(u_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+		   tx.validate();
+		   auto json_str = fc::json::to_string(tx);
+		   return fc::to_base58(json_str.c_str(), json_str.size());
+	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
+   }
+
    string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
@@ -7913,6 +7983,18 @@ string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
 }
 
+string wallet_api::name_transfer_to_address(string from, string to, asset amount, string newname)
+{
+	string trx = my->name_transfer_to_address(from, address(to), amount, newname);
+	return sign_multisig_trx(get_account_addr(from),trx);
+}
+full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
+{
+	const address& addr = get_account_addr(account);
+	string tx = sign_multisig_trx(addr, trx);
+	return combine_transaction({ tx }, broadcast);
+}
+
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {
    FC_ASSERT(!is_locked());
@@ -9267,7 +9349,13 @@ void wallet_api::unlock(string password)
 
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
-   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+   static bool got_midware = false;
+   if (!got_midware)
+   {
+	   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+	   got_midware = true;
+   }
+  
    try
    {
 	   if (my->_wallet.mining_accounts.size())

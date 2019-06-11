@@ -330,7 +330,7 @@ namespace graphene {
 
 				}
 				else {
-					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
+				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.coldhot_transfer_sign) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.coldhot_transfer_sign));
 				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o))

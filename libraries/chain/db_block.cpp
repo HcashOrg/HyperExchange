@@ -697,10 +697,9 @@ void database::pop_block()
    _fork_db.pop_block();
    _block_id_to_block.remove( head_id );
    pop_undo();
-
+   vector<signed_transaction> txs(head_block->transactions.begin(),head_block->transactions.end());
+   removed_trxs(txs);
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
-   
-
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
