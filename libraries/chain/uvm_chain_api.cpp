@@ -821,6 +821,22 @@ namespace graphene {
 			}
 		}
 
+		uint32_t UvmChainApi::get_header_block_num_without_gas(lua_State *L) {
+			try {
+                                auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				if(!evaluator)
+					return 0;
+                                return evaluator->get_db().head_block_num();
+                        }
+                        catch (...)
+                        {
+                                L->force_stopping = true;
+                                L->exit_code = LUA_API_INTERNAL_ERROR;
+                                return 0;
+                        }
+
+		}
+
 		uint32_t UvmChainApi::wait_for_future_random(lua_State *L, int next)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
@@ -966,6 +982,9 @@ namespace graphene {
 		}
 
 		int64_t UvmChainApi::get_fork_height(lua_State* L, const std::string& fork_key) {
+			if(fork_key == "MOD_CHANGE_LIST") {
+				return USE_MOD_CHANGE_LIST_HEIGHT;
+			}
 			return -1;
 		}
 
