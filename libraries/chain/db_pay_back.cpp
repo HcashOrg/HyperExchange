@@ -27,6 +27,7 @@ namespace graphene {
 			{
 			case contract_object_type:
 				addr = get(contract_id_type(payback_owner)).contract_address;
+				std::cout<<addr.address_to_string()<<std::endl;
 				break;
 			case account_object_type:
 				addr = get(account_id_type(payback_owner)).addr;
@@ -46,7 +47,7 @@ namespace graphene {
 				auto& asset_db = get_index_type<asset_index>().indices().get<by_id>();
 				auto asset_iter = asset_db.find(payback_asset.asset_id);
 
-				FC_ASSERT(asset_iter != asset_db.end(), "this asset doesnt exist");
+				//FC_ASSERT(asset_iter != asset_db.end(), "this asset doesnt exist");
 				if (itr == payback_db.end()) {
 					FC_ASSERT(payback_asset.amount > 0, "lock balance error");
 					create<pay_back_object>([payback_owner, payback_asset, miner_id](pay_back_object& a) {
@@ -69,7 +70,7 @@ namespace graphene {
 				std::map<miner_id_type, asset> results;
 				auto payback_db = get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(payback_owner);
 
-				FC_ASSERT(payback_db.first != payback_db.second);
+				//FC_ASSERT(payback_db.first != payback_db.second);
 				for (auto payback_address_iter : boost::make_iterator_range(payback_db.first, payback_db.second)) {
 					if (symbol_type == "") {
 

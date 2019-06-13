@@ -801,14 +801,11 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				variant vcid(cid);
 				variant vmid(mid);
-				object_id_type id_cid;
 				object_id_type id_mid;
-				from_variant(vcid, id_cid);
 				from_variant(vmid, id_mid);
 				asset ass=evaluator->asset_from_string(asset_sym, amount);
-				return  evaluator->lock_contract_balance_to_miner(contract_id_type(id_cid), ass,miner_id_type(id_mid));
+				return  evaluator->lock_contract_balance_to_miner(evaluator->get_db().get_contract(cid).id, ass,miner_id_type(id_mid));
 			}
 			catch (fc::exception e)
 			{
@@ -846,7 +843,6 @@ namespace graphene {
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				variant vmid(mid);
-				object_id_type id_cid;
 				object_id_type id_mid;
 				from_variant(vmid, id_mid);
 				asset ass = evaluator->asset_from_string(sym_to_foreclose, amount);
@@ -866,10 +862,7 @@ namespace graphene {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				variant vmid(mid);
-				object_id_type id_mid;
-				from_variant(vmid, id_mid);
-				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(id_mid));
+				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(evaluator->get_db().get_contract(mid).id));
 			}
 			catch (fc::exception e)
 			{

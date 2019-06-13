@@ -1010,21 +1010,21 @@ namespace graphene {
 		{
 			if (lock_asset.amount <= 0)
 				return false;
-			bool valid_asset = true;
-			bool valid_contract = true;
+			bool valid_objid = true;
 			asset_object assobj;
 			contract_object conobj;
+			miner_object mob;
 			try
 			{
 				conobj = get_db().get(cid);
 				assobj = get_db().get(lock_asset.asset_id);
+				mob = get_db().get(mid);
 			}
 			catch (...)
 			{
-				valid_contract = false;
-				valid_asset = false;
+				valid_objid = false;
 			}
-			if (valid_asset == false|| valid_contract==false)
+			if (valid_objid ==false)
 				return false;
 
 			auto cba = get_contract_balance(conobj.contract_address, lock_asset.asset_id);
@@ -1363,8 +1363,8 @@ namespace graphene {
 			{
 				for (auto& asset_it : fcit.second)
 				{
-					get_db().adjust_lock_balance(fcit.first.second,get_db().get_contract(fcit.first.first).id, asset(asset_it.second, asset_it.first));
-					get_db().adjust_balance(fcit.first.first, -asset(asset_it.second, asset_it.first));
+					get_db().adjust_lock_balance(fcit.first.second,get_db().get_contract(fcit.first.first).id, -asset(asset_it.second, asset_it.first));
+					get_db().adjust_balance(fcit.first.first, asset(asset_it.second, asset_it.first));
 				}
 			}
         }
