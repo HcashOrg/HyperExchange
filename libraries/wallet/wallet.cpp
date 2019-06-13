@@ -10453,8 +10453,8 @@ void wallet_api::start_mining(const vector<string>& accts)
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
 	std::map<std::string, fc::ntp_info> res;
-	res["witness_node"]= my->_remote_db->get_ntp_info();
-	res["cli_wallet"]= fc::time_point::get_ntp_info();;
+	res["hx_node"]= my->_remote_db->get_ntp_info();
+	res["hx_client"]= fc::time_point::get_ntp_info();;
 	return res;
 }
 void wallet_api::ntp_update_time()
