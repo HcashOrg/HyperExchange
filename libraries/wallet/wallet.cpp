@@ -2150,15 +2150,22 @@ public:
 		   std::string transfer_to_account = to;
 		   if (symbol == "BCH"){
 			   FC_ASSERT((from.size() != 0 && to.size() != 0), "address is empty !!!!");
-			   if (from[0] == 1 || from[0] == 3)
+			   if (from[0] == '1' || from[0] == '3')
 			   {
 				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
 				   transfer_from_account = std::string(bch_address);
 			   }
-			   if (to[0] == 1 || to[0] == 3)
+			   else {
+				   transfer_from_account = pts_address_bch(from);
+			   }
+
+			   if (to[0] == '1' || to[0] == '3')
 			   {
-				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   auto bch_address = pts_address_bch(pts_address(to), btc_pubkey, btc_script);
 				   transfer_to_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_to_account = pts_address_bch(to);
 			   }
 		   }
 
@@ -2250,7 +2257,19 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		   auto iter = _crosschain_keys.find(from);
+		   std::string transfer_from_account = from;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((from.size() != 0), "address is empty !!!!");
+			   if (from[0] == '1' || from[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   transfer_from_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_from_account = pts_address_bch(from);
+			   }
+		   }
+		   auto iter = _crosschain_keys.find(transfer_from_account);
 		   FC_ASSERT(iter != _crosschain_keys.end(),"there is no private key in this wallet.");
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
@@ -4723,10 +4742,12 @@ public:
 		   std::string transfer_tunnel_account = tunnel_account;
 		   if (symbol == "BCH") {
 			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
-			   if (tunnel_account[0] == 1 || tunnel_account[0] == 3)
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
 			   {
 				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
 				   transfer_tunnel_account = std::string(bch_address);
+			   } else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
 			   }
 		   }
 		   op.addr = acct_obj.addr;
@@ -4767,10 +4788,13 @@ public:
 		   std::string transfer_tunnel_account = tunnel_account;
 		   if (symbol == "BCH") {
 			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
-			   if (tunnel_account[0] == 1 || tunnel_account[0] == 3)
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
 			   {
 				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
 				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
 			   }
 		   }
 		   op.addr = acct_obj.addr;
@@ -4785,8 +4809,8 @@ public:
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
-		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   FC_ASSERT(_crosschain_keys.count(transfer_tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[transfer_tunnel_account].wif_key;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
@@ -4809,7 +4833,19 @@ public:
 		   auto acct_obj = get_account(link_account);
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4833,7 +4869,19 @@ public:
 		   auto acct_obj = get_account(link_account);
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4842,10 +4890,10 @@ public:
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol),"no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-
+		   
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
-		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   FC_ASSERT(_crosschain_keys.count(transfer_tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[transfer_tunnel_account].wif_key;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
@@ -6097,10 +6145,12 @@ public:
 		   std::string transfer_crosschain_account = crosschain_account;
 		   if (asset_symbol == "BCH") {
 			   FC_ASSERT((crosschain_account.size() != 0), "address is empty !!!!");
-			   if (crosschain_account[0] == 1 || crosschain_account[0] == 3)
+			   if (crosschain_account[0] == '1' || crosschain_account[0] == '3')
 			   {
 				   auto bch_address = pts_address_bch(pts_address(crosschain_account), btc_pubkey, btc_script);
 				   transfer_crosschain_account = std::string(bch_address);
+			   } else {
+				   transfer_crosschain_account = std::string(pts_address_bch(crosschain_account));
 			   }
 		   }
 		   FC_ASSERT(!self.is_locked());
