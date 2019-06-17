@@ -445,11 +445,15 @@ namespace graphene {
 					FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
 					const auto withdraw_op = trx_itr->real_transaction.operations[0].get<crosschain_withdraw_evaluate::operation_type>();
 					std::string crosschain_account = withdraw_op.crosschain_account;
+					if (db().head_block_num() >= USE_MOD_CHANGE_LIST_HEIGHT)
+					{
 					if(o.asset_symbol == "BCH"){
 						if (crosschain_account.find(":") == crosschain_account.npos){
 							crosschain_account = bch_prefix + ":"+withdraw_op.crosschain_account;
 						}
 					}
+					}
+					
 					FC_ASSERT(create_trxs.trxs.count(crosschain_account) == 1);
 					auto one_trx = create_trxs.trxs[crosschain_account];
 
