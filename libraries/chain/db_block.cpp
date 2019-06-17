@@ -790,6 +790,10 @@ void database::_apply_block( const signed_block& next_block )
 	//printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
  //  }
    FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
+   if (signing_witness.last_confirmed_block_num > signing_witness.last_change_signing_key_block_num) {
+	   FC_ASSERT(fc::ripemd160::hash(next_block.previous_secret) == fetch_block_by_id(get_block_id_for_num(signing_witness.last_confirmed_block_num))->next_secret_hash);
+   }
+   
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
    update_signing_miner(signing_witness, next_block);
