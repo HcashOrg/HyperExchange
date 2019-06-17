@@ -30,7 +30,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <algorithm>
 #include <graphene/chain/cashaddr.h>
-const std::string bch_prefix = "bitcoincash";
+
 namespace graphene { namespace chain {
 
    pts_address::pts_address()

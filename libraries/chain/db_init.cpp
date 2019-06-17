@@ -252,8 +252,8 @@ void database::initialize_evaluators()
    register_evaluator<correct_chain_data_evaluator>();
    register_evaluator<vote_create_evaluator>();
    register_evaluator<vote_update_evaluator>();
-   register_evaluator<undertaker_evaluator>();
-   register_evaluator<name_transfer_evaluator>();
+   //register_evaluator<undertaker_evaluator>();
+   //register_evaluator<name_transfer_evaluator>();
 }
 
 void database::initialize_indexes()
