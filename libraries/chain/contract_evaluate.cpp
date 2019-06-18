@@ -1053,7 +1053,7 @@ namespace graphene {
 			return true;
 		}
 
-		std::vector<lockbalance_object> contract_common_evaluate::get_contact_lock_balance_info(const contract_id_type& cid)
+		std::vector<lockbalance_object> contract_common_evaluate::get_contract_lock_balance_info(const contract_id_type& cid)
 		{
 			auto res = get_db().get_lockbalance_objs_by_locker(cid);
 			for (auto& it : res)
@@ -1070,7 +1070,7 @@ namespace graphene {
 			return res;
 		}
 
-		std::vector<lockbalance_object> contract_common_evaluate::get_contact_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid) const
+		std::vector<lockbalance_object> contract_common_evaluate::get_contract_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid) const
 		{
 
 			auto res = get_db().get_lock_balance(cid, aid);
@@ -1088,14 +1088,14 @@ namespace graphene {
 			return res;
 		}
 
-		std::map<graphene::chain::miner_id_type, graphene::chain::asset> contract_common_evaluate::get_pay_back_balacne(const address& contract_addr, const asset_id_type& symbol_type)
+		std::map<graphene::chain::miner_id_type, graphene::chain::asset> contract_common_evaluate::get_pay_back_balance(const address& contract_addr, const asset_id_type& symbol_type)
 {
 			std::map<miner_id_type, graphene::chain::asset> res;
 			std::pair<address, asset_id_type> mkey = std::make_pair(contract_addr, symbol_type);
 			auto it = invoke_contract_result.payback_balance.find(mkey);
 			if (it == invoke_contract_result.payback_balance.end())
 			{
-				auto res = get_db().get_pay_back_balacne_mid(contract_addr, get_db().get(symbol_type).symbol);
+				auto res = get_db().get_pay_back_balance_mid(contract_addr, get_db().get(symbol_type).symbol);
 				invoke_contract_result.payback_balance[mkey] = res;
 			}
 			else
@@ -1114,8 +1114,9 @@ namespace graphene {
 
 		bool contract_common_evaluate::obtain_pay_back_balance(const address& contract_addr ,const miner_id_type& mid,const asset& to_obtain)
 		{
+			related_contract.insert(contract_addr);
 			auto aid = to_obtain.asset_id;
-			auto res=get_pay_back_balacne(contract_addr,to_obtain.asset_id);
+			auto res=get_pay_back_balance(contract_addr,to_obtain.asset_id);
 			auto it = res.find(mid);
 			share_type obtain_already=0;
 			bool active_amit = false;
@@ -1145,6 +1146,8 @@ namespace graphene {
 
 		bool contract_common_evaluate::foreclose_balance_from_miners(const address& foreclose_contract,const miner_id_type& mid,const asset& to_foreclose)
 		{
+
+			related_contract.insert(foreclose_contract);
 			auto contract_obj = get_db().get_contract(foreclose_contract);
 			bool already_foreclose = false;
 			auto forekey = std::make_pair(foreclose_contract,mid);
@@ -1160,7 +1163,7 @@ namespace graphene {
 					already_foreclose = true;
 				}
 			}
-			auto res=get_contact_lock_balance_info(contract_obj.id, to_foreclose.asset_id);
+			auto res=get_contract_lock_balance_info(contract_obj.id, to_foreclose.asset_id);
 			for (auto& it : res)
 			{
 				if (it.lockto_miner_account == mid)
@@ -1346,7 +1349,21 @@ namespace graphene {
 			{
 				for (auto& asset_it : loc.second)
 				{
-					get_db().adjust_lock_balance(loc.first.first, loc.first.second, asset(asset_it.second, asset_it.first));
+					string asset_sym = get_db().get(asset_it.first).symbol;
+					asset lock_asset(asset_it.second, asset_it.first);
+					if (get_db().head_block_num() < LOCKBALANCE_CORRECT)
+					{
+						get_db().modify(get_db().get(loc.first.first), [lock_asset, asset_sym](miner_object& b) {
+							auto map_lockbalance_total = b.lockbalance_total.find(asset_sym);
+							if (map_lockbalance_total != b.lockbalance_total.end()) {
+								map_lockbalance_total->second += lock_asset;
+							}
+							else {
+								b.lockbalance_total[asset_sym] = lock_asset;
+							}
+						});
+					}
+					get_db().adjust_lock_balance(loc.first.first, loc.first.second, lock_asset);
 				}
 
 			}
@@ -1354,6 +1371,7 @@ namespace graphene {
 			{
 				for (auto& asset_it : pb.second)
 				{
+					std::cout << "contract" << std::endl;
 					get_db().adjust_pay_back_balance(get_db().get_contract(pb.first.first).id, -asset(asset_it.second, asset_it.first), pb.first.second);
 					//deposit_to_contract
 					get_db().adjust_balance(pb.first.first, asset(asset_it.second, asset_it.first));
@@ -1606,7 +1624,7 @@ namespace graphene {
 				 {
 					 deposit->second -= to_withdraw;
 					 to_withdraw = 0;
-				 }
+				 }  
 				 else
 				 {
 					 to_withdraw -= deposit->second;
@@ -1669,8 +1687,9 @@ namespace graphene {
                  const auto& base_contract = get_db().get_contract(contract.inherit_from);
                  if (base_contract.type_of_contract != contract_type::normal_contract)
                      return nullptr;
+
                  for (const auto & api : base_contract.code.abi) {
-                     contract_info->contract_apis.push_back(api);
+                     contract_info->contract_apis.push_back(api); 
                  }
              }
              return contract_info;

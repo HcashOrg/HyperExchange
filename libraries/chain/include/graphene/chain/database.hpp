@@ -310,8 +310,8 @@ namespace graphene { namespace chain {
 		 void adjust_pay_back_balance(object_id_type payback_owner, asset payback_asset, miner_id_type miner_id = miner_id_type(0));
 	     void adjust_bonus_balance(address bonus_owner, asset bonus);
 		 std::map<string, share_type> get_bonus_balance(address owner)const;
-		 std::map<string,asset> get_pay_back_balacne(address payback_owner,std::string symbol_type)const;
-		 std::map<miner_id_type, asset> get_pay_back_balacne_mid(address payback_owner, std::string symbol_type)const;
+		 std::map<string,asset> get_pay_back_balance(address payback_owner,std::string symbol_type)const;
+		 std::map<miner_id_type, asset> get_pay_back_balance_mid(address payback_owner, std::string symbol_type)const;
 		 //////////////////// db_lock_balance.cpp/////////////////
 		 asset get_lock_balance(object_id_type owner,miner_id_type miner, asset_id_type asset_id)const;
 		 vector<lockbalance_object> get_lock_balance(object_id_type owner, asset_id_type asset_id)const;

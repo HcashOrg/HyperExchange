@@ -268,6 +268,12 @@ namespace graphene {
                         obj.op_num = op_num;
                         obj.invoker = invoker;
 						obj.contract_registed = res.contract_registed;
+						obj.lock_to_miner = res.lock_to_miner;
+						obj.contract_registed = res.contract_registed;
+						obj.lock_to_miner = res.lock_to_miner;
+						obj.payback_balance = res.payback_balance;
+						obj.payback_to_obtain = res.payback_to_obtain;
+						obj.to_foreclose = res.to_foreclose;
                         for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
                         {
                             obj.contract_withdraw.insert( make_pair(it->first,it->second));

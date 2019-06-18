@@ -254,8 +254,6 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 					boost::multiprecision::uint256_t amount_cal_end = boost::multiprecision::uint256_t(pledge_pay_amount) * cal_end / all_pledge;
 					uint64_t end_value = uint64_t(amount_cal_end);
 					all_pledge_paid += end_value;
-
-
 					adjust_pay_back_balance(one_pledge.lock_balance_account, asset(end_value, asset_id_type(0)), miner_id);
 				}
 				else if (!price_obj.settlement_price.is_null() && price_obj.settlement_price.quote.asset_id == asset_id_type(0))

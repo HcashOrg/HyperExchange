@@ -59,12 +59,14 @@ namespace graphene {
 				else {
 					
 					modify(*itr, [payback_asset](pay_back_object& b) {
+						std::cout << fc::json::to_string(b.one_owner_balance);
 						b.one_owner_balance += payback_asset;
+						std::cout << "After: " << fc::json::to_string(b.one_owner_balance) << std::endl;
 					});
 				}
 			}FC_CAPTURE_AND_RETHROW((payback_owner)(payback_asset))
 		}
-		std::map<graphene::chain::miner_id_type, graphene::chain::asset> graphene::chain::database::get_pay_back_balacne_mid(address payback_owner, std::string symbol_type) const
+		std::map<graphene::chain::miner_id_type, graphene::chain::asset> graphene::chain::database::get_pay_back_balance_mid(address payback_owner, std::string symbol_type) const
 		{
 			try {
 				std::map<miner_id_type, asset> results;
@@ -95,7 +97,7 @@ namespace graphene {
 			}FC_CAPTURE_AND_RETHROW((payback_owner)(symbol_type))
 		}
 
-		std::map<string,asset> database::get_pay_back_balacne(address payback_owner,std::string symbol_type)const {
+		std::map<string,asset> database::get_pay_back_balance(address payback_owner,std::string symbol_type)const {
 			try {
 				std::map<string,asset> results;
 				auto payback_db = get_index_type<payback_index>().indices().get<by_payback_address>().equal_range(payback_owner);

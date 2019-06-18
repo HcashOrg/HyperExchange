@@ -857,12 +857,12 @@ namespace graphene {
 		}
 
 
-		std::string UvmChainApi::get_contact_lock_balance_info(lua_State *L, const char* mid)
+		std::string UvmChainApi::get_contract_lock_balance_info(lua_State *L, const char* mid)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(evaluator->get_db().get_contract(mid).id));
+				return  fc::json::to_string(evaluator->get_contract_lock_balance_info(evaluator->get_db().get_contract(mid).id));
 			}
 			catch (fc::exception e)
 			{
@@ -872,7 +872,7 @@ namespace graphene {
 			}
 		}
 
-		std::string UvmChainApi::get_contact_lock_balance_info(lua_State * L, const char * cid, const char * aid) const
+		std::string UvmChainApi::get_contract_lock_balance_info(lua_State * L, const char * cid, const char * aid) const
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
@@ -883,7 +883,7 @@ namespace graphene {
 				from_variant(vcid, id_cid);
 				object_id_type id_aid;
 				from_variant(vaid, id_aid);
-				return  fc::json::to_string(evaluator->get_contact_lock_balance_info(id_cid,id_aid));
+				return  fc::json::to_string(evaluator->get_contract_lock_balance_info(id_cid,id_aid));
 			}
 			catch (fc::exception e)
 			{
@@ -893,13 +893,13 @@ namespace graphene {
 			}
 		}
 
-		std::string UvmChainApi::get_pay_back_balacne(lua_State *L, const char* contract_addr, const char* symbol_type)
+		std::string UvmChainApi::get_pay_back_balance(lua_State *L, const char* contract_addr, const char* symbol_type)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				asset ass = evaluator->asset_from_string(symbol_type, "0");
-				return  fc::json::to_string(evaluator->get_pay_back_balacne(address(contract_addr), ass.asset_id));
+				return  fc::json::to_string(evaluator->get_pay_back_balance(address(contract_addr), ass.asset_id));
 			}
 			catch (fc::exception e)
 			{

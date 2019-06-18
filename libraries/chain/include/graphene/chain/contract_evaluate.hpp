@@ -45,9 +45,9 @@ namespace graphene {
             contract_common_evaluate(generic_evaluator* gen_eval);
             virtual ~contract_common_evaluate();
 			bool lock_contract_balance_to_miner(const contract_id_type& cid,const asset& lock_asset,const miner_id_type& mid);
-			std::vector<lockbalance_object> get_contact_lock_balance_info(const contract_id_type& mid);
-			std::vector<lockbalance_object> get_contact_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid)const;
-			std::map<miner_id_type, asset> get_pay_back_balacne(const address& contract_addr, const asset_id_type& symbol_type);
+			std::vector<lockbalance_object> get_contract_lock_balance_info(const contract_id_type& mid);
+			std::vector<lockbalance_object> get_contract_lock_balance_info(const contract_id_type& cid, const asset_id_type& aid)const;
+			std::map<miner_id_type, asset> get_pay_back_balance(const address& contract_addr, const asset_id_type& symbol_type);
 			bool obtain_pay_back_balance(const address& contract_addr, const miner_id_type& mid, const asset& to_obtain);
 			bool foreclose_balance_from_miners(const address& foreclose_account, const miner_id_type& mid, const asset& to_foreclose);
 			void set_contract_storage_changes(const string& contract_id, const contract_storage_changes_type& changes);

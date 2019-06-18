@@ -168,6 +168,10 @@ namespace graphene {
            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
            std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
+		   std::map<std::pair<miner_id_type, contract_id_type>, std::map<asset_id_type, share_type>>		lock_to_miner;
+		   std::map<std::pair<address, asset_id_type>, std::map<miner_id_type, graphene::chain::asset>>		payback_balance;
+		   std::map<std::pair<address, miner_id_type>, std::map<asset_id_type, share_type>>					payback_to_obtain;
+		   std::map<std::pair<address, miner_id_type>, std::map<asset_id_type, share_type>>					to_foreclose;
 		   std::map<asset_id_type, share_type> transfer_fees;
            
             inline bool operator<(const contract_invoke_result_object& obj) const
@@ -219,8 +223,9 @@ FC_REFLECT(graphene::chain::contract_storage_view,
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
-	//(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees)
+	(lock_to_miner)(payback_balance)(payback_to_obtain)(to_foreclose))
+		//(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry, (contract_address)(hash))
 FC_REFLECT(graphene::chain::execution_result, (fee)(gas_count)(result))
 

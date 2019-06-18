@@ -3186,7 +3186,7 @@ std::map<std::string, share_type> database_api::get_bonus_balances(const address
 	return my->get_bonus_balances(owner);
 }
 std::map<string,asset> database_api::get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol) const {
-	return my->_db.get_pay_back_balacne(owner_addr,asset_symbol);
+	return my->_db.get_pay_back_balance(owner_addr,asset_symbol);
 }
 vector<coldhot_transfer_object> database_api::get_coldhot_transaction(const coldhot_trx_state& coldhot_tx_state, const transaction_id_type& id)const {
 	return my->get_coldhot_transaction(coldhot_tx_state, id);
