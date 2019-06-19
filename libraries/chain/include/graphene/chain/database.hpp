@@ -267,7 +267,6 @@ namespace graphene { namespace chain {
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 		 bool is_white(const address& addr, const int& op) const;
-
          //////////////////// db_getter.cpp ////////////////////
 
          const chain_id_type&                   get_chain_id()const;
