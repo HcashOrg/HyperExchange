@@ -755,12 +755,15 @@ namespace graphene {
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				const auto& d = evaluator->get_db();
-
-				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
-				const auto& pre_block = d.fetch_block_by_id(cur_block->previous);
 				fc::sha256::encoder random_generater;
-				fc::raw::pack(random_generater, cur_block->previous_secret);
-				fc::raw::pack(random_generater, pre_block->previous_secret);
+				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
+				auto current_random = d.get_dynamic_global_properties().current_random_seed;
+				if (current_random.valid()) {
+					fc::raw::pack(random_generater, *current_random);
+				}
+				else {
+					fc::raw::pack(random_generater, "");
+				}
 				auto hash = random_generater.result();
 				return hash._hash[3] % ((1 << 31) - 1);
 			}
