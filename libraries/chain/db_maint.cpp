@@ -1127,7 +1127,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
 			//   obj.alias = optional<string>();
 		 //  });
 	  // }
-   }
+   //}
    // process_budget needs to run at the bottom because
    //   it needs to know the next_maintenance_time
    process_budget();
