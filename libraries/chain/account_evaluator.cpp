@@ -644,11 +644,6 @@ void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
 		{
 			FC_ASSERT(o.taker == operation_fee_payer(op.op).as<graphene::chain::address>());
 		}
-
-		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_name>();
-		if (acc_idx.find("hzkai3") != acc_idx.end())
-			std::cout << "dfsdfsdfsdfsdfdsf" << std::endl;
-
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
