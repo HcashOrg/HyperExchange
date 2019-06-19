@@ -1096,37 +1096,37 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
    //for( const asset_bitasset_data_object* d : get_index_type<asset_bitasset_data_index>() )
    for( const auto& d : get_index_type<asset_bitasset_data_index>().indices() )
       modify( d, [](asset_bitasset_data_object& o) { o.force_settled_volume = 0; });
-   const auto& alias_idx = get_index_type<account_index>().indices().get<by_alias>();
-   const auto& acc_idx = get_index_type<account_index>().indices().get<by_name>();
-   for (auto iter = alias_idx.lower_bound(""); iter!= alias_idx.end(); iter = alias_idx.lower_bound(""))
-   {
-	   //need to confirm the next who transfered names with it
-	   auto name = iter->name;
-	   auto alias = *(iter->alias);
-	   auto a_iter =alias_idx.find(name);
-	   auto n_iter = acc_idx.find(alias);
-	   if (a_iter != alias_idx.end())
-	   {
-		   modify(*iter, [&](account_object& obj) {
-			   obj.name = *(obj.alias);
-			   obj.alias = optional<string>();
-		   });
-		   modify(*a_iter, [&](account_object& obj) {
-			   obj.name = *(obj.alias);
-			   obj.alias = optional<string>();
-		   });
-	   }
-	   else if (n_iter != acc_idx.end())
-	   {
-		   modify(*n_iter, [&](account_object& obj) {
-			   obj.name = *(obj.alias);
-			   obj.alias = optional<string>();
-		   });
-		   modify(*iter, [&](account_object& obj) {
-			   obj.name = *(obj.alias);
-			   obj.alias = optional<string>();
-		   });
-	   }
+   //const auto& alias_idx = get_index_type<account_index>().indices().get<by_alias>();
+   //const auto& acc_idx = get_index_type<account_index>().indices().get<by_name>();
+   //for (auto iter = alias_idx.lower_bound(""); iter!= alias_idx.end(); iter = alias_idx.lower_bound(""))
+   //{
+	  // //need to confirm the next who transfered names with it
+	  // auto name = iter->name;
+	  // auto alias = *(iter->alias);
+	  // auto a_iter =alias_idx.find(name);
+	  // auto n_iter = acc_idx.find(alias);
+	  // if (a_iter != alias_idx.end())
+	  // {
+		 //  modify(*iter, [&](account_object& obj) {
+			//   obj.name = *(obj.alias);
+			//   obj.alias = optional<string>();
+		 //  });
+		 //  modify(*a_iter, [&](account_object& obj) {
+			//   obj.name = *(obj.alias);
+			//   obj.alias = optional<string>();
+		 //  });
+	  // }
+	  // else if (n_iter != acc_idx.end())
+	  // {
+		 //  modify(*n_iter, [&](account_object& obj) {
+			//   obj.name = *(obj.alias);
+			//   obj.alias = optional<string>();
+		 //  });
+		 //  modify(*iter, [&](account_object& obj) {
+			//   obj.name = *(obj.alias);
+			//   obj.alias = optional<string>();
+		 //  });
+	  // }
    }
    // process_budget needs to run at the bottom because
    //   it needs to know the next_maintenance_time
