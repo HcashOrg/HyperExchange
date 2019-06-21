@@ -347,7 +347,7 @@ struct wallet_data
    map<string, address > pending_account_registrations;
    map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
-
+   map<account_id_type, transaction_id_type> pending_name_transfer;
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
 

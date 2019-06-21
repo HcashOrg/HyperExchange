@@ -445,6 +445,27 @@ private:
 			  ++iter;
 		  }
 	  }
+	  if (!_wallet.pending_name_transfer.empty())
+	  {
+		  for (const auto& itr : _wallet.pending_name_transfer)
+		  {
+			  auto acc_id = itr.first;
+			  auto trx_id = itr.second;
+			  try {
+				  auto trx = _remote_db->get_transaction_by_id(trx_id);
+
+				  if (trx.valid())
+				  {
+					  auto acct = get_account(acc_id);
+					  claim_account_update(acct);
+					  _wallet.pending_name_transfer.erase(acc_id);
+				  }
+			  }
+			  catch (...)
+			  {
+			  }
+		  }
+	  }
    }
    void enable_umask_protection()
    {
@@ -6436,6 +6457,7 @@ public:
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
+		   _wallet.pending_name_transfer[acc_obj.id] = tx.id();
 		   return fc::to_base58(json_str.c_str(), json_str.size());
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
    }
@@ -8036,8 +8058,9 @@ string wallet_api::name_transfer_to_address(string from, address to, asset amoun
 }
 full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
 {
-	const address& addr = get_account_addr(account);
-	string tx = sign_multisig_trx(addr, trx);
+	const account_object& acc = my->get_account(account);
+	string tx = sign_multisig_trx(acc.addr, trx);
+	my->_wallet.pending_name_transfer[acc.id] = fc::variant(trx).as<signed_transaction>().id();
 	return combine_transaction({ tx }, broadcast);
 }
 
