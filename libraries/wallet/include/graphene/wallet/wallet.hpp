@@ -1011,7 +1011,7 @@ class wallet_api
 	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
-	  string name_transfer_to_address(string from,string to, asset amount,string newname);
+	  string name_transfer_to_address(string from,address to, asset amount,string newname);
 	  full_transaction confirm_name_transfer(string account ,string trx,bool broadcast);
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast

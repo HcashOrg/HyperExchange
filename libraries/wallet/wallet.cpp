@@ -8029,9 +8029,9 @@ string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
 }
 
-string wallet_api::name_transfer_to_address(string from, string to, asset amount, string newname)
+string wallet_api::name_transfer_to_address(string from, address to, asset amount, string newname)
 {
-	string trx = my->name_transfer_to_address(from, address(to), amount, newname);
+	string trx = my->name_transfer_to_address(from, to, amount, newname);
 	return sign_multisig_trx(get_account_addr(from),trx);
 }
 full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
