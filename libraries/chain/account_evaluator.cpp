@@ -667,13 +667,13 @@ void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
 void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& o)
 {
 	try {
-		/*const auto& d = db();
+		const auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		const auto& alias_idx = d.get_index_type<account_index>().indices().get<by_alias>();
 		auto from_iter = acc_idx.find(o.from);
-		FC_ASSERT(from_iter != acc_idx.end(),"${from} is not a registered account",("from",o.from));
+		FC_ASSERT(from_iter != acc_idx.end(), "${from} is not a registered account", ("from", o.from));
 		auto to_iter = acc_idx.find(o.to);
-		FC_ASSERT(to_iter != acc_idx.end(),"${to} is not a registered account",("to",o.to));
+		FC_ASSERT(to_iter != acc_idx.end(), "${to} is not a registered account", ("to", o.to));
 		FC_ASSERT(!(from_iter->alias.valid()) && !(to_iter->alias.valid()));
 		if (o.newname.valid())
 		{
@@ -683,31 +683,31 @@ void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& 
 		else
 		{
 			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string()) == address(), "please rename your account.");
-			FC_ASSERT(alias_idx.find(from_iter->name + fc::variant(d.head_block_num()).as_string())== alias_idx.end());
-		}*/
+			FC_ASSERT(alias_idx.find(from_iter->name + fc::variant(d.head_block_num()).as_string()) == alias_idx.end());
+		}
 			
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 {
 	try {
-		/*auto& d = db();
+		auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto from_iter = acc_idx.find(o.from);
 		auto to_iter = acc_idx.find(o.to);
 		auto from_obj = *from_iter;
 		auto to_obj = *to_iter;
-		db().modify(*from_iter,[&](account_object& obj) {
+		db().modify(*from_iter, [&](account_object& obj) {
 			if (o.newname.valid())
 				obj.alias = *(o.newname);
 			else
 				obj.alias = from_obj.name + fc::variant(d.head_block_num()).as_string();
 		});
 
-		db().modify(*to_iter,[&](account_object& obj) {
-				obj.alias = from_obj.name;
+		db().modify(*to_iter, [&](account_object& obj) {
+			obj.alias = from_obj.name;
 		});
-*/
+
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }
