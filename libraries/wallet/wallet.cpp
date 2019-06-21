@@ -457,6 +457,8 @@ private:
 				  if (trx.valid())
 				  {
 					  auto acct = get_account(acc_id);
+					  if (acct.alias.valid())
+						  continue;
 					  claim_account_update(acct);
 					  _wallet.pending_name_transfer.erase(acc_id);
 				  }
@@ -8060,7 +8062,7 @@ full_transaction wallet_api::confirm_name_transfer(string account, string trx, b
 {
 	const account_object& acc = my->get_account(account);
 	string tx = sign_multisig_trx(acc.addr, trx);
-	my->_wallet.pending_name_transfer[acc.id] = fc::variant(trx).as<signed_transaction>().id();
+	my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
 	return combine_transaction({ tx }, broadcast);
 }
 
