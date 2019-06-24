@@ -347,7 +347,7 @@ struct wallet_data
    map<string, address > pending_account_registrations;
    map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
-
+   map<account_id_type, transaction_id_type> pending_name_transfer;
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
 
@@ -1011,7 +1011,7 @@ class wallet_api
 	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
-	  string name_transfer_to_address(string from,string to, asset amount,string newname);
+	  string name_transfer_to_address(string from,address to, asset amount,string newname);
 	  full_transaction confirm_name_transfer(string account ,string trx,bool broadcast);
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast

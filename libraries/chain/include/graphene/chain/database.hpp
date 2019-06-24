@@ -267,7 +267,6 @@ namespace graphene { namespace chain {
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 		 bool is_white(const address& addr, const int& op) const;
-
          //////////////////// db_getter.cpp ////////////////////
 
          const chain_id_type&                   get_chain_id()const;
@@ -594,6 +593,7 @@ namespace graphene { namespace chain {
 		 void process_bonus();
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
+		 void process_name_transfer();
          void update_active_miners();
          void update_active_committee_members();
          void update_worker_votes();

@@ -879,7 +879,7 @@ namespace graphene {
 
             invoke_contract_result.invoker = o.caller_addr;
             FC_ASSERT(d.has_contract(o.contract_id));
-            const auto &contract = d.get_contract(o.contract_id);
+	    const auto &contract = d.get_contract(o.contract_id);
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
@@ -894,9 +894,10 @@ namespace graphene {
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
-			if (o.amount.amount > 0) {
-				native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
-			}
+			deposit_to_contract(o.contract_id, o.amount);
+		    //if (o.amount.amount > 0) { // only can used without before deposit_to_contract
+	           //		native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
+		   //}
 		   if (native_contract->has_api("on_deposit_asset"))
 		   {
                         gas_count = o.invoke_cost;
@@ -924,12 +925,13 @@ namespace graphene {
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 		    }
 		    else {
+			auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+                        this->invoke_contract_result = invoke_result;
 			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 		    }
                 }
                 else
                 {
-			deposit_to_contract(o.contract_id, o.amount);
 					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
 					{
 
@@ -952,7 +954,7 @@ namespace graphene {
 						engine->set_gas_limit(limit);
 						invoke_contract_result.reset();
 
-                        deposit_to_contract(o.contract_id, o.amount);
+                        			deposit_to_contract(o.contract_id, o.amount);
 						std::string contract_result_str;
 						try
 						{
@@ -979,7 +981,8 @@ namespace graphene {
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 					}
 					else
-					{
+					{	
+						deposit_to_contract(o.contract_id, o.amount);
 						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 					}
                 }
