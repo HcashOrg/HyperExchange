@@ -1898,8 +1898,9 @@ public:
 
 		   }
 		   else {
-			   auto& abi = cont.code.offline_abi;
-			   if (abi.find(contract_api) == abi.end())
+			   auto& abi = cont.code.abi;
+                           auto& offline_abi = cont.code.offline_abi;
+                           if (abi.find(contract_api) == abi.end() && offline_abi.find(contract_api) == offline_abi.end())
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
            contract_invoke_op.gas_price =  0;
