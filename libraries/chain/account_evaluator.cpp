@@ -666,7 +666,7 @@ void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
 
 void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& o)
 {
-	/*try {
+	try {
 		const auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		const auto& alias_idx = d.get_index_type<account_index>().indices().get<by_alias>();
@@ -685,13 +685,12 @@ void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& 
 			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string()) == address(), "please rename your account.");
 			FC_ASSERT(alias_idx.find(from_iter->name + fc::variant(d.head_block_num()).as_string()) == alias_idx.end());
 		}
-
-	}FC_CAPTURE_AND_RETHROW((o))*/
-	return void_result();
+			
+	}FC_CAPTURE_AND_RETHROW((o))
 }
 void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 {
-	/*try {
+	try {
 		auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
 		auto from_iter = acc_idx.find(o.from);
@@ -710,8 +709,7 @@ void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 		});
 
 		return void_result();
-	}FC_CAPTURE_AND_RETHROW((o))*/
-	return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
 }
 
 } } // graphene::chain

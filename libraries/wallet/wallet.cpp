@@ -447,7 +447,7 @@ private:
 	  }
 	  if (!_wallet.pending_name_transfer.empty())
 	  {
-		  /*for (const auto& itr : _wallet.pending_name_transfer)
+		  for (const auto& itr : _wallet.pending_name_transfer)
 		  {
 			  auto acc_id = itr.first;
 			  auto trx_id = itr.second;
@@ -466,7 +466,7 @@ private:
 			  catch (...)
 			  {
 			  }
-		  }*/
+		  }
 	  }
    }
    void enable_umask_protection()
