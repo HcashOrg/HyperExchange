@@ -10453,7 +10453,7 @@ void wallet_api::start_citizen(bool start)
 }
 void wallet_api::start_mining(const vector<string>& accts)
 {
-	vector<address> addrs;
+	vector<string> miners;
 	map<miner_id_type, private_key> keys;
 	auto& idx = my->_wallet.my_accounts.get<by_name>();
 	for (auto acct : accts)
@@ -10462,15 +10462,17 @@ void wallet_api::start_mining(const vector<string>& accts)
 		FC_ASSERT(oac!= idx.end(), "account not found!");
 		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
-		FC_ASSERT(witness.valid(),"only citizen can mine");
+		if (!witness.valid())
+			continue;
 		FC_ASSERT(my->_keys.find(acc_obj.addr)!=my->_keys.end(),"my key is not in keys");
 		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(my->_keys[acc_obj.addr]);
 		if (!optional_private_key)
 			FC_THROW("Invalid private key");
 		keys.insert(make_pair((*witness).id.as<miner_id_type>(),*optional_private_key));
+		miners.push_back( acct);
 	}
 	my->start_mining(keys);
-	my->_wallet.mining_accounts = accts;
+	my->_wallet.mining_accounts = miners;
 }
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
