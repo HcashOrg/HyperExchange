@@ -69,6 +69,9 @@ namespace graphene {
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
 			string ordered_digest() const;
 
+			// @throws uvm::core::UvmException
+			void validate();
+
 			// count storage gas and events gas
 			int64_t count_storage_gas() const;
 			int64_t count_event_gas() const;

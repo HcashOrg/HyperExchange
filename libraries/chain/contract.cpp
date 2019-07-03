@@ -50,6 +50,70 @@ namespace graphene {
             acctual_fee = fee;
         }
 
+	void contract_invoke_result::validate() {
+		// in >= out + fee
+		std::map<asset_id_type, share_type> in_totals;
+		std::map<asset_id_type, share_type> out_totals;
+		for(const auto& p : contract_withdraw) {
+			auto asset = p.first.second;
+			auto change = p.second;
+			if(change == 0)
+				continue;
+			// in
+			share_type total = 0;
+			if(in_totals.find(asset) != in_totals.end())
+				total = in_totals[asset];
+			total += change;
+			in_totals[asset] = total;
+		}
+                for(const auto& p : deposit_contract) {
+                        auto asset = p.first.second;
+                        auto change = p.second;
+                        if(change == 0)
+                                continue;
+                        // out
+                        share_type total = 0;
+                        if(out_totals.find(asset) != out_totals.end())
+                                total = out_totals[asset];
+                        total += change;
+                        out_totals[asset] = total;
+                }
+                for(const auto& p : deposit_to_address) {
+                        auto asset = p.first.second;
+                        auto change = p.second;
+                        if(change == 0)
+                                continue;
+                        // out
+                        share_type total = 0;
+                        if(out_totals.find(asset) != out_totals.end())
+                                total = out_totals[asset];
+                        total += change;
+                        out_totals[asset] = total;
+                }
+		// TODO: add caller deposit amodeposit amounts to in. need split caller's deposit from contract_withdraws
+
+		// add fees to out
+		for (const auto& p : transfer_fees) {
+			auto asset = p.first;
+			auto change = p.second;
+			share_type total = 0;
+			if (out_totals.find(asset) != out_totals.end())
+				total = out_totals[asset];
+			total += change;
+		}
+		// each asset in out must have large in
+		for (const auto& p : out_totals) {
+			auto asset = p.first;
+			auto out_total = p.second;
+			if (out_total == 0) {
+				continue;
+			}
+			if (in_totals.find(asset) == in_totals.end() || in_totals[asset] < out_total) {
+				throw uvm::core::UvmException("contract evaluate result must in >= out + fee");
+			}
+		}	
+	}
+
 	int64_t contract_invoke_result::count_storage_gas() const {
 		cbor_diff::CborDiff differ;
 		int64_t storage_gas = 0;
