@@ -81,9 +81,17 @@ string memo_message::serialize() const
 memo_message memo_message::deserialize(const string& serial)
 {
    memo_message result;
+   string temp = serial;
    FC_ASSERT( serial.size() >= sizeof(result.checksum) );
-   result.checksum = ((uint32_t&)(*serial.data()));
-   result.text = serial.substr(sizeof(result.checksum));
+   auto checksum = ((uint32_t&)(*temp.data()));
+   if (checksum != result.checksum)
+   {
+	   auto serial_checksum = string(sizeof(result.checksum), ' ');
+	   (uint32_t&)(*serial_checksum.data()) = result.checksum;
+	   temp = serial_checksum + serial;
+   }
+   result.checksum = ((uint32_t&)(*temp.data()));
+   result.text = temp.substr(sizeof(result.checksum));
    return result;
 }
 
