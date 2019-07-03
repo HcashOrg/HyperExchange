@@ -1013,7 +1013,7 @@ class wallet_api
 	  ); 
 	  string name_transfer_to_address(string from,address to, asset amount,string newname);
 	  full_transaction confirm_name_transfer(string account ,string trx,bool broadcast);
-	  string undertaker_customize(const string& maker,const address& taker,fc::variant& maker_op, fc::variant& taker_op);
+	  string undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op);
 	  full_transaction confirm_undertaker(const string& taker,string trx, bool broadcast);
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
