@@ -490,12 +490,17 @@ namespace graphene {
 					changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
 				}
 				// printf("changes size: %d bytes\n", changes_size);
-				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
+				auto gas_change = changes_size * 10; // 1 byte storage cost 10 gas
+				storage_gas += gas_change;
 				//dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
 
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
 					return false;
+				}
+				if (use_gas_log(L)) {
+					const auto& txid = get_transaction_id_without_gas(L);
+					printf("txid %s, contract %s storage change gas %d\n", txid.c_str(), contract_id.c_str());
 				}
 				put_contract_storage_changes_to_evaluator(evaluator, contract_id, contract_storage_change);
 			}
@@ -796,16 +801,20 @@ namespace graphene {
 		std::string UvmChainApi::get_transaction_id(lua_State *L)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			return get_transaction_id_without_gas(L);
+		}
+
+		std::string UvmChainApi::get_transaction_id_without_gas(lua_State *L) const {
 			try {
-				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				return evaluator->get_current_trx_id().str();
-			}
-			catch (fc::exception e)
-			{
-				L->force_stopping = true;
-				L->exit_code = LUA_API_INTERNAL_ERROR;
-				return "";
-			}
+                                auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+                                return evaluator->get_current_trx_id().str();
+                        }
+                        catch (fc::exception e)
+                        {
+                                L->force_stopping = true;
+                                L->exit_code = LUA_API_INTERNAL_ERROR;
+                                return "";
+                        }
 		}
 
 
@@ -824,7 +833,7 @@ namespace graphene {
 			}
 		}
 
-		uint32_t UvmChainApi::get_header_block_num_without_gas(lua_State *L) {
+		uint32_t UvmChainApi::get_header_block_num_without_gas(lua_State *L) const {
 			try {
                                 auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				if(!evaluator)
@@ -1022,6 +1031,29 @@ namespace graphene {
 		std::string UvmChainApi::pubkey_to_address_string(const fc::ecc::public_key& pub) const {
 			address addr(pub, addressVersion::NORMAL);
 			return addr.address_to_string();
+		}
+
+		bool UvmChainApi::use_gas_log(lua_State* L) const {
+			const auto& txid = get_transaction_id_without_gas(L);
+			auto blknum = get_header_block_num_without_gas(L);
+			if(blknum == 2016813) {
+				return true;
+			}
+			if(txid=="fb72f4277014235a933edb7c9c7dffb3c6225db5")
+				return true;
+			return false;	
+		}
+
+                bool UvmChainApi::use_step_log(lua_State* L) const {
+			const auto& txid = get_transaction_id_without_gas(L);
+			auto blknum = get_header_block_num_without_gas(L);
+                        if(blknum == 2016813) {
+                                return true;
+                        }
+
+			if(txid=="fb72f4277014235a933edb7c9c7dffb3c6225db5")
+                                return true;
+			return false;
 		}
 
 	}

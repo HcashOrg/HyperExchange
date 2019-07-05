@@ -150,6 +150,8 @@ namespace graphene {
 
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+				
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -242,6 +244,8 @@ namespace graphene {
                 		unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
                 		invoke_result.acctual_fee = total_fee - unspent_fee;
                 		invoke_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -365,6 +369,8 @@ namespace graphene {
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -492,6 +498,8 @@ namespace graphene {
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -929,6 +937,8 @@ namespace graphene {
                         this->invoke_contract_result = invoke_result;
 			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 		    }
+
+			invoke_contract_result.validate();
                 }
                 else
                 {
