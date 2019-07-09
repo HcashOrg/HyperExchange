@@ -8075,9 +8075,16 @@ public_key_type wallet_api::get_pubkey_from_account(const string& acc)
 
 signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
 {
-	auto vec = fc::from_base58(trx);
-	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
-	return recovered.as<signed_transaction>();
+	try {
+		auto vec = fc::from_base58(trx);
+		auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+		return recovered.as<signed_transaction>();
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
 
 string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
@@ -8094,10 +8101,17 @@ string wallet_api::name_transfer_to_address(string from, address to, asset amoun
 }
 full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
 {
-	const account_object& acc = my->get_account(account);
-	string tx = sign_multisig_trx(acc.addr, trx);
-	my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
-	return combine_transaction({ tx }, broadcast);
+	try {
+		const account_object& acc = my->get_account(account);
+		string tx = sign_multisig_trx(acc.addr, trx);
+		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		return combine_transaction({ tx }, broadcast);
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
 
 string wallet_api::undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op)

@@ -862,7 +862,8 @@ bool undo_storage::remove(const undo_state_id_type& id)
 
 		if (!sta.ok())
 		{
-			 
+			if (sta.IsNotFound())
+				return true;
 			elog("delete error: ${key}", ("key", id.str()));
 			FC_ASSERT(false, "Delete Data to undo_storage failed");
 			return false;
