@@ -90,6 +90,7 @@ namespace graphene {
 	};
 
 		struct by_contract_id_storage_name {};
+		struct by_storage_contract_id {};
 		typedef multi_index_container<
 			contract_storage_object,
 			indexed_by<
@@ -100,6 +101,10 @@ namespace graphene {
 			member<contract_storage_object, address, &contract_storage_object::contract_address>,
 			member<contract_storage_object, string, &contract_storage_object::storage_name>
 			>
+			>,
+			
+			 ordered_non_unique<tag<by_storage_contract_id>,
+			member<contract_storage_object, address, &contract_storage_object::contract_address>
 			>
 			>> contract_storage_object_multi_index_type;
 		typedef generic_index<contract_storage_object, contract_storage_object_multi_index_type> contract_storage_object_index;
