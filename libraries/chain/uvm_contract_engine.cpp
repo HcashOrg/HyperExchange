@@ -96,7 +96,6 @@ namespace uvm
 		clear_exceptions();
 		auto L = _scope->L();
 		const auto& txid = uvm::lua::api::global_uvm_chain_api->get_transaction_id_without_gas(L);
-		printf("contract txid: %s\n", txid.c_str());
 		uvm::lua::api::global_uvm_chain_api->before_contract_invoke(L, contract_id, txid);
 		uvm::lua::lib::execute_contract_api_by_address(_scope->L(), contract_id.c_str(), method.c_str(), argument.c_str(), result_json_string);
 		if (_scope->L()->force_stopping == true && _scope->L()->exit_code == LUA_API_INTERNAL_ERROR)
