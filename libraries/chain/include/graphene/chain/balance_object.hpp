@@ -67,6 +67,7 @@ namespace graphene { namespace chain {
 
    struct by_owner;
    struct by_asset;
+   struct by_balance_owner;
    /**
     * @ingroup object_index
     */
@@ -74,6 +75,7 @@ namespace graphene { namespace chain {
       balance_object,
       indexed_by<
          ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+         ordered_non_unique< tag<by_balance_owner>, member<balance_object, address, &balance_object::owner> >,
          ordered_non_unique< tag<by_owner>, composite_key<
             balance_object,
             member<balance_object, address, &balance_object::owner>,
