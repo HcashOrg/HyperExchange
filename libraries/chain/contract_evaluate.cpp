@@ -11,6 +11,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/log/log_message.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
@@ -122,8 +123,10 @@ namespace graphene {
 				}
 				//catch(fc::exception &e)
 				//{
-				//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
-				//}
+					// printf("contract execut error %s\n", e.to_detail_string().c_str());
+					// FC_RETHROW_EXCEPTION( e, fc::log_level::info, "", FC_FORMAT_ARG_PARAMS("") );
+					//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+				// }
 				catch (std::exception &e)
 				{
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));

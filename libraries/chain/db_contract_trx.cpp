@@ -37,6 +37,22 @@ namespace graphene {
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
+		std::map<std::string, StorageDataType> database::get_contract_all_storages(const address& contract_id) {
+			try {
+				std::map<std::string, StorageDataType> result;
+                                auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
+                                auto storage_iter = storage_index.find(contract_id);
+                                while(storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
+                                {
+                                        StorageDataType storage;
+                                        storage.storage_data = storage_iter->storage_value;
+                                        result[storage_iter->storage_name] = storage;
+                                        ++storage_iter;
+                                }
+				return result;
+                        } FC_CAPTURE_AND_RETHROW((contract_id));
+		}
+
 		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
 		{
 			try {

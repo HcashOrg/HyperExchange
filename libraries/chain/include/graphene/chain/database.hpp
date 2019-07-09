@@ -342,6 +342,7 @@ namespace graphene { namespace chain {
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////
 		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+                 std::map<std::string, StorageDataType> get_contract_all_storages(const address& contract_id);
 		 optional<contract_storage_object>  get_contract_storage_object(const address& contract_id, const string& name);
 		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
@@ -397,6 +398,7 @@ namespace graphene { namespace chain {
          asset get_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 /// this is another overloaded method
 		 asset get_balance(const address& addr, const asset_id_type asset_id) const;
+	 std::vector<asset> get_contract_balances(const address& addr) const;
          /**
           * @brief Adjust a particular account's balance in a given asset by a delta
           * @param account ID of account whose balance should be adjusted

@@ -6,6 +6,8 @@
 #include <uvm/uvm_lutil.h>
 #include <uvm/lobject.h>
 #include <uvm/lstate.h>
+#include <sstream>
+#include <iostream>
 
 namespace graphene {
 	namespace chain {
@@ -168,6 +170,9 @@ namespace graphene {
 
 			virtual bool use_gas_log(lua_State* L) const;
 			virtual bool use_step_log(lua_State* L) const;
+
+			void before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) override;
+			void dump_contract_state(lua_State* L, const std::string& contract_addr, const std::string& txid, std::ostream& out) override;
 
 		};
 	}
