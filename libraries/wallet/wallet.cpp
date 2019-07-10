@@ -1557,6 +1557,12 @@ public:
 	   }FC_LOG_AND_RETHROW();
    }
 
+   fc::uint128_t get_pledge() const
+   {
+	   try {
+		   return _remote_db->get_pledge();
+	   }FC_LOG_AND_RETHROW();
+   }
 
    full_transaction register_account(string name, bool broadcast)
    {
@@ -8309,6 +8315,10 @@ variant_object wallet_api::about() const
 vector<fc::variant> wallet_api::get_votes(const string& account) const
 {
 	return my->get_votes(account);
+}
+fc::uint128_t wallet_api::get_pledge() const
+{
+	return my->get_pledge();
 }
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
