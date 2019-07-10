@@ -6426,7 +6426,7 @@ public:
 		   FC_ASSERT(!is_locked());
 		   fc::optional<asset_object> asset_obj = get_asset(amount.asset_id);
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
-		   auto acc_obj = get_account(from);
+		   auto acc_obj = _remote_db->get_account(from);
 		   FC_ASSERT(acc_obj.addr != address());
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   transfer_operation xfer_op;
@@ -8106,12 +8106,7 @@ full_transaction wallet_api::confirm_name_transfer(string account, string trx, b
 		string tx = sign_multisig_trx(acc.addr, trx);
 		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
 		return combine_transaction({ tx }, broadcast);
-	}
-	catch (...)
-	{
-
-	}
-	return signed_transaction();
+	}FC_CAPTURE_AND_RETHROW((account)(trx)(broadcast))
 }
 
 string wallet_api::undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op)

@@ -507,7 +507,7 @@ namespace graphene {
 				}
 				if (use_gas_log(L)) {
 					const auto& txid = get_transaction_id_without_gas(L);
-					printf("txid %s, contract %s storage change gas %d\n", txid.c_str(), contract_id.c_str());
+					printf("txid %s, contract %s storage change gas %d\n", txid.c_str(), contract_id.c_str(), storage_gas);
 				}
 				put_contract_storage_changes_to_evaluator(evaluator, contract_id, contract_storage_change);
 			}
