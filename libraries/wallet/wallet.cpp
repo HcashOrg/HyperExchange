@@ -673,7 +673,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.21";
+	  result["version"] = "1.2.22";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -6464,7 +6464,40 @@ public:
 		   return fc::to_base58(json_str.c_str(), json_str.size());
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
    }
+   string undertaker_customize(const string& maker,const address& taker, const  fc::variant& maker_op,const  fc::variant& taker_op)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+			auto acc_obj = get_account(maker);
+			FC_ASSERT(acc_obj.addr != address());
+			const chain_parameters& current_params = get_global_properties().parameters;
+			undertaker_operation u_op;
+			u_op.maker = acc_obj.addr;
+			u_op.taker = taker;
+			fc::mutable_variant_object  temp;
+			temp["op"] = maker_op;
+			u_op.maker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			temp["op"] = taker_op;
+			u_op.taker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			
+			//current_params.current_fees->set_fee(u_op.maker_op.back().op);
+			//current_params.current_fees->set_fee(u_op.taker_op.back().op);
 
+			signed_transaction tx;
+
+			tx.operations.push_back(u_op);
+			set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+			uint32_t expiration_time_offset = 0;
+			auto dyn_props = get_dynamic_global_properties();
+			tx.set_reference_block(dyn_props.head_block_id);
+			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+			tx.validate();
+			auto json_str = fc::json::to_string(tx);
+			_wallet.pending_name_transfer[acc_obj.id] = tx.id();
+			return fc::to_base58(json_str.c_str(), json_str.size());
+
+	   }FC_CAPTURE_AND_RETHROW((maker)(taker)(maker_op)(taker_op))
+   }
    string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
@@ -8042,9 +8075,16 @@ public_key_type wallet_api::get_pubkey_from_account(const string& acc)
 
 signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
 {
-	auto vec = fc::from_base58(trx);
-	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
-	return recovered.as<signed_transaction>();
+	try {
+		auto vec = fc::from_base58(trx);
+		auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+		return recovered.as<signed_transaction>();
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
 
 string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
@@ -8061,11 +8101,31 @@ string wallet_api::name_transfer_to_address(string from, address to, asset amoun
 }
 full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
 {
-	const account_object& acc = my->get_account(account);
-	string tx = sign_multisig_trx(acc.addr, trx);
-	my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
-	return combine_transaction({ tx }, broadcast);
+	try {
+		const account_object& acc = my->get_account(account);
+		string tx = sign_multisig_trx(acc.addr, trx);
+		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		return combine_transaction({ tx }, broadcast);
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
+
+string wallet_api::undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op)
+{
+
+	string trx = my->undertaker_customize(maker,taker,maker_op,taker_op);
+	return sign_multisig_trx(get_account_addr(maker), trx);
+}
+full_transaction wallet_api::confirm_undertaker(const string& taker, string trx, bool broadcast)
+{
+	const account_object& acc = my->get_account(taker);
+	string tx = sign_multisig_trx(acc.addr, trx);
+	return combine_transaction({ tx }, broadcast);
+ }
 
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {

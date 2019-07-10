@@ -96,6 +96,8 @@ namespace uvm
 		clear_exceptions();
 		cbor::CborArrayValue args;
 		args.push_back(cbor::CborObject::from_string(argument));
+		const auto& txid = uvm::lua::api::global_uvm_chain_api->get_transaction_id_without_gas(_scope->L());
+                uvm::lua::api::global_uvm_chain_api->before_contract_invoke(_scope->L(), contract_id, txid);
 		uvm::lua::lib::execute_contract_api_by_address(_scope->L(), contract_id.c_str(), method.c_str(), args, result_json_string);
 		if (_scope->L()->force_stopping == true && _scope->L()->exit_code == LUA_API_INTERNAL_ERROR)
 			FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (""));

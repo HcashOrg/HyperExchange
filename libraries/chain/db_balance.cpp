@@ -59,6 +59,20 @@ asset database::get_balance(const address& addr, const asset_id_type asset_id) c
 	}
 	return result;
 }
+
+std::vector<asset> database::get_contract_balances(const address& addr) const {
+	std::vector<asset> result;
+	auto& bal_idx = get_index_type<balance_index>();
+        const auto& by_owner_idx = bal_idx.indices().get<by_balance_owner>();
+        //subscribe_to_item(addr);
+        auto itr = by_owner_idx.find(addr);
+        for (;itr != by_owner_idx.end() && itr->owner == addr; itr++)
+        {	
+                result.push_back(itr->balance);
+        }
+        return result;
+}
+
 optional<asset_object> database::get_asset(const string& symbol) const
 {
     const auto asset_db = get_index_type<asset_index>().indices();
