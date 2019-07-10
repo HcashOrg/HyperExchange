@@ -368,6 +368,9 @@ namespace graphene {
 					if(!offline)
 						FC_ASSERT(gas_used_counts <= o.invoke_cost && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 
+					if(o.contract_api == "start_new_bet")
+                                                printf("gas_used_counts: %d\n", gas_used_counts); // FIXME
+
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
