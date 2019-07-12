@@ -673,7 +673,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.22";
+	  result["version"] = "1.2.23";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1557,6 +1557,12 @@ public:
 	   }FC_LOG_AND_RETHROW();
    }
 
+   fc::uint128_t get_pledge() const
+   {
+	   try {
+		   return _remote_db->get_pledge();
+	   }FC_LOG_AND_RETHROW();
+   }
 
    full_transaction register_account(string name, bool broadcast)
    {
@@ -8309,6 +8315,10 @@ variant_object wallet_api::about() const
 vector<fc::variant> wallet_api::get_votes(const string& account) const
 {
 	return my->get_votes(account);
+}
+fc::uint128_t wallet_api::get_pledge() const
+{
+	return my->get_pledge();
 }
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const

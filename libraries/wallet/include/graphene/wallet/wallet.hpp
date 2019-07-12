@@ -1171,11 +1171,11 @@ class wallet_api
       /**
        *  Used to transfer from one set of blinded balances to another
        */
-      blind_confirmation blind_transfer( string from_key_or_label,
-                                         string to_key_or_label,
-                                         string amount,
-                                         string symbol,
-                                         bool broadcast = false );
+	  blind_confirmation blind_transfer(string from_key_or_label,
+		  string to_key_or_label,
+		  string amount,
+		  string symbol,
+		  bool broadcast = false);
 
       /** Place a limit order attempting to sell one asset for another.
        *
@@ -2102,6 +2102,7 @@ class wallet_api
 	variant_object  get_multisig_address(const address& addr);
 	full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast=true);
 	full_transaction correct_chain_data(const string& payer, vector<address> addresses, bool broadcast=true);
+	fc::uint128_t get_pledge() const;
 	  flat_set< miner_id_type> list_active_citizens();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
@@ -3238,7 +3239,6 @@ FC_API( graphene::wallet::wallet_api,
 		(get_account_addr)
 		//(get_proposal)
 		(get_proposal_for_voter)
-		(lock_balance_to_citizen)
 		(senator_lock_balance)
 		(foreclose_balance_from_citizen)
 		(senator_foreclose_balance)
@@ -3366,6 +3366,7 @@ FC_API( graphene::wallet::wallet_api,
 		(start_mining)
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
+		(lock_balance_to_citizen)
 		(cancel_eth_sign_transaction)
 		(wallet_create_account_with_brain_key)
 		(get_pending_transactions)
@@ -3384,8 +3385,9 @@ FC_API( graphene::wallet::wallet_api,
 		(get_votes)
 		(create_vote)
 		(cast_vote)
-		(name_transfer_to_address)
-		(confirm_name_transfer)
-		(undertaker_customize)
-		(confirm_undertaker)
+			/*(name_transfer_to_address)
+			(confirm_name_transfer)
+			(undertaker_customize)
+			(confirm_undertaker)*/
+		(get_pledge)
       )

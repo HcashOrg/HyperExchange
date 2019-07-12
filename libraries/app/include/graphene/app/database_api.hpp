@@ -276,6 +276,7 @@ class database_api
       std::map<string,full_account> get_full_accounts( const vector<string>& names_or_ids, bool subscribe );
 
       account_object                    get_account(const string& account_name_or_id) const;
+	  fc::uint128_t                     get_pledge() const;
       account_object                    get_account_by_id(const account_id_type& id) const;
       asset_object                      get_asset(const string& asset_name_or_id) const;
       optional<asset_object>            get_asset_by_id(const asset_id_type& id)const;
@@ -868,4 +869,5 @@ FC_API(graphene::app::database_api,
 	(get_contract_storage)
 	(get_vote_result_objs)
 	(get_votes_by_addr)
+	(get_pledge)
 );
