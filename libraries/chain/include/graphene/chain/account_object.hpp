@@ -154,6 +154,7 @@ namespace graphene { namespace chain {
 
          /// The account's name. This name must be unique among all account names on the graph. May not be empty.
          string name;
+		 optional<string> alias;
 		 /// the address of this account,myabe more but one is significant
 		 address addr;
          /**
@@ -429,6 +430,7 @@ namespace graphene { namespace chain {
    typedef generic_index<account_balance_object, account_balance_object_multi_index_type> account_balance_index;
 
    struct by_name{};
+   struct by_alias {};
    struct by_address {};
    /**
     * @ingroup object_index
@@ -438,6 +440,7 @@ namespace graphene { namespace chain {
       indexed_by<
 	   ordered_non_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
          ordered_unique< tag<by_name>, member<account_object, string, &account_object::name> >,
+	   ordered_non_unique< tag<by_alias>, member<account_object, optional<string>, &account_object::alias> >,
 	   ordered_non_unique< tag<by_address>, member<account_object, address, &account_object::addr> >
       >
    > account_multi_index_type;
@@ -580,7 +583,7 @@ FC_REFLECT_DERIVED( graphene::chain::account_object,
                     (graphene::db::object),
                     (membership_expiration_date)(registrar)(referrer)(lifetime_referrer)
                     (network_fee_percentage)(lifetime_referrer_fee_percentage)(referrer_rewards_percentage)
-                    (name)(addr)(owner)(active)(options)(statistics)(whitelisting_accounts)(blacklisting_accounts)
+                    (name)(alias)(addr)(owner)(active)(options)(statistics)(whitelisting_accounts)(blacklisting_accounts)
                     (whitelisted_accounts)(blacklisted_accounts)
                     (cashback_vb)
                     (owner_special_authority)(active_special_authority)

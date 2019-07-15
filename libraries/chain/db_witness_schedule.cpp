@@ -130,6 +130,8 @@ map<account_id_type, vector<asset>> database::get_citizen_lockbalance_info(const
 void database::update_witness_random_seed(const SecretHashType& new_secret)
 {
 	try {
+
+
 		const dynamic_global_property_object& _dgp = get_dynamic_global_properties();
 		SecretHashType current_seed;
 		if (_dgp.current_random_seed.valid()) 

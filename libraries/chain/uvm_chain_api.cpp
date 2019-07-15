@@ -1,15 +1,21 @@
 #include <graphene/chain/uvm_chain_api.hpp>
 #include <graphene/chain/protocol/address.hpp>
+#include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
+#include <graphene/chain/database.hpp>
 #include <uvm/exceptions.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/hex.hpp>
 #include <fc/log/logger.hpp>
+#include <fc/io/json.hpp>
 #include <Keccak.hpp>
-#include <fc/log/logger.hpp>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <boost/filesystem.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -468,8 +474,10 @@ namespace graphene {
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
-						ilog("contract ${addr} change diff ${change}", ("addr", "contract_name")("change", cbor_diff_value->str()));
-
+						//if(contract_id=="HXCNwVZ4zpNTEjN1G3jNoY1RuzzLZkWGz6UR") { // using for debug log
+							//printf("storage change %s.%s change %s\n", contract_id.c_str(), contract_name.c_str(), cbor_diff_value->str().c_str());
+							//printf("storage cbor diff: %s\n", fc::to_hex(cbor_diff_chars).c_str());
+						//}
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
@@ -491,13 +499,18 @@ namespace graphene {
 					const auto& changes_parsed_to_array = nested_json_object_to_array(json_nested_changes);
 					changes_size = jsondiff::json_dumps(changes_parsed_to_array).size();
 				}
-				ilog("changes size: ${size} bytes", ("size", changes_size));
-				storage_gas += changes_size * 10; // 1 byte storage cost 10 gas
+				// printf("changes size: %d bytes\n", changes_size);
+				auto gas_change = changes_size * 10; // 1 byte storage cost 10 gas
+				storage_gas += gas_change;
 				//dlog(std::string("txid ") + txid.str() + " storage gas: " + std::to_string(storage_gas));
 
 				if (storage_gas < 0 && gas_limit > 0) {
 					throw_exception(L, UVM_API_LVM_LIMIT_OVER_ERROR, out_of_gas_error);
 					return false;
+				}
+				if (use_gas_log(L)) {
+					const auto& txid = get_transaction_id_without_gas(L);
+					printf("txid %s, contract %s storage change gas %d\n", txid.c_str(), contract_id.c_str(), storage_gas);
 				}
 				put_contract_storage_changes_to_evaluator(evaluator, contract_id, contract_storage_change);
 			}
@@ -757,12 +770,15 @@ namespace graphene {
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				const auto& d = evaluator->get_db();
-
-				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
-				const auto& pre_block = d.fetch_block_by_id(cur_block->previous);
 				fc::sha256::encoder random_generater;
-				fc::raw::pack(random_generater, cur_block->previous_secret);
-				fc::raw::pack(random_generater, pre_block->previous_secret);
+				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
+				auto current_random = d.get_dynamic_global_properties().current_random_seed;
+				if (current_random.valid()) {
+					fc::raw::pack(random_generater, *current_random);
+				}
+				else {
+					fc::raw::pack(random_generater, "");
+				}
 				auto hash = random_generater.result();
 				return hash._hash[3] % ((1 << 31) - 1);
 			}
@@ -795,16 +811,20 @@ namespace graphene {
 		std::string UvmChainApi::get_transaction_id(lua_State *L)
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
+			return get_transaction_id_without_gas(L);
+		}
+
+		std::string UvmChainApi::get_transaction_id_without_gas(lua_State *L) const {
 			try {
-				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				return evaluator->get_current_trx_id().str();
-			}
-			catch (fc::exception e)
-			{
-				L->force_stopping = true;
-				L->exit_code = LUA_API_INTERNAL_ERROR;
-				return "";
-			}
+                                auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+                                return evaluator->get_current_trx_id().str();
+                        }
+                        catch (fc::exception e)
+                        {
+                                L->force_stopping = true;
+                                L->exit_code = LUA_API_INTERNAL_ERROR;
+                                return "";
+                        }
 		}
 
 
@@ -823,7 +843,7 @@ namespace graphene {
 			}
 		}
 
-		uint32_t UvmChainApi::get_header_block_num_without_gas(lua_State *L) {
+		uint32_t UvmChainApi::get_header_block_num_without_gas(lua_State *L) const {
 			try {
                                 auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				if(!evaluator)
@@ -1035,6 +1055,98 @@ namespace graphene {
 		std::string UvmChainApi::pubkey_to_address_string(const fc::ecc::public_key& pub) const {
 			address addr(pub, addressVersion::NORMAL);
 			return addr.address_to_string();
+		}
+
+		bool UvmChainApi::use_gas_log(lua_State* L) const {
+			// const auto& txid = get_transaction_id_without_gas(L);
+			// auto blknum = get_header_block_num_without_gas(L);
+			return false;	
+		}
+
+                bool UvmChainApi::use_step_log(lua_State* L) const {
+			// const auto& txid = get_transaction_id_without_gas(L);
+			// auto blknum = get_header_block_num_without_gas(L);
+			return false;
+		}
+
+		namespace fs = boost::filesystem;
+
+		static void dump_text_to_file(const std::string& filepath, const std::string& text) {
+			auto fpath = fs::path(filepath);
+			auto file_dir = fpath.parent_path();
+			if (!fs::exists(file_dir)) {
+				fs::create_directories(file_dir);
+				if (!fs::exists(file_dir)) {
+					std::cout << "directory " << file_dir << " for dump not exist" << std::endl;
+					return;
+				}
+			}
+			std::ofstream of(filepath, std::ios::app);
+			of << text;
+			of.close();
+		}
+
+		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
+				if(true)
+					return;
+				printf("before_contract_invoke txid: %s, contract: %s\n", txid.c_str(), contract_addr.c_str());
+				std::stringstream out;
+				dump_contract_state(L, contract_addr, txid, out);
+				std::string out_ss = out.str();
+				std::cout << "contract " << contract_addr << " state before txid " << txid << ":" << std::endl;
+				std::cout << out_ss << std::endl;
+				fs::path full_path(fs::current_path());
+				dump_text_to_file((full_path / "logs" / "tmp_contract_state.log").string(), out_ss);
+			}
+			
+		void UvmChainApi::dump_contract_state(lua_State* L, const std::string& contract_addr, const std::string& txid, std::ostream& out) {
+			try {
+				printf("enter dump_contract_state func\n");
+				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
+				auto& db = evaluator->get_db();
+				address addr(contract_addr);
+				const auto& contract_storages = db.get_contract_all_storages(addr);
+				const auto& contract_balances = db.get_contract_balances(addr);
+				fc::mutable_variant_object result_json;
+				fc::mutable_variant_object storages_json;
+				fc::variants balances_json;
+				for (const auto& p : contract_storages) {
+					const auto& storage_data = p.second;
+					const auto& storage_val = StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
+					storages_json[p.first] = ::uvm_storage_value_to_json(storage_val);
+				}
+				result_json["storages"] = storages_json;
+				for (const auto& p : contract_balances) {
+					fc::variants item;
+					item.push_back(p.asset_id.instance);
+					item.push_back(p.amount.value);
+					balances_json.push_back(item);
+				}
+				result_json["balances"] = balances_json;
+				result_json["address"] = contract_addr;
+				result_json["txid"] = txid;
+				const auto& result_json_str = fc::json::to_string(result_json, fc::json::legacy_generator);
+				out << result_json_str;
+			}
+			catch(const fc::exception& e) {
+				printf("dump_contract_state error: %s\n", e.to_detail_string().c_str());
+				L->force_stopping = true;
+                                L->exit_code = LUA_API_INTERNAL_ERROR;
+				return;
+			}
+                        catch(const std::exception& e) {
+                                printf("dump_contract_state error: %s\n", e.what());
+                                L->force_stopping = true;
+                                L->exit_code = LUA_API_INTERNAL_ERROR;
+				return;
+                        }
+			catch (...)
+			{
+				printf("got unknown error\n");
+				L->force_stopping = true;
+				L->exit_code = LUA_API_INTERNAL_ERROR;
+				return;
+			}
 		}
 
 	}

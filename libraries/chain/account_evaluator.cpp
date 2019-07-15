@@ -635,7 +635,7 @@ void_result cancel_whiteOperation_list_evaluator::do_apply(const cancel_whiteOpe
 void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
 {
 	try {
-		transaction_evaluation_state eval_state(&db());
+		const auto& d = db();
 		for (const auto& op : o.maker_op)
 		{
 			FC_ASSERT(o.fee_payer() == operation_fee_payer(op.op).as<graphene::chain::address>());
@@ -651,15 +651,14 @@ void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
 void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
 {
 	try {
-		transaction_evaluation_state eval_state(&db());
 		for (const auto& op : o.taker_op)
 		{
-			eval_state.operation_results.push_back(db().apply_operation(eval_state,op.op));
+			trx_state->operation_results.push_back(db().apply_operation(*trx_state, op.op));
 		}
 
 		for (const auto& op : o.maker_op)
 		{
-			eval_state.operation_results.push_back(db().apply_operation(eval_state, op.op));
+			trx_state->operation_results.push_back(db().apply_operation(*trx_state, op.op));
 		}
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
@@ -670,15 +669,23 @@ void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& 
 	try {
 		const auto& d = db();
 		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		const auto& alias_idx = d.get_index_type<account_index>().indices().get<by_alias>();
 		auto from_iter = acc_idx.find(o.from);
-		std::cout << "name transfer evaluator" << std::endl;
-		FC_ASSERT(from_iter != acc_idx.end(),"${from} is not a registered account",("from",o.from));
+		FC_ASSERT(from_iter != acc_idx.end(), "${from} is not a registered account", ("from", o.from));
 		auto to_iter = acc_idx.find(o.to);
-		FC_ASSERT(to_iter != acc_idx.end(),"${to} is not a registered account",("to",o.to));
+		FC_ASSERT(to_iter != acc_idx.end(), "${to} is not a registered account", ("to", o.to));
+		FC_ASSERT(!(from_iter->alias.valid()) && !(to_iter->alias.valid()));
 		if (o.newname.valid())
+		{
 			FC_ASSERT(d.get_account_address(*(o.newname)) == address(), "${name} should not be registered in the chain.", ("name", *(o.newname)));
+			FC_ASSERT(alias_idx.find(o.newname) == alias_idx.end());
+		}
 		else
-			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string())==address(),"please rename your account.");
+		{
+			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string()) == address(), "please rename your account.");
+			FC_ASSERT(alias_idx.find(from_iter->name + fc::variant(d.head_block_num()).as_string()) == alias_idx.end());
+		}
+			
 	}FC_CAPTURE_AND_RETHROW((o))
 }
 void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
@@ -690,19 +697,17 @@ void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
 		auto to_iter = acc_idx.find(o.to);
 		auto from_obj = *from_iter;
 		auto to_obj = *to_iter;
-
-		d.remove(*from_iter);
-		d.remove(*to_iter);
-
-		db().create<account_object>([&](account_object& obj) {
-			obj = from_obj;
-			obj.name = to_obj.name;
+		db().modify(*from_iter, [&](account_object& obj) {
+			if (o.newname.valid())
+				obj.alias = *(o.newname);
+			else
+				obj.alias = from_obj.name + fc::variant(d.head_block_num()).as_string();
 		});
 
-		db().create<account_object>([&](account_object& obj) {
-			obj = to_obj;
-			obj.name = from_obj.name;
+		db().modify(*to_iter, [&](account_object& obj) {
+			obj.alias = from_obj.name;
 		});
+
 		return void_result();
 	}FC_CAPTURE_AND_RETHROW((o))
 }

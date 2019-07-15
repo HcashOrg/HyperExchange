@@ -445,6 +445,29 @@ private:
 			  ++iter;
 		  }
 	  }
+	  if (!_wallet.pending_name_transfer.empty())
+	  {
+		  for (const auto& itr : _wallet.pending_name_transfer)
+		  {
+			  auto acc_id = itr.first;
+			  auto trx_id = itr.second;
+			  try {
+				  auto trx = _remote_db->get_transaction_by_id(trx_id);
+
+				  if (trx.valid())
+				  {
+					  auto acct = get_account(acc_id);
+					  if (acct.alias.valid())
+						  continue;
+					  claim_account_update(acct);
+					  _wallet.pending_name_transfer.erase(acc_id);
+				  }
+			  }
+			  catch (...)
+			  {
+			  }
+		  }
+	  }
    }
    void enable_umask_protection()
    {
@@ -650,7 +673,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.20";
+	  result["version"] = "1.2.23";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1534,6 +1557,12 @@ public:
 	   }FC_LOG_AND_RETHROW();
    }
 
+   fc::uint128_t get_pledge() const
+   {
+	   try {
+		   return _remote_db->get_pledge();
+	   }FC_LOG_AND_RETHROW();
+   }
 
    full_transaction register_account(string name, bool broadcast)
    {
@@ -1875,8 +1904,9 @@ public:
 
 		   }
 		   else {
-			   auto& abi = cont.code.offline_abi;
-			   if (abi.find(contract_api) == abi.end())
+		           auto& abi = cont.code.abi;
+			   auto& offline_abi = cont.code.offline_abi;
+			   if (abi.find(contract_api) == abi.end() && offline_abi.find(contract_api) == offline_abi.end())
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
            contract_invoke_op.gas_price =  0;
@@ -6406,7 +6436,7 @@ public:
 		   FC_ASSERT(!is_locked());
 		   fc::optional<asset_object> asset_obj = get_asset(amount.asset_id);
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
-		   auto acc_obj = get_account(from);
+		   auto acc_obj = _remote_db->get_account(from);
 		   FC_ASSERT(acc_obj.addr != address());
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   transfer_operation xfer_op;
@@ -6440,10 +6470,44 @@ public:
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
+		   _wallet.pending_name_transfer[acc_obj.id] = tx.id();
 		   return fc::to_base58(json_str.c_str(), json_str.size());
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
    }
+   string undertaker_customize(const string& maker,const address& taker, const  fc::variant& maker_op,const  fc::variant& taker_op)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+			auto acc_obj = get_account(maker);
+			FC_ASSERT(acc_obj.addr != address());
+			const chain_parameters& current_params = get_global_properties().parameters;
+			undertaker_operation u_op;
+			u_op.maker = acc_obj.addr;
+			u_op.taker = taker;
+			fc::mutable_variant_object  temp;
+			temp["op"] = maker_op;
+			u_op.maker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			temp["op"] = taker_op;
+			u_op.taker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			
+			//current_params.current_fees->set_fee(u_op.maker_op.back().op);
+			//current_params.current_fees->set_fee(u_op.taker_op.back().op);
 
+			signed_transaction tx;
+
+			tx.operations.push_back(u_op);
+			set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+			uint32_t expiration_time_offset = 0;
+			auto dyn_props = get_dynamic_global_properties();
+			tx.set_reference_block(dyn_props.head_block_id);
+			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+			tx.validate();
+			auto json_str = fc::json::to_string(tx);
+			_wallet.pending_name_transfer[acc_obj.id] = tx.id();
+			return fc::to_base58(json_str.c_str(), json_str.size());
+
+	   }FC_CAPTURE_AND_RETHROW((maker)(taker)(maker_op)(taker_op))
+   }
    string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
 	   try {
@@ -8021,9 +8085,16 @@ public_key_type wallet_api::get_pubkey_from_account(const string& acc)
 
 signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
 {
-	auto vec = fc::from_base58(trx);
-	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
-	return recovered.as<signed_transaction>();
+	try {
+		auto vec = fc::from_base58(trx);
+		auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+		return recovered.as<signed_transaction>();
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
 
 string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
@@ -8033,17 +8104,33 @@ string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
 }
 
-string wallet_api::name_transfer_to_address(string from, string to, asset amount, string newname)
+string wallet_api::name_transfer_to_address(string from, address to, asset amount, string newname)
 {
-	string trx = my->name_transfer_to_address(from, address(to), amount, newname);
+	string trx = my->name_transfer_to_address(from, to, amount, newname);
 	return sign_multisig_trx(get_account_addr(from),trx);
 }
 full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
 {
-	const address& addr = get_account_addr(account);
-	string tx = sign_multisig_trx(addr, trx);
-	return combine_transaction({ tx }, broadcast);
+	try {
+		const account_object& acc = my->get_account(account);
+		string tx = sign_multisig_trx(acc.addr, trx);
+		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		return combine_transaction({ tx }, broadcast);
+	}FC_CAPTURE_AND_RETHROW((account)(trx)(broadcast))
 }
+
+string wallet_api::undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op)
+{
+
+	string trx = my->undertaker_customize(maker,taker,maker_op,taker_op);
+	return sign_multisig_trx(get_account_addr(maker), trx);
+}
+full_transaction wallet_api::confirm_undertaker(const string& taker, string trx, bool broadcast)
+{
+	const account_object& acc = my->get_account(taker);
+	string tx = sign_multisig_trx(acc.addr, trx);
+	return combine_transaction({ tx }, broadcast);
+ }
 
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {
@@ -8232,6 +8319,10 @@ variant_object wallet_api::about() const
 vector<fc::variant> wallet_api::get_votes(const string& account) const
 {
 	return my->get_votes(account);
+}
+fc::uint128_t wallet_api::get_pledge() const
+{
+	return my->get_pledge();
 }
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
@@ -10431,7 +10522,7 @@ void wallet_api::start_citizen(bool start)
 }
 void wallet_api::start_mining(const vector<string>& accts)
 {
-	vector<address> addrs;
+	vector<string> miners;
 	map<miner_id_type, private_key> keys;
 	auto& idx = my->_wallet.my_accounts.get<by_name>();
 	for (auto acct : accts)
@@ -10440,15 +10531,17 @@ void wallet_api::start_mining(const vector<string>& accts)
 		FC_ASSERT(oac!= idx.end(), "account not found!");
 		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
-		FC_ASSERT(witness.valid(),"only citizen can mine");
+		if (!witness.valid())
+			continue;
 		FC_ASSERT(my->_keys.find(acc_obj.addr)!=my->_keys.end(),"my key is not in keys");
 		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(my->_keys[acc_obj.addr]);
 		if (!optional_private_key)
 			FC_THROW("Invalid private key");
 		keys.insert(make_pair((*witness).id.as<miner_id_type>(),*optional_private_key));
+		miners.push_back( acct);
 	}
 	my->start_mining(keys);
-	my->_wallet.mining_accounts = accts;
+	my->_wallet.mining_accounts = miners;
 }
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {

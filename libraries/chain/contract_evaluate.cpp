@@ -11,6 +11,7 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/log/log_message.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
@@ -122,8 +123,10 @@ namespace graphene {
 				}
 				//catch(fc::exception &e)
 				//{
-				//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
-				//}
+					// printf("contract execut error %s\n", e.to_detail_string().c_str());
+					// FC_RETHROW_EXCEPTION( e, fc::log_level::info, "", FC_FORMAT_ARG_PARAMS("") );
+					//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
+				// }
 				catch (std::exception &e)
 				{
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
@@ -150,6 +153,8 @@ namespace graphene {
 
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+				
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -242,6 +247,8 @@ namespace graphene {
                 		unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
                 		invoke_result.acctual_fee = total_fee - unspent_fee;
                 		invoke_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -361,10 +368,15 @@ namespace graphene {
 					if(!offline)
 						FC_ASSERT(gas_used_counts <= o.invoke_cost && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 
+					if(o.contract_api == "start_new_bet")
+                                                printf("gas_used_counts: %d\n", gas_used_counts); // FIXME
+
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -493,6 +505,8 @@ namespace graphene {
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -880,7 +894,7 @@ namespace graphene {
 
             invoke_contract_result.invoker = o.caller_addr;
             FC_ASSERT(d.has_contract(o.contract_id));
-            const auto &contract = d.get_contract(o.contract_id);
+	    const auto &contract = d.get_contract(o.contract_id);
             this->caller_address = std::make_shared<address>(o.caller_addr);
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
@@ -895,9 +909,10 @@ namespace graphene {
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
-			if (o.amount.amount > 0) {
-				native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
-			}
+			deposit_to_contract(o.contract_id, o.amount);
+		    //if (o.amount.amount > 0) { // only can used without before deposit_to_contract
+	           //		native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
+		   //}
 		   if (native_contract->has_api("on_deposit_asset"))
 		   {
                         gas_count = o.invoke_cost;
@@ -925,12 +940,15 @@ namespace graphene {
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 		    }
 		    else {
+			auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+                        this->invoke_contract_result = invoke_result;
 			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 		    }
+
+			invoke_contract_result.validate();
                 }
                 else
                 {
-			deposit_to_contract(o.contract_id, o.amount);
 					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
 					{
 
@@ -953,7 +971,7 @@ namespace graphene {
 						engine->set_gas_limit(limit);
 						invoke_contract_result.reset();
 
-                        deposit_to_contract(o.contract_id, o.amount);
+                        			deposit_to_contract(o.contract_id, o.amount);
 						std::string contract_result_str;
 						try
 						{
@@ -980,7 +998,8 @@ namespace graphene {
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 					}
 					else
-					{
+					{	
+						deposit_to_contract(o.contract_id, o.amount);
 						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 					}
                 }
