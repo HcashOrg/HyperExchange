@@ -1,7 +1,7 @@
 file(GLOB HEADERS "include/graphene/db/*.hpp")
 add_library( graphene_db undo_database.cpp index.cpp object_database.cpp serializable_undo_state.cpp ${HEADERS} )
 target_link_libraries( graphene_db fc leveldb)
-target_include_directories( graphene_db PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../chain/include" "${CMAKE_CURRENT_SOURCE_DIR}/../crosschain/include" "${CMAKE_CURRENT_SOURCE_DIR}/../uvm/include"
+target_include_directories( graphene_db PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../chain/include" "${CMAKE_CURRENT_SOURCE_DIR}/../crosschain/include" "${CMAKE_CURRENT_SOURCE_DIR}/../uvm/include" "${CMAKE_CURRENT_SOURCE_DIR}/../uvm/vmgc/include"
 "${CMAKE_CURRENT_SOURCE_DIR}/../db/include"
 "${CMAKE_CURRENT_SOURCE_DIR}/../crosschain/include"
 "${CMAKE_CURRENT_SOURCE_DIR}/../chain/include"

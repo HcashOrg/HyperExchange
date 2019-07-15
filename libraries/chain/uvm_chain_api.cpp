@@ -474,7 +474,10 @@ namespace graphene {
 						storage_change.after = storage_after;
 						contract_storage_change[contract_name] = storage_change;
 						nested_changes[contract_name] = cbor_diff_value;
-
+						//if(contract_id=="HXCNwVZ4zpNTEjN1G3jNoY1RuzzLZkWGz6UR") { // using for debug log
+							//printf("storage change %s.%s change %s\n", contract_id.c_str(), contract_name.c_str(), cbor_diff_value->str().c_str());
+							//printf("storage cbor diff: %s\n", fc::to_hex(cbor_diff_chars).c_str());
+						//}
 					} else {
 						const auto& json_storage_before = uvm_storage_value_to_json(con_chg_iter->second.before);
                                                 const auto& json_storage_after = uvm_storage_value_to_json(con_chg_iter->second.after);
@@ -1041,25 +1044,14 @@ namespace graphene {
 		}
 
 		bool UvmChainApi::use_gas_log(lua_State* L) const {
-			const auto& txid = get_transaction_id_without_gas(L);
-			auto blknum = get_header_block_num_without_gas(L);
-			if(blknum == 2016813) {
-				return true;
-			}
-			if(txid=="fb72f4277014235a933edb7c9c7dffb3c6225db5")
-				return true;
+			// const auto& txid = get_transaction_id_without_gas(L);
+			// auto blknum = get_header_block_num_without_gas(L);
 			return false;	
 		}
 
                 bool UvmChainApi::use_step_log(lua_State* L) const {
-			const auto& txid = get_transaction_id_without_gas(L);
-			auto blknum = get_header_block_num_without_gas(L);
-                        if(blknum == 2016813) {
-                                return true;
-                        }
-
-			if(txid=="fb72f4277014235a933edb7c9c7dffb3c6225db5")
-                                return true;
+			// const auto& txid = get_transaction_id_without_gas(L);
+			// auto blknum = get_header_block_num_without_gas(L);
 			return false;
 		}
 
@@ -1081,9 +1073,7 @@ namespace graphene {
 		}
 
 		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
-				if(contract_addr != "HXCNwVZ4zpNTEjN1G3jNoY1RuzzLZkWGz6UR")
-					return;
-				if(txid != "fb72f4277014235a933edb7c9c7dffb3c6225db5")
+				if(true)
 					return;
 				printf("before_contract_invoke txid: %s, contract: %s\n", txid.c_str(), contract_addr.c_str());
 				std::stringstream out;
