@@ -10,6 +10,7 @@ target_include_directories( graphene_db PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/incl
 "${CMAKE_CURRENT_SOURCE_DIR}/../wallet/include"
 "${CMAKE_CURRENT_SOURCE_DIR}/../crosschain_privatekey_management/include"
 "${CMAKE_CURRENT_SOURCE_DIR}/../leveldb/include"
+"${CMAKE_CURRENT_SOURCE_DIR}/../uvm/vmgc/include"
  )
 if(MSVC)
   set_source_files_properties( undo_database.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
