@@ -175,10 +175,10 @@ void database::initialize_evaluators()
    register_evaluator<asset_issue_evaluator>();
    register_evaluator<asset_reserve_evaluator>();
    register_evaluator<asset_update_evaluator>();
-   register_evaluator<asset_update_bitasset_evaluator>();
+   //register_evaluator<asset_update_bitasset_evaluator>();
    register_evaluator<asset_update_feed_producers_evaluator>();
    //register_evaluator<asset_settle_evaluator>();
-   register_evaluator<asset_global_settle_evaluator>();
+   //register_evaluator<asset_global_settle_evaluator>();
    register_evaluator<assert_evaluator>();
    /* register_evaluator<limit_order_create_evaluator>();
 	register_evaluator<limit_order_cancel_evaluator>();
@@ -296,7 +296,7 @@ void database::initialize_indexes()
    add_index< primary_index<account_binding_index                         > >();
    add_index< primary_index<multisig_account_pair_index                   > >();
    add_index< primary_index<multisig_address_index                        > >();
-   add_index< primary_index<asset_bitasset_data_index                     > >();
+  // add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
    add_index<primary_index<simple_index<lockbalance_record_object        >> >();
