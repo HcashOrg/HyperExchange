@@ -59,9 +59,7 @@ namespace graphene {
 				else {
 					
 					modify(*itr, [payback_asset](pay_back_object& b) {
-						std::cout << fc::json::to_string(b.one_owner_balance);
 						b.one_owner_balance += payback_asset;
-						std::cout << "After: " << fc::json::to_string(b.one_owner_balance) << std::endl;
 					});
 				}
 			}FC_CAPTURE_AND_RETHROW((payback_owner)(payback_asset))

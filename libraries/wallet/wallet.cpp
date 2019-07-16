@@ -1914,7 +1914,6 @@ public:
            std::pair<asset, share_type> res = make_pair(res_data_fee, gas_count);
            return res;;
        }FC_CAPTURE_AND_RETHROW((caller_account_name)(contract_address_or_name)(contract_api)(contract_arg))
-
    }
    full_transaction invoke_contract(const string& caller_account_name, const string& gas_price, const string& gas_limit, const string& contract_address_or_name, const string& contract_api, const string& contract_arg)
    {

@@ -846,6 +846,7 @@ namespace graphene {
 				object_id_type id_mid;
 				from_variant(vmid, id_mid);
 				asset ass = evaluator->asset_from_string(sym_to_foreclose, amount);
+				std::cout << "fclo:" << ",sym:" << sym_to_foreclose << ",amount:" << amount <<",j:"<<fc::json::to_string(ass)<< std::endl;
 				return  evaluator->foreclose_balance_from_miners(address(foreclose_account), miner_id_type(id_mid), ass);
 			}
 			catch (fc::exception e)
@@ -879,11 +880,19 @@ namespace graphene {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 				variant vcid(cid);
 				variant vaid(aid);
-				object_id_type id_cid;
-				from_variant(vcid, id_cid);
-				object_id_type id_aid;
-				from_variant(vaid, id_aid);
-				return  fc::json::to_string(evaluator->get_contract_lock_balance_info(id_cid,id_aid));
+				
+				asset_id_type id_aid;
+				try {
+					from_variant(vaid, id_aid);
+				}
+				catch (fc::exception& e)
+				{
+					auto ait = evaluator->get_db().get_asset(aid);
+					if (!ait.valid())
+						throw e;
+					id_aid = ait->id;
+				}
+				return  fc::json::to_string(evaluator->get_contract_lock_balance_info(evaluator->get_db().get_contract(cid).id,id_aid));
 			}
 			catch (fc::exception e)
 			{

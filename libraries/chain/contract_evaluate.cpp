@@ -1074,6 +1074,7 @@ namespace graphene {
 		{
 
 			auto res = get_db().get_lock_balance(cid, aid);
+			std::cout << fc::json::to_string(res)<<std::endl;
 			for (auto& it : res)
 			{
 				std::pair<miner_id_type, contract_id_type> mkey = std::make_pair(it.lockto_miner_account, cid);
@@ -1095,7 +1096,7 @@ namespace graphene {
 			auto it = invoke_contract_result.payback_balance.find(mkey);
 			if (it == invoke_contract_result.payback_balance.end())
 			{
-				auto res = get_db().get_pay_back_balance_mid(contract_addr, get_db().get(symbol_type).symbol);
+				res = get_db().get_pay_back_balance_mid(contract_addr, get_db().get(symbol_type).symbol);
 				invoke_contract_result.payback_balance[mkey] = res;
 			}
 			else
@@ -1131,7 +1132,7 @@ namespace graphene {
 					obtain_already = amountit->second;
 				}
 			}
-			if (it != res.end())
+			if (it == res.end())
 				return false;
 			if (it->second.amount < obtain_already + to_obtain.amount)
 				return false;
@@ -1164,14 +1165,25 @@ namespace graphene {
 				}
 			}
 			auto res=get_contract_lock_balance_info(contract_obj.id, to_foreclose.asset_id);
+			bool got = false;
 			for (auto& it : res)
 			{
 				if (it.lockto_miner_account == mid)
 				{
+					got = true;
 					if (it.lock_asset_amount < to_foreclose.amount + foreclosed_amount)
+					{
+						std::cout << "it.l:" << it.lock_asset_amount.value << ",ta:" << to_foreclose.amount.value << ",fa:"<< foreclosed_amount.value <<std::endl;
 						return false;
+					}
+						
 					break;
 				}
+			}
+			if (!got)
+			{
+				std::cout << "no lock" << std::endl;
+				return false;
 			}
 			if (already_foreclose)
 				amout_it->second += to_foreclose.amount;
@@ -1381,6 +1393,17 @@ namespace graphene {
 			{
 				for (auto& asset_it : fcit.second)
 				{
+					if (get_db().head_block_num() < LOCKBALANCE_CORRECT)
+					{
+						string asset_sym = get_db().get(asset_it.first).symbol;
+						asset f_asset(asset_it.second, asset_it.first);
+						get_db().modify(get_db().get(fcit.first.second), [f_asset, asset_sym](miner_object& b) {
+							auto map_lockbalance_total = b.lockbalance_total.find(asset_sym);
+							FC_ASSERT(map_lockbalance_total != b.lockbalance_total.end());
+							map_lockbalance_total->second -= f_asset;
+							
+						});
+					}
 					get_db().adjust_lock_balance(fcit.first.second,get_db().get_contract(fcit.first.first).id, -asset(asset_it.second, asset_it.first));
 					get_db().adjust_balance(fcit.first.first, asset(asset_it.second, asset_it.first));
 				}
@@ -1441,7 +1464,7 @@ namespace graphene {
                     to_withdraw -= deposit->second;
                     deposit->second = 0;
                 }
-            }
+            } 
             if (withdraw != invoke_contract_result.contract_withdraw.end())
             {
                 withdraw->second += to_withdraw;
