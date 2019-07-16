@@ -16,6 +16,7 @@ target_include_directories( graphene_net
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/chain/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/uvm/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/jsondiff/jsondiff-cpp/include"
+  PRIVATE "${CMAKE_SOURCE_DIR}/libraries/uvm/vmgc/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/crosschain/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/libraries/crosschain_privatekey_management/include"
    PRIVATE "${CMAKE_SOURCE_DIR}/libraries/utilities/include"
