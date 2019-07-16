@@ -135,7 +135,7 @@ namespace graphene {
 			virtual int64_t get_transaction_fee(lua_State *L);
 			virtual uint32_t get_chain_now(lua_State *L);
 			virtual uint32_t get_chain_random(lua_State *L);
-			virtual uint32_t get_chain_safe_random(lua_State *L);
+			virtual uint32_t get_chain_safe_random(lua_State *L, bool diff_in_diff_txs);
 			virtual std::string get_transaction_id(lua_State *L);
 			virtual std::string get_transaction_id_without_gas(lua_State *L) const;
 			virtual uint32_t get_header_block_num(lua_State *L);

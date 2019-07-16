@@ -765,20 +765,26 @@ namespace graphene {
 		}
 
 
-		uint32_t UvmChainApi::get_chain_safe_random(lua_State *L) {
+		uint32_t UvmChainApi::get_chain_safe_random(lua_State *L, bool diff_in_diff_txs) {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				const auto& d = evaluator->get_db();
+				auto& d = evaluator->get_db();
 				fc::sha256::encoder random_generater;
 				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
 				auto current_random = d.get_dynamic_global_properties().current_random_seed;
+				auto current_secret = SecretHashType();
+				current_secret = d.get_random_padding(diff_in_diff_txs);
+				
 				if (current_random.valid()) {
 					fc::raw::pack(random_generater, *current_random);
+
 				}
 				else {
 					fc::raw::pack(random_generater, "");
 				}
+				fc::raw::pack(random_generater, current_secret);
+				
 				auto hash = random_generater.result();
 				return hash._hash[3] % ((1 << 31) - 1);
 			}

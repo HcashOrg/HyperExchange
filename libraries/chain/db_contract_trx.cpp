@@ -9,6 +9,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
+#include <fc/crypto/ripemd160.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -559,7 +560,22 @@ namespace graphene {
             }
             return address();
         }
+		SecretHashType database::get_random_padding(bool is_random) {
+			fc::ripemd160::encoder enc;
+			if (is_random) {
+				fc::raw::pack(enc, _current_secret_key);
+				fc::raw::pack(enc, _current_trx_in_block);
+				fc::raw::pack(enc, _current_op_in_trx);
+				fc::raw::pack(enc, _current_contract_call_num);
+				++_current_contract_call_num;
+			}
+			else {
+				fc::raw::pack(enc, _current_secret_key);
+			}
+			
+			return enc.result();
 
+		}
 
 	}
 }
