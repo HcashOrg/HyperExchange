@@ -626,6 +626,7 @@ class wallet_api
        * @ingroup Transaction Builder API
        */
       transaction_handle_type begin_builder_transaction();
+	  fc::variant build_transaction(fc::variant op);
       /**
        * @ingroup Transaction Builder API
        */
@@ -3381,7 +3382,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_contract_storage)
 		(signrawmultransaction)
 		(combinemultisigtransaction)
-		(correct_chain_data)
+		//(correct_chain_data)
 		(get_votes)
 		(create_vote)
 		(cast_vote)
@@ -3390,4 +3391,5 @@ FC_API( graphene::wallet::wallet_api,
 			(undertaker_customize)
 			(confirm_undertaker)*/
 		(get_pledge)
+		(build_transaction)
       )

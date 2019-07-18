@@ -674,6 +674,7 @@ void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& 
 		FC_ASSERT(from_iter != acc_idx.end(), "${from} is not a registered account", ("from", o.from));
 		auto to_iter = acc_idx.find(o.to);
 		FC_ASSERT(to_iter != acc_idx.end(), "${to} is not a registered account", ("to", o.to));
+		FC_ASSERT(o.from != o.to);
 		FC_ASSERT(!(from_iter->alias.valid()) && !(to_iter->alias.valid()));
 		if (o.newname.valid())
 		{

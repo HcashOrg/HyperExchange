@@ -1339,6 +1339,26 @@ public:
       _builder_transactions[trx_handle];
       return trx_handle;
    }
+   fc::variant build_transaction(fc::variant op, bool hex = true)
+   {
+	   try {
+		   signed_transaction tx;
+		   auto b_op = op.as<op_wrapper>();
+		   tx.operations.push_back(b_op.op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+		   tx.validate();
+		   if (!hex)
+			   return fc::variant(tx);
+		   auto json_str = fc::json::to_string(tx);
+		   return fc::variant(fc::to_base58(json_str.c_str(), json_str.size()));
+	   }FC_CAPTURE_AND_RETHROW((op)(hex))
+	  
+   }
+
    void add_operation_to_builder_transaction(transaction_handle_type transaction_handle, const operation& op)
    {
       FC_ASSERT(_builder_transactions.count(transaction_handle));
@@ -7916,7 +7936,10 @@ transaction_handle_type wallet_api::begin_builder_transaction()
 {
    return my->begin_builder_transaction();
 }
-
+fc::variant wallet_api::build_transaction(fc::variant op)
+{
+	return my->build_transaction(op);
+}
 void wallet_api::add_operation_to_builder_transaction(transaction_handle_type transaction_handle, const operation& op)
 {
    my->add_operation_to_builder_transaction(transaction_handle, op);
