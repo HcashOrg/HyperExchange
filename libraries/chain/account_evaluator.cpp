@@ -122,6 +122,8 @@ void_result account_create_evaluator::do_evaluate( const account_create_operatio
 	   auto addr_itr = acnt_indx.indices().get<by_address>().find(addr);
 	   FC_ASSERT(addr_itr == acnt_indx.indices().get<by_address>().end(),"there an account with same address.");
    }
+
+   FC_ASSERT(op.owner.get_keys().front() == op.payer || op.payer.version == addressVersion::MULTISIG);
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
@@ -143,7 +145,7 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
          obj.owner            = o.owner;
          obj.active           = o.active;
          obj.options          = o.options;
-		 obj.addr             = o.owner.get_keys().front();
+		 obj.addr             = o.payer;
          obj.statistics = db().create<account_statistics_object>([&](account_statistics_object& s){s.owner = obj.id;}).id;
 
          if( o.extensions.value.owner_special_authority.valid() )

@@ -1343,7 +1343,9 @@ public:
    {
 	   try {
 		   signed_transaction tx;
-		   auto b_op = op.as<op_wrapper>();
+		   fc::mutable_variant_object  temp;
+		   temp["op"] = op;
+		   auto b_op = fc::variant(temp).as<op_wrapper>();
 		   tx.operations.push_back(b_op.op);
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
 		   uint32_t expiration_time_offset = 0;
@@ -3699,9 +3701,10 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(can)(expiration_time)(broadcast))
    }
 
-   address create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
+   map<public_key_type,address> create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
    {
 	   try {
+		   map<public_key_type, address> result;
 		   FC_ASSERT(!is_locked());
 		   account_create_multisignature_address_operation op;
 		   auto acc = get_account(account);
@@ -3730,7 +3733,8 @@ public:
 		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
 		   tx.validate();
 		   sign_transaction(tx,broadcast);
-		   return  op.multisignature;
+		   result[pubkey] = op.multisignature;
+		   return  result;
 
 	   }FC_CAPTURE_AND_RETHROW((account)(pubs)(required)(broadcast))
    }
@@ -9882,7 +9886,7 @@ full_transaction wallet_api::senator_determine_withdraw_deposit(const string& ac
 {
 	return my->senator_determine_withdraw_deposit(account, can, symbol,expiration_time, broadcast);
 }
-address wallet_api::create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
+map<public_key_type,address> wallet_api::create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
 {
 	return my->create_multisignature_address(account,pubs,required,broadcast);
 }

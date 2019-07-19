@@ -2094,7 +2094,7 @@ class wallet_api
 	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
-	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
+	  map<public_key_type,address> create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
 	public_key_type get_pubkey_from_account(const string& account);
