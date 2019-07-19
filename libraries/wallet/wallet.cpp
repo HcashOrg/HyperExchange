@@ -2264,7 +2264,7 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
-		   auto multisig_accounts = _remote_db->get_multisig_account_pair(to);
+		   auto multisig_accounts = _remote_db->get_multisig_account_pair(symbol);
 		   string redeemscript;
 		   for (const auto muladdr : multisig_accounts)
 		   {
