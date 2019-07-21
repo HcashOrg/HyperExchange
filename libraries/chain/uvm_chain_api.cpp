@@ -2,6 +2,7 @@
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
 #include <graphene/chain/database.hpp>
+#include <graphene/chain/protocol/address.hpp>
 #include <uvm/exceptions.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
@@ -627,7 +628,7 @@ namespace graphene {
             address f_addr;
             address t_addr;
             try {
-                f_addr = address(contract_address);
+                f_addr = address(contract_address, GRAPHENE_ADDRESS_PREFIX);
             }
             catch (...)
             {
@@ -928,7 +929,7 @@ namespace graphene {
 			std::string addr(address_str);
 			try {
 				return address::is_valid(addr);
-			catch(...) {
+			} catch(...) {
 				return false;
 			}
 		}
