@@ -450,7 +450,7 @@ namespace graphene {
             contract_object res;
             auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
             auto itr = index.find(contract_address);
-            FC_ASSERT(itr != index.end());
+            FC_ASSERT(itr != index.end(), "database::get_contract contract not found");
             res =*itr;
             if(res.inherit_from!= address())
             {
@@ -479,7 +479,7 @@ namespace graphene {
         {
             auto& index = get_index_type<contract_object_index>().indices().get<by_id>();
             auto itr = index.find(id);
-            FC_ASSERT(itr != index.end());
+            FC_ASSERT(itr != index.end(), "contract id not found");
             return *itr;
         }
 

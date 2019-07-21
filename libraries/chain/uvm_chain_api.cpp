@@ -1,5 +1,3 @@
-#include <graphene/chain/uvm_chain_api.hpp>
-#include <graphene/chain/protocol/address.hpp>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
@@ -928,7 +926,11 @@ namespace graphene {
 		bool UvmChainApi::is_valid_address(lua_State *L, const char *address_str)
 		{
 			std::string addr(address_str);
-			return address::is_valid(addr);
+			try {
+				return address::is_valid(addr);
+			catch(...) {
+				return false;
+			}
 		}
 		bool UvmChainApi::is_valid_contract_address(lua_State *L, const char *address_str)
 		{
@@ -939,6 +941,10 @@ namespace graphene {
 					return false;
 			}
 			catch (fc::exception&)
+			{
+				return false;
+			}
+			catch(...)
 			{
 				return false;
 			}

@@ -447,7 +447,7 @@ contract_object database_api::get_contract_object_by_name(const string& contract
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        auto cont = _db.get_contract(contract_address);
+        auto cont = _db.get_contract(address(contract_address));
 	load_apis_in_contract_object_if_native(cont);
 	return cont;
     }FC_CAPTURE_AND_RETHROW((contract_address))
