@@ -2096,7 +2096,7 @@ class wallet_api
 	  optional<account_object> get_account_by_addr(const address& addr) const;
 
 	  map<public_key_type,address> create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
-	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+	  map<object_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
 	public_key_type get_pubkey_from_account(const string& account);
 	  string sign_multisig_trx(const address& addr,const string& trx);
