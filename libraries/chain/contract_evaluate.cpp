@@ -1112,6 +1112,8 @@ namespace graphene {
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_from_db_by_id(const string & contract_id) const
         {
+	    if(!address::is_valid(contract_id))
+		return nullptr;
             address contract_addr(contract_id);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;

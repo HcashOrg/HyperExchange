@@ -115,20 +115,28 @@ namespace graphene {
 
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
             try {
+            try {
                 if (evaluator) {
                     return evaluator->get_contract_code_by_id(contract_id);
                 }
                 return nullptr;
             }FC_CAPTURE_AND_LOG((nullptr))
-		 }
+	    } catch(...) {
+		return nullptr;
+	    }
+	}
 
         static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
             try {
+	    try {
                 if (evaluator) {
                     return evaluator->get_contract_code_by_name(contract_name);
                 }
                 return nullptr;
             }FC_CAPTURE_AND_LOG((nullptr))
+	    } catch(...) {
+		return nullptr;
+	    }
         }
 
         static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, const contract_storage_changes_type& changes) {
