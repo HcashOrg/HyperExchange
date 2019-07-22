@@ -353,6 +353,16 @@ namespace graphene {
 					}
 					
 				}
+				if (o.asset_symbol == "BCH") {
+					auto temp_trx = o.withdraw_source_trx;
+					FC_ASSERT(temp_trx.contains("hex"));
+					FC_ASSERT(temp_trx.contains("trx"));
+					auto tx = temp_trx["trx"].get_object();
+					auto vins = tx["vin"].get_array();
+					for (int index = 0; index < vins.size(); index++) {
+						FC_ASSERT(vins[index].get_object().contains("amount"), "No amount in bch vin");
+					}
+				}
 				if (trx_state->_trx == nullptr)
 					return void_result();
 				auto trx_current_iter = trx_db.find(trx_state->_trx->id());
@@ -434,25 +444,34 @@ namespace graphene {
 					FC_ASSERT(trx_itr != trx_db.end());
 					FC_ASSERT(trx_itr->real_transaction.operations.size() == 1);
 					const auto withdraw_op = trx_itr->real_transaction.operations[0].get<crosschain_withdraw_evaluate::operation_type>();
+					std::string crosschain_account = withdraw_op.crosschain_account;
+					if (db().head_block_num() >= USE_MOD_CHANGE_LIST_HEIGHT)
+					{
+					if(o.asset_symbol == "BCH"){
+						if (crosschain_account.find(":") == crosschain_account.npos){
+							crosschain_account = bch_prefix + ":"+withdraw_op.crosschain_account;
+						}
+					}
+					}
+					
+					FC_ASSERT(create_trxs.trxs.count(crosschain_account) == 1);
+					auto one_trx = create_trxs.trxs[crosschain_account];
 
-					FC_ASSERT(create_trxs.trxs.count(withdraw_op.crosschain_account) == 1);
-					auto one_trx = create_trxs.trxs[withdraw_op.crosschain_account];
-
-					FC_ASSERT(one_trx.to_account == withdraw_op.crosschain_account);
+					FC_ASSERT(one_trx.to_account == crosschain_account);
 					{
 
 						const auto asset_itr = asset_idx.find(withdraw_op.asset_symbol);
 						FC_ASSERT(asset_itr != asset_idx.end());
 						FC_ASSERT(one_trx.asset_symbol == withdraw_op.asset_symbol);
-						if (all_balances.count(withdraw_op.crosschain_account) > 0)
+						if (all_balances.count(crosschain_account) > 0)
 						{
-							all_balances[withdraw_op.crosschain_account] = all_balances[withdraw_op.crosschain_account] + asset_itr->amount_from_string(withdraw_op.amount);
+							all_balances[crosschain_account] = all_balances[crosschain_account] + asset_itr->amount_from_string(withdraw_op.amount);
 						}
 						else
 						{
-							all_balances[withdraw_op.crosschain_account] = asset_itr->amount_from_string(withdraw_op.amount);
+							all_balances[crosschain_account] = asset_itr->amount_from_string(withdraw_op.amount);
 						}
-						fees_cal[withdraw_op.crosschain_account] += asset_fee;
+						fees_cal[crosschain_account] += asset_fee;
 						//FC_ASSERT(asset_itr->amount_from_string(one_trx.amount).amount == asset_itr->amount_from_string(withdraw_op.amount).amount);
 					}
 				}
@@ -647,7 +666,22 @@ namespace graphene {
 				}
 				FC_ASSERT(index < senator_pubks.size());
 				auto multisig_account_obj = db().get(senator_pubks[index].multisig_account_pair_object_id);
+				if (o.asset_symbol == "BCH")
+				{
+					auto without_trx = crosschain_without_sign_trx_iter->real_transaction;
+					FC_ASSERT(without_trx.operations.size() == 1);
+					auto without_sign_op = without_trx.operations[0].get<crosschain_withdraw_without_sign_operation>();
+					auto source_trx = fc::json::to_string(without_sign_op.withdraw_source_trx);
+					FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, 
+						multisig_account_obj.redeemScript_hot, 
+						o.ccw_trx_signature + "|" + source_trx)
+						|| hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, 
+							multisig_account_obj.redeemScript_cold,
+							o.ccw_trx_signature + "|" + source_trx));
+				}
+				else {
 				FC_ASSERT(hdl->validate_transaction(senator_pubks[index].new_pubkey_hot, multisig_account_obj.redeemScript_hot, o.ccw_trx_signature) || hdl->validate_transaction(senator_pubks[index].new_pubkey_cold, multisig_account_obj.redeemScript_cold, o.ccw_trx_signature));
+				}
 				return void_result();
 			}FC_CAPTURE_AND_RETHROW((o));
 			

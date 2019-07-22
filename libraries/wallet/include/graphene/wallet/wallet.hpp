@@ -347,7 +347,7 @@ struct wallet_data
    map<string, address > pending_account_registrations;
    map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
-
+   map<account_id_type, transaction_id_type> pending_name_transfer;
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
 
@@ -626,6 +626,7 @@ class wallet_api
        * @ingroup Transaction Builder API
        */
       transaction_handle_type begin_builder_transaction();
+	  fc::variant build_transaction(fc::variant op);
       /**
        * @ingroup Transaction Builder API
        */
@@ -1011,6 +1012,10 @@ class wallet_api
 	  full_transaction combine_transaction(const vector<string>& trxs,
 		  bool broadcast = false
 	  ); 
+	  string name_transfer_to_address(string from,address to, asset amount,string newname);
+	  full_transaction confirm_name_transfer(string account ,string trx,bool broadcast);
+	  string undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op);
+	  full_transaction confirm_undertaker(const string& taker,string trx, bool broadcast);
        /** broadcast a transaction to the chain.
       * @param trx  the transaction to broadcast
       * @returns the transaction id
@@ -1167,11 +1172,11 @@ class wallet_api
       /**
        *  Used to transfer from one set of blinded balances to another
        */
-      blind_confirmation blind_transfer( string from_key_or_label,
-                                         string to_key_or_label,
-                                         string amount,
-                                         string symbol,
-                                         bool broadcast = false );
+	  blind_confirmation blind_transfer(string from_key_or_label,
+		  string to_key_or_label,
+		  string amount,
+		  string symbol,
+		  bool broadcast = false);
 
       /** Place a limit order attempting to sell one asset for another.
        *
@@ -2089,8 +2094,9 @@ class wallet_api
 	  optional<whiteOperationList_object> get_whiteOperation(const string& account) const;
 	  vector<transaction_id_type> get_pending_transactions() const;
 	  optional<account_object> get_account_by_addr(const address& addr) const;
-	  address create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
-	  map<object_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+
+	  map<public_key_type,address> create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
+	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
 	public_key_type get_pubkey_from_priv(const string& privkey);
 	public_key_type get_pubkey_from_account(const string& account);
 	  string sign_multisig_trx(const address& addr,const string& trx);
@@ -2098,6 +2104,7 @@ class wallet_api
 	variant_object  get_multisig_address(const address& addr);
 	full_transaction set_citizen_pledge_pay_back_rate(const string& citizen, int pledge_pay_back_rate, bool broadcast=true);
 	full_transaction correct_chain_data(const string& payer, vector<address> addresses, bool broadcast=true);
+	fc::uint128_t get_pledge() const;
 	  flat_set< miner_id_type> list_active_citizens();
 	  vector<optional< eth_multi_account_trx_object>> get_eth_multi_account_trx(const int & mul_acc_tx_state);
       fc::signal<void(bool)> lock_changed;
@@ -3222,7 +3229,6 @@ FC_API( graphene::wallet::wallet_api,
 		(propose_senator_pledge_change)
 		(propose_pay_back_asset_rate_change)
         (propose_parameter_change)
-		(propose_coin_destory)
         (propose_fee_change)
         (approve_proposal)
         (network_add_nodes)
@@ -3233,9 +3239,8 @@ FC_API( graphene::wallet::wallet_api,
 		(transfer_to_address)
 	    (transfer_to_account)
 		(get_account_addr)
-		(get_proposal)
+		//(get_proposal)
 		(get_proposal_for_voter)
-		(lock_balance_to_citizen)
 		(senator_lock_balance)
 		(foreclose_balance_from_citizen)
 		(senator_foreclose_balance)
@@ -3273,7 +3278,6 @@ FC_API( graphene::wallet::wallet_api,
 		(update_asset_private_keys)
 		(update_asset_private_keys_with_brain_key)
 		(update_asset_private_with_coldkeys)
-		(get_multisig_account_pair_by_id)
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)
 		(senator_sign_coldhot_transaction)
@@ -3360,12 +3364,11 @@ FC_API( graphene::wallet::wallet_api,
 		(proposal_block_address)
 		(proposal_cancel_block_address)
 		(decrypt_coldkeys)
-	    (get_ntp_info)
-		(ntp_update_time)
 		(get_account_by_addr)
 		(start_mining)
 		(foreclose_balance_from_citizens)
 		(lock_balance_to_citizens)
+		(lock_balance_to_citizen)
 		(cancel_eth_sign_transaction)
 		(wallet_create_account_with_brain_key)
 		(get_pending_transactions)
@@ -3380,8 +3383,14 @@ FC_API( graphene::wallet::wallet_api,
 		(get_contract_storage)
 		(signrawmultransaction)
 		(combinemultisigtransaction)
-		(correct_chain_data)
+		//(correct_chain_data)
 		(get_votes)
 		(create_vote)
 		(cast_vote)
+			/*(name_transfer_to_address)
+			(confirm_name_transfer)
+			(undertaker_customize)
+			(confirm_undertaker)*/
+		(get_pledge)
+		(build_transaction)
       )

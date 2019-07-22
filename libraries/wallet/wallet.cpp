@@ -445,6 +445,29 @@ private:
 			  ++iter;
 		  }
 	  }
+	  if (!_wallet.pending_name_transfer.empty())
+	  {
+		  for (const auto& itr : _wallet.pending_name_transfer)
+		  {
+			  auto acc_id = itr.first;
+			  auto trx_id = itr.second;
+			  try {
+				  auto trx = _remote_db->get_transaction_by_id(trx_id);
+
+				  if (trx.valid())
+				  {
+					  auto acct = get_account(acc_id);
+					  if (acct.alias.valid())
+						  continue;
+					  claim_account_update(acct);
+					  _wallet.pending_name_transfer.erase(acc_id);
+				  }
+			  }
+			  catch (...)
+			  {
+			  }
+		  }
+	  }
    }
    void enable_umask_protection()
    {
@@ -650,7 +673,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.19";
+	  result["version"] = "1.2.23";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -1316,6 +1339,28 @@ public:
       _builder_transactions[trx_handle];
       return trx_handle;
    }
+   fc::variant build_transaction(fc::variant op, bool hex = true)
+   {
+	   try {
+		   signed_transaction tx;
+		   fc::mutable_variant_object  temp;
+		   temp["op"] = op;
+		   auto b_op = fc::variant(temp).as<op_wrapper>();
+		   tx.operations.push_back(b_op.op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+		   tx.validate();
+		   if (!hex)
+			   return fc::variant(tx);
+		   auto json_str = fc::json::to_string(tx);
+		   return fc::variant(fc::to_base58(json_str.c_str(), json_str.size()));
+	   }FC_CAPTURE_AND_RETHROW((op)(hex))
+	  
+   }
+
    void add_operation_to_builder_transaction(transaction_handle_type transaction_handle, const operation& op)
    {
       FC_ASSERT(_builder_transactions.count(transaction_handle));
@@ -1534,6 +1579,12 @@ public:
 	   }FC_LOG_AND_RETHROW();
    }
 
+   fc::uint128_t get_pledge() const
+   {
+	   try {
+		   return _remote_db->get_pledge();
+	   }FC_LOG_AND_RETHROW();
+   }
 
    full_transaction register_account(string name, bool broadcast)
    {
@@ -1875,8 +1926,9 @@ public:
 
 		   }
 		   else {
-			   auto& abi = cont.code.offline_abi;
-			   if (abi.find(contract_api) == abi.end())
+		           auto& abi = cont.code.abi;
+			   auto& offline_abi = cont.code.offline_abi;
+			   if (abi.find(contract_api) == abi.end() && offline_abi.find(contract_api) == offline_abi.end())
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
            contract_invoke_op.gas_price =  0;
@@ -2145,15 +2197,38 @@ public:
 		   FC_ASSERT((*_crosschain_manager)->contain_symbol(symbol), "no this plugin");
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
-		   FC_ASSERT(crosschain->validate_address(from));
-		   FC_ASSERT(crosschain->validate_address(to));
+		   std::string transfer_from_account = from;
+		   std::string transfer_to_account = to;
+		   if (symbol == "BCH"){
+			   FC_ASSERT((from.size() != 0 && to.size() != 0), "address is empty !!!!");
+			   if (from[0] == '1' || from[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   transfer_from_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_from_account = pts_address_bch(from);
+			   }
+
+			   if (to[0] == '1' || to[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(to), btc_pubkey, btc_script);
+				   transfer_to_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_to_account = pts_address_bch(to);
+			   }
+		   }
+
+		   FC_ASSERT(crosschain->validate_address(transfer_from_account));
+		   FC_ASSERT(crosschain->validate_address(transfer_to_account));
 		   auto gas_price_pos = amount.find('|');
 		   if (gas_price_pos != amount.npos)
 		   {
 			   FC_ASSERT(((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)),"only eth or erc asset need GasPrice");
 		   }
 		   map<string, string> dest;
-		   dest[to] = amount;
+		   dest[transfer_to_account] = amount;
 		   if ((symbol == "ETH") || (symbol.find("ERC") != symbol.npos)) {
 			   std::string real_amount = amount;
 			   string gas_price = fc::to_string(5) + "000000000";
@@ -2173,7 +2248,7 @@ public:
 			   return crosschain->create_multisig_transaction(from_acount, to_account,amount_to_trans,_symbol, memo,false);
 		   }
 		   else {
-		   return crosschain->create_multisig_transaction(from,dest,symbol,"");
+		   return crosschain->create_multisig_transaction(transfer_from_account,dest,symbol,"");
 		   }
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
@@ -2188,7 +2263,7 @@ public:
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
 		   FC_ASSERT(pk.valid());
-		   auto multisig_accounts = _remote_db->get_multisig_account_pair(to);
+		   auto multisig_accounts = _remote_db->get_multisig_account_pair(symbol);
 		   string redeemscript;
 		   for (const auto muladdr : multisig_accounts)
 		   {
@@ -2233,8 +2308,19 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-		  
-		   auto iter = _crosschain_keys.find(from);
+		   std::string transfer_from_account = from;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((from.size() != 0), "address is empty !!!!");
+			   if (from[0] == '1' || from[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(from), btc_pubkey, btc_script);
+				   transfer_from_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_from_account = pts_address_bch(from);
+			   }
+		   }
+		   auto iter = _crosschain_keys.find(transfer_from_account);
 		   FC_ASSERT(iter != _crosschain_keys.end(),"there is no private key in this wallet.");
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
 		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
@@ -2249,7 +2335,13 @@ public:
 				raw = trx["hex"].as_string();
 		   for (auto index=0;index < vins.size(); index++)
 		   {
+			   if (symbol == "BCH"){
+				   std::string amount = vins[index]["amount"].as_string();
+				   raw = prk_ptr->sign_trx(raw+'|'+ amount, index);
+			   }
+			   else {
 			   raw=prk_ptr->sign_trx(raw,index);
+			   }
 		   }
 		   }
 		   
@@ -3608,9 +3700,10 @@ public:
 	   }FC_CAPTURE_AND_RETHROW((account)(can)(expiration_time)(broadcast))
    }
 
-   address create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
+   map<public_key_type,address> create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
    {
 	   try {
+		   map<public_key_type, address> result;
 		   FC_ASSERT(!is_locked());
 		   account_create_multisignature_address_operation op;
 		   auto acc = get_account(account);
@@ -3639,7 +3732,8 @@ public:
 		   set_operation_fees(tx, get_global_properties().parameters.current_fees);
 		   tx.validate();
 		   sign_transaction(tx,broadcast);
-		   return  op.multisignature;
+		   result[pubkey] = op.multisignature;
+		   return  result;
 
 	   }FC_CAPTURE_AND_RETHROW((account)(pubs)(required)(broadcast))
    }
@@ -4694,9 +4788,20 @@ public:
 			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
 			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
 		   }
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   } else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4729,9 +4834,21 @@ public:
 			   std::string btc_tunnel_account = btc_bind_account.at(0)->bind_account;
 			   FC_ASSERT(btc_tunnel_account == tunnel_account, "USDT tunnel account must consistent with btc tunnel account");
 		   }
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4741,13 +4858,13 @@ public:
 		   auto crosschain = crosschain::crosschain_manager::get_instance().get_crosschain_handle(symbol);
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
-		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   FC_ASSERT(_crosschain_keys.count(transfer_tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[transfer_tunnel_account].wif_key;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
 
-		   crosschain->create_signature(prk_ptr, tunnel_account, op.tunnel_signature);
+		   crosschain->create_signature(prk_ptr, transfer_tunnel_account, op.tunnel_signature);
 		   signed_transaction trx;
 		   trx.operations.emplace_back(op);
 		   set_operation_fees(trx, _remote_db->get_global_properties().parameters.current_fees);
@@ -4765,7 +4882,19 @@ public:
 		   auto acct_obj = get_account(link_account);
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4789,7 +4918,19 @@ public:
 		   auto acct_obj = get_account(link_account);
 		   op.addr = acct_obj.addr;
 		   op.crosschain_type = symbol;
-		   op.tunnel_address = tunnel_account;
+		   std::string transfer_tunnel_account = tunnel_account;
+		   if (symbol == "BCH") {
+			   FC_ASSERT((tunnel_account.size() != 0), "address is empty !!!!");
+			   if (tunnel_account[0] == '1' || tunnel_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(tunnel_account), btc_pubkey, btc_script);
+				   transfer_tunnel_account = std::string(bch_address);
+			   }
+			   else {
+				   transfer_tunnel_account = std::string(pts_address_bch(tunnel_account));
+			   }
+		   }
+		   op.tunnel_address = transfer_tunnel_account;
 		   FC_ASSERT(_keys.find(acct_obj.addr) != _keys.end(), "there is no privatekey of ${addr}", ("addr", acct_obj.addr));
 		   fc::optional<fc::ecc::private_key> key = wif_to_key(_keys[acct_obj.addr]);
 		   op.account_signature = key->sign_compact(fc::sha256::hash(acct_obj.addr));
@@ -4800,8 +4941,8 @@ public:
 		   crosschain->initialize_config(fc::json::from_string(config).get_object());
 
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   FC_ASSERT(_crosschain_keys.count(tunnel_account)>0, "private key doesnt belong to this wallet.");
-		   auto wif_key = _crosschain_keys[tunnel_account].wif_key;
+		   FC_ASSERT(_crosschain_keys.count(transfer_tunnel_account)>0, "private key doesnt belong to this wallet.");
+		   auto wif_key = _crosschain_keys[transfer_tunnel_account].wif_key;
 		   auto key_ptr = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(key_ptr.valid());
 		   prk_ptr->set_key(*key_ptr);
@@ -6050,18 +6191,33 @@ public:
 	   string memo,
 	   bool broadcast = false) {
 	   try {
+		   std::string transfer_crosschain_account = crosschain_account;
+		   if (asset_symbol == "BCH") {
+			   FC_ASSERT((crosschain_account.size() != 0), "address is empty !!!!");
+			   if (crosschain_account[0] == '1' || crosschain_account[0] == '3')
+			   {
+				   auto bch_address = pts_address_bch(pts_address(crosschain_account), btc_pubkey, btc_script);
+				   transfer_crosschain_account = std::string(bch_address);
+			   } else {
+				   transfer_crosschain_account = std::string(pts_address_bch(crosschain_account));
+			   }
+		   }
 		   FC_ASSERT(!self.is_locked());
 		   fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
 		   FC_ASSERT(asset_obj->allow_withdraw_deposit,"${asset} does not allow withdraw and deposit",("asset", asset_symbol));
 		   auto& iter = _wallet.my_accounts.get<by_name>();
 		   FC_ASSERT(iter.find(account_name) != iter.end(), "Could not find account name ${account}", ("account", account_name));
+
+		   if (asset_symbol == "HC")
+			   FC_ASSERT(crosschain_account[1]=='s' || crosschain_account[1]=='c',"invalid address for HC to be withdrawn.");
+
 		   crosschain_withdraw_operation op;
 		   op.withdraw_account = iter.find(account_name)->addr;
 		   op.amount = amount;
 		   op.asset_id = asset_obj->id;
 		   op.asset_symbol = asset_symbol;
-		   op.crosschain_account = crosschain_account;
+		   op.crosschain_account = transfer_crosschain_account;
 		   signed_transaction tx;
 
 		   tx.operations.push_back(op);
@@ -6291,6 +6447,85 @@ public:
 
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((guard_account)(amount)(asset_symbol)(broadcast))
+   }
+
+   string name_transfer_to_address(const string& from, const address& to, const asset& amount, const string& newname ,bool broadcast=false)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+		   fc::optional<asset_object> asset_obj = get_asset(amount.asset_id);
+		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
+		   auto acc_obj = _remote_db->get_account(from);
+		   FC_ASSERT(acc_obj.addr != address());
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   transfer_operation xfer_op;
+		   xfer_op.from_addr = to;
+		   xfer_op.to_addr = acc_obj.addr;
+		   xfer_op.amount = amount;
+
+		   name_transfer_operation n_op;
+		   n_op.from = acc_obj.addr;
+		   n_op.to = address(to);
+		   if (newname != "")
+			   n_op.newname = newname;
+
+		   undertaker_operation u_op;
+		   u_op.maker = acc_obj.addr;
+		   u_op.taker = to;
+
+		   u_op.maker_op.emplace_back(n_op);
+		   u_op.taker_op.emplace_back(xfer_op);
+
+		   current_params.current_fees->set_fee(u_op.maker_op.back().op);
+		   current_params.current_fees->set_fee(u_op.taker_op.back().op);
+
+		   signed_transaction tx;
+
+		   tx.operations.push_back(u_op);
+		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+		   uint32_t expiration_time_offset = 0;
+		   auto dyn_props = get_dynamic_global_properties();
+		   tx.set_reference_block(dyn_props.head_block_id);
+		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+		   tx.validate();
+		   auto json_str = fc::json::to_string(tx);
+		   _wallet.pending_name_transfer[acc_obj.id] = tx.id();
+		   return fc::to_base58(json_str.c_str(), json_str.size());
+	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
+   }
+   string undertaker_customize(const string& maker,const address& taker, const  fc::variant& maker_op,const  fc::variant& taker_op)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+			auto acc_obj = get_account(maker);
+			FC_ASSERT(acc_obj.addr != address());
+			const chain_parameters& current_params = get_global_properties().parameters;
+			undertaker_operation u_op;
+			u_op.maker = acc_obj.addr;
+			u_op.taker = taker;
+			fc::mutable_variant_object  temp;
+			temp["op"] = maker_op;
+			u_op.maker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			temp["op"] = taker_op;
+			u_op.taker_op.emplace_back(fc::variant(temp).as<op_wrapper>());
+			
+			//current_params.current_fees->set_fee(u_op.maker_op.back().op);
+			//current_params.current_fees->set_fee(u_op.taker_op.back().op);
+
+			signed_transaction tx;
+
+			tx.operations.push_back(u_op);
+			set_operation_fees(tx, _remote_db->get_global_properties().parameters.current_fees);
+			uint32_t expiration_time_offset = 0;
+			auto dyn_props = get_dynamic_global_properties();
+			tx.set_reference_block(dyn_props.head_block_id);
+			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
+			tx.validate();
+			auto json_str = fc::json::to_string(tx);
+			_wallet.pending_name_transfer[acc_obj.id] = tx.id();
+			return fc::to_base58(json_str.c_str(), json_str.size());
+
+	   }FC_CAPTURE_AND_RETHROW((maker)(taker)(maker_op)(taker_op))
    }
    string transfer_from_to_address(string from, string to, string amount, string asset_symbol, string memo)
    {
@@ -7704,7 +7939,10 @@ transaction_handle_type wallet_api::begin_builder_transaction()
 {
    return my->begin_builder_transaction();
 }
-
+fc::variant wallet_api::build_transaction(fc::variant op)
+{
+	return my->build_transaction(op);
+}
 void wallet_api::add_operation_to_builder_transaction(transaction_handle_type transaction_handle, const operation& op)
 {
    my->add_operation_to_builder_transaction(transaction_handle, op);
@@ -7869,9 +8107,16 @@ public_key_type wallet_api::get_pubkey_from_account(const string& acc)
 
 signed_transaction wallet_api::decode_multisig_transaction(const string& trx)
 {
-	auto vec = fc::from_base58(trx);
-	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
-	return recovered.as<signed_transaction>();
+	try {
+		auto vec = fc::from_base58(trx);
+		auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
+		return recovered.as<signed_transaction>();
+	}
+	catch (...)
+	{
+
+	}
+	return signed_transaction();
 }
 
 string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
@@ -7880,6 +8125,34 @@ string wallet_api::sign_multisig_trx(const address& addr, const string& trx)
 	auto recovered = fc::json::from_string(string(vec.begin(), vec.end()));
 	return my->sign_multisig_trx(addr,recovered.as<signed_transaction>());
 }
+
+string wallet_api::name_transfer_to_address(string from, address to, asset amount, string newname)
+{
+	string trx = my->name_transfer_to_address(from, to, amount, newname);
+	return sign_multisig_trx(get_account_addr(from),trx);
+}
+full_transaction wallet_api::confirm_name_transfer(string account, string trx, bool broadcast)
+{
+	try {
+		const account_object& acc = my->get_account(account);
+		string tx = sign_multisig_trx(acc.addr, trx);
+		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		return combine_transaction({ tx }, broadcast);
+	}FC_CAPTURE_AND_RETHROW((account)(trx)(broadcast))
+}
+
+string wallet_api::undertaker_customize(const string& maker,const address& taker,const fc::variant& maker_op, const fc::variant& taker_op)
+{
+
+	string trx = my->undertaker_customize(maker,taker,maker_op,taker_op);
+	return sign_multisig_trx(get_account_addr(maker), trx);
+}
+full_transaction wallet_api::confirm_undertaker(const string& taker, string trx, bool broadcast)
+{
+	const account_object& acc = my->get_account(taker);
+	string tx = sign_multisig_trx(acc.addr, trx);
+	return combine_transaction({ tx }, broadcast);
+ }
 
 bool wallet_api::import_key(string account_name_or_id, string wif_key)
 {
@@ -8068,6 +8341,10 @@ variant_object wallet_api::about() const
 vector<fc::variant> wallet_api::get_votes(const string& account) const
 {
 	return my->get_votes(account);
+}
+fc::uint128_t wallet_api::get_pledge() const
+{
+	return my->get_pledge();
 }
 
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
@@ -9235,7 +9512,13 @@ void wallet_api::unlock(string password)
 
    my->_checksum = pk.checksum;
    my->self.lock_changed(false);
-   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+   static bool got_midware = false;
+   if (!got_midware)
+   {
+	   abstract_crosschain_interface::set_midwares(my->_remote_db->get_midware_eps());
+	   got_midware = true;
+   }
+  
    try
    {
 	   if (my->_wallet.mining_accounts.size())
@@ -9602,7 +9885,7 @@ full_transaction wallet_api::senator_determine_withdraw_deposit(const string& ac
 {
 	return my->senator_determine_withdraw_deposit(account, can, symbol,expiration_time, broadcast);
 }
-address wallet_api::create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
+map<public_key_type,address> wallet_api::create_multisignature_address(const string& account, const fc::flat_set<public_key_type>& pubs, int required, bool broadcast)
 {
 	return my->create_multisignature_address(account,pubs,required,broadcast);
 }
@@ -10261,7 +10544,7 @@ void wallet_api::start_citizen(bool start)
 }
 void wallet_api::start_mining(const vector<string>& accts)
 {
-	vector<address> addrs;
+	vector<string> miners;
 	map<miner_id_type, private_key> keys;
 	auto& idx = my->_wallet.my_accounts.get<by_name>();
 	for (auto acct : accts)
@@ -10270,21 +10553,23 @@ void wallet_api::start_mining(const vector<string>& accts)
 		FC_ASSERT(oac!= idx.end(), "account not found!");
 		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
-		FC_ASSERT(witness.valid(),"only citizen can mine");
+		if (!witness.valid())
+			continue;
 		FC_ASSERT(my->_keys.find(acc_obj.addr)!=my->_keys.end(),"my key is not in keys");
 		fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(my->_keys[acc_obj.addr]);
 		if (!optional_private_key)
 			FC_THROW("Invalid private key");
 		keys.insert(make_pair((*witness).id.as<miner_id_type>(),*optional_private_key));
+		miners.push_back( acct);
 	}
 	my->start_mining(keys);
-	my->_wallet.mining_accounts = accts;
+	my->_wallet.mining_accounts = miners;
 }
 std::map<std::string, fc::ntp_info> wallet_api::get_ntp_info()
 {
 	std::map<std::string, fc::ntp_info> res;
-	res["witness_node"]= my->_remote_db->get_ntp_info();
-	res["cli_wallet"]= fc::time_point::get_ntp_info();;
+	res["hx_node"]= my->_remote_db->get_ntp_info();
+	res["hx_client"]= fc::time_point::get_ntp_info();;
 	return res;
 }
 void wallet_api::ntp_update_time()

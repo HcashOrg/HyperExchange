@@ -697,10 +697,9 @@ void database::pop_block()
    _fork_db.pop_block();
    _block_id_to_block.remove( head_id );
    pop_undo();
-
+   vector<signed_transaction> txs(head_block->transactions.begin(),head_block->transactions.end());
+   removed_trxs(txs);
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
-   
-
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
@@ -773,6 +772,9 @@ void database::_apply_block( const signed_block& next_block )
 
    _current_block_num    = next_block_num;
    _current_trx_in_block = 0;
+   _current_secret_key = next_block.previous_secret;
+   _current_contract_call_num = 0;
+  
    map<string, int> temp_signature;
    for( const auto& trx : next_block.transactions )
    {
@@ -790,7 +792,14 @@ void database::_apply_block( const signed_block& next_block )
  //  if(next_block_num == 1901662) {
 	//printf("next_block.trxfee=%lld, _total_collected_fees[asset_id_type(0)]=%lld\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
  //  }
+   if(next_block.trxfee != _total_collected_fees[asset_id_type(0)]) {
+      printf("next_block trxfee: %d, _total_collected_fee: %d\n", next_block.trxfee.value, _total_collected_fees[asset_id_type(0)].value);
+   }
    FC_ASSERT(next_block.trxfee == _total_collected_fees[asset_id_type(0)],"trxfee should be the same with ");
+   if (signing_witness.last_confirmed_block_num > signing_witness.last_change_signing_key_block_num) {
+	   FC_ASSERT(fc::ripemd160::hash(next_block.previous_secret) == fetch_block_by_id(get_block_id_for_num(signing_witness.last_confirmed_block_num))->next_secret_hash);
+   }
+   
    //_total_collected_fees[asset_id_type(0)] = share_type(0);
    update_global_dynamic_data(next_block);
    update_signing_miner(signing_witness, next_block);

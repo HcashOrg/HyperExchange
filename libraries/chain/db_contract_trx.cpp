@@ -9,6 +9,7 @@
 #include <graphene/chain/contract_object.hpp>
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
+#include <fc/crypto/ripemd160.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -35,6 +36,22 @@ namespace graphene {
 					return storage;
 				}
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
+		}
+
+		std::map<std::string, StorageDataType> database::get_contract_all_storages(const address& contract_id) {
+			try {
+				std::map<std::string, StorageDataType> result;
+                                auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
+                                auto storage_iter = storage_index.find(contract_id);
+                                while(storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
+                                {
+                                        StorageDataType storage;
+                                        storage.storage_data = storage_iter->storage_value;
+                                        result[storage_iter->storage_name] = storage;
+                                        ++storage_iter;
+                                }
+				return result;
+                        } FC_CAPTURE_AND_RETHROW((contract_id));
 		}
 
 		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
@@ -439,7 +456,7 @@ namespace graphene {
             contract_object res;
             auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
             auto itr = index.find(contract_address);
-            FC_ASSERT(itr != index.end());
+            FC_ASSERT(itr != index.end(), "database::get_contract contract not found");
             res =*itr;
             if(res.inherit_from!= address())
             {
@@ -468,7 +485,7 @@ namespace graphene {
         {
             auto& index = get_index_type<contract_object_index>().indices().get<by_id>();
             auto itr = index.find(id);
-            FC_ASSERT(itr != index.end());
+            FC_ASSERT(itr != index.end(), "contract id not found");
             return *itr;
         }
 
@@ -539,7 +556,7 @@ namespace graphene {
 			return itr != index.end();
 		}
 
-        address database::get_account_address(const string& name)
+        address database::get_account_address(const string& name) const
         {
             auto& db = get_index_type<account_index>().indices().get<by_name>();
             auto it = db.find(name);
@@ -549,7 +566,22 @@ namespace graphene {
             }
             return address();
         }
+		SecretHashType database::get_random_padding(bool is_random) {
+			fc::ripemd160::encoder enc;
+			if (is_random) {
+				fc::raw::pack(enc, _current_secret_key);
+				fc::raw::pack(enc, _current_trx_in_block);
+				fc::raw::pack(enc, _current_op_in_trx);
+				fc::raw::pack(enc, _current_contract_call_num);
+				++_current_contract_call_num;
+			}
+			else {
+				fc::raw::pack(enc, _current_secret_key);
+			}
+			
+			return enc.result();
 
+		}
 
 	}
 }

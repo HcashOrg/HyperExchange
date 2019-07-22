@@ -6,6 +6,8 @@
 #include <uvm/uvm_lutil.h>
 #include <uvm/lobject.h>
 #include <uvm/lstate.h>
+#include <sstream>
+#include <iostream>
 
 namespace graphene {
 	namespace chain {
@@ -133,8 +135,11 @@ namespace graphene {
 			virtual int64_t get_transaction_fee(lua_State *L);
 			virtual uint32_t get_chain_now(lua_State *L);
 			virtual uint32_t get_chain_random(lua_State *L);
+			virtual uint32_t get_chain_safe_random(lua_State *L, bool diff_in_diff_txs);
 			virtual std::string get_transaction_id(lua_State *L);
+			virtual std::string get_transaction_id_without_gas(lua_State *L) const;
 			virtual uint32_t get_header_block_num(lua_State *L);
+			virtual uint32_t get_header_block_num_without_gas(lua_State *L) const;
 			virtual uint32_t wait_for_future_random(lua_State *L, int next);
 
 			virtual int32_t get_waited(lua_State *L, uint32_t num);
@@ -168,6 +173,12 @@ namespace graphene {
 			virtual std::string get_contract_lock_balance_info(lua_State *L, const char* cid);
 			virtual std::string get_contract_lock_balance_info(lua_State *L, const char* cid, const char* aid)const;
 			virtual std::string get_pay_back_balance(lua_State *L, const char* contract_addr, const char* symbol_type);
+
+			virtual bool use_gas_log(lua_State* L) const;
+			virtual bool use_step_log(lua_State* L) const;
+
+			void before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) override;
+			void dump_contract_state(lua_State* L, const std::string& contract_addr, const std::string& txid, std::ostream& out) override;
 
 		};
 	}

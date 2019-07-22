@@ -136,4 +136,19 @@ public:
 	void_result do_apply(const cancel_whiteOperation_list_operation& o);
 };
 
+class undertaker_evaluator : public evaluator<undertaker_evaluator>
+{
+public:
+	typedef undertaker_operation operation_type;
+	void_result do_evaluate(const undertaker_operation& o);
+	void_result do_apply(const undertaker_operation& o);
+};
+class name_transfer_evaluator : public evaluator<name_transfer_evaluator>
+{
+public:
+	typedef name_transfer_operation operation_type;
+	void_result do_evaluate(const name_transfer_operation& o);
+	void_result do_apply(const name_transfer_operation& o);
+};
+
 } } // graphene::chain

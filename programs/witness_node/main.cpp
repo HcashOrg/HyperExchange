@@ -368,7 +368,6 @@ fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::pat
          else if (boost::starts_with(section_name, logger_section_prefix))
          {
             std::string logger_name = section_name.substr(logger_section_prefix.length());
-			std::cout <<"Got a log config " << logger_name <<std::endl;
 			if (discard_logs.find(logger_name) != discard_logs.end())
 			{
 				std::cout << "Discard " << logger_name << std::endl;

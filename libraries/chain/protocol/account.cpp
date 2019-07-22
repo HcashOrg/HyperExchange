@@ -24,7 +24,7 @@
 #include <graphene/chain/protocol/account.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_impl.hpp>
-
+#include <graphene/chain/protocol/operations.hpp>
 namespace graphene { namespace chain {
 
 /**
@@ -303,6 +303,21 @@ void account_create_multisignature_address_operation::validate() const
 {
 	FC_ASSERT(required > 0);
 	FC_ASSERT(required <= pubs.size());
+}
+void undertaker_operation::validate()const
+{
+	FC_ASSERT(!maker_op.empty());
+	for (const auto& op : maker_op) operation_validate(op.op);
+	FC_ASSERT(!taker_op.empty());
+	for (const auto& op : taker_op) operation_validate(op.op);
+	FC_ASSERT(fee.amount >= 0);
+}
+
+void name_transfer_operation::validate() const 
+{
+	FC_ASSERT(fee.amount >= 0);
+	if (newname.valid())
+		FC_ASSERT(is_valid_name(*newname));
 }
 
 } } // graphene::chain

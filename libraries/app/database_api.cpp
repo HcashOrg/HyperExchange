@@ -191,7 +191,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  map<object_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
-
+	  fc::uint128 get_pledge() const;
    //private:
       template<typename T>
       void subscribe_to_item( const T& i )const
@@ -447,7 +447,7 @@ contract_object database_api::get_contract_object_by_name(const string& contract
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
     try {
-        auto cont = _db.get_contract(contract_address);
+        auto cont = _db.get_contract(address(contract_address));
 	load_apis_in_contract_object_if_native(cont);
 	return cont;
     }FC_CAPTURE_AND_RETHROW((contract_address))
@@ -740,9 +740,8 @@ processed_transaction database_api_impl::get_transaction(uint32_t block_num, uin
 
 optional<graphene::chain::full_transaction> database_api_impl::get_transaction_by_id(transaction_id_type id) const
 {
-	const auto& trx_ids = _db.get_index_type<trx_index>().indices().get<by_trx_id>();
-	FC_ASSERT(trx_ids.find(id) != trx_ids.end());
-	auto res_ids = trx_ids.find(id);
+	const auto res_ids = _db.fetch_trx(id);
+	FC_ASSERT(res_ids.valid());
 	full_transaction res = res_ids->trx;
 	res.block_num = res_ids->block_num;
 	auto invoke_res = _db.get_contract_invoke_result(id);
@@ -2011,6 +2010,17 @@ vector<miner_id_type> database_api_impl::list_scheduled_citizens() const
 
 }
 
+fc::uint128_t database_api_impl::get_pledge()const
+{
+	fc::uint128_t result = 0;
+	const auto& citizen_ids = _db.get_index_type<miner_index>().indices().get<by_id>();
+	for (const auto& id : citizen_ids)
+	{
+		result += id.pledge_weight;
+	}
+	return result;
+}
+
 uint64_t database_api::get_miner_count()const
 {
    return my->get_miner_count();
@@ -2718,7 +2728,9 @@ vector<blinded_balance_object> database_api_impl::get_blinded_balances( const fl
    }
    return result;
 }
-
+fc::uint128_t database_api::get_pledge() const {
+	return my->get_pledge();
+}
 vector<lockbalance_object> database_api::get_account_lock_balance(const account_id_type& id)const {
 	return my->get_account_lock_balance(id);
 }

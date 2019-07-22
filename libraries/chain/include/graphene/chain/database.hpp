@@ -268,7 +268,6 @@ namespace graphene { namespace chain {
 
 		 void update_witness_random_seed(const SecretHashType& new_secret);
 		 bool is_white(const address& addr, const int& op) const;
-
          //////////////////// db_getter.cpp ////////////////////
 
          const chain_id_type&                   get_chain_id()const;
@@ -346,6 +345,7 @@ namespace graphene { namespace chain {
 		 void adjust_crosschain_confirm_trx(const hd_trx& handled_trx);
 		 //////contract//////
 		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+                 std::map<std::string, StorageDataType> get_contract_all_storages(const address& contract_id);
 		 optional<contract_storage_object>  get_contract_storage_object(const address& contract_id, const string& name);
 		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
@@ -384,11 +384,15 @@ namespace graphene { namespace chain {
 		 optional<multisig_account_pair_object> get_multisgi_account(const string& multisig_account,const string& symbol) const;
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
          //get account address by account name
-         address get_account_address(const string& name);
+         address get_account_address(const string& name) const;
 
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
+
+		 // get random relate config
+		 SecretHashType get_random_padding(bool is_random) ;
+		
 
 
          /**
@@ -402,6 +406,7 @@ namespace graphene { namespace chain {
          asset get_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 /// this is another overloaded method
 		 asset get_balance(const address& addr, const asset_id_type asset_id) const;
+	 std::vector<asset> get_contract_balances(const address& addr) const;
          /**
           * @brief Adjust a particular account's balance in a given asset by a delta
           * @param account ID of account whose balance should be adjusted
@@ -598,6 +603,7 @@ namespace graphene { namespace chain {
 		 void process_bonus();
          void pay_workers( share_type& budget );
          void perform_chain_maintenance(const signed_block& next_block, const global_property_object& global_props);
+		 void process_name_transfer();
          void update_active_miners();
          void update_active_committee_members();
          void update_worker_votes();
@@ -632,6 +638,8 @@ namespace graphene { namespace chain {
          uint16_t                          _current_trx_in_block = 0;
          uint16_t                          _current_op_in_trx    = 0;
          uint16_t                          _current_virtual_op   = 0;
+		 uint16_t						   _current_contract_call_num = 0;
+		 SecretHashType                    _current_secret_key   = SecretHashType();
 
          vector<uint64_t>                  _vote_tally_buffer;
          vector<uint64_t>                  _witness_count_histogram_buffer;

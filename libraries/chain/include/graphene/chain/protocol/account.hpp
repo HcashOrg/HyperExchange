@@ -326,6 +326,26 @@ namespace graphene { namespace chain {
 		   a.push_back(authority(1, addr, 1));
 	   }
    };
+   struct op_wrapper;
+   struct undertaker_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   address maker;
+	   address taker;
+	   vector<op_wrapper> maker_op;
+	   vector<op_wrapper> taker_op;
+	   optional<guarantee_object_id_type> guarantee_id;
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
+	   address fee_payer()const { return maker; }
+	   void        validate()const;
+	   share_type calculate_fee(const fee_parameters_type& k)const { return k.fee; }
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, taker, 1));
+		   a.push_back(authority(1,maker,1));
+	   }
+   };
 
    /**
    * @brief change multi-signed account of guards.
@@ -412,6 +432,24 @@ namespace graphene { namespace chain {
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   void validate() const { FC_ASSERT(whiteAddrOps.size() > 0); }
    };
+   struct name_transfer_operation : public base_operation
+   {
+	   struct fee_parameters_type { uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION; };
+	   asset fee;
+	   address from;
+	   address to;
+	   optional<string> newname;
+	   optional<guarantee_object_id_type> guarantee_id;
+	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
+	   void validate() const;
+	   address fee_payer()const { return from; }
+	   share_type calculate_fee(const fee_parameters_type& k)const { return k.fee; }
+	   void get_required_authorities(vector<authority>& a)const
+	   {
+		   a.push_back(authority(1, from, 1));
+	   }
+
+   };
 
 } } // graphene::chain
 
@@ -459,3 +497,7 @@ FC_REFLECT(graphene::chain::add_whiteOperation_list_operation::fee_parameters_ty
 FC_REFLECT(graphene::chain::add_whiteOperation_list_operation, (fee)(whiteAddrOps))
 FC_REFLECT(graphene::chain::cancel_whiteOperation_list_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::cancel_whiteOperation_list_operation, (fee)(whiteAddrOps))
+FC_REFLECT(graphene::chain::undertaker_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::undertaker_operation, (fee)(maker)(taker)(maker_op)(taker_op)(guarantee_id))
+FC_REFLECT(graphene::chain::name_transfer_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::name_transfer_operation, (fee)(from)(to)(newname)(guarantee_id))

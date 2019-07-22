@@ -59,8 +59,12 @@ struct operation_guarantee_idor
 	template<typename T>
 	optional<guarantee_object_id_type> operator()(const T& v)const { return v.get_guarantee_id(); }
 };
-
-
+struct operation_fee_payor
+{
+	typedef fc::variant result_type;
+	template<typename T>
+	fc::variant operator()(const T& v)const { return fc::variant(v.fee_payer()); }
+};
 struct operation_get_required_auth
 {
    typedef void result_type;
@@ -83,7 +87,10 @@ struct operation_get_required_auth
       v.get_required_authorities( other );
    }
 };
-
+fc::variant operation_fee_payer(const operation& op)
+{
+	return op.visit(operation_fee_payor());
+}
 void operation_validate( const operation& op )
 {
    op.visit( operation_validator() );

@@ -170,21 +170,21 @@ void database::initialize_evaluators()
    register_evaluator<committee_member_update_global_parameters_evaluator>();
    register_evaluator<committee_member_execute_coin_destory_operation_evaluator>();
    register_evaluator<guard_member_resign_evaluator>();
-   register_evaluator<custom_evaluator>();
+   //register_evaluator<custom_evaluator>();
    register_evaluator<asset_create_evaluator>();
    register_evaluator<asset_issue_evaluator>();
    register_evaluator<asset_reserve_evaluator>();
    register_evaluator<asset_update_evaluator>();
-   register_evaluator<asset_update_bitasset_evaluator>();
+   //register_evaluator<asset_update_bitasset_evaluator>();
    register_evaluator<asset_update_feed_producers_evaluator>();
-   register_evaluator<asset_settle_evaluator>();
-   register_evaluator<asset_global_settle_evaluator>();
+   //register_evaluator<asset_settle_evaluator>();
+   //register_evaluator<asset_global_settle_evaluator>();
    register_evaluator<assert_evaluator>();
-   register_evaluator<limit_order_create_evaluator>();
-   register_evaluator<limit_order_cancel_evaluator>();
-   register_evaluator<call_order_update_evaluator>();
+   /* register_evaluator<limit_order_create_evaluator>();
+	register_evaluator<limit_order_cancel_evaluator>();
+	register_evaluator<call_order_update_evaluator>();*/
    register_evaluator<transfer_evaluator>();
-   register_evaluator<override_transfer_evaluator>();
+   //register_evaluator<override_transfer_evaluator>();
    register_evaluator<asset_fund_fee_pool_evaluator>();
    register_evaluator<asset_publish_feeds_evaluator>();
    register_evaluator<normal_asset_publish_feeds_evaluator>();
@@ -252,6 +252,8 @@ void database::initialize_evaluators()
    register_evaluator<correct_chain_data_evaluator>();
    register_evaluator<vote_create_evaluator>();
    register_evaluator<vote_update_evaluator>();
+   register_evaluator<undertaker_evaluator>();
+   register_evaluator<name_transfer_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -294,7 +296,7 @@ void database::initialize_indexes()
    add_index< primary_index<account_binding_index                         > >();
    add_index< primary_index<multisig_account_pair_index                   > >();
    add_index< primary_index<multisig_address_index                        > >();
-   add_index< primary_index<asset_bitasset_data_index                     > >();
+  // add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
    add_index<primary_index<simple_index<lockbalance_record_object        >> >();
@@ -352,74 +354,67 @@ void database::init_genesis(const genesis_state_type& genesis_state)
 
    flat_index<block_summary_object>& bsi = get_mutable_index_type< flat_index<block_summary_object> >();
    bsi.resize(0xffff+1);
-
-   // Create blockchain accounts
-   //fc::ecc::private_key null_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
-   //create<balance_object>([](balance_object& b) {
-   //   b.balance = asset(GRAPHENE_MAX_SHARE_SUPPLY);
-   //});
    const account_object& committee_account =
-      create<account_object>( [&](account_object& n) {
-         n.membership_expiration_date = time_point_sec::maximum();
-         n.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-         n.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-         n.owner.weight_threshold = 1;
-         n.active.weight_threshold = 1;
-         n.name = "committee-account";
-         n.statistics = create<account_statistics_object>( [&](account_statistics_object& s){ s.owner = n.id; }).id;
-      });
+	   create<account_object>([&](account_object& n) {
+	   n.membership_expiration_date = time_point_sec::maximum();
+	   n.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   n.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   n.owner.weight_threshold = 1;
+	   n.active.weight_threshold = 1;
+	   n.name = "committee-account";
+	   n.statistics = create<account_statistics_object>([&](account_statistics_object& s) { s.owner = n.id; }).id;
+   });
    FC_ASSERT(committee_account.get_id() == GRAPHENE_GUARD_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
-       a.name = "witness-account";
-       a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
-       a.owner.weight_threshold = 1;
-       a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_MINER_ACCOUNT;
-       a.membership_expiration_date = time_point_sec::maximum();
-       a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-       a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.name = "witness-account";
+	   a.statistics = create<account_statistics_object>([&](account_statistics_object& s) {s.owner = a.id; }).id;
+	   a.owner.weight_threshold = 1;
+	   a.active.weight_threshold = 1;
+	   a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_MINER_ACCOUNT;
+	   a.membership_expiration_date = time_point_sec::maximum();
+	   a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
    }).get_id() == GRAPHENE_MINER_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
-       a.name = "relaxed-committee-account";
-       a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
-       a.owner.weight_threshold = 1;
-       a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_RELAXED_COMMITTEE_ACCOUNT;
-       a.membership_expiration_date = time_point_sec::maximum();
-       a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-       a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.name = "relaxed-committee-account";
+	   a.statistics = create<account_statistics_object>([&](account_statistics_object& s) {s.owner = a.id; }).id;
+	   a.owner.weight_threshold = 1;
+	   a.active.weight_threshold = 1;
+	   a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_RELAXED_COMMITTEE_ACCOUNT;
+	   a.membership_expiration_date = time_point_sec::maximum();
+	   a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
    }).get_id() == GRAPHENE_RELAXED_COMMITTEE_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
-       a.name = "null-account";
-       a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
-       a.owner.weight_threshold = 1;
-       a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_NULL_ACCOUNT;
-       a.membership_expiration_date = time_point_sec::maximum();
-       a.network_fee_percentage = 0;
-       a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT;
+	   a.name = "null-account";
+	   a.statistics = create<account_statistics_object>([&](account_statistics_object& s) {s.owner = a.id; }).id;
+	   a.owner.weight_threshold = 1;
+	   a.active.weight_threshold = 1;
+	   a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_NULL_ACCOUNT;
+	   a.membership_expiration_date = time_point_sec::maximum();
+	   a.network_fee_percentage = 0;
+	   a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT;
    }).get_id() == GRAPHENE_NULL_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
-       a.name = "temp-account";
-       a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
-       a.owner.weight_threshold = 0;
-       a.active.weight_threshold = 0;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_TEMP_ACCOUNT;
-       a.membership_expiration_date = time_point_sec::maximum();
-       a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
-       a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.name = "temp-account";
+	   a.statistics = create<account_statistics_object>([&](account_statistics_object& s) {s.owner = a.id; }).id;
+	   a.owner.weight_threshold = 0;
+	   a.active.weight_threshold = 0;
+	   a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_TEMP_ACCOUNT;
+	   a.membership_expiration_date = time_point_sec::maximum();
+	   a.network_fee_percentage = GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
+	   a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT - GRAPHENE_DEFAULT_NETWORK_PERCENT_OF_FEE;
    }).get_id() == GRAPHENE_TEMP_ACCOUNT);
    FC_ASSERT(create<account_object>([this](account_object& a) {
-       a.name = "proxy-to-self";
-       a.statistics = create<account_statistics_object>([&](account_statistics_object& s){s.owner = a.id;}).id;
-       a.owner.weight_threshold = 1;
-       a.active.weight_threshold = 1;
-       a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_NULL_ACCOUNT;
-       a.membership_expiration_date = time_point_sec::maximum();
-       a.network_fee_percentage = 0;
-       a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT;
+	   a.name = "proxy-to-self";
+	   a.statistics = create<account_statistics_object>([&](account_statistics_object& s) {s.owner = a.id; }).id;
+	   a.owner.weight_threshold = 1;
+	   a.active.weight_threshold = 1;
+	   a.registrar = a.lifetime_referrer = a.referrer = GRAPHENE_NULL_ACCOUNT;
+	   a.membership_expiration_date = time_point_sec::maximum();
+	   a.network_fee_percentage = 0;
+	   a.lifetime_referrer_fee_percentage = GRAPHENE_100_PERCENT;
    }).get_id() == GRAPHENE_PROXY_TO_SELF_ACCOUNT);
-
    // Create more special accounts
    while( true )
    {

@@ -36,6 +36,7 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/crosschain_privatekey_management/util.hpp>
 #include <graphene/chain/balance_object.hpp>
+#include <graphene/chain/protocol/operations.hpp>
 #include <algorithm>
 
 namespace graphene { namespace chain {
@@ -121,6 +122,8 @@ void_result account_create_evaluator::do_evaluate( const account_create_operatio
 	   auto addr_itr = acnt_indx.indices().get<by_address>().find(addr);
 	   FC_ASSERT(addr_itr == acnt_indx.indices().get<by_address>().end(),"there an account with same address.");
    }
+
+   FC_ASSERT(op.owner.get_keys().front() == op.payer || op.payer.version == addressVersion::MULTISIG);
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (op) ) }
 
@@ -142,7 +145,7 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
          obj.owner            = o.owner;
          obj.active           = o.active;
          obj.options          = o.options;
-		 obj.addr             = o.owner.get_keys().front();
+		 obj.addr             = o.payer;
          obj.statistics = db().create<account_statistics_object>([&](account_statistics_object& s){s.owner = obj.id;}).id;
 
          if( o.extensions.value.owner_special_authority.valid() )
@@ -630,4 +633,86 @@ void_result cancel_whiteOperation_list_evaluator::do_apply(const cancel_whiteOpe
 		}
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+
+void_result undertaker_evaluator::do_evaluate(const undertaker_operation& o)
+{
+	try {
+		const auto& d = db();
+		for (const auto& op : o.maker_op)
+		{
+			FC_ASSERT(o.fee_payer() == operation_fee_payer(op.op).as<graphene::chain::address>());
+		}
+		for (const auto& op : o.taker_op)
+		{
+			FC_ASSERT(o.taker == operation_fee_payer(op.op).as<graphene::chain::address>());
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result undertaker_evaluator::do_apply(const undertaker_operation& o)
+{
+	try {
+		for (const auto& op : o.taker_op)
+		{
+			trx_state->operation_results.push_back(db().apply_operation(*trx_state, op.op));
+		}
+
+		for (const auto& op : o.maker_op)
+		{
+			trx_state->operation_results.push_back(db().apply_operation(*trx_state, op.op));
+		}
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
+void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& o)
+{
+	try {
+		const auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		const auto& alias_idx = d.get_index_type<account_index>().indices().get<by_alias>();
+		auto from_iter = acc_idx.find(o.from);
+		FC_ASSERT(from_iter != acc_idx.end(), "${from} is not a registered account", ("from", o.from));
+		auto to_iter = acc_idx.find(o.to);
+		FC_ASSERT(to_iter != acc_idx.end(), "${to} is not a registered account", ("to", o.to));
+		FC_ASSERT(o.from != o.to);
+		FC_ASSERT(!(from_iter->alias.valid()) && !(to_iter->alias.valid()));
+		if (o.newname.valid())
+		{
+			FC_ASSERT(d.get_account_address(*(o.newname)) == address(), "${name} should not be registered in the chain.", ("name", *(o.newname)));
+			FC_ASSERT(alias_idx.find(o.newname) == alias_idx.end());
+		}
+		else
+		{
+			FC_ASSERT(d.get_account_address(from_iter->name + fc::variant(d.head_block_num()).as_string()) == address(), "please rename your account.");
+			FC_ASSERT(alias_idx.find(from_iter->name + fc::variant(d.head_block_num()).as_string()) == alias_idx.end());
+		}
+			
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result name_transfer_evaluator::do_apply(const name_transfer_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& acc_idx = d.get_index_type<account_index>().indices().get<by_address>();
+		auto from_iter = acc_idx.find(o.from);
+		auto to_iter = acc_idx.find(o.to);
+		auto from_obj = *from_iter;
+		auto to_obj = *to_iter;
+		db().modify(*from_iter, [&](account_object& obj) {
+			if (o.newname.valid())
+				obj.alias = *(o.newname);
+			else
+				obj.alias = from_obj.name + fc::variant(d.head_block_num()).as_string();
+		});
+
+		db().modify(*to_iter, [&](account_object& obj) {
+			obj.alias = from_obj.name;
+		});
+
+		return void_result();
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+
 } } // graphene::chain
