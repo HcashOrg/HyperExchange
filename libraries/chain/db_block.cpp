@@ -772,6 +772,9 @@ void database::_apply_block( const signed_block& next_block )
 
    _current_block_num    = next_block_num;
    _current_trx_in_block = 0;
+   _current_secret_key = next_block.previous_secret;
+   _current_contract_call_num = 0;
+  
    map<string, int> temp_signature;
    for( const auto& trx : next_block.transactions )
    {

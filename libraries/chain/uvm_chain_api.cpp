@@ -1,9 +1,8 @@
-#include <graphene/chain/uvm_chain_api.hpp>
-#include <graphene/chain/protocol/address.hpp>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
 #include <graphene/chain/database.hpp>
+#include <graphene/chain/protocol/address.hpp>
 #include <uvm/exceptions.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
@@ -116,20 +115,28 @@ namespace graphene {
 
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
             try {
+            try {
                 if (evaluator) {
                     return evaluator->get_contract_code_by_id(contract_id);
                 }
                 return nullptr;
             }FC_CAPTURE_AND_LOG((nullptr))
-		 }
+	    } catch(...) {
+		return nullptr;
+	    }
+	}
 
         static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_name(contract_common_evaluate* evaluator, const string& contract_name) {
             try {
+	    try {
                 if (evaluator) {
                     return evaluator->get_contract_code_by_name(contract_name);
                 }
                 return nullptr;
             }FC_CAPTURE_AND_LOG((nullptr))
+	    } catch(...) {
+		return nullptr;
+	    }
         }
 
         static void put_contract_storage_changes_to_evaluator(contract_common_evaluate* evaluator, const string& contract_id, const contract_storage_changes_type& changes) {
@@ -629,7 +636,7 @@ namespace graphene {
             address f_addr;
             address t_addr;
             try {
-                f_addr = address(contract_address);
+                f_addr = address(contract_address, GRAPHENE_ADDRESS_PREFIX);
             }
             catch (...)
             {
@@ -765,20 +772,26 @@ namespace graphene {
 		}
 
 
-		uint32_t UvmChainApi::get_chain_safe_random(lua_State *L) {
+		uint32_t UvmChainApi::get_chain_safe_random(lua_State *L, bool diff_in_diff_txs) {
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 			try {
 				auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-				const auto& d = evaluator->get_db();
+				auto& d = evaluator->get_db();
 				fc::sha256::encoder random_generater;
 				const auto& cur_block = d.fetch_block_by_id(d.head_block_id());
 				auto current_random = d.get_dynamic_global_properties().current_random_seed;
+				auto current_secret = SecretHashType();
+				current_secret = d.get_random_padding(diff_in_diff_txs);
+				
 				if (current_random.valid()) {
 					fc::raw::pack(random_generater, *current_random);
+
 				}
 				else {
 					fc::raw::pack(random_generater, "");
 				}
+				fc::raw::pack(random_generater, current_secret);
+				
 				auto hash = random_generater.result();
 				return hash._hash[3] % ((1 << 31) - 1);
 			}
@@ -922,7 +935,11 @@ namespace graphene {
 		bool UvmChainApi::is_valid_address(lua_State *L, const char *address_str)
 		{
 			std::string addr(address_str);
-			return address::is_valid(addr);
+			try {
+				return address::is_valid(addr);
+			} catch(...) {
+				return false;
+			}
 		}
 		bool UvmChainApi::is_valid_contract_address(lua_State *L, const char *address_str)
 		{
@@ -933,6 +950,10 @@ namespace graphene {
 					return false;
 			}
 			catch (fc::exception&)
+			{
+				return false;
+			}
+			catch(...)
 			{
 				return false;
 			}

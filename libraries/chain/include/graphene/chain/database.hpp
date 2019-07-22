@@ -386,6 +386,10 @@ namespace graphene { namespace chain {
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
 
+		 // get random relate config
+		 SecretHashType get_random_padding(bool is_random) ;
+		
+
 
          /**
           * @brief Retrieve a particular account's balance in a given asset
@@ -630,6 +634,8 @@ namespace graphene { namespace chain {
          uint16_t                          _current_trx_in_block = 0;
          uint16_t                          _current_op_in_trx    = 0;
          uint16_t                          _current_virtual_op   = 0;
+		 uint16_t						   _current_contract_call_num = 0;
+		 SecretHashType                    _current_secret_key   = SecretHashType();
 
          vector<uint64_t>                  _vote_tally_buffer;
          vector<uint64_t>                  _witness_count_histogram_buffer;
