@@ -2254,15 +2254,39 @@ public:
 		  
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(symbol))
    }
-   string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+   string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx, const string& password, const string& file)
    {
 	   try {
 		   FC_ASSERT(!is_locked());
-
-		   auto iter = _crosschain_keys.find(from);
-		   FC_ASSERT(iter != _crosschain_keys.end(), "there is no private key in this wallet.");
+		   std::string wif_key;
+		   if (password.size() && file.size())
+		   {
+			   std::ifstream in(file, std::ios::in | std::ios::binary);
+			   std::vector<char> key_file_data;
+			   if (in.is_open())
+			   {
+				   key_file_data = std::vector<char>((std::istreambuf_iterator<char>(in)),
+					   (std::istreambuf_iterator<char>()));
+				   in.close();
+			   }
+			   map<string, crosschain_prkeys> decrypted_keys;
+			   if (key_file_data.size() > 0)
+			   {
+				   const auto plain_text = fc::aes_decrypt(fc::sha512(password.c_str(), password.length()), key_file_data);
+				   decrypted_keys = fc::raw::unpack<map<string, crosschain_prkeys>>(plain_text);
+			   }
+			   auto iter = decrypted_keys.find(from);
+			   FC_ASSERT(iter != decrypted_keys.end(), "there is no private key in this wallet.");
+			   wif_key = iter->second.wif_key;
+		   }
+		   else
+		   {
+			   auto iter = _crosschain_keys.find(from);
+			   FC_ASSERT(iter != _crosschain_keys.end(), "there is no private key in this wallet.");
+			   wif_key = iter->second.wif_key;
+		   }
 		   auto prk_ptr = graphene::privatekey_management::crosschain_management::get_instance().get_crosschain_prk(symbol);
-		   auto pk = prk_ptr->import_private_key(iter->second.wif_key);
+		   auto pk = prk_ptr->import_private_key(wif_key);
 		   FC_ASSERT(pk.valid());
 		   auto multisig_accounts = _remote_db->get_multisig_account_pair(symbol);
 		   string redeemscript;
@@ -2283,7 +2307,7 @@ public:
 		   }
 		   FC_ASSERT(redeemscript.size() >0 ,"the address doesnt exist.");
 		   return prk_ptr->mutisign_trx(redeemscript, trx);
-	   }FC_CAPTURE_AND_RETHROW((from)(symbol)(trx))
+	   }FC_CAPTURE_AND_RETHROW((from)(symbol)(trx)(password)(file))
    }
    fc::variant_object combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs, const string& symbol,bool broadcast = true)
    {
@@ -9151,9 +9175,9 @@ string wallet_api::signrawtransaction(const string& from,const string& symbol ,c
 	return my->signrawtransaction(from,symbol,trx,broadcast);
 }
 
-string wallet_api::signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx)
+string wallet_api::signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx,const string& password, const string& file)
 {
-	return my->signrawmultransaction(from , to,symbol , trx);
+	return my->signrawmultransaction(from , to,symbol , trx,password,file);
 }
 
 fc::variant_object wallet_api::combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs,const string& symbol,bool broadcast)

@@ -2070,7 +2070,7 @@ class wallet_api
 	  fc::variant_object decoderawtransaction(const string& raw_trx, const string& symbol);
 	  fc::variant_object createrawtransaction(const string& from, const string& to, const string& amount, const string& symbol);
 	  string signrawtransaction(const string& from,const string& symbol,const fc::variant_object& trx,bool broadcast=true);
-	  string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx);
+	  string signrawmultransaction(const string& from, const string& to,const string& symbol, const fc::variant_object& trx,const string& password ,const string& file);
 	  fc::variant_object combinemultisigtransaction(const fc::variant_object& trx,const fc::flat_set<string>& hexs,const string& symbol,bool broadcast=true);
 	  vector<transaction_id_type> list_transactions(uint32_t blocknum=0,uint32_t nums=-1) const;
 	  void set_guarantee_id(const guarantee_object_id_type id);
