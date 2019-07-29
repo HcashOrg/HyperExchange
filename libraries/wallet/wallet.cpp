@@ -449,18 +449,18 @@ private:
 	  {
 		  for (const auto& itr : _wallet.pending_name_transfer)
 		  {
-			  auto acc_id = itr.first;
+			  auto addr = itr.first;
 			  auto trx_id = itr.second;
 			  try {
 				  auto trx = _remote_db->get_transaction_by_id(trx_id);
 
 				  if (trx.valid())
 				  {
-					  auto acct = get_account(acc_id);
-					  if (acct.alias.valid())
+					  auto acct = get_account_by_addr(addr);
+					  if (acct->alias.valid())
 						  continue;
-					  claim_account_update(acct);
-					  _wallet.pending_name_transfer.erase(acc_id);
+					  claim_account_update(*acct);
+					  _wallet.pending_name_transfer.erase(addr);
 				  }
 			  }
 			  catch (...)
@@ -6514,7 +6514,7 @@ public:
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
-		   _wallet.pending_name_transfer[acc_obj.id] = tx.id();
+		   _wallet.pending_name_transfer[acc_obj.addr] = tx.id();
 		   return fc::to_base58(json_str.c_str(), json_str.size());
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
    }
@@ -6547,7 +6547,6 @@ public:
 			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 			tx.validate();
 			auto json_str = fc::json::to_string(tx);
-			_wallet.pending_name_transfer[acc_obj.id] = tx.id();
 			return fc::to_base58(json_str.c_str(), json_str.size());
 
 	   }FC_CAPTURE_AND_RETHROW((maker)(taker)(maker_op)(taker_op))
@@ -8161,7 +8160,7 @@ full_transaction wallet_api::confirm_name_transfer(string account, string trx, b
 	try {
 		const account_object& acc = my->get_account(account);
 		string tx = sign_multisig_trx(acc.addr, trx);
-		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		my->_wallet.pending_name_transfer[acc.addr] = decode_multisig_transaction(trx).id();
 		return combine_transaction({ tx }, broadcast);
 	}FC_CAPTURE_AND_RETHROW((account)(trx)(broadcast))
 }

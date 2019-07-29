@@ -347,7 +347,7 @@ struct wallet_data
    map<string, address > pending_account_registrations;
    map<transaction_id_type, string>pending_account_updation;
    map<string, string> pending_miner_registrations;
-   map<account_id_type, transaction_id_type> pending_name_transfer;
+   map<address, transaction_id_type> pending_name_transfer;
    key_label_index_type                                              labeled_keys;
    blind_receipt_index_type                                          blind_receipts;
 
@@ -3386,10 +3386,10 @@ FC_API( graphene::wallet::wallet_api,
 		(get_votes)
 		(create_vote)
 		(cast_vote)
-			/*(name_transfer_to_address)
-			(confirm_name_transfer)
-			(undertaker_customize)
-			(confirm_undertaker)*/
+		(name_transfer_to_address)
+		(confirm_name_transfer)
+		(undertaker_customize)
+		(confirm_undertaker)
 		(get_pledge)
 		(build_transaction)
       )
