@@ -66,16 +66,29 @@ struct skip_flags_restorer
  * TODO:  Change the name of this class to better reflect the fact
  * that it restores popped transactions as well as pending transactions.
  */
+
+extern std::ofstream* pfile;
 struct pending_transactions_restorer
 {
+public:
+	static bool restore_log;
    pending_transactions_restorer( database& db, std::vector<processed_transaction>&& pending_transactions )
       : _db(db), _pending_transactions( std::move(pending_transactions) )
    {
+	   if (!restore_log)
+	   {
+		   pfile = new std::ofstream();
+		   pfile->open("pending_log");
+		   restore_log = true;
+		   (*pfile) << "start pending_restorer:" << db.head_block_num() << std::endl;
+	   }
+		  
       _db.clear_pending();
    }
 
    ~pending_transactions_restorer()
    {
+	  
       for( const auto& tx : _db._popped_tx )
       {
          try {
@@ -110,16 +123,25 @@ struct pending_transactions_restorer
                // since push_transaction() takes a signed_transaction,
                // the operation_results field will be ignored.
                //_db._push_transaction( tx );
+				(*pfile) << string(tx.id()) << ":";
+				for (const auto & op : tx.operations)
+				{
+					(*pfile) <<  fc::json::to_string(op.which()) << ";";
+				}
+				(*pfile) << std::endl;
 				_db.push_transaction(tx, _db.get_node_properties().skip_flags | database::validation_steps::skip_contract_exec);
             }
          }
          catch( const fc::exception& e )
          {
+			 (*pfile) << "pending_restorer end error:" << e.what() << std::endl;
             /*
             wlog( "Pending transaction became invalid after switching to block ${b}  ${t}", ("b", _db.head_block_id())("t",_db.head_block_time()) );
             wlog( "The invalid pending transaction caused exception ${e}", ("e", e.to_detail_string() ) );
             */
          }
+
+		 (*pfile) << "pending_restorer end normal;"  << std::endl;
       }
    }
 

@@ -65,7 +65,14 @@
 #define STACK_FILE_NAME  "stack"
 #define STORAGE_FILE_NAME "storage"
 
-namespace graphene { namespace db {
+namespace graphene {
+	namespace chain {
+		namespace detail
+		{
+			extern std::ofstream* pfile;
+		}
+	}
+	namespace db {
     using namespace graphene::chain;
 
 template<typename T, typename... Args>
@@ -224,6 +231,7 @@ void undo_database::merge()
    auto& state = back.back();
    auto& prev_state = back[back.size() - 2];
 
+   (*chain::detail::pfile) << "0:" << fc::json::to_string(state.new_ids) << std::endl << "1:" << fc::json::to_string(prev_state.new_ids) << std::endl;
    //auto& state = back.;
    //undo_state sta;
    //FC_ASSERT(state_storage->get_state(_stack.back(), sta));
@@ -334,6 +342,8 @@ void undo_database::merge()
       // nop + del(was=Y) -> del(was=Y)
       prev_state.removed[obj.second->id] = std::move(obj.second);
    }
+
+   (*chain::detail::pfile) << "3:" << fc::json::to_string(back.back().new_ids) << std::endl;
    back.pop_back();
    if (_stack.size() > 0&&back.size()<=5)
    {
@@ -383,6 +393,7 @@ void undo_database::pop_commit()
 
 	   for (auto& item : state.removed)
 		   _db.insert(std::move(*item.second));
+	   (*chain::detail::pfile) << "6:" << fc::json::to_string(back.back().new_ids) << std::endl;
 	   back.pop_back();
 	   //将stack中的最后一个取出设置为back
 	   if (_stack.size() > 0 && back.size() <= 5)
@@ -400,6 +411,7 @@ void undo_database::pop_commit()
 			   _stack.pop_back();
 		   }
 	   } 
+	   (*chain::detail::pfile) << "7:" << fc::json::to_string(back.back().new_ids) << std::endl;
 	   std::cout << "back_size:" << back.size() << std::endl;
    }
 
@@ -755,9 +767,9 @@ std::unique_ptr<object> db::serializable_obj::to_object() const
 {
     switch (s)
     {
-    case chain::protocol_ids:
+	case graphene::chain::protocol_ids:
         return to_protocol_object(t,obj);
-    case  chain::implementation_ids:
+	case  graphene::chain::implementation_ids:
         return  to_implementation_object(t,obj);
     default:
         throw;

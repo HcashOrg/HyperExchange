@@ -39,7 +39,10 @@
 #include <fc/smart_ref_impl.hpp>
 
 namespace graphene { namespace chain {
-
+namespace detail{
+	bool pending_transactions_restorer::restore_log=false;
+	std::ofstream* pfile;
+}
 bool database::is_known_block( const block_id_type& id )const
 {
    return _fork_db.is_known_block(id) || _block_id_to_block.contains(id);
