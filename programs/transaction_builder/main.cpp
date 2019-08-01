@@ -30,6 +30,7 @@ using namespace graphene::chain;
 
 		int main()
 		{
+			address::testnet_mode = true;
 			auto api = make_shared<graphene::builder::transaction_builder_api>(graphene::builder::transaction_builder_api());
 			auto _websocket_server = std::make_shared<fc::http::websocket_server>();
 			_websocket_server->on_connection([&](const fc::http::websocket_connection_ptr& c) {

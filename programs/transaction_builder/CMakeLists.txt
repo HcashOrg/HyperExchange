@@ -1,4 +1,4 @@
-add_executable( transaction_builder main.cpp )
+add_executable( transaction_builder main.cpp builder_api.cpp)
 if( UNIX AND NOT APPLE )
   set(rt_library rt )
 endif()

@@ -20,12 +20,11 @@ namespace graphene
 			transaction_builder_api();
 			~transaction_builder_api();
 			
-			chain::signed_transaction build_transfer_transaction(const chain::address& from, const chain::address& to, const string& amount,const asset_id_type& asset_id, const int precision, const string & fee_amount, const string&memo)const;
-			chain::signed_transaction sign_transaction_with_key(const signed_transaction& trx, const string&key) const;
-			int test() { return 0; }
+			chain::signed_transaction build_transfer_transaction(const chain::address& from, const chain::address& to, const string& amount,const asset_id_type& asset_id, const int precision, const string & fee_amount, const string&memo,const block_id_type& ref_blk)const;
+			chain::signed_transaction sign_transaction_with_key(const signed_transaction& trx, const string&key, const string& chain_id) const;
 
 		};
 	}
 }
 
-FC_API(graphene::builder::transaction_builder_api,(build_transfer_transaction)(sign_transaction_with_key)(test))
+FC_API(graphene::builder::transaction_builder_api,(build_transfer_transaction)(sign_transaction_with_key))
