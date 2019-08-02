@@ -151,4 +151,8 @@ namespace uvm
 		return code_stream;
 	}
 
+	std::shared_ptr<uvm::lua::lib::UvmStateScope> UvmContractEngine::scope() const {
+		return _scope;
+	}
+
 }

@@ -23,6 +23,7 @@ namespace uvm
 		virtual void set_no_gas_limit();
 		virtual void set_gas_used(int64_t gas_used);
 		virtual void add_gas_used(int64_t delta_used);
+		std::shared_ptr<uvm::lua::lib::UvmStateScope> scope() const;
 
 		virtual void stop();
 
