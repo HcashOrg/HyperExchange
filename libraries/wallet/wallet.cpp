@@ -6486,6 +6486,8 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
 		   auto acc_obj = _remote_db->get_account(from);
 		   FC_ASSERT(acc_obj.addr != address());
+		   FC_ASSERT(!(acc_obj.alias.valid()));
+		   FC_ASSERT(!(get_account_by_addr(to)->alias.valid()));
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   transfer_operation xfer_op;
 		   xfer_op.from_addr = to;
