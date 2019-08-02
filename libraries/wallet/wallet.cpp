@@ -447,6 +447,7 @@ private:
 	  }
 	  if (!_wallet.pending_name_transfer.empty())
 	  {
+		  vector<address> erased_addr;
 		  for (const auto& itr : _wallet.pending_name_transfer)
 		  {
 			  auto addr = itr.first;
@@ -460,14 +461,16 @@ private:
 					  if (acct->alias.valid())
 						  continue;
 					  claim_account_update(*acct);
-					  _wallet.pending_name_transfer.erase(addr);
-					  break;
+					  erased_addr.push_back(addr);
 				  }
 			  }
 			  catch (...)
 			  {
 			  }
 		  }
+		  for (const auto& addr : erased_addr)
+			  _wallet.pending_name_transfer.erase(addr);
+
 	  }
    }
    void enable_umask_protection()
