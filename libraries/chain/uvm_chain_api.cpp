@@ -298,8 +298,7 @@ namespace graphene {
 
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			std::string contract_id = uvm::lua::lib::unwrap_any_contract_name(contract_name);
-			auto code = get_contract_code_by_id(evaluator, contract_id);
-			if (!code)
+			if (!check_contract_exist_by_address(L, contract_id.c_str()))
 			{
 				return null_storage;
 			}
@@ -320,8 +319,7 @@ namespace graphene {
 
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			std::string contract_id(contract_address);
-			auto code = get_contract_code_by_id(evaluator, contract_id);
-			if (!code)
+			if (!check_contract_exist_by_address(L, contract_address))
 			{
 				return null_storage;
 			}
