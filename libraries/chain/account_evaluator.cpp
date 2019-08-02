@@ -678,6 +678,7 @@ void_result name_transfer_evaluator::do_evaluate(const name_transfer_operation& 
 		FC_ASSERT(to_iter != acc_idx.end(), "${to} is not a registered account", ("to", o.to));
 		FC_ASSERT(o.from != o.to);
 		FC_ASSERT(!(from_iter->alias.valid()) && !(to_iter->alias.valid()));
+		FC_ASSERT(d.get_account_address(o.original) == o.from);
 		if (o.newname.valid())
 		{
 			FC_ASSERT(d.get_account_address(*(o.newname)) == address(), "${name} should not be registered in the chain.", ("name", *(o.newname)));

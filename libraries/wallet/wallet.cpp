@@ -461,6 +461,7 @@ private:
 						  continue;
 					  claim_account_update(*acct);
 					  _wallet.pending_name_transfer.erase(addr);
+					  break;
 				  }
 			  }
 			  catch (...)
@@ -6490,6 +6491,7 @@ public:
 
 		   name_transfer_operation n_op;
 		   n_op.from = acc_obj.addr;
+		   n_op.original = acc_obj.name;
 		   n_op.to = address(to);
 		   if (newname != "")
 			   n_op.newname = newname;
@@ -10574,7 +10576,8 @@ void wallet_api::start_mining(const vector<string>& accts)
 	for (auto acct : accts)
 	{
 		auto oac=idx.find(acct);
-		FC_ASSERT(oac!= idx.end(), "account not found!");
+		if (oac == idx.end())
+			continue;
 		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
 		if (!witness.valid())
