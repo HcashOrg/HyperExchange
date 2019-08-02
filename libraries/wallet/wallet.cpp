@@ -256,10 +256,7 @@ private:
          //}
       _wallet.pending_account_registrations.erase( it );
    }
-   void claim_account_update(const account_object& obj)
-   {
-		   _wallet.update_account(obj);
-   }
+  
    // after a witness registration succeeds, this saves the private key in the wallet permanently
    //
    void claim_registered_miner(const std::string& witness_name)
@@ -570,7 +567,10 @@ public:
          // dlog("Caught exception ${e} while canceling database subscriptions", ("e", e));
       }
    }
-
+   void claim_account_update(const account_object& obj)
+   {
+	   _wallet.update_account(obj);
+   }
    void schedule_loop()
    {
 	   //std::cout << "schedule_loop" << std::endl;
@@ -8056,6 +8056,12 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    fc::optional<account_object> obj = acc;
    if (!maybe_id<account_id_type>(account_name_or_id))
 	   obj = get_account_by_addr(acc.addr);
+
+   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj))
+   {
+	   my->claim_account_update(*obj);
+   }
+
    if (obj.valid())
    {
 	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
