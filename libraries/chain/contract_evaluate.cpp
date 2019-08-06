@@ -691,6 +691,15 @@ namespace graphene {
             pay_fee_and_refund();
 		}
 
+		bool contract_register_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		{
+			if (contract_register_operation::get_first_contract_id() == addr)
+				return true;
+			if (origin_op.contract_id == addr)
+				return true;
+			return false;
+		}
+
 		void native_contract_register_evaluate::pay_fee() {
             pay_fee_and_refund();
 		}
@@ -1560,7 +1569,18 @@ namespace graphene {
 				 return "other";
 			 }
 		 }
-         bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
+
+		 bool contract_common_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract(addr, method);
+		 }
+
+		 bool contract_common_evaluate::has_contract_of_name(const string& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract_of_name(addr);
+		 }
+
+		 bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
          {
              auto obj=get_db().get_asset(GRAPHENE_SYMBOL);
              FC_ASSERT(obj.valid());
