@@ -119,7 +119,7 @@ namespace graphene {
 					if (evaluator) {
 						return evaluator->has_contract(address(contract_id));
 					}
-					return nullptr;
+					return false;
 				}FC_CAPTURE_AND_LOG((nullptr))
 			}
 			catch (...) {
@@ -133,7 +133,7 @@ namespace graphene {
 					if (evaluator) {
 						return evaluator->has_contract_of_name(contract_name);
 					}
-					return nullptr;
+					return false;
 				}FC_CAPTURE_AND_LOG((nullptr))
 			}
 			catch (...) {
