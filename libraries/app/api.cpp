@@ -156,26 +156,26 @@ namespace graphene { namespace app {
     }
     void localnode_api::witness_node_stop()
     {
-        raise(SIGINT);
+        /*raise(SIGINT);*/
     }
 	string localnode_api::get_data_dir()
 	{
-		auto ret = _app.get_data_dir();
-		return ret.generic_string();
+		/*auto ret = _app.get_data_dir();
+		return ret.generic_string();*/
+		return "";
 	}
 
     void miner_api::start_miner(bool start)
     {
-
-        auto plu = _app.get_plugin("miner");
-        FC_ASSERT(plu.get()!=NULL);
-        miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
-        pl->set_block_production(start);
+		/* auto plu = _app.get_plugin("miner");
+		 FC_ASSERT(plu.get()!=NULL);
+		 miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
+		 pl->set_block_production(start);*/
 
     }
 	void miner_api::set_miner(const map<chain::miner_id_type, fc::ecc::private_key>& keys, bool add)
 	{
-		auto cplu = _app.get_plugin("crosschain record"); 
+		/*auto cplu = _app.get_plugin("crosschain record");
 		crosschain::crosschain_record_plugin* cpl = dynamic_cast<crosschain::crosschain_record_plugin*>(cplu.get());
 		if (!cpl->running()&&keys.size()>0)
 			cpl->startup_whatever();
@@ -183,7 +183,7 @@ namespace graphene { namespace app {
 		FC_ASSERT(plu.get() != NULL);
 		miner_plugin::miner_plugin* pl = dynamic_cast<miner_plugin::miner_plugin*>(plu.get());
 		pl->set_miner(keys,add);
-		pl->set_block_production(true);
+		pl->set_block_production(true);*/
 	}
     // block_api
     block_api::block_api(graphene::chain::database& db) : _db(db) { }
@@ -261,11 +261,11 @@ namespace graphene { namespace app {
 	}
 	void transaction_api::set_tracked_addr(const address& addr)
 	{
-		auto ptr = _app.get_plugin("transaction_plugin");
+		/*auto ptr = _app.get_plugin("transaction_plugin");
 		auto plugin_ptr = dynamic_cast<graphene::transaction::transaction_plugin*>(ptr.get());
 		vector<address> vec;
 		vec.push_back(addr);
-		plugin_ptr->add_tracked_address(vec);
+		plugin_ptr->add_tracked_address(vec);*/
 	}
 
     network_broadcast_api::network_broadcast_api(application& a):_app(a)
