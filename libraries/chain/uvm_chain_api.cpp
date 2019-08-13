@@ -4,6 +4,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/address.hpp>
 #include <uvm/exceptions.h>
+#include <uvm/json_reader.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
@@ -1117,6 +1118,12 @@ namespace graphene {
 		}
 
 		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
+			auto blknum = get_header_block_num_without_gas(L);
+			if(blknum < VM_ALLOW_DISABLE_JSON_LOADS) {
+				Json_Reader::vm_disable_json_loads_negative = true;
+			} else {
+				Json_Reader::vm_disable_json_loads_negative = false;
+			}	
 				if(true)
 					return;
 				printf("before_contract_invoke txid: %s, contract: %s\n", txid.c_str(), contract_addr.c_str());
