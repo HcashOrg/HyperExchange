@@ -1119,7 +1119,7 @@ namespace graphene {
 
 		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
 			auto blknum = get_header_block_num_without_gas(L);
-			if(blknum < VM_ALLOW_DISABLE_JSON_LOADS) {
+			if(blknum < VM_ALLOW_DISABLE_JSON_LOADS_NEGATIVE) {
 				Json_Reader::vm_disable_json_loads_negative = true;
 			} else {
 				Json_Reader::vm_disable_json_loads_negative = false;
