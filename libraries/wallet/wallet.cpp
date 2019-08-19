@@ -256,10 +256,7 @@ private:
          //}
       _wallet.pending_account_registrations.erase( it );
    }
-   void claim_account_update(const account_object& obj)
-   {
-		   _wallet.update_account(obj);
-   }
+  
    // after a witness registration succeeds, this saves the private key in the wallet permanently
    //
    void claim_registered_miner(const std::string& witness_name)
@@ -447,26 +444,30 @@ private:
 	  }
 	  if (!_wallet.pending_name_transfer.empty())
 	  {
+		  vector<address> erased_addr;
 		  for (const auto& itr : _wallet.pending_name_transfer)
 		  {
-			  auto acc_id = itr.first;
+			  auto addr = itr.first;
 			  auto trx_id = itr.second;
 			  try {
 				  auto trx = _remote_db->get_transaction_by_id(trx_id);
 
 				  if (trx.valid())
 				  {
-					  auto acct = get_account(acc_id);
-					  if (acct.alias.valid())
+					  auto acct = get_account_by_addr(addr);
+					  if (acct->alias.valid())
 						  continue;
-					  claim_account_update(acct);
-					  _wallet.pending_name_transfer.erase(acc_id);
+					  claim_account_update(*acct);
+					  erased_addr.push_back(addr);
 				  }
 			  }
 			  catch (...)
 			  {
 			  }
 		  }
+		  for (const auto& addr : erased_addr)
+			  _wallet.pending_name_transfer.erase(addr);
+
 	  }
    }
    void enable_umask_protection()
@@ -566,7 +567,10 @@ public:
          // dlog("Caught exception ${e} while canceling database subscriptions", ("e", e));
       }
    }
-
+   void claim_account_update(const account_object& obj)
+   {
+	   _wallet.update_account(obj);
+   }
    void schedule_loop()
    {
 	   //std::cout << "schedule_loop" << std::endl;
@@ -6486,6 +6490,8 @@ public:
 		   FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", amount.asset_id));
 		   auto acc_obj = _remote_db->get_account(from);
 		   FC_ASSERT(acc_obj.addr != address());
+		   FC_ASSERT(!(acc_obj.alias.valid()));
+		   FC_ASSERT(!(get_account_by_addr(to)->alias.valid()));
 		   const chain_parameters& current_params = get_global_properties().parameters;
 		   transfer_operation xfer_op;
 		   xfer_op.from_addr = to;
@@ -6494,6 +6500,7 @@ public:
 
 		   name_transfer_operation n_op;
 		   n_op.from = acc_obj.addr;
+		   n_op.original = acc_obj.name;
 		   n_op.to = address(to);
 		   if (newname != "")
 			   n_op.newname = newname;
@@ -6518,7 +6525,7 @@ public:
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
-		   _wallet.pending_name_transfer[acc_obj.id] = tx.id();
+		   _wallet.pending_name_transfer[acc_obj.addr] = tx.id();
 		   return fc::to_base58(json_str.c_str(), json_str.size());
 	   }FC_CAPTURE_AND_RETHROW((from)(to)(amount)(newname)(broadcast))
    }
@@ -6551,7 +6558,6 @@ public:
 			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 			tx.validate();
 			auto json_str = fc::json::to_string(tx);
-			_wallet.pending_name_transfer[acc_obj.id] = tx.id();
 			return fc::to_base58(json_str.c_str(), json_str.size());
 
 	   }FC_CAPTURE_AND_RETHROW((maker)(taker)(maker_op)(taker_op))
@@ -8054,6 +8060,12 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    fc::optional<account_object> obj = acc;
    if (!maybe_id<account_id_type>(account_name_or_id))
 	   obj = get_account_by_addr(acc.addr);
+
+   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj))
+   {
+	   my->claim_account_update(*obj);
+   }
+
    if (obj.valid())
    {
 	   fc::mutable_variant_object m_obj = fc::variant(obj).as<fc::mutable_variant_object>();
@@ -8165,7 +8177,7 @@ full_transaction wallet_api::confirm_name_transfer(string account, string trx, b
 	try {
 		const account_object& acc = my->get_account(account);
 		string tx = sign_multisig_trx(acc.addr, trx);
-		my->_wallet.pending_name_transfer[acc.id] = decode_multisig_transaction(trx).id();
+		my->_wallet.pending_name_transfer[acc.addr] = decode_multisig_transaction(trx).id();
 		return combine_transaction({ tx }, broadcast);
 	}FC_CAPTURE_AND_RETHROW((account)(trx)(broadcast))
 }
@@ -10579,7 +10591,8 @@ void wallet_api::start_mining(const vector<string>& accts)
 	for (auto acct : accts)
 	{
 		auto oac=idx.find(acct);
-		FC_ASSERT(oac!= idx.end(), "account not found!");
+		if (oac == idx.end())
+			continue;
 		auto acc_obj = *(oac);
 		fc::optional<miner_object> witness = my->_remote_db->get_miner_by_account(acc_obj.get_id());
 		if (!witness.valid())

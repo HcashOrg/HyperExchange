@@ -105,6 +105,16 @@ namespace graphene {
 			string exception_msg;
             gas_count = o.init_cost;
 			try {
+			// verify contract bytecode stream format
+			auto L = engine->scope()->L();
+			auto code_stream = uvm::lua::api::global_uvm_chain_api->get_bytestream_from_code(L, o.contract_code);
+			if (!code_stream)
+				throw uvm::core::UvmException("invalid contract bytecode format");
+			char contract_format_err[LUA_COMPILE_ERROR_MAX_LENGTH] = { 0 };
+			if(!uvm::lua::lib::check_contract_bytecode_stream(L, code_stream.get(), contract_format_err))
+				throw uvm::core::UvmException("invalid contract bytecode format");
+			lua_pop(L, 1); // pop stream
+
 				origin_op = o;
 				if (!d.has_contract(fid))
 					origin_op.contract_id = fid;
@@ -680,6 +690,15 @@ namespace graphene {
 
 		void contract_register_evaluate::pay_fee() {
             pay_fee_and_refund();
+		}
+
+		bool contract_register_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		{
+			if (contract_register_operation::get_first_contract_id() == addr)
+				return true;
+			if (origin_op.contract_id == addr)
+				return true;
+			return false;
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
@@ -1551,7 +1570,18 @@ namespace graphene {
 				 return "other";
 			 }
 		 }
-         bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
+
+		 bool contract_common_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract(addr, method);
+		 }
+
+		 bool contract_common_evaluate::has_contract_of_name(const string& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract_of_name(addr);
+		 }
+
+		 bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
          {
              auto obj=get_db().get_asset(GRAPHENE_SYMBOL);
              FC_ASSERT(obj.valid());

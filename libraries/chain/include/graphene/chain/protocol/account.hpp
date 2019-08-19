@@ -438,6 +438,7 @@ namespace graphene { namespace chain {
 	   asset fee;
 	   address from;
 	   address to;
+	   string original;
 	   optional<string> newname;
 	   optional<guarantee_object_id_type> guarantee_id;
 	   optional<guarantee_object_id_type> get_guarantee_id()const { return guarantee_id; }
@@ -500,4 +501,4 @@ FC_REFLECT(graphene::chain::cancel_whiteOperation_list_operation, (fee)(whiteAdd
 FC_REFLECT(graphene::chain::undertaker_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::undertaker_operation, (fee)(maker)(taker)(maker_op)(taker_op)(guarantee_id))
 FC_REFLECT(graphene::chain::name_transfer_operation::fee_parameters_type, (fee))
-FC_REFLECT(graphene::chain::name_transfer_operation, (fee)(from)(to)(newname)(guarantee_id))
+FC_REFLECT(graphene::chain::name_transfer_operation, (fee)(from)(to)(original)(newname)(guarantee_id))

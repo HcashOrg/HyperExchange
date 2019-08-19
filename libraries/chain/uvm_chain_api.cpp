@@ -4,6 +4,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/address.hpp>
 #include <uvm/exceptions.h>
+#include <uvm/json_reader.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
@@ -112,7 +113,34 @@ namespace graphene {
 			}FC_CAPTURE_AND_LOG((0))
 		}
 
-
+		static bool check_contract_exsited_by_id(contract_common_evaluate* evaluator, const string& contract_id)
+		{
+			try {
+				try {
+					if (evaluator) {
+						return evaluator->has_contract(address(contract_id));
+					}
+					return false;
+				}FC_CAPTURE_AND_LOG((nullptr))
+			}
+			catch (...) {
+				return false;
+			}
+		}
+		static bool check_contract_exsited_by_name(contract_common_evaluate* evaluator, const string& contract_name)
+		{
+			try {
+				try {
+					if (evaluator) {
+						return evaluator->has_contract_of_name(contract_name);
+					}
+					return false;
+				}FC_CAPTURE_AND_LOG((nullptr))
+			}
+			catch (...) {
+				return false;
+			}
+		}
 		static std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(contract_common_evaluate* evaluator, const string& contract_id) {
             try {
             try {
@@ -221,15 +249,13 @@ namespace graphene {
 		bool UvmChainApi::check_contract_exist_by_address(lua_State *L, const char *address)
 		{
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-			auto code = get_contract_code_by_id(evaluator, std::string(address));
-			return code ? true : false;
+			return check_contract_exsited_by_id(evaluator, std::string(address));
 		}
 
 		bool UvmChainApi::check_contract_exist(lua_State *L, const char *name)
 		{
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
-			auto code = get_contract_code_by_name(evaluator, std::string(name));
-			return code ? true : false;
+			return  check_contract_exsited_by_name(evaluator, std::string(name));
 		}
 
 		std::shared_ptr<UvmModuleByteStream> UvmChainApi::get_bytestream_from_code(lua_State *L, const uvm::blockchain::Code& code)
@@ -298,8 +324,7 @@ namespace graphene {
 
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			std::string contract_id = uvm::lua::lib::unwrap_any_contract_name(contract_name);
-			auto code = get_contract_code_by_id(evaluator, contract_id);
-			if (!code)
+			if (!check_contract_exist_by_address(L, contract_id.c_str()))
 			{
 				return null_storage;
 			}
@@ -320,8 +345,7 @@ namespace graphene {
 
 			auto evaluator = contract_common_evaluate::get_contract_evaluator(L);
 			std::string contract_id(contract_address);
-			auto code = get_contract_code_by_id(evaluator, contract_id);
-			if (!code)
+			if (!check_contract_exist_by_address(L, contract_address))
 			{
 				return null_storage;
 			}
@@ -1108,6 +1132,12 @@ namespace graphene {
 		}
 
 		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
+			auto blknum = get_header_block_num_without_gas(L);
+			if(blknum < VM_ALLOW_DISABLE_JSON_LOADS_NEGATIVE) {
+				Json_Reader::vm_disable_json_loads_negative = true;
+			} else {
+				Json_Reader::vm_disable_json_loads_negative = false;
+			}	
 				if(true)
 					return;
 				printf("before_contract_invoke txid: %s, contract: %s\n", txid.c_str(), contract_addr.c_str());

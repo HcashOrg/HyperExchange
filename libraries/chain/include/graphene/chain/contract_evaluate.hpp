@@ -74,8 +74,9 @@ namespace graphene {
             void apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const;
 
 			std::string get_address_role(const std::string& addr_str) const;
-
-			static contract_common_evaluate* get_contract_evaluator(lua_State *L); 
+			virtual bool has_contract(const address& addr, const string& method = "");
+			virtual bool has_contract_of_name(const string& addr, const string& method = "");
+			static contract_common_evaluate* get_contract_evaluator(lua_State *L);
             virtual optional<guarantee_object_id_type> get_guarantee_id()const = 0;
 		};
 
@@ -90,7 +91,7 @@ namespace graphene {
             contract_operation_result_info do_apply(const operation_type& o);
 			bool if_evluate() override { return true; }
 			virtual void pay_fee() override;
-
+			virtual bool has_contract(const address& addr, const string& method = "");
 			std::shared_ptr<UvmContractInfo> get_contract_by_id(const string &contract_id) const;
 			std::shared_ptr<uvm::blockchain::Code> get_contract_code_by_id(const string &contract_id) const;
 			address origin_op_contract_id() const;
