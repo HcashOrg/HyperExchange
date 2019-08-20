@@ -827,15 +827,16 @@ namespace graphene {
 		}
 		void abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con)
 		{
-			std::lock_guard<std::mutex>lock(eps_lock);
-			FC_ASSERT(midware_eps.size() > 0);
+
 			vector<int> counts;
 			int ep_idx = -1;
 			while(ep_idx==-1)
 			{
-				int ep_count = midware_eps.size();
 				bool caught = false;
 				try {
+					std::lock_guard<std::mutex>lock(eps_lock);
+					FC_ASSERT(midware_eps.size() > 0);
+					int ep_count = midware_eps.size();
 					ep_idx = con.connect_to_servers(midware_eps, counts);
 					for (int i = 0; i < ep_count; i++)
 					{

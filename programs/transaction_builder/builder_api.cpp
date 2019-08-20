@@ -31,10 +31,9 @@ namespace graphene {
 			{
 				xfer_op.memo = memo_data();
 				xfer_op.memo->from = public_key_type();
-				xfer_op.memo->to = public_key_type();
+				xfer_op.memo->to = public_key_type(); 
 				xfer_op.memo->set_message(private_key_type(),
 					public_key_type(), memo);
-
 			}
 			xfer_op.fee = tfee;
 			signed_transaction tx;

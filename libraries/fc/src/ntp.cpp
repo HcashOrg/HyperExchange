@@ -21,7 +21,7 @@
 #include <atomic>
 #include <array>
 #include <fc/thread/mutex.hpp>
-
+#include <fc/thread/scoped_lock.hpp>
 namespace fc
 {
     namespace bch = boost::chrono;
@@ -34,7 +34,7 @@ namespace fc
 		  static std::map<string, ntp_info> db;
 		  static int64_t select(const ntp_info& info)
 		  {
-			  mu.lock();
+			  ::fc::scoped_lock<::fc::mutex> lock(mu);
 			  db[info.from] = info;
 			  auto now = time_point::now();
 			  //half an hour
@@ -63,7 +63,6 @@ namespace fc
 					  it++;
 				  }
 			  }
-			  mu.unlock();
 			  if (count == 0)
 				  return 0;
 			  if (db.size() > 5)
@@ -76,10 +75,8 @@ namespace fc
 		  }
 		  static void clear()
 		  {
-
-			  mu.lock();
+			  ::fc::scoped_lock<::fc::mutex> lock(mu);
 			  db.clear();
-			  mu.unlock();
 		  }
 	  };
 	  
