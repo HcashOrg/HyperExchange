@@ -84,6 +84,17 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _undo_db.enable();
    _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
    reinitialize_leveldb();
+   if (l_db != nullptr)
+	   delete l_db;
+   leveldb::Options options;
+   options.create_if_missing = true;
+   open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &l_db);
+   if (!open_status.ok())
+   {
+	   l_db = nullptr;
+	   elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+	   FC_ASSERT(false, "database open error");
+   }
    uint32_t undo_enable_num = last_block_num - 1440;
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
@@ -198,6 +209,15 @@ void database::open(
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 		  initialize_leveldb();
+		  leveldb::Options options;
+		  options.create_if_missing = true;
+		  open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &l_db);
+		  if (!open_status.ok())
+		  {
+			  l_db = nullptr;
+			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			  FC_ASSERT(false, "database open error");
+		  }
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 } 
@@ -271,6 +291,10 @@ void database::close()
    //_undo_db.reset();
    _fork_db.reset();
    destruct_leveldb();
+
+   if (l_db != nullptr)
+	   delete l_db;
+   l_db = nullptr;
 }
 
 } }

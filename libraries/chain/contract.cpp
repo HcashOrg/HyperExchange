@@ -16,6 +16,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <graphene/chain/contract_object.hpp>
 
 namespace graphene {
 	namespace chain {
@@ -113,6 +114,39 @@ namespace graphene {
 			}
 		}	
 	}
+
+	void contract_invoke_result::transfer_from_obj(const contract_invoke_result_object& obj)
+	{
+		api_result = obj.api_result;
+		events = obj.events;
+		exec_succeed = obj.exec_succeed;
+		acctual_fee = obj.acctual_fee;
+		invoker = obj.invoker;
+		contract_registed = obj.contract_registed;
+
+		for (auto it = obj.contract_withdraw.begin(); it != obj.contract_withdraw.end(); it++)
+		{
+			contract_withdraw.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.contract_balances.begin(); it != obj.contract_balances.end(); it++)
+		{
+			contract_balances.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.deposit_contract.begin(); it != obj.deposit_contract.end(); it++)
+		{
+			deposit_contract.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.deposit_to_address.begin(); it != obj.deposit_to_address.end(); it++)
+		{
+			deposit_to_address.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.transfer_fees.begin(); it != obj.transfer_fees.end(); it++)
+		{
+			transfer_fees.insert(make_pair(it->first, it->second));
+		}
+
+	}
+
 
 	int64_t contract_invoke_result::count_storage_gas() const {
 		cbor_diff::CborDiff differ;

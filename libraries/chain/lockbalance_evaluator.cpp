@@ -16,7 +16,7 @@ namespace graphene{
 					optional<account_object> account_iter = d.get(o.lock_balance_account);
 					FC_ASSERT(account_iter.valid() && account_iter->addr == o.lock_balance_addr, "Address is wrong");
 					bool insufficient_balance = d.get_balance(o.lock_balance_addr, asset_type.id).amount >= o.lock_asset_amount;
-					FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough");
+					FC_ASSERT(insufficient_balance, "Lock balance fail because lock account own balance is not enough,real is ${amount}",("amount", d.get_balance(o.lock_balance_addr, asset_type.id).amount));
 				}
 				else {
 					//TODO : ADD Handle Contact lock balance

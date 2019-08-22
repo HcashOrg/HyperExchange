@@ -368,7 +368,7 @@ namespace graphene { namespace chain {
 
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
-
+		 optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id,const uint32_t op_num)const;
          vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
 		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
@@ -551,7 +551,8 @@ namespace graphene { namespace chain {
       private:
          optional<undo_database::session>       _pending_tx_session;
          vector< unique_ptr<op_evaluator> >     _operation_evaluators;
-
+		 leveldb::DB* l_db = nullptr;;
+		 leveldb::Status open_status;
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
 		 template<class Index>
@@ -565,6 +566,7 @@ namespace graphene { namespace chain {
          processed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
 		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
+		 leveldb::DB*          get_contract_db()const { return l_db; }
       private:
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
@@ -572,6 +574,7 @@ namespace graphene { namespace chain {
 		 bool                  _need_rollback(const proposal_object& proposal);
          ///Steps involved in applying a new block
          ///@{
+		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
 
          const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
          const miner_object& _validate_block_header( const signed_block& next_block )const;
