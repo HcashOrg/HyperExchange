@@ -651,12 +651,14 @@ namespace graphene { namespace chain {
          //gas_price check
 		 share_type                        _min_gas_price = 1;
 		 share_type						   _gas_limit_in_in_block = 2000000;
-		 share_type						   _current_gas_in_block= 0;
+		 share_type						   _current_gas_in_block= 0;	 
 	public:
 		bool ontestnet = false;
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
 		std::mutex                         db_lock;
+		bool								sync_mode = false;
+		fc::variant_object				   _network_get_info_data;
    };
 
    namespace detail
