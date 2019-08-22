@@ -1,9 +1,10 @@
+#include <uvm/json_reader.h>
+#include <uvm/exceptions.h>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/address.hpp>
-#include <uvm/exceptions.h>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
@@ -119,7 +120,7 @@ namespace graphene {
 					if (evaluator) {
 						return evaluator->has_contract(address(contract_id));
 					}
-					return nullptr;
+					return false;
 				}FC_CAPTURE_AND_LOG((nullptr))
 			}
 			catch (...) {
@@ -133,7 +134,7 @@ namespace graphene {
 					if (evaluator) {
 						return evaluator->has_contract_of_name(contract_name);
 					}
-					return nullptr;
+					return false;
 				}FC_CAPTURE_AND_LOG((nullptr))
 			}
 			catch (...) {
@@ -1117,6 +1118,12 @@ namespace graphene {
 		}
 
 		void UvmChainApi::before_contract_invoke(lua_State* L, const std::string& contract_addr, const std::string& txid) {
+			auto blknum = get_header_block_num_without_gas(L);
+			if(blknum < VM_ALLOW_DISABLE_JSON_LOADS_NEGATIVE) {
+				Json_Reader::vm_disable_json_loads_negative = true;
+			} else {
+				Json_Reader::vm_disable_json_loads_negative = false;
+			}	
 				if(true)
 					return;
 				printf("before_contract_invoke txid: %s, contract: %s\n", txid.c_str(), contract_addr.c_str());

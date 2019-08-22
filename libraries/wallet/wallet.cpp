@@ -7427,6 +7427,11 @@ public:
 
    fc::variant_object network_get_info()
    {
+	   auto data = _remote_db->get_sync_mode_network_info();
+	   if (data.first == true) {
+		   std::cout << "using baking data!" << std::endl;
+		   return data.second;
+	   }
 	   use_network_node_api();
 	   return (*_remote_net_node)->get_info();
    }
