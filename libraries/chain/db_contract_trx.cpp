@@ -67,7 +67,9 @@ namespace graphene {
 				return result;*/
 				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
 				auto start = contract_id.address_to_string()+"|set_storage|";
-				for (it->Seek(start); it->Valid() && (it->key().starts_with(start) == 0); it->Next()) {
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
 					auto value = it->value().ToString();
 					if (it->key().ToString() == start)
 						continue;
@@ -332,7 +334,9 @@ namespace graphene {
 
 				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
 				auto start = trx_id.str()+"|invoke_result|";
-				for (it->Seek(start); it->Valid() && (it->key().starts_with(trx_id.str()) == 0); it->Next()) {
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
 					auto value = it->value().ToString();
 					if (it->key().ToString() == start)
 						continue;
@@ -371,11 +375,15 @@ namespace graphene {
 				vector<transaction_contract_storage_diff_object> diff_objs;
 				leveldb::Iterator* it = get_contract_db()->NewIterator(read_options);
 				auto start = trx_id.str() + "|invoke_result|";
-				for (it->Seek(start); it->Valid() && (it->key().starts_with(trx_id.str()) == 0); it->Next()) {
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
 					need_to_erase.push_back(it->key().ToString());
 				}
 				start = trx_id.str() + "|storage_diff_object|";
-				for (it->Seek(start); it->Valid() && (it->key().starts_with(trx_id.str()) == 0); it->Next()) {
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
 					need_to_erase.push_back(it->key().ToString());
 					if (it->key().ToString() == start)
 						continue;
@@ -518,7 +526,6 @@ namespace graphene {
 				{
 					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", fc::json::to_string(op_num));
 					FC_ASSERT(sta.ok(), "Put Data to contract db failed");
-					return;
 				}
 				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), fc::json::to_string(obj));
 				if (!sta.ok())
