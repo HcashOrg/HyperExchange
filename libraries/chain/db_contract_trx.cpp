@@ -378,19 +378,25 @@ namespace graphene {
 				for (it->Seek(start); it->Valid(); it->Next()) {
 					if (!it->key().starts_with(start))
 						break;
+					if (it->key().ToString() == start)
+						continue;
+					std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
 					need_to_erase.push_back(it->key().ToString());
 				}
 				start = trx_id.str() + "|storage_diff_object|";
 				for (it->Seek(start); it->Valid(); it->Next()) {
 					if (!it->key().starts_with(start))
 						break;
-					need_to_erase.push_back(it->key().ToString());
 					if (it->key().ToString() == start)
 						continue;
+					need_to_erase.push_back(it->key().ToString());
 					auto key = it->key().ToString();
-					transaction_contract_storage_diff_object obj = fc::variant(it->value().ToString()).as<transaction_contract_storage_diff_object>();
+					auto value = it->value().ToString();
+					std::cout <<"storage diff object " << key << ":" << value << std::endl;
+					transaction_contract_storage_diff_object obj = fc::json::from_string(value).as<transaction_contract_storage_diff_object>();
 					diff_objs.push_back(obj);
 					auto contract_name = key.assign(key, start.length());
+					std::cout << "contract name " << contract_name << std::endl;
 					/*auto contract = contract_name.assign(contract_name, 0, contract_name.find_first_of("|"));
 					auto name = contract_name.assign(contract_name, contract_name.find_first_of("|") + 1);*/
 					contract_ids.push_back(contract_name);
