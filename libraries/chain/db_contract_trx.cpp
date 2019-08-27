@@ -10,7 +10,7 @@
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/ripemd160.hpp>
-
+#include <iostream>
 namespace graphene {
 	namespace chain {
 		StorageDataType database::get_contract_storage(const address& contract_id, const string& name)
@@ -395,7 +395,7 @@ namespace graphene {
 					std::cout <<"storage diff object " << key << ":" << value << std::endl;
 					transaction_contract_storage_diff_object obj = fc::json::from_string(value).as<transaction_contract_storage_diff_object>();
 					diff_objs.push_back(obj);
-					auto contract_name = key.assign(key, start.length());
+					auto contract_name = key.assign(key.data(), start.length());
 					std::cout << "contract name " << contract_name << std::endl;
 					/*auto contract = contract_name.assign(contract_name, 0, contract_name.find_first_of("|"));
 					auto name = contract_name.assign(contract_name, contract_name.find_first_of("|") + 1);*/
