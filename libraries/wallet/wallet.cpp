@@ -342,6 +342,7 @@ private:
 			  {}
 		  }
 	  }
+	  /*
       if (_wallet.event_handlers.size() != 0)
       {
           auto& idx = _wallet.event_handlers.get<by_id>();
@@ -418,6 +419,7 @@ private:
           }
           save_wallet_file();
       }
+	  */
 	  if (!_wallet.pending_transactions.empty())
 	  {
 		  for (vector<signed_transaction>::iterator iter = _wallet.pending_transactions.begin(); 
@@ -9342,6 +9344,7 @@ vector<graphene::chain::contract_invoke_result_object> wallet_api::get_contract_
 {
     return my->_remote_db->get_contract_invoke_object(trx_id);
 }
+/*
 std::string wallet_api::add_script(const string& script_path) 
 {
     script_object spt;
@@ -9384,6 +9387,7 @@ bool wallet_api::remove_event_handle(const string& script_hash, const string& co
     save_wallet_file();
     return res;
 }
+*/
 vector<proposal_object>  wallet_api::get_proposal(const string& proposer)
 {
 	return my->get_proposal(proposer);
@@ -9420,7 +9424,7 @@ string wallet_api::help()const
       catch (const fc::key_not_found_exception&)
       {
          ss << method_name << " (no help available)\n";
-      }
+      } 
    }
    return ss.str();
 }
