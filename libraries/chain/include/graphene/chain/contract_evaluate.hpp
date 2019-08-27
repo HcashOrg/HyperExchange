@@ -30,6 +30,7 @@ namespace graphene {
             gas_count_type gas_used_counts;
 			gas_count_type gas_limit;
 			share_type transfer_fee_rate = -1;
+			bool if_store = true;
 
 			std::set<address> related_contract;
 	public:

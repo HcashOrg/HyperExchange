@@ -11,8 +11,8 @@ namespace uvm
 	{
 		_scope = std::make_shared<uvm::lua::lib::UvmStateScope>(use_contract);
 
-		_scope->L()->out = nullptr;
-		_scope->L()->err = nullptr;
+		_scope->L()->out = nullptr; // FIXME
+		_scope->L()->err = nullptr; // FIXME
 	}
 	UvmContractEngine::~UvmContractEngine()
 	{

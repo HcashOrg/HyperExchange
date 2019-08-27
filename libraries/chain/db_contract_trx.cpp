@@ -10,54 +10,84 @@
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/ripemd160.hpp>
-
+#include <iostream>
 namespace graphene {
 	namespace chain {
 		StorageDataType database::get_contract_storage(const address& contract_id, const string& name)
 		{
 			try {
-				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
-				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
-				if (storage_iter == storage_index.end())
+				//auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				//auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
+				//if (storage_iter == storage_index.end())
+				//{
+				//	auto cbor_null = cbor::CborObject::create_null();
+				//	const auto& cbor_null_bytes = cbor_diff::cbor_encode(cbor_null);
+				//	StorageDataType storage;
+				//	storage.storage_data = cbor_null_bytes;
+				//	return storage;
+				//	// std::string null_jsonstr("null");
+				//	// return StorageDataType(null_jsonstr);
+				//}
+				//else
+				//{
+				//	const auto &storage_data = *storage_iter;
+				//	StorageDataType storage;
+				//	storage.storage_data = storage_data.storage_value;
+				//	return storage;
+				//}
+
+				auto contract_obj_op = get_contract_storage_object(contract_id, name);
+				if (!contract_obj_op.valid())
 				{
 					auto cbor_null = cbor::CborObject::create_null();
 					const auto& cbor_null_bytes = cbor_diff::cbor_encode(cbor_null);
 					StorageDataType storage;
 					storage.storage_data = cbor_null_bytes;
 					return storage;
-					// std::string null_jsonstr("null");
-					// return StorageDataType(null_jsonstr);
 				}
-				else
-				{
-					const auto &storage_data = *storage_iter;
-					StorageDataType storage;
-					storage.storage_data = storage_data.storage_value;
-					return storage;
-				}
+				const auto &storage_data = *contract_obj_op;
+				StorageDataType storage;
+				storage.storage_data = storage_data.storage_value;
+				return storage;
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
 		std::map<std::string, StorageDataType> database::get_contract_all_storages(const address& contract_id) {
 			try {
 				std::map<std::string, StorageDataType> result;
-                                auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
-                                auto storage_iter = storage_index.find(contract_id);
-                                while(storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
-                                {
-                                        StorageDataType storage;
-                                        storage.storage_data = storage_iter->storage_value;
-                                        result[storage_iter->storage_name] = storage;
-                                        ++storage_iter;
-                                }
+				/*				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
+								auto storage_iter = storage_index.find(contract_id);
+								while(storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
+								{
+										StorageDataType storage;
+										storage.storage_data = storage_iter->storage_value;
+										result[storage_iter->storage_name] = storage;
+										++storage_iter;
+								}
+				return result;*/
+				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
+				auto start = contract_id.address_to_string()+"|set_storage|";
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
+					auto value = it->value().ToString();
+					if (it->key().ToString() == start)
+						continue;
+					contract_storage_object obj = fc::json::from_string(value).as<contract_storage_object>();
+					StorageDataType storage;
+					storage.storage_data = obj.storage_value;
+					result[obj.storage_name] = storage;
+				}
+				delete it;
 				return result;
-                        } FC_CAPTURE_AND_RETHROW((contract_id));
+
+			} FC_CAPTURE_AND_RETHROW((contract_id));
 		}
 
 		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
 		{
 			try {
-				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				/*auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end())
 				{
@@ -66,7 +96,17 @@ namespace graphene {
 				else
 				{
 					return *storage_iter;
+				}*/
+				auto start = contract_id.address_to_string()+"|set_storage|"+name;
+				string value;
+				leveldb::ReadOptions read_options;
+				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), start, &value);
+				if (sta.ok())
+				{
+					contract_storage_object obj = fc::json::from_string(value).as<contract_storage_object>();
+					return obj;
 				}
+				return optional<contract_storage_object>();
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
 
@@ -77,7 +117,7 @@ namespace graphene {
 				auto itr = index.find(contract_id);
 				FC_ASSERT(itr != index.end());*/
 
-				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				/*auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end()) {
 					create<contract_storage_object>([&](contract_storage_object & obj) {
@@ -90,7 +130,29 @@ namespace graphene {
 					modify(*storage_iter, [&](contract_storage_object& obj) {
 						obj.storage_value = value.storage_data;
 					});
+				}*/
+				contract_storage_object obj;
+				obj.contract_address = contract_id;
+				obj.storage_name = name;
+				obj.storage_value = value.storage_data;
+				leveldb::WriteOptions write_options;
+				leveldb::ReadOptions read_options;
+				string value;
+				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), contract_id.address_to_string() + "|set_storage|", &value);
+				if (!sta.ok())
+				{
+					sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|", fc::json::to_string("set_storage"));
+					FC_ASSERT(sta.ok(),"put data in contract db failed.");
 				}
+				sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|"+ name, fc::json::to_string(obj));
+				if (!sta.ok())
+				{
+					elog("Put error: ${error}", ("error", (contract_id.address_to_string() + "|set_storage|" + name + ":" + sta.ToString()).c_str()));
+					FC_ASSERT(false, "Put Data to contract db failed");
+				}
+
+
+
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name)(value));
 		}
 
@@ -104,7 +166,7 @@ namespace graphene {
 		void database::add_contract_storage_change(const transaction_id_type& trx_id, const address& contract_id, const string& name, const StorageDataType &diff)
 		{
 			try {
-				transaction_contract_storage_diff_object obj;
+				/*transaction_contract_storage_diff_object obj;
 				obj.contract_address = contract_id;
 				obj.storage_name = name;
 				obj.diff = diff.storage_data;
@@ -114,7 +176,30 @@ namespace graphene {
 					o.diff = obj.diff;
 					o.storage_name = obj.storage_name;
 					o.trx_id = obj.trx_id;
-				});
+				});*/
+				leveldb::WriteOptions write_options;
+				leveldb::ReadOptions read_options;
+				string value;
+				transaction_contract_storage_diff_object obj;
+				obj.contract_address = contract_id;
+				obj.storage_name = name;
+				obj.diff = diff.storage_data;
+				obj.trx_id = trx_id;
+				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), trx_id.str()+"|storage_diff_object|", &value);
+				if (!sta.ok())
+				{
+					sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", fc::json::to_string("storage_diff_object"));
+					FC_ASSERT(sta.ok(), "put data in contract db failed.");
+				}
+				sta = get_contract_db()->Put(write_options, trx_id.str() + "|storage_diff_object|" \
+					+ contract_id.address_to_string() + "|" \
+					+ name, fc::json::to_string(obj));
+				if (!sta.ok())
+				{
+					elog("Put error: ${error}", ("error", (trx_id.str()+"|storage_diff_object|"+contract_id.address_to_string() + "|" + name + ":" + sta.ToString()).c_str()));
+					FC_ASSERT(false, "Put Data to contract failed");
+				}
+
 			} FC_CAPTURE_AND_RETHROW((trx_id)(contract_id)(name)(diff));
 		}
         void  database::store_contract_storage_change_obj(const address& contract, uint32_t block_num)
@@ -218,18 +303,47 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
+		optional<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num) const
+		{
+			try {
+				leveldb::ReadOptions read_options;
+				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
+				string value;
+				leveldb::Status sta = get_contract_db()->Get(read_options, start, &value);
+				if (sta.ok())
+				{
+					contract_invoke_result_object obj = fc::json::from_string(value).as<contract_invoke_result_object>();
+					return obj;
+				}
+				return optional<contract_invoke_result_object>();
+			}FC_CAPTURE_AND_RETHROW((trx_id)(op_num));
+		}
+
         vector<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id)const
         {
             try {
                 vector<contract_invoke_result_object> res;
-                auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid>();
-                auto it = res_db.lower_bound(trx_id);
-                auto end_it= res_db.upper_bound(trx_id);
-                while(it!=end_it)
-                {
-                    res.push_back(*it);
-                    it++;
-                }
+				/*auto& res_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid>();
+				auto it = res_db.lower_bound(trx_id);
+				auto end_it= res_db.upper_bound(trx_id);
+				while(it!=end_it)
+				{
+					res.push_back(*it);
+					it++;
+				}*/
+
+				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
+				auto start = trx_id.str()+"|invoke_result|";
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
+					auto value = it->value().ToString();
+					if (it->key().ToString() == start)
+						continue;
+					contract_invoke_result_object obj = fc::json::from_string(value).as<contract_invoke_result_object>();
+					res.push_back(obj);
+				}
+				delete it;
                 std::sort(res.begin(), res.end());
                 return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
@@ -243,7 +357,74 @@ namespace graphene {
 				obj.trx_id = tid;
 			});
 		}
-
+		void database::contract_packed(const signed_transaction& trx, const uint32_t num)
+		{
+			try {
+				auto trx_id = trx.id();
+				leveldb::ReadOptions read_options;
+				leveldb::WriteOptions write_options;
+				//neeed to packed trx
+				string value;
+				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str() + "|invoke_result|", &value);
+				if (!sta.ok())
+					return;
+				std::cout << "contract_packed ..." << std::endl;
+				vector<string> need_to_erase;
+				vector<string> contract_ids;
+				vector<string> storage_names;
+				vector<transaction_contract_storage_diff_object> diff_objs;
+				leveldb::Iterator* it = get_contract_db()->NewIterator(read_options);
+				auto start = trx_id.str() + "|invoke_result|";
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
+					if (it->key().ToString() == start)
+						continue;
+					std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
+					need_to_erase.push_back(it->key().ToString());
+				}
+				start = trx_id.str() + "|storage_diff_object|";
+				for (it->Seek(start); it->Valid(); it->Next()) {
+					if (!it->key().starts_with(start))
+						break;
+					if (it->key().ToString() == start)
+						continue;
+					need_to_erase.push_back(it->key().ToString());
+					auto key = it->key().ToString();
+					auto value = it->value().ToString();
+					std::cout <<"storage diff object " << key << ":" << value << std::endl;
+					transaction_contract_storage_diff_object obj = fc::json::from_string(value).as<transaction_contract_storage_diff_object>();
+					diff_objs.push_back(obj);
+					auto contract_name = key.assign(key.data(), start.length());
+					std::cout << "contract name " << contract_name << std::endl;
+					/*auto contract = contract_name.assign(contract_name, 0, contract_name.find_first_of("|"));
+					auto name = contract_name.assign(contract_name, contract_name.find_first_of("|") + 1);*/
+					contract_ids.push_back(contract_name);
+					//storage_names.push_back(name);
+				}
+				delete it;
+				for (const auto key : need_to_erase)
+				{
+					get_contract_db()->Delete(write_options, key);
+				}
+				
+				for (const auto obj : diff_objs)
+				{
+					auto diff = obj.diff;
+					auto c_diff = cbor_diff::cbor_decode(diff);
+					auto obj_op = get_contract_storage_object(obj.contract_address, obj.storage_name);
+					if (!obj_op.valid())
+						continue;
+					auto storage_obj = *obj_op;
+					auto storage_new = cbor_diff::cbor_decode(storage_obj.storage_value);
+					cbor_diff::CborDiff differ;
+					auto c_old = differ.rollback(storage_new, std::make_shared<cbor_diff::DiffResult>(*c_diff));
+					StorageDataType data;
+					data.storage_data = cbor_diff::cbor_encode(c_old);
+					set_contract_storage(obj.contract_address, obj.storage_name, data);
+				}
+			}FC_CAPTURE_AND_RETHROW((trx)(num))
+		}
 		std::vector<graphene::chain::transaction_id_type> database::get_contract_related_transactions(const address& contract_id, uint64_t start, uint64_t end)
 		{
 			std::vector<graphene::chain::transaction_id_type> res;
@@ -268,49 +449,97 @@ namespace graphene {
         void database::store_invoke_result(const transaction_id_type& trx_id, int op_num, const contract_invoke_result& res, const share_type& gas)
         {
             try {
-                auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid_and_opnum>();
-                auto con = con_db.find(boost::make_tuple(trx_id,op_num));
+				/* auto& con_db = get_index_type<contract_invoke_result_index>().indices().get<by_trxid_and_opnum>();
+				 auto con = con_db.find(boost::make_tuple(trx_id,op_num));*/
                 auto block_num=head_block_num();
                 address invoker = res.invoker;
 				_current_gas_in_block += gas;
-                if (con == con_db.end())
-                {
-                    create<contract_invoke_result_object>([res,trx_id, op_num, block_num, invoker](contract_invoke_result_object & obj) {
-                        obj.acctual_fee = res.acctual_fee;
-                        obj.api_result = res.api_result;
-                        obj.exec_succeed = res.exec_succeed;
-                        obj.events = res.events;
-                        obj.trx_id = trx_id;
-                        obj.block_num = block_num+1;
-                        obj.op_num = op_num;
-                        obj.invoker = invoker;
+				/*if (con == con_db.end())
+				{
+					create<contract_invoke_result_object>([res,trx_id, op_num, block_num, invoker](contract_invoke_result_object & obj) {
+						obj.acctual_fee = res.acctual_fee;
+						obj.api_result = res.api_result;
+						obj.exec_succeed = res.exec_succeed;
+						obj.events = res.events;
+						obj.trx_id = trx_id;
+						obj.block_num = block_num+1;
+						obj.op_num = op_num;
+						obj.invoker = invoker;
 						obj.contract_registed = res.contract_registed;
-                        for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
-                        {
-                            obj.contract_withdraw.insert( make_pair(it->first,it->second));
-                        }
-                        for (auto it = res.contract_balances.begin(); it != res.contract_balances.end(); it++)
-                        {
-                            obj.contract_balances.insert(make_pair(it->first, it->second));
-                        }
-                        for (auto it = res.deposit_contract.begin(); it != res.deposit_contract.end(); it++)
-                        {
-                            obj.deposit_contract.insert(make_pair(it->first, it->second));
-                        }
-                        for (auto it = res.deposit_to_address.begin(); it != res.deposit_to_address.end(); it++)
-                        {
-                            obj.deposit_to_address.insert(make_pair(it->first, it->second));
-                        }
+						for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
+						{
+							obj.contract_withdraw.insert( make_pair(it->first,it->second));
+						}
+						for (auto it = res.contract_balances.begin(); it != res.contract_balances.end(); it++)
+						{
+							obj.contract_balances.insert(make_pair(it->first, it->second));
+						}
+						for (auto it = res.deposit_contract.begin(); it != res.deposit_contract.end(); it++)
+						{
+							obj.deposit_contract.insert(make_pair(it->first, it->second));
+						}
+						for (auto it = res.deposit_to_address.begin(); it != res.deposit_to_address.end(); it++)
+						{
+							obj.deposit_to_address.insert(make_pair(it->first, it->second));
+						}
 						for (auto it = res.transfer_fees.begin(); it != res.transfer_fees.end(); it++)
 						{
 							obj.transfer_fees.insert(make_pair(it->first, it->second));
 						}
-                    });     
-                }
-                else
-                {
-                    FC_ASSERT(false, "result exsited");
-                }
+					});
+				}
+				else
+				{
+					FC_ASSERT(false, "result exsited");
+				}*/
+
+				leveldb::WriteOptions write_options;
+				leveldb::ReadOptions read_options;
+				contract_invoke_result_object obj;
+				obj.acctual_fee = res.acctual_fee;
+				obj.gas = gas;
+				obj.api_result = res.api_result;
+				obj.exec_succeed = res.exec_succeed;
+				obj.events = res.events;
+				obj.trx_id = trx_id;
+				obj.block_num = block_num + 1;
+				obj.op_num = op_num;
+				obj.invoker = invoker;
+				obj.contract_registed = res.contract_registed;
+				for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
+				{
+					obj.contract_withdraw.insert(make_pair(it->first, it->second));
+				}
+				for (auto it = res.contract_balances.begin(); it != res.contract_balances.end(); it++)
+				{
+					obj.contract_balances.insert(make_pair(it->first, it->second));
+				}
+				for (auto it = res.deposit_contract.begin(); it != res.deposit_contract.end(); it++)
+				{
+					obj.deposit_contract.insert(make_pair(it->first, it->second));
+				}
+				for (auto it = res.deposit_to_address.begin(); it != res.deposit_to_address.end(); it++)
+				{
+					obj.deposit_to_address.insert(make_pair(it->first, it->second));
+				}
+				for (auto it = res.transfer_fees.begin(); it != res.transfer_fees.end(); it++)
+				{
+					obj.transfer_fees.insert(make_pair(it->first, it->second));
+				}
+				string value;
+				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str()+"|invoke_result|", &value);
+				if (!sta.ok())
+				{
+					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", fc::json::to_string(op_num));
+					FC_ASSERT(sta.ok(), "Put Data to contract db failed");
+				}
+				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), fc::json::to_string(obj));
+				if (!sta.ok())
+				{
+					elog("Put error: ${error}", ("error", (trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string()).c_str()));
+					FC_ASSERT(false, "Put Data to contract db failed");
+					return;
+				}
             }FC_CAPTURE_AND_RETHROW((trx_id))
         }
         class event_compare

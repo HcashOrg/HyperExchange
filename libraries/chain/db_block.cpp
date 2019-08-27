@@ -700,6 +700,10 @@ void database::pop_block()
    vector<signed_transaction> txs(head_block->transactions.begin(),head_block->transactions.end());
    removed_trxs(txs);
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
+   for (const auto trx : _popped_tx)
+   {
+	   contract_packed(trx, head_block->block_num());
+   }
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
