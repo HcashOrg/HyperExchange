@@ -65,7 +65,9 @@ optional<trx_object> database::fetch_trx(const transaction_id_type trx_id) const
 		leveldb::Status sta = db->Get(read_options, trx_id.str(), &out);
 		if (sta.ok())
 		{
-			return fc::json::from_string(out).as<trx_object>();
+			vector<char> vec(out.begin(),out.end());
+			trx_object obj = fc::raw::unpack<trx_object>(vec);
+			return obj;
 		}	
 	}
 	catch (const fc::exception&)

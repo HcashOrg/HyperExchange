@@ -73,7 +73,8 @@ namespace graphene {
 					auto value = it->value().ToString();
 					if (it->key().ToString() == start)
 						continue;
-					contract_storage_object obj = fc::json::from_string(value).as<contract_storage_object>();
+					vector<char> vec(value.begin(),value.end());
+					contract_storage_object obj = fc::raw::unpack<contract_storage_object>(vec);
 					StorageDataType storage;
 					storage.storage_data = obj.storage_value;
 					result[obj.storage_name] = storage;
@@ -103,7 +104,8 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), start, &value);
 				if (sta.ok())
 				{
-					contract_storage_object obj = fc::json::from_string(value).as<contract_storage_object>();
+					vector<char> vec(value.begin(),value.end());
+					contract_storage_object obj = fc::raw::unpack<contract_storage_object>(vec);
 					return obj;
 				}
 				return optional<contract_storage_object>();
@@ -141,10 +143,10 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), contract_id.address_to_string() + "|set_storage|", &value);
 				if (!sta.ok())
 				{
-					sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|", fc::json::to_string("set_storage"));
+					sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|", "set_storage");
 					FC_ASSERT(sta.ok(),"put data in contract db failed.");
 				}
-				sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|"+ name, fc::json::to_string(obj));
+				sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|"+ name, fc::raw::pack(obj).data());
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (contract_id.address_to_string() + "|set_storage|" + name + ":" + sta.ToString()).c_str()));
@@ -188,12 +190,12 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), trx_id.str()+"|storage_diff_object|", &value);
 				if (!sta.ok())
 				{
-					sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", fc::json::to_string("storage_diff_object"));
+					sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", "storage_diff_object");
 					FC_ASSERT(sta.ok(), "put data in contract db failed.");
 				}
 				sta = get_contract_db()->Put(write_options, trx_id.str() + "|storage_diff_object|" \
 					+ contract_id.address_to_string() + "|" \
-					+ name, fc::json::to_string(obj));
+					+ name, fc::raw::pack(obj).data());
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (trx_id.str()+"|storage_diff_object|"+contract_id.address_to_string() + "|" + name + ":" + sta.ToString()).c_str()));
@@ -312,7 +314,8 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(read_options, start, &value);
 				if (sta.ok())
 				{
-					contract_invoke_result_object obj = fc::json::from_string(value).as<contract_invoke_result_object>();
+					vector<char> vec (value.begin(),value.end());
+					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);
 					return obj;
 				}
 				return optional<contract_invoke_result_object>();
@@ -340,7 +343,8 @@ namespace graphene {
 					auto value = it->value().ToString();
 					if (it->key().ToString() == start)
 						continue;
-					contract_invoke_result_object obj = fc::json::from_string(value).as<contract_invoke_result_object>();
+					vector<char> vec(value.begin(),value.end());
+					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);
 					res.push_back(obj);
 				}
 				delete it;
@@ -393,7 +397,8 @@ namespace graphene {
 					auto key = it->key().ToString();
 					auto value = it->value().ToString();
 					std::cout <<"storage diff object " << key << ":" << value << std::endl;
-					transaction_contract_storage_diff_object obj = fc::json::from_string(value).as<transaction_contract_storage_diff_object>();
+					vector<char> vec(value.begin(),value.end());
+					transaction_contract_storage_diff_object obj = fc::raw::unpack<transaction_contract_storage_diff_object>(vec);
 					diff_objs.push_back(obj);
 					auto contract_name = key.assign(key.data(), start.length());
 					std::cout << "contract name " << contract_name << std::endl;
@@ -531,10 +536,10 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str()+"|invoke_result|", &value);
 				if (!sta.ok())
 				{
-					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", fc::json::to_string(op_num));
+					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", fc::raw::pack(op_num).data());
 					FC_ASSERT(sta.ok(), "Put Data to contract db failed");
 				}
-				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), fc::json::to_string(obj));
+				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), fc::raw::pack(obj).data());
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string()).c_str()));
