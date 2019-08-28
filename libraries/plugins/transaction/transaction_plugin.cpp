@@ -87,7 +87,8 @@ void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 	   obj.trx = trx;
 	   obj.trx_id = trx.id();
 	   obj.block_num = b.block_num();
-	   leveldb::Status sta = db.get_levelDB()->Put(write_options, obj.trx_id.str(), fc::raw::pack(obj).data());
+	   const auto& vec = fc::raw::pack(obj);
+	   leveldb::Status sta = db.get_levelDB()->Put(write_options, obj.trx_id.str(), leveldb::Slice(vec.data(),vec.size()));
 	   if (!sta.ok())
 	   {
 		   elog("Put error: ${error}", ("error", (trx.id().str() + ":" + sta.ToString()).c_str()));

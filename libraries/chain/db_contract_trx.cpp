@@ -146,7 +146,8 @@ namespace graphene {
 					sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|", "set_storage");
 					FC_ASSERT(sta.ok(),"put data in contract db failed.");
 				}
-				sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|"+ name, fc::raw::pack(obj).data());
+				const auto& vec = fc::raw::pack(obj);
+				sta = get_contract_db()->Put(write_options, contract_id.address_to_string() + "|set_storage|"+ name, leveldb::Slice(vec.data(),vec.size()));
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (contract_id.address_to_string() + "|set_storage|" + name + ":" + sta.ToString()).c_str()));
@@ -193,9 +194,10 @@ namespace graphene {
 					sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", "storage_diff_object");
 					FC_ASSERT(sta.ok(), "put data in contract db failed.");
 				}
+				const auto& vec = fc::raw::pack(obj);
 				sta = get_contract_db()->Put(write_options, trx_id.str() + "|storage_diff_object|" \
 					+ contract_id.address_to_string() + "|" \
-					+ name, fc::raw::pack(obj).data());
+					+ name, leveldb::Slice(vec.data(),vec.size()));
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (trx_id.str()+"|storage_diff_object|"+contract_id.address_to_string() + "|" + name + ":" + sta.ToString()).c_str()));
@@ -536,10 +538,12 @@ namespace graphene {
 				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str()+"|invoke_result|", &value);
 				if (!sta.ok())
 				{
-					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", fc::raw::pack(op_num).data());
+					const auto& vec = fc::raw::pack(op_num);
+					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", leveldb::Slice(vec.data(),vec.size()));
 					FC_ASSERT(sta.ok(), "Put Data to contract db failed");
 				}
-				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), fc::raw::pack(obj).data());
+				const auto& vec = fc::raw::pack(obj);
+				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), leveldb::Slice(vec.data(),vec.size()));
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string()).c_str()));
