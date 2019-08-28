@@ -680,8 +680,7 @@ namespace graphene {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
-			if (if_store)
-				apply_storage_change(d, new_contract.registered_block, trx_id);
+			apply_storage_change(d, new_contract.registered_block, trx_id);
 			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
 
@@ -698,9 +697,7 @@ namespace graphene {
                 database& d = db();
                 FC_ASSERT(d.has_contract(o.contract_id));
                 auto trx_id = get_current_trx_id();
-                // commit contract result to db
-				if (if_store)
-					apply_storage_change(d, d.head_block_num(), trx_id);
+				apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
@@ -721,9 +718,7 @@ namespace graphene {
                 contract.contract_desc = o.contract_desc;
                 d.update_contract(contract);
                 auto trx_id = get_current_trx_id();
-                // commit contract result to db
-				if(if_store)
-					apply_storage_change(d, d.head_block_num(), trx_id);
+				apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
@@ -1113,8 +1108,7 @@ namespace graphene {
                 FC_ASSERT(d.has_contract(o.contract_id));
                 // commit contract result to db
                 auto trx_id = get_current_trx_id();
-				if (if_store)
-					apply_storage_change(d, d.head_block_num(), trx_id);
+				apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 do_apply_balance();
                 if(!gen_eval->get_trx_eval_state()->testing)
