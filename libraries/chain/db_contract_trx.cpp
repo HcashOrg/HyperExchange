@@ -55,17 +55,17 @@ namespace graphene {
 		std::map<std::string, StorageDataType> database::get_contract_all_storages(const address& contract_id) {
 			try {
 				std::map<std::string, StorageDataType> result;
-				/*				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
-								auto storage_iter = storage_index.find(contract_id);
-								while(storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
-								{
-										StorageDataType storage;
-										storage.storage_data = storage_iter->storage_value;
-										result[storage_iter->storage_name] = storage;
-										++storage_iter;
-								}
-				return result;*/
-				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_storage_contract_id>();
+				auto storage_iter = storage_index.find(contract_id);
+				while (storage_iter != storage_index.end() && storage_iter->contract_address == contract_id)
+				{
+					StorageDataType storage;
+					storage.storage_data = storage_iter->storage_value;
+					result[storage_iter->storage_name] = storage;
+					++storage_iter;
+				}
+				return result;
+				/*leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
 				auto start = contract_id.address_to_string()+"|set_storage|";
 				for (it->Seek(start); it->Valid(); it->Next()) {
 					if (!it->key().starts_with(start))
@@ -80,7 +80,7 @@ namespace graphene {
 					result[obj.storage_name] = storage;
 				}
 				delete it;
-				return result;
+				return result;*/
 
 			} FC_CAPTURE_AND_RETHROW((contract_id));
 		}
@@ -88,7 +88,7 @@ namespace graphene {
 		optional<contract_storage_object> database::get_contract_storage_object(const address& contract_id, const string& name)
 		{
 			try {
-				/*auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end())
 				{
@@ -97,8 +97,8 @@ namespace graphene {
 				else
 				{
 					return *storage_iter;
-				}*/
-				auto start = contract_id.address_to_string()+"|set_storage|"+name;
+				}
+				/*auto start = contract_id.address_to_string()+"|set_storage|"+name;
 				string value;
 				leveldb::ReadOptions read_options;
 				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), start, &value);
@@ -107,7 +107,7 @@ namespace graphene {
 					vector<char> vec(value.begin(),value.end());
 					contract_storage_object obj = fc::raw::unpack<contract_storage_object>(vec);
 					return obj;
-				}
+				}*/
 				return optional<contract_storage_object>();
 			} FC_CAPTURE_AND_RETHROW((contract_id)(name));
 		}
@@ -115,11 +115,11 @@ namespace graphene {
 		void database::set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value)
 		{
 			try {
-				/*auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
+				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 				auto itr = index.find(contract_id);
-				FC_ASSERT(itr != index.end());*/
+				FC_ASSERT(itr != index.end());
 
-				/*auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
+				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end()) {
 					create<contract_storage_object>([&](contract_storage_object & obj) {
@@ -132,8 +132,8 @@ namespace graphene {
 					modify(*storage_iter, [&](contract_storage_object& obj) {
 						obj.storage_value = value.storage_data;
 					});
-				}*/
-				contract_storage_object obj;
+				}
+				/*contract_storage_object obj;
 				obj.contract_address = contract_id;
 				obj.storage_name = name;
 				obj.storage_value = value.storage_data;
@@ -152,7 +152,7 @@ namespace graphene {
 				{
 					elog("Put error: ${error}", ("error", (contract_id.address_to_string() + "|set_storage|" + name + ":" + sta.ToString()).c_str()));
 					FC_ASSERT(false, "Put Data to contract db failed");
-				}
+				}*/
 
 
 
@@ -396,17 +396,17 @@ namespace graphene {
 					if (it->key().ToString() == start)
 						continue;
 					need_to_erase.push_back(it->key().ToString());
-					auto key = it->key().ToString();
+					/*auto key = it->key().ToString();
 					auto value = it->value().ToString();
 					std::cout <<"storage diff object " << key << ":" << value << std::endl;
 					vector<char> vec(value.begin(),value.end());
 					transaction_contract_storage_diff_object obj = fc::raw::unpack<transaction_contract_storage_diff_object>(vec);
 					diff_objs.push_back(obj);
 					auto contract_name = key.assign(key.data(), start.length());
-					std::cout << "contract name " << contract_name << std::endl;
+					std::cout << "contract name " << contract_name << std::endl;*/
 					/*auto contract = contract_name.assign(contract_name, 0, contract_name.find_first_of("|"));
 					auto name = contract_name.assign(contract_name, contract_name.find_first_of("|") + 1);*/
-					contract_ids.push_back(contract_name);
+					//contract_ids.push_back(contract_name);
 					//storage_names.push_back(name);
 				}
 				delete it;
@@ -415,7 +415,7 @@ namespace graphene {
 					get_contract_db()->Delete(write_options, key);
 				}
 				
-				for (const auto obj : diff_objs)
+				/*for (const auto obj : diff_objs)
 				{
 					auto diff = obj.diff;
 					auto c_diff = cbor_diff::cbor_decode(diff);
@@ -429,7 +429,7 @@ namespace graphene {
 					StorageDataType data;
 					data.storage_data = cbor_diff::cbor_encode(c_old);
 					set_contract_storage(obj.contract_address, obj.storage_name, data);
-				}
+				}*/
 			}FC_CAPTURE_AND_RETHROW((trx)(num))
 		}
 		std::vector<graphene::chain::transaction_id_type> database::get_contract_related_transactions(const address& contract_id, uint64_t start, uint64_t end)

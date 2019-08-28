@@ -662,11 +662,7 @@ namespace graphene {
                     d.update_contract(base_contract);
                 }
 				//auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
-				if (if_store)
-				{
-					//if_store = false;
-					apply_storage_change(d, new_contract.registered_block, trx_id);
-				}
+				apply_storage_change(d, new_contract.registered_block, trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.owner_addr);
                 do_apply_balance();
@@ -1597,7 +1593,8 @@ namespace graphene {
 					 const auto &storage_name = pair2.first;
 					 const auto &change = pair2.second;
 					 d.set_contract_storage(contract_addr, storage_name, change.after);
-					 d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
+					 if (if_store)
+						 d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
 					
 				 }
 			 }
