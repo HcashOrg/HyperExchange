@@ -100,6 +100,7 @@ void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 
 void transaction_plugin_impl::add_transaction_history(const signed_transaction& trx)
 {
+	
 	graphene::chain::database& db = database();
 	if (_tracked_addresses.size() == 0)
 		return;
@@ -110,12 +111,24 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 	{
 		addresses.insert(address(sig));
 	}
-	auto res=db.get_contract_invoke_result(trx.id());
-	for (const auto& it : res)
-	{
-		for (const auto& deposit_it : it.deposit_to_address)
+	if (
+		[&trx]()-> bool {
+		for (auto op : trx.operations)
 		{
-			addresses.insert(deposit_it.first.first);
+			if (is_contract_operation(op))
+				return true;
+		}
+		return false;
+	}()
+		)
+	{
+		auto res = db.get_contract_invoke_result(trx.id());
+		for (const auto& it : res)
+		{
+			for (const auto& deposit_it : it.deposit_to_address)
+			{
+				addresses.insert(deposit_it.first.first);
+			}
 		}
 	}
 	for (auto op : trx.operations)

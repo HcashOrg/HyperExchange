@@ -109,6 +109,8 @@ bool is_contract_operation(const operation& op)
 		return true;
 	case operation::tag<chain::native_contract_register_operation>::value:
 		return true;
+	case operation::tag<chain::storage_operation>::value:
+		return true;
 	}
 	return false;
 }
