@@ -528,7 +528,6 @@ namespace detail {
 
             }
          };
-
          if( _options->count("resync-blockchain") )
             _chain_db->wipe(_data_dir / "blockchain", true);
 
@@ -623,7 +622,12 @@ namespace detail {
 			db_version.write(version_string.c_str(), version_string.size());
 			db_version.close();
          }
-
+		 if (_options->count("event-need"))
+		 {
+			 _chain_db->modify(_chain_db->get_global_properties(), [] (global_property_object& obj){
+				 obj.event_need = true;
+			 });
+		 }
          if( _options->count("force-validate") )
          {
             ilog( "All transaction signatures will be validated" );
@@ -1200,6 +1204,7 @@ void application::set_program_options(boost::program_options::options_descriptio
 	     ("midware_servers", bpo::value<string>()->composing(), "")
 	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
 	     ("need-secure","no need to replay after being get interrupted exceptionally")
+	     ("event-need", "need to store contract events.")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);
