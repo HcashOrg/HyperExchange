@@ -363,8 +363,8 @@ void database_api_impl::set_subscribe_callback( std::function<void(const variant
    param.compute_optimal_parameters();
    _subscribe_filter = fc::bloom_filter(param);
 }
-
-static void load_apis_in_contract_object_if_native(contract_object& cont) {
+/*
+static void load_apis_in_contract_object_if_native(contract_code_object& cont) {
 	// if is native contract, get contract apis and fill it
     if(cont.type_of_contract == contract_type::native_contract) {
         auto native_contract = native_contract_finder::create_native_contract_by_key(nullptr, cont.native_contract_key, cont.contract_address);
@@ -377,7 +377,8 @@ static void load_apis_in_contract_object_if_native(contract_object& cont) {
                 cont.code.offline_abi = native_contract->offline_apis();
                 //cont.code.offline_abi.clear();
                 //for(const auto& api : native_contract->offline_apis()) {
-                //        cont.code.offline_abi.push(api);
+             
+			 //        cont.code.offline_abi.push(api);
                 //}
                 cont.code.events = native_contract->events();
                 //cont.code.events.clear();
@@ -387,13 +388,20 @@ static void load_apis_in_contract_object_if_native(contract_object& cont) {
         }
     }
 }
-
+*/
 contract_object database_api::get_contract_object(const string& contract_address) const
 {
     auto cont =  my->get_contract_object(contract_address);
-    load_apis_in_contract_object_if_native(cont);
+	//todo
+    //load_apis_in_contract_object_if_native(cont);
     return cont;
 }
+
+graphene::chain::contract_code_object database_api::get_code_object(const code_id_type& id) const
+{
+	return my->_db.get_code_object(id);
+}
+
 ContractEntryPrintable database_api::get_simple_contract_info(const string & contract_address_or_name) const
 {
 	std::string contract_address;
@@ -407,13 +415,17 @@ ContractEntryPrintable database_api::get_simple_contract_info(const string & con
 		auto cont =get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}
-	ContractEntryPrintable result = get_contract_object(contract_address);
+	auto cont = get_contract_object(contract_address);
+	auto code = get_code_object(cont.code);
+	ContractEntryPrintable result(cont,code);
 	result.code_printable.printable_code = "";
 	return result;
 }
 ContractEntryPrintable database_api::get_contract_info_by_name(const string& contract_name)const
 {
-    return my->get_contract_object_by_name(contract_name);
+	auto cont = get_contract_object_by_name(contract_name);
+	auto code = get_code_object(cont.code);
+	return ContractEntryPrintable(cont, code);
 }
 fc::ntp_info database_api::get_ntp_info() const
 {
@@ -440,19 +452,23 @@ std::vector<fc::ip::endpoint> database_api::get_midware_eps()
 
 ContractEntryPrintable database_api::get_contract_info(const string& contract_address)const
 {
-    return my->get_contract_object(contract_address);
+    auto cont= my->get_contract_object(contract_address);
+	auto code = get_code_object(cont.code);
+	return ContractEntryPrintable(cont, code);
 }
 contract_object database_api::get_contract_object_by_name(const string& contract_name) const
 {
+	//todo
 	auto cont =  my->get_contract_object_by_name(contract_name);
-	load_apis_in_contract_object_if_native(cont);
+	//load_apis_in_contract_object_if_native(cont);
 	return cont;
 }
 contract_object database_api_impl::get_contract_object(const string& contract_address) const
 {
+	//todo
     try {
         auto cont = _db.get_contract(address(contract_address));
-	load_apis_in_contract_object_if_native(cont);
+	//load_apis_in_contract_object_if_native(cont);
 	return cont;
     }FC_CAPTURE_AND_RETHROW((contract_address))
 }
@@ -550,7 +566,8 @@ vector<ContractEntryPrintable> database_api::get_contracts_by_owner(const std::s
     auto objs = get_contract_objs_by_owner(owner_addr);
     for (auto& obj : objs)
     {
-        res.push_back(obj);
+		auto code = get_code_object(obj.code);
+        res.push_back(ContractEntryPrintable(obj,code));
     }
     return res;
 }
@@ -571,7 +588,8 @@ vector<contract_hash_entry> database_api::get_contracts_hash_entry_by_owner(cons
     vector<contract_hash_entry> res;
     for (auto& co : contracts)
     {
-        res.push_back(co);
+		auto code = get_code_object(co.code);
+        res.push_back(contract_hash_entry(co,code));
     }
     return res;
 }
@@ -3089,7 +3107,8 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 		if(cont.type_of_contract == contract_type::native_contract) {
 			// ignore check of api
 		} else {
-			auto& abi = cont.code.offline_abi;
+			auto code = get_code_object(cont.code);
+			auto& abi = code.code.offline_abi;
 			if (abi.find(contract_api) == abi.end())
 				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		}

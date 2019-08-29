@@ -74,7 +74,8 @@ namespace uvm {
 			void SetApis(char* module_apis[], int count, int api_type);
 			bool valid() const;
 			std::string GetHash() const;
-            bool operator!=(const Code& it)const;
+			bool operator!=(const Code& it)const;
+			bool operator==(const Code& it)const;
 		};
 	}
 }
@@ -127,7 +128,7 @@ namespace graphene {
             std::vector<std::string> derived;
 			CodePrintAble code_printable; // code-related of contract
             fc::time_point_sec createtime;
-            ContractEntryPrintable(const contract_object& obj);
+            ContractEntryPrintable(const contract_object& obj,const contract_code_object& code);
 		};
 
 		typedef uint64_t gas_price_type;

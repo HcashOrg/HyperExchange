@@ -719,6 +719,25 @@ namespace graphene {
 			FC_ASSERT(itr != index.end());
 			return *itr;
 		}
+		graphene::chain::contract_code_object graphene::chain::database::get_code_object(const code_id_type& id) const
+		{
+			return get(id);
+		}
+		std::pair<bool,graphene::chain::code_id_type> database::code_existed(const uvm::blockchain::Code & code) const
+{
+			auto& idb = get_index_type<code_object_index>();
+			auto& index = get_index_type<code_object_index>().indices().get<by_code_hash>();
+			auto itr = index.lower_bound(code.code_hash);
+			auto itr_end = index.upper_bound(code.code_hash);
+			while (itr != itr_end)
+			{
+				if (itr->code == code)
+				{
+					return std::make_pair(true, itr->id);
+				}
+			}
+			return std::make_pair( false,idb.get_next_id());
+		}
         vector<contract_object> database::get_contract_by_owner(const address& owner)
 		{
             vector<contract_object> res;
@@ -755,12 +774,15 @@ namespace graphene {
 			{
 				auto itrbase=index.find(itr->inherit_from);
 				FC_ASSERT(itrbase != index.end());
-				auto& apis = itrbase->code.abi;
-				auto& offline_apis = itrbase->code.offline_abi;
+				auto code = get_code_object(itrbase->code).code;
+				auto& apis = code.abi;
+				auto& offline_apis = code.offline_abi;
 				return apis.find(method) != apis.end() || offline_apis.find(method) != offline_apis.end();
 			}
-			auto& apis = itr->code.abi;
-			auto& offline_apis = itr->code.offline_abi;
+
+			auto code = get_code_object(itr->code).code;
+			auto& apis = code.abi;
+			auto& offline_apis = code.offline_abi;
 			return apis.find(method) != apis.end()|| offline_apis.find(method)!= offline_apis.end();
 		}
 

@@ -51,7 +51,12 @@ namespace uvm {
 			return hashstr;
 		}
 
-        bool Code::operator!=(const Code& it) const
+		bool Code::operator==(const Code& it) const
+		{
+			return !(*this != it);
+		}
+
+		bool Code::operator!=(const Code& it) const
         {
             if (abi != it.abi)
                 return true;
@@ -116,14 +121,14 @@ namespace graphene {
 			free(code_buf);
 		}
 
-	    ContractEntryPrintable::ContractEntryPrintable(const contract_object& obj)
+	    ContractEntryPrintable::ContractEntryPrintable(const contract_object& obj,const contract_code_object& code)
 	    {
             id = obj.contract_address.operator fc::string();
             owner_address = obj.owner_address;
             name = obj.contract_name;
             description = obj.contract_desc;
             type_of_contract = obj.type_of_contract;
-            code_printable = obj.code;
+            code_printable = code.code;
             registered_block = obj.registered_block;
 			registered_trx = obj.registered_trx;
             if (obj.inherit_from != address())

@@ -358,6 +358,7 @@ namespace graphene { namespace chain {
          contract_object get_contract(const contract_id_type& id);
          contract_object get_contract(const string& name_or_id);
 		 contract_object get_contract_of_name(const string& contract_name);
+		 std::pair<bool,code_id_type> code_existed(const uvm::blockchain::Code & code)const;
          vector<contract_object> get_contract_by_owner(const address& owner);
 
          vector<address> get_contract_address_by_owner(const address& owner);
@@ -366,6 +367,7 @@ namespace graphene { namespace chain {
          void store_invoke_result(const transaction_id_type& trx_id,int op_num,const contract_invoke_result& res, const share_type& gas);
 		 void store_contract_related_transaction(const transaction_id_type&,const address& contract_id);
 
+		 contract_code_object get_code_object(const code_id_type& id)const;
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 		 optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id,const uint32_t op_num)const;

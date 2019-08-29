@@ -1932,8 +1932,9 @@ public:
 
 		   }
 		   else {
-		           auto& abi = cont.code.abi;
-			   auto& offline_abi = cont.code.offline_abi;
+			   auto code = _remote_db->get_code_object(cont.code);
+		           auto& abi = code.code.abi;
+			   auto& offline_abi = code.code.offline_abi;
 			   if (abi.find(contract_api) == abi.end() && offline_abi.find(contract_api) == offline_abi.end())
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
@@ -2017,7 +2018,8 @@ public:
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 			
 		   } else {
-		   	auto& abi = cont.code.abi;
+			   auto code=_remote_db->get_code_object(cont.code);
+		   	auto& abi = code.code.abi;
 		   	if (abi.find(contract_api) == abi.end())
 			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
@@ -2064,6 +2066,7 @@ public:
 		   auto privkey = *wif_to_key(_keys[acc_caller.addr]);
 		   auto caller_pubkey = privkey.get_public_key();
 		   contract_object cont;
+		   contract_code_object code;
 		   std::string contract_address;
 		   //try {
 			//   auto temp = graphene::chain::address(contract_address_or_name);
@@ -2086,11 +2089,13 @@ public:
 		   if (!is_valid_address)
 		   {
 			   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+			   code = _remote_db->get_code_object(cont.code);
 			   contract_address = string(cont.contract_address);
 		   }
 		   else
 		   {
 				cont = _remote_db->get_contract_object(contract_address_or_name);
+				code = _remote_db->get_code_object(cont.code);
 				contract_address = string(cont.contract_address);
 		   }
 		   if(cont.type_of_contract == contract_type::native_contract) {
@@ -2101,7 +2106,7 @@ public:
 				   FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 
 		   } else {
-		   	auto& abi = cont.code.offline_abi;
+		   	auto& abi = code.code.offline_abi;
 		   	if (abi.find(contract_api) == abi.end())
 			     FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
 		   }
@@ -9238,7 +9243,9 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 		auto cont = my->_remote_db->get_contract_object_by_name(contract_address_or_name);
 		contract_address = string(cont.contract_address);
 	}
-	ContractEntryPrintable result = my->_remote_db->get_contract_object(contract_address);
+	auto cont = my->_remote_db->get_contract_object(contract_address);
+	auto code = my->_remote_db->get_code_object(cont.code);
+	ContractEntryPrintable result(cont, code);
 	result.code_printable.printable_code = "";
 	return result;
 }
@@ -9292,7 +9299,8 @@ vector<ContractEntryPrintable> wallet_api::get_contracts_by_owner(const std::str
     auto objs= my->_remote_db->get_contract_objs_by_owner(owner_addr);
     for(auto& obj:objs)
     {
-        res.push_back(obj);
+		auto code= my->_remote_db->get_code_object(obj.code);
+        res.push_back(ContractEntryPrintable(obj,code));
     }
     return res;
 }
@@ -9313,7 +9321,8 @@ vector<contract_hash_entry> wallet_api::get_contracts_hash_entry_by_owner(const 
     vector<contract_hash_entry> res;
     for(auto& co:contracts)
     {
-        res.push_back(co);
+		//todo 
+//        res.push_back(co);
     }
     return res;
 }

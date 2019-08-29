@@ -84,6 +84,7 @@ namespace graphene {
 		class contract_register_evaluate :public evaluator<contract_register_evaluate>,public contract_common_evaluate{
 			contract_register_operation origin_op;
 			contract_object new_contract;
+			bool code_exsited = false;
 		public:
             contract_register_evaluate():contract_common_evaluate(this){}
 			typedef contract_register_operation operation_type;

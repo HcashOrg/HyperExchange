@@ -110,13 +110,17 @@ namespace graphene {
 			try {
 			if (!d.has_contract(fid))
 					origin_op.contract_id = fid;
+			//通过code的hash去寻找有没有匹配的hash，如果有，比对code是否一致，一致则将改Code的id设置给new_contract,否则则新建一个Code，并将其id赋值给New_code
 			new_contract.contract_address = origin_op.contract_id;
-			new_contract.code = o.contract_code;
+			auto res=get_db().code_existed(o.contract_code);
+			code_exsited = res.first;
+			new_contract.code = res.second;
 			new_contract.owner_address = o.owner_addr;
 			new_contract.create_time = o.register_time;
 			new_contract.inherit_from = o.inherit_from;
 			new_contract.registered_trx = get_current_trx_id();
 			new_contract.registered_block = d.head_block_num() + 1;
+			
 			if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
 				new_contract.type_of_contract = contract_based_on_template;
 			auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
@@ -484,8 +488,8 @@ namespace graphene {
 				unspent_fee = total_fee - obj_op->acctual_fee;
 				return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 			}
-
-            if(contract.type_of_contract != native_contract &&contract.code.abi.find("on_upgrade") != contract.code.abi.end())
+			auto code = get_db().get_code_object(contract.code);
+            if(contract.type_of_contract != native_contract &&code.code.abi.find("on_upgrade") != code.code.abi.end())
             { 
 			try {
                 gas_count = o.invoke_cost;
@@ -783,7 +787,7 @@ namespace graphene {
                     const auto &contract =db().get_contract(origin_op.inherit_from);
                     if (contract.type_of_contract == contract_type::native_contract)
                         return nullptr;
-                    const auto &code = contract.code;
+                    const auto &code = get_db().get_code_object(contract.code).code;
                     for (const auto & api : code.abi) {
                         contract_info->contract_apis.push_back(api);
                     }
@@ -810,7 +814,7 @@ namespace graphene {
 					}
 					return contract_info;
 				}
-				const auto &code = contract.code;
+				const auto &code = get_db().get_code_object(contract.code).code;
 				for (const auto & api : code.abi) {
 					contract_info->contract_apis.push_back(api);
 				}
@@ -858,7 +862,7 @@ namespace graphene {
 					}
 					return contract_info;
 				}
-				const auto &code = contract.code;
+				const auto &code = get_db().get_code_object(contract.code).code;
 				for (const auto & api : code.abi) {
 					contract_info->contract_apis.push_back(api);
 				}
@@ -883,7 +887,7 @@ namespace graphene {
                     const auto &contract = db().get_contract(origin_op.inherit_from);
                     if (contract.type_of_contract == contract_type::native_contract)
                         return nullptr;
-                    *code = contract.code;
+                    *code = get_db().get_code_object(contract.code).code;
                 }
 				return code;
 			}
@@ -1028,7 +1032,8 @@ namespace graphene {
                 }
                 else
                 {
-					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
+					auto ccode = get_db().get_code_object(contract.code).code;
+					if (ccode.abi.find("on_deposit_asset") != ccode.abi.end())
 					{
 
                         gas_count = o.invoke_cost;
@@ -1168,12 +1173,11 @@ namespace graphene {
             //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract_of_name(contract_name);
             // TODO: when contract is native contract
-            const auto &code = contract.code;
             //for (const auto & api : code.abi) {
             //    contract_info->contract_apis.push_back(api);
             //}
             auto ccode = std::make_shared<uvm::blockchain::Code>();
-            *ccode = code;
+            *ccode = get_db().get_code_object(contract.code).code;
             return ccode;
         }
         asset contract_common_evaluate::asset_from_string(const string & symbol, const string & amount)
@@ -1199,9 +1203,9 @@ namespace graphene {
             //auto contract_info = std::make_shared<UvmContractInfo>();
             const auto &contract = get_db().get_contract(contract_addr);
             // TODO: when contract is native contract
-            FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
+            FC_ASSERT(contract.code.instance != (uint32_t)-1|| contract.inherit_from != address());
             auto code = contract.code;
-            if (!(contract.code != uvm::blockchain::Code()))
+            if (!(contract.code.instance != (uint32_t)-1))
             {
                 FC_ASSERT(contract.inherit_from != address());
                 if (!get_db().has_contract(contract.inherit_from))
@@ -1213,7 +1217,7 @@ namespace graphene {
 
             }
             auto ccode = std::make_shared<uvm::blockchain::Code>();
-            *ccode = code;
+			*ccode = get_db().get_code_object(code).code;
             return ccode;
         }
         //void contract_common_evaluate::add_gas_fee(const asset & fee)
@@ -1535,10 +1539,10 @@ namespace graphene {
                  }
                  return contract_info;
              }
-             FC_ASSERT(contract.code != uvm::blockchain::Code() || contract.inherit_from != address());
-             if (contract.code != uvm::blockchain::Code())
+             FC_ASSERT(contract.code.instance != (uint32_t)-1 || contract.inherit_from != address());
+             if (contract.code.instance != (uint32_t)-1)
              {
-                 const auto &code = contract.code;
+                 const auto &code = get_db().get_code_object(contract.code).code;
                  for (const auto & api : code.abi) {
                      contract_info->contract_apis.push_back(api);
                  }
@@ -1553,7 +1557,8 @@ namespace graphene {
                  const auto& base_contract = get_db().get_contract(contract.inherit_from);
                  if (base_contract.type_of_contract != contract_type::normal_contract)
                      return nullptr;
-                 for (const auto & api : base_contract.code.abi) {
+				 auto code = get_db().get_code_object(base_contract.code).code;
+                 for (const auto & api : code.abi) {
                      contract_info->contract_apis.push_back(api);
                  }
              }

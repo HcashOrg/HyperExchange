@@ -8,6 +8,23 @@
 namespace graphene {
     namespace chain {
 
+		class contract_code_object :public abstract_object<contract_code_object>
+		{
+		public:
+			static const uint8_t space_id = protocol_ids;
+			static const uint8_t type_id = contract_code_object_type;
+			string strhash;
+			uvm::blockchain::Code code;
+		};
+		struct by_code_num {};
+		struct by_code_hash {};
+		typedef multi_index_container<
+			contract_code_object,
+			indexed_by<
+			ordered_unique<tag<by_id>, member<object, object_id_type, &object::id>>,
+			ordered_non_unique<tag<by_code_hash>, member<contract_code_object, std::string, &contract_code_object::strhash>>
+			>> contract_code_object_multi_index_type;
+		typedef generic_index<contract_code_object, contract_code_object_multi_index_type> code_object_index;
 		struct execution_result
 		{
 			asset fee;
@@ -16,7 +33,7 @@ namespace graphene {
 		};
         struct by_contract_id;
 
-		struct by_contract_name {};
+		struct by_contract_name {}; 
         class contract_object : public abstract_object<contract_object> {
         public:
             static const uint8_t space_id = protocol_ids;
@@ -24,7 +41,7 @@ namespace graphene {
             uint32_t  registered_block;
 
 			transaction_id_type registered_trx;
-            uvm::blockchain::Code code;
+            code_id_type code;
             address owner_address;
             time_point_sec create_time;
             string name;
@@ -50,7 +67,9 @@ namespace graphene {
             ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>,
             ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>
             >> contract_object_multi_index_type;
-        typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
+
+		typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
+
         class contract_storage_change_object : public abstract_object<contract_storage_change_object> {
         public:
             static const uint8_t space_id = protocol_ids;
@@ -205,16 +224,16 @@ namespace graphene {
             std::string hash;
         public:
             contract_hash_entry() {}
-            inline contract_hash_entry(const chain::contract_object& cont)
+            inline contract_hash_entry(const chain::contract_object& cont,const contract_code_object& code)
             {
                 contract_address = cont.contract_address.operator fc::string();
-                hash = cont.code.GetHash();
+                hash = code.code.GetHash();
             }
         };
     }
 
 }
-
+FC_REFLECT_DERIVED(graphene::chain::contract_code_object, (graphene::db::object),(code)(strhash))
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
     (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),

@@ -640,6 +640,7 @@ class database_api
       std::map<std::string,asset> get_address_pay_back_balance(const address& owner_addr, std::string asset_symbol = "") const;
       //contract 
       contract_object get_contract_object(const string& contract_address)const;
+	  contract_code_object get_code_object(const code_id_type& id)const;
 	  contract_object get_contract_object_by_name(const string& contract_name)const;
 	  ContractEntryPrintable get_simple_contract_info(const string & contract_address_or_name) const;
 
@@ -831,6 +832,7 @@ FC_API(graphene::app::database_api,
 	(get_bonus_balances)
 	(get_miner_pay_per_block)
     //contract
+	(get_code_object)
     (get_contract_object)
 	(get_contract_object_by_name)
     (get_contract_info)
