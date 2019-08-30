@@ -618,7 +618,7 @@ class database_api
       /**
        *  @return the set of blinded balance objects by commitment ID
        */
-      vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
+     // vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
 	  //Lock balance
 	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
 	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
@@ -677,6 +677,7 @@ class database_api
 	  optional<contract_storage_object> get_contract_storage(const address& contract_address, const string& storage_name)const ;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
+	  vector< fc::optional<otc_contract_object>> get_otc_contract_object(string from_asset,string to_asset,uint32_t limit);
 	  fc::ntp_info get_ntp_info() const;
 	  void ntp_update_time() const;
 	  void set_gas_limit_in_block(const share_type& new_limit);
@@ -777,7 +778,7 @@ FC_API(graphene::app::database_api,
     (list_all_guards)
 
 	// workers
-	(get_workers_by_account)
+	//(get_workers_by_account)
 	// Votes
 	(lookup_vote_ids)
 
@@ -801,7 +802,7 @@ FC_API(graphene::app::database_api,
     (get_proposal)
     (get_proposal_for_voter)
 	// Blinded balances
-	(get_blinded_balances)
+	//(get_blinded_balances)
 	// Lock balance
 	(get_account_lock_balance)
 	(get_asset_lock_balance)
@@ -870,4 +871,5 @@ FC_API(graphene::app::database_api,
 	(get_vote_result_objs)
 	(get_votes_by_addr)
 	(get_pledge)
+		(get_otc_contract_object)
 );

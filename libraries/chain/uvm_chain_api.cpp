@@ -1,10 +1,11 @@
+#include <uvm/exceptions.h>
+#include <uvm/json_reader.h>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/address.hpp>
-#include <uvm/exceptions.h>
-#include <uvm/json_reader.h>
+
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
@@ -355,7 +356,7 @@ namespace graphene {
 				if (is_fast_map) {
 					key = name + "." + fast_map_key;
 				}
-				ilog("storage ${addr}.${key}:\n", ("addr", contract_address)("key", key));
+				//ilog("storage ${addr}.${key}:\n", ("addr", contract_address)("key", key));
 				auto storage_data = evaluator->get_storage(contract_id, key);
 				// TODO: cost more gas when read large storage
 				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
