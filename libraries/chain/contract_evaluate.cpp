@@ -205,7 +205,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
 		}
 
@@ -307,8 +307,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -446,7 +445,7 @@ namespace graphene {
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -1096,7 +1095,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 

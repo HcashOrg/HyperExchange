@@ -790,6 +790,17 @@ void database::_apply_block( const signed_block& next_block )
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
+	   bool relate_contract = false;
+	   for (const auto & op : trx.operations)
+	   {
+		   if (is_contract_operation(op))
+		   {
+			   relate_contract = true;
+			   break;
+		   }
+	   }
+	   if (relate_contract)
+		   contract_packed(trx,0);
 	  const auto& apply_trx_res = apply_transaction(trx, skip);
 	  FC_ASSERT(apply_trx_res.operation_results == trx.operation_results, "operation apply result not same with result in block");
       ++_current_trx_in_block;
