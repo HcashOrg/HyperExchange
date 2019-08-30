@@ -790,7 +790,7 @@ void database::_apply_block( const signed_block& next_block )
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
-	   if (skip & skip_contract_db_check)
+	   if (!(skip & skip_contract_db_check))
 	   {
 		   bool relate_contract = false;
 		   for (const auto & op : trx.operations)
