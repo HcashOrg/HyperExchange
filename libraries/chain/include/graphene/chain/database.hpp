@@ -663,7 +663,6 @@ namespace graphene { namespace chain {
 		bool ontestnet = false;
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
-		bool sync_mode = false;
 		bool rebuild_mode = false;
 		std::mutex                         db_lock;
 		bool								sync_mode = false;

@@ -737,31 +737,20 @@ namespace detail {
 		  {
 			  latency_chk = 0;
 		  }
-		  if (sync_mode){
-			  _chain_db->sync_mode = sync_mode;
-		  }
-		 
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
-			if (sync_mode == false){
-				if (_chain_db->sync_mode == true){
-					_chain_db->update_all_otc_contract(-1);
-				}
-				_chain_db->sync_mode = false;
-			}
             const auto& miner = blk_msg.block.miner(*_chain_db);
             const auto& miner_account = miner.miner_account(*_chain_db);
-			
-			
+
 			if (sync_mode){
 				_chain_db->sync_mode = true;
 				fc::mutable_variant_object result = _p2p_network->network_get_push_info();
 				_chain_db->_network_get_info_data = result;
 			}
 			if (!sync_mode && _chain_db->sync_mode) {
+				_chain_db->update_all_otc_contract(-1);
 				_chain_db->sync_mode = false;
 			}
-
             auto last_irr = _chain_db->get_dynamic_global_properties().last_irreversible_block_num;
             ilog("Got block: #${n} time: ${t} latency: ${l} ms from: ${w}  irreversible: ${i} (-${d})",
                  ("t",blk_msg.block.timestamp)
