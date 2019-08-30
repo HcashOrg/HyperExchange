@@ -141,13 +141,11 @@ void database::adjust_balance(address addr, asset delta, bool freeze )
 		{
 			if (delta.amount < 0)
 				FC_ASSERT(itr->balance >= -delta, "Insufficient Balance: ${a}'s balance of ${b} is less than required ${r}", ("a", addr)("b", to_pretty_string(itr->balance))("r", to_pretty_string(-delta)));
-			modify(*itr, [delta,now,freeze](balance_object& b) {
-				b.adjust_balance(delta,now,freeze);
+			modify(*itr, [delta, now, freeze](balance_object& b) {
+				b.adjust_balance(delta, now, freeze);
 			});
-		
-		}
-		
 
+		}
 	}FC_CAPTURE_AND_RETHROW((addr)(delta)(freeze))
 }
 

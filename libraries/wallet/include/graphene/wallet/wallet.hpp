@@ -208,6 +208,7 @@ struct wallet_data
 	   FC_ASSERT((itr != idx.end()), "account couldnt found");
 	   idx.replace(itr, acct);
    }
+   /*
    vector<script_object> list_scripts()
    {
        fc::scoped_lock<fc::mutex> lock(script_lock);
@@ -334,6 +335,7 @@ struct wallet_data
        idx.replace(it, new_item);
        return true;
    }
+   */
    /** encrypted keys */
    vector<char>              cipher_keys;
    optional<vector<char>>              cipher_keys_extend;
@@ -2007,11 +2009,11 @@ class wallet_api
 	  full_transaction create_contract_transfer_fee_proposal(const string& proposer,share_type fee_rate, int64_t expiration_time, bool broadcast = false);
       // end contract wallet apis
       // begin script wallet apis
-      std::string add_script(const string& script_path);
-      vector<script_object>list_scripts();
-      void remove_script(const string& script_hash);
-      bool bind_script_to_event(const string& script_hash, const string& contract, const string& event_name);
-      bool remove_event_handle(const string& script_hash, const string& contract, const string& event_name);
+      //std::string add_script(const string& script_path);
+      //vector<script_object>list_scripts();
+      //void remove_script(const string& script_hash);
+      //bool bind_script_to_event(const string& script_hash, const string& contract, const string& event_name);
+      //bool remove_event_handle(const string& script_hash, const string& contract, const string& event_name);
       // end script wallet apis
       /**
        *  Used to transfer from one set of blinded balances to another

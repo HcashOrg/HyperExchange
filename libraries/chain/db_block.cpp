@@ -66,7 +66,9 @@ optional<trx_object> database::fetch_trx(const transaction_id_type trx_id) const
 		leveldb::Status sta = db->Get(read_options, trx_id.str(), &out);
 		if (sta.ok())
 		{
-			return fc::json::from_string(out).as<trx_object>();
+			vector<char> vec(out.begin(),out.end());
+			trx_object obj = fc::raw::unpack<trx_object>(vec);
+			return obj;
 		}	
 	}
 	catch (const fc::exception&)
@@ -701,6 +703,10 @@ void database::pop_block()
    vector<signed_transaction> txs(head_block->transactions.begin(),head_block->transactions.end());
    removed_trxs(txs);
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
+   for (const auto trx : _popped_tx)
+   {
+	   contract_packed(trx, head_block->block_num());
+   }
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
@@ -1108,6 +1114,20 @@ void database::_apply_block( const signed_block& next_block )
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
+	   if (!(skip & skip_contract_db_check))
+	   {
+		   bool relate_contract = false;
+		   for (const auto & op : trx.operations)
+		   {
+			   if (is_contract_operation(op))
+			   {
+				   relate_contract = true;
+				   break;
+			   }
+		   }
+		   if (relate_contract)
+			   contract_packed(trx, 0);
+	   }
 	  const auto& apply_trx_res = apply_transaction(trx, skip);
 	  FC_ASSERT(apply_trx_res.operation_results == trx.operation_results, "operation apply result not same with result in block");
       ++_current_trx_in_block;

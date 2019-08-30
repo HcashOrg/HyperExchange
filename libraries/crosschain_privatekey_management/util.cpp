@@ -746,7 +746,7 @@ namespace graphene {
 				obj << "\"txid\": \"" << libbitcoin::encode_base16(hash);
 				obj << "\",\"vout\": " << previous_output.index();
 
-				obj <<"\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
+				obj <<",\"script\": \"" << input.script().to_string(libbitcoin::machine::all_rules) << "\",";
 				obj << "\"sequence\": " << input.sequence() << "}";
 			}
 			obj << "],\

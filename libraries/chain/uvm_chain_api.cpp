@@ -1,11 +1,10 @@
-#include <uvm/exceptions.h>
 #include <uvm/json_reader.h>
+#include <uvm/exceptions.h>
 #include <graphene/chain/protocol/asset.hpp>
 #include <graphene/chain/contract_evaluate.hpp>
 #include <graphene/chain/forks.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/protocol/address.hpp>
-
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>

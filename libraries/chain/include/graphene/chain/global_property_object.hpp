@@ -48,7 +48,7 @@ namespace graphene { namespace chain {
 
          chain_parameters           parameters;
          optional<chain_parameters> pending_parameters;
-
+		 bool                       event_need =false;
          uint32_t                           next_available_vote_id = 0;
          vector<guard_member_id_type>   active_committee_members; // updated once per maintenance interval
          flat_set<miner_id_type>          active_witnesses; // updated once per maintenance interval
@@ -175,6 +175,7 @@ FC_REFLECT_DERIVED( graphene::chain::dynamic_global_property_object, (graphene::
 FC_REFLECT_DERIVED( graphene::chain::global_property_object, (graphene::db::object),
                     (parameters)
                     (pending_parameters)
+	                (event_need)
                     (next_available_vote_id)
                     (active_committee_members)
                     (active_witnesses)

@@ -753,6 +753,7 @@ namespace graphene { namespace net { namespace detail {
       message                    get_message_for_item(const item_id& item) override;
 
       fc::variant_object         network_get_info() const;
+	  fc::variant_object		 network_get_push_info() const;
       fc::variant_object         network_get_usage_stats() const;
 
       bool is_hard_fork_block(uint32_t block_number) const;
@@ -3306,6 +3307,7 @@ namespace graphene { namespace net { namespace detail {
 
       // add it to the front of _received_sync_items, then process _received_sync_items to try to
       // pass as many messages as possible to the client.
+	 
       _new_received_sync_items.push_front( block_message_to_process );
       trigger_process_backlog_of_sync_blocks();
     }
@@ -5005,6 +5007,35 @@ namespace graphene { namespace net { namespace detail {
       return _delegate->get_call_statistics();
     }
 
+	fc::variant_object node_impl::network_get_push_info() const
+	{
+		//VERIFY_CORRECT_THREAD();
+		fc::mutable_variant_object info;
+		info["listening_on"] = "need_sync_end";
+		info["node_public_key"] = "need_sync_end";
+		info["node_id"] = "need_sync_end";
+		info["firewalled"] = _is_firewalled;
+		info["connections"] = _active_connections.size();
+		item_hash_t head_block_id = _delegate->get_head_block_id();
+		auto current_height = _delegate->get_block_number(head_block_id);
+		info["current_block_height"] = current_height;
+		uint32_t max_number_of_unfetched_items = 0;
+		for (const peer_connection_ptr& peer : _active_connections)
+		{
+			if (peer->we_need_sync_items_from_peer && (uint32_t)peer->ids_of_items_to_get.size() > 0) {
+				uint32_t this_peer_number_of_unfetched_items = (uint32_t)peer->ids_of_items_to_get.size() + peer->number_of_unfetched_item_ids;
+				max_number_of_unfetched_items = std::max(max_number_of_unfetched_items,
+					this_peer_number_of_unfetched_items);
+			}
+
+		}
+
+		auto temp_unsynced_block_count = max_number_of_unfetched_items;
+		info["target_block_height"] = temp_unsynced_block_count + current_height;
+		info["connection_count"] = info["connections"];
+		return info;
+	}
+
     fc::variant_object node_impl::network_get_info() const
     {
       VERIFY_CORRECT_THREAD();
@@ -5233,6 +5264,12 @@ namespace graphene { namespace net { namespace detail {
   fc::variant_object node::network_get_info() const
   {
     INVOKE_IN_IMPL(network_get_info);
+  }
+
+  fc::variant_object node::network_get_push_info() const
+  {
+	  return my->network_get_push_info();
+	  //INVOKE_IN_IMPL(network_get_push_info);
   }
 
   fc::variant_object node::network_get_usage_stats() const

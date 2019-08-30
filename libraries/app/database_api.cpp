@@ -40,6 +40,7 @@
 #include <fc/ntp.hpp>
 #include <cfenv>
 #include <iostream>
+#include <fc/variant_object.hpp>
 #define GET_REQUIRED_FEES_MAX_RECURSION 4
 
 typedef std::map< std::pair<graphene::chain::asset_id_type, graphene::chain::asset_id_type>, std::vector<fc::variant> > market_queue_type;
@@ -418,6 +419,9 @@ ContractEntryPrintable database_api::get_contract_info_by_name(const string& con
 fc::ntp_info database_api::get_ntp_info() const
 {
 	return fc::time_point::get_ntp_info();
+}
+std::pair<bool, fc::variant_object> database_api::get_sync_mode_network_info() {
+	return std::make_pair(bool(my->_db.sync_mode), my->_db._network_get_info_data);
 }
 
 void database_api::ntp_update_time() const

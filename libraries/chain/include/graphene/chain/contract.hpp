@@ -48,7 +48,7 @@ namespace graphene {
 		};
 
 		typedef std::map<std::string, StorageDataChangeType, comparator_for_string> contract_storage_changes_type;
-
+		struct contract_invoke_result_object;
 		struct contract_invoke_result
 		{
 			std::string api_result;
@@ -75,6 +75,7 @@ namespace graphene {
 			// count storage gas and events gas
 			int64_t count_storage_gas() const;
 			int64_t count_event_gas() const;
+			void transfer_from_obj(const contract_invoke_result_object& obj);
 		};
 
 		struct contract_register_operation : public base_operation

@@ -153,7 +153,7 @@ namespace graphene {
 			>
 			>;
 		using contract_history_object_index = generic_index<contract_history_object, contract_history_object_multi_index_type>;
-        class contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
+		class contract_invoke_result_object : public abstract_object<contract_invoke_result_object>
         {
         public:
             static const uint8_t space_id = protocol_ids;
@@ -165,6 +165,7 @@ namespace graphene {
             std::vector<contract_event_notify_info> events;
             bool exec_succeed = true;
             share_type acctual_fee;
+			share_type gas;
             address invoker;
 			optional<address> contract_registed;
             std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
@@ -174,7 +175,6 @@ namespace graphene {
            std::map<std::pair<address, asset_id_type>, share_type> deposit_to_address;
            std::map<std::pair<address, asset_id_type>, share_type> deposit_contract;
 		   std::map<asset_id_type, share_type> transfer_fees;
-           
             inline bool operator<(const contract_invoke_result_object& obj) const
             {
                 if (block_num < obj.block_num)
@@ -224,7 +224,7 @@ FC_REFLECT(graphene::chain::contract_storage_view,
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(gas)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
 	//(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry, (contract_address)(hash))
 FC_REFLECT(graphene::chain::execution_result, (fee)(gas_count)(result))

@@ -530,7 +530,6 @@ namespace detail {
 
             }
          };
-
          if( _options->count("resync-blockchain") )
             _chain_db->wipe(_data_dir / "blockchain", true);
 
@@ -628,7 +627,12 @@ namespace detail {
 			_chain_db->update_all_otc_contract(-1);
 			_chain_db->rebuild_mode = false;
          }
-
+		 if (_options->count("event-need"))
+		 {
+			 _chain_db->modify(_chain_db->get_global_properties(), [] (global_property_object& obj){
+				 obj.event_need = true;
+			 });
+		 }
          if( _options->count("force-validate") )
          {
             ilog( "All transaction signatures will be validated" );
@@ -747,6 +751,17 @@ namespace detail {
 			}
             const auto& miner = blk_msg.block.miner(*_chain_db);
             const auto& miner_account = miner.miner_account(*_chain_db);
+			
+			
+			if (sync_mode){
+				_chain_db->sync_mode = true;
+				fc::mutable_variant_object result = _p2p_network->network_get_push_info();
+				_chain_db->_network_get_info_data = result;
+			}
+			if (!sync_mode && _chain_db->sync_mode) {
+				_chain_db->sync_mode = false;
+			}
+
             auto last_irr = _chain_db->get_dynamic_global_properties().last_irreversible_block_num;
             ilog("Got block: #${n} time: ${t} latency: ${l} ms from: ${w}  irreversible: ${i} (-${d})",
                  ("t",blk_msg.block.timestamp)
@@ -1204,6 +1219,7 @@ void application::set_program_options(boost::program_options::options_descriptio
 	     ("midware_servers", bpo::value<string>()->composing(), "")
 	     ("midware_servers_backup", bpo::value<string>()->composing(), "")
 	     ("need-secure","no need to replay after being get interrupted exceptionally")
+	     ("event-need", "need to store contract events.")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);

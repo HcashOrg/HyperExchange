@@ -682,6 +682,7 @@ class database_api
 	  void ntp_update_time() const;
 	  void set_gas_limit_in_block(const share_type& new_limit);
 	  std::vector<fc::ip::endpoint> get_midware_eps();
+	  std::pair<bool, fc::variant_object> get_sync_mode_network_info();
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -872,4 +873,6 @@ FC_API(graphene::app::database_api,
 	(get_votes_by_addr)
 	(get_pledge)
 		(get_otc_contract_object)
+		//network
+	(get_sync_mode_network_info)
 );
