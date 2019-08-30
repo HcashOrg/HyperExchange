@@ -81,7 +81,8 @@ namespace graphene { namespace chain {
             skip_validate               = 1 << 11, ///< used prior to checkpoint, skips validate() call on transaction
             check_gas_price             = 1 << 12,
 			throw_over_limit            = 1 << 13,
-			skip_contract_exec          = 1 << 14
+			skip_contract_exec          = 1 << 14,
+			skip_contract_db_check      = 1 << 15
          };
 
          /**

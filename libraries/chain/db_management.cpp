@@ -128,7 +128,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
                           skip_transaction_dupe_check |
                           skip_tapos_check |
                           skip_witness_schedule_check |
-                          skip_authority_check);
+                          skip_authority_check |
+	                      skip_contract_db_check);
 	  session.commit();
    }
    auto end = fc::time_point::now();
