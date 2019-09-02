@@ -32,7 +32,6 @@
 #include <graphene/chain/referendum_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/witness_object.hpp>
-#include <graphene/chain/otc_contract_obj.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/evaluator.hpp>
@@ -949,10 +948,10 @@ std::vector<otc_contract_object> database::get_token_contract_info(std::string c
 		return std::vector<otc_contract_object>();
 	}
 	std::vector<otc_contract_object> ret_vec;
-	//std::cout << "ret string is " << ret << std::endl;
+	std::cout << "ret string is " << ret << std::endl;
 	
 	auto handled_contracts = fc::json::from_string(ret);
-	//std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
+	std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
 	if (handled_contracts.is_object())
 	{
 		auto contracts_info = handled_contracts.get_object();
@@ -1084,7 +1083,7 @@ void database::update_otc_contract(uint32_t block_num) {
 
 };
 void database::update_all_otc_contract(const uint32_t block_num)  {
-	//std::cout << "in update_allotc" << std::endl;
+	std::cout << "in update_allotc" << std::endl;
 	update_otc_contract(block_num);
 }
 void database::_apply_block( const signed_block& next_block )
@@ -1172,8 +1171,8 @@ void database::_apply_block( const signed_block& next_block )
    process_bonus();
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
-   if (!sync_mode && !rebuild_mode) {
-		//   std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
+   if (!sync_otc_mode && !rebuild_mode) {
+	  std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
 	   update_otc_contract(next_block_num - 1);
    }
    if( !_node_property_object.debug_updates.empty() )

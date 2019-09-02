@@ -666,6 +666,7 @@ namespace graphene { namespace chain {
 		bool rebuild_mode = false;
 		std::mutex                         db_lock;
 		bool								sync_mode = false;
+		bool								sync_otc_mode = false;
 		fc::variant_object				   _network_get_info_data;
    };
 
