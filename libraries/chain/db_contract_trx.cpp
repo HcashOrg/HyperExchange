@@ -615,6 +615,13 @@ namespace graphene {
             }
             return res;
         }
+		graphene::chain::contract_code_object graphene::chain::database::store_code(const uvm::blockchain::Code& contract_code)
+		{
+			return create<contract_code_object>([contract_code](contract_code_object & obj) {
+				obj.strhash = contract_code.code_hash;
+				obj.code = contract_code; });
+		}
+
         void database::store_contract(const contract_object & contract)
         {
             try {

@@ -327,6 +327,7 @@ void database::initialize_indexes()
    add_index<primary_index<whiteOperation_index>>();
    add_index<primary_index<vote_index>>();
    add_index<primary_index<vote_result_index>>();
+   add_index<primary_index<code_object_index>>();
 }
 
 void database::init_genesis(const genesis_state_type& genesis_state)

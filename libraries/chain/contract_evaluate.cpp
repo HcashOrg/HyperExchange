@@ -652,7 +652,10 @@ namespace graphene {
 			database& d = db();
 
             auto  trx_id = get_current_trx_id();
-
+			if (!code_exsited)
+			{
+				new_contract.code=d.store_code(origin_op.contract_code).id;
+			}
 			invoke_contract_result.contract_registed = new_contract.contract_address;
 			// commit contract result to db
             if (invoke_contract_result.exec_succeed)

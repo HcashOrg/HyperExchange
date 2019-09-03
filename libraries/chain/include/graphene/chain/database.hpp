@@ -353,6 +353,7 @@ namespace graphene { namespace chain {
          vector<contract_blocknum_pair> get_contract_changed(uint32_t block_num, uint32_t duration);
          vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name);
          void store_contract(const contract_object& contract);
+		 contract_code_object store_code(const uvm::blockchain::Code& contract_code);
 		 void update_contract(const contract_object& contract);
          contract_object get_contract(const address& contract_address);
          contract_object get_contract(const contract_id_type& id);
