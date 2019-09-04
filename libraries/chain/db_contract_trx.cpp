@@ -7,6 +7,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include <fc/crypto/hex.hpp>
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/ripemd160.hpp>
@@ -118,7 +119,6 @@ namespace graphene {
 				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 				auto itr = index.find(contract_id);
 				FC_ASSERT(itr != index.end());
-
 				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end()) {
@@ -307,6 +307,15 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
+		void database::remove_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num)
+		{
+			try {
+				leveldb::WriteOptions write_ops;
+				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
+				get_contract_db()->Delete(write_ops,start);
+			}FC_CAPTURE_AND_RETHROW((trx_id)(op_num));
+		}
+
 		optional<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num) const
 		{
 			try {

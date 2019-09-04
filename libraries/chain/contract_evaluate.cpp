@@ -16,6 +16,7 @@
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/witness_object.hpp>
+#include <fc/crypto/hex.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -122,7 +123,7 @@ namespace graphene {
 			auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 			if (obj_op.valid())
 			{
-				if_store = false;
+				
 				/*invoke_contract_result.reset();
 				invoke_contract_result.acctual_fee = obj_op->acctual_fee;
 				invoke_contract_result.exec_succeed = true;
@@ -130,10 +131,15 @@ namespace graphene {
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				if (invoke_contract_result.storage_changes.size() > 0 )
+				{
+					if_store = false;
+					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				}
+				if_store = true;
+				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				invoke_contract_result = contract_invoke_result();
 			}
-
-			
 			// verify contract bytecode stream format
 			auto L = engine->scope()->L();
 			auto code_stream = uvm::lua::api::global_uvm_chain_api->get_bytestream_from_code(L, o.contract_code);
@@ -243,11 +249,17 @@ namespace graphene {
 				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 				if (obj_op.valid())
 				{
-					if_store = false;
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					if (invoke_contract_result.storage_changes.size() > 0)
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
 				}
 
 
@@ -340,11 +352,17 @@ namespace graphene {
 				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 				if (obj_op.valid())
 				{
-					if_store = false;
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					if (invoke_contract_result.storage_changes.size() > 0)
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
 				}
 				if (contract.type_of_contract==contract_type::native_contract)
 				{
@@ -477,11 +495,17 @@ namespace graphene {
 			auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 			if (obj_op.valid())
 			{
-				if_store = false;
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				if (invoke_contract_result.storage_changes.size() > 0)
+				{
+					if_store = false;
+					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				}
+				if_store = true;
+				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				invoke_contract_result = contract_invoke_result();
 			}
 
             if(contract.type_of_contract != native_contract &&contract.code.abi.find("on_upgrade") != contract.code.abi.end())
@@ -963,12 +987,18 @@ namespace graphene {
 				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 				if (obj_op.valid())
 				{
-					if_store = false;
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
 					related_contract.insert(o.contract_id);
-					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					if (invoke_contract_result.storage_changes.size() > 0)
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
 				}
                 if (contract.type_of_contract == contract_type::native_contract)
                 {

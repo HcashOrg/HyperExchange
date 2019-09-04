@@ -370,6 +370,7 @@ namespace graphene { namespace chain {
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 		 optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id,const uint32_t op_num)const;
+		 void remove_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num);
          vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
 		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
@@ -573,10 +574,9 @@ namespace graphene { namespace chain {
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);
 		 bool                  _need_rollback(const proposal_object& proposal);
+		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
          ///Steps involved in applying a new block
          ///@{
-		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
-
          const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
          const miner_object& _validate_block_header( const signed_block& next_block )const;
          void create_block_summary(const signed_block& next_block);

@@ -339,7 +339,7 @@ namespace graphene {
 
 		UvmStorageValue UvmChainApi::get_storage_value_from_uvm_by_address(lua_State *L, const char *contract_address,
 			const std::string& name, const std::string& fast_map_key, bool is_fast_map)
-		{
+		{ 
 			UvmStorageValue null_storage;
 			null_storage.type = uvm::blockchain::StorageValueTypes::storage_value_null;
 
@@ -358,7 +358,8 @@ namespace graphene {
 				// printf("storage %s.%s:\n", contract_address, key.c_str());
 				auto storage_data = evaluator->get_storage(contract_id, key);
 				// TODO: cost more gas when read large storage
-				return StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
+				const auto& value = StorageDataType::create_lua_storage_from_storage_data(L, storage_data);
+				return value;
 			}
 			catch (fc::exception &e) {
 				return null_storage;
