@@ -706,6 +706,10 @@ void database::pop_block()
    {
 	   contract_packed(trx, head_block->block_num());
    }
+   if (head_block->block_num() % 100 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
@@ -760,6 +764,10 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    {
       _apply_block( next_block );
    } );
+   if (block_num % 100 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
    return;
 }
 static void load_apis_in_contract_object_if_native(contract_object& cont) {

@@ -41,7 +41,6 @@
 #include <graphene/chain/contract_object.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/uint128.hpp>
-
 #include <map>
 
 namespace graphene { namespace chain {
@@ -552,7 +551,8 @@ namespace graphene { namespace chain {
       private:
          optional<undo_database::session>       _pending_tx_session;
          vector< unique_ptr<op_evaluator> >     _operation_evaluators;
-		 leveldb::DB* l_db = nullptr;;
+		 
+		 //leveldb::DB* l_db = nullptr;;
 		 leveldb::Status open_status;
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
@@ -568,8 +568,11 @@ namespace graphene { namespace chain {
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
 		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
 		 void update_all_otc_contract(const uint32_t block_num);
-		 leveldb::DB*          get_contract_db()const { return l_db; }
+		 Cached_levelDb l_db;
+		 leveldb::DB *         get_contract_db()const { return real_l_db; }
+		 Cached_levelDb          get_cache_contract_db()const { return l_db; }
       private:
+		  leveldb::DB * real_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);
