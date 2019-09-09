@@ -304,8 +304,11 @@ void database::close()
    _fork_db.reset();
    destruct_leveldb();
    //l_db.Close();
-   if (real_l_db != nullptr)
+   if (real_l_db != nullptr) {
+	   l_db.Flush(leveldb::WriteOptions(), real_l_db);
 	   delete real_l_db;
+   }
+	   
    real_l_db = nullptr;
    /*
    if (l_db != nullptr)
