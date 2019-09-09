@@ -149,7 +149,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  vector<referendum_object> get_referendum_transactions_waiting(address addr) const;
 	  optional<referendum_object> get_referendum_object(const referendum_id_type& id) const;
       // Blinded balances
-      vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
+      //vector<blinded_balance_object> get_blinded_balances( const flat_set<commitment_type>& commitments )const;
 	  //Lock balance
 	  vector<lockbalance_object> get_account_lock_balance(const account_id_type& id)const;
 	  vector<lockbalance_object> get_asset_lock_balance(const asset_id_type& asset) const;
@@ -192,6 +192,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const miner_id_type& id) const;
 	  vector<miner_id_type> list_scheduled_citizens() const;
 	  vector<fc::optional<eth_multi_account_trx_object>> get_eths_multi_create_account_trx(const eth_multi_account_trx_state trx_state, const transaction_id_type trx_id)const;
+	  vector<fc::optional<otc_contract_object>> get_otc_contract_object(const string from_asset, const string to_asset, const uint32_t limit)const;
 	  fc::uint128 get_pledge() const;
    //private:
       template<typename T>
@@ -2227,6 +2228,28 @@ vector<fc::optional<eth_multi_account_trx_object>> database_api_impl::get_eths_m
 	}
 	return ret;
 }
+vector<fc::optional<otc_contract_object>> database_api::get_otc_contract_object(string from_asset, string to_asset, uint32_t limit) {
+	return my->get_otc_contract_object(from_asset, to_asset, limit);
+}
+bool compareDes(const fc::optional<otc_contract_object> &value1, const fc::optional<otc_contract_object> &value2)
+{
+	return value1->price > value2->price;
+}
+vector<fc::optional<otc_contract_object>> database_api_impl::get_otc_contract_object(const string from_asset,const string to_asset,const uint32_t limit)const {
+	vector<fc::optional<otc_contract_object>> ret;
+	auto range = _db.get_index_type<otc_contract_index_index>().indices().get<by_from_to_asset>().equal_range(boost::make_tuple(from_asset,to_asset));
+	uint32_t count = 0;
+	for (auto iter : boost::make_iterator_range(range.first, range.second)) {
+		ret.emplace_back(iter);
+		std::sort(ret.begin(), ret.end(), compareDes);
+		if (count < limit)
+		{
+			continue;
+		}
+		++count;
+	}
+	return ret;
+}
 vector<contract_blocknum_pair> database_api::get_contract_registered(const uint32_t block_num) const
 {
     vector<contract_blocknum_pair> res;
@@ -2713,7 +2736,7 @@ vector<proposal_object> database_api_impl::get_proposed_transactions( account_id
 // Blinded balances                                                 //
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
-
+/*
 vector<blinded_balance_object> database_api::get_blinded_balances( const flat_set<commitment_type>& commitments )const
 {
    return my->get_blinded_balances( commitments );
@@ -2731,7 +2754,7 @@ vector<blinded_balance_object> database_api_impl::get_blinded_balances( const fl
          result.push_back( *itr );
    }
    return result;
-}
+}*/
 fc::uint128_t database_api::get_pledge() const {
 	return my->get_pledge();
 }

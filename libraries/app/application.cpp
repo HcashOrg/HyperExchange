@@ -615,12 +615,15 @@ namespace detail {
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
 			fc::remove_all(_data_dir / "db_version");
+			_chain_db->rebuild_mode = true;
 			_chain_db->reindex(_data_dir / "blockchain", initial_state());
 			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
 			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
 			std::string version_string = GRAPHENE_CURRENT_DB_VERSION;
 			db_version.write(version_string.c_str(), version_string.size());
 			db_version.close();
+			_chain_db->update_all_otc_contract(-1);
+			_chain_db->rebuild_mode = false;
          }
 		 if (_options->count("event-need"))
 		 {
@@ -732,12 +735,19 @@ namespace detail {
 		  {
 			  latency_chk = 0;
 		  }
+		  if (sync_mode) {
+			  _chain_db->sync_otc_mode = sync_mode;
+		  }
          if (!sync_mode || blk_msg.block.block_num() % 10000 == 0)
          {
             const auto& miner = blk_msg.block.miner(*_chain_db);
             const auto& miner_account = miner.miner_account(*_chain_db);
-			
-			
+			if (sync_mode == false) {
+				if (_chain_db->sync_otc_mode == true) {
+					_chain_db->update_all_otc_contract(-1);
+				}
+				_chain_db->sync_otc_mode = false;
+			}
 			if (sync_mode){
 				_chain_db->sync_mode = true;
 				fc::mutable_variant_object result = _p2p_network->network_get_push_info();

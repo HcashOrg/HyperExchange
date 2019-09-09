@@ -84,14 +84,17 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _undo_db.enable();
    _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
    reinitialize_leveldb();
-   if (l_db != nullptr)
-	   delete l_db;
+  // l_db.Close();
+   if (real_l_db != nullptr)
+	   delete real_l_db;
    leveldb::Options options;
    options.create_if_missing = true;
-   open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &l_db);
+   open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &real_l_db);
+   //open_status = l_db.Open(options, (get_data_dir() / "contract_db").string());
    if (!open_status.ok())
    {
-	   l_db = nullptr;
+	   //l_db = nullptr;
+	   real_l_db = nullptr;
 	   elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
 	   FC_ASSERT(false, "database open error");
    }
@@ -212,10 +215,18 @@ void database::open(
 		  initialize_leveldb();
 		  leveldb::Options options;
 		  options.create_if_missing = true;
-		  open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &l_db);
+		 /* open_status = l_db.Open(options, (get_data_dir() / "contract_db").string());
 		  if (!open_status.ok())
 		  {
-			  l_db = nullptr;
+			  //l_db = nullptr;
+			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			  FC_ASSERT(false, "database open error");
+		  }*/
+		  
+		  open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &real_l_db);
+		  if (!open_status.ok())
+		  {
+			  real_l_db = nullptr;
 			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
 			  FC_ASSERT(false, "database open error");
 		  }
@@ -292,10 +303,15 @@ void database::close()
    //_undo_db.reset();
    _fork_db.reset();
    destruct_leveldb();
-
+   //l_db.Close();
+   if (real_l_db != nullptr)
+	   l_db.Flush(leveldb::WriteOptions(), real_l_db);
+	   delete real_l_db;
+   real_l_db = nullptr;
+   /*
    if (l_db != nullptr)
 	   delete l_db;
-   l_db = nullptr;
+   l_db = nullptr;*/
 }
 
 } }

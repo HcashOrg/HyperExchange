@@ -130,7 +130,8 @@ const uint8_t eth_multi_account_trx_object::space_id;
 const uint8_t eth_multi_account_trx_object::type_id;
 const uint8_t whiteOperationList_object::space_id;
 const uint8_t whiteOperationList_object::type_id;
-
+const uint8_t otc_contract_object::space_id;
+const uint8_t otc_contract_object::type_id;
 void database::initialize_evaluators()
 {
    _operation_evaluators.resize(255);
@@ -199,11 +200,11 @@ void database::initialize_evaluators()
    register_evaluator<withdraw_permission_claim_evaluator>();
    register_evaluator<withdraw_permission_update_evaluator>();
    register_evaluator<withdraw_permission_delete_evaluator>();
-   register_evaluator<worker_create_evaluator>();
-   register_evaluator<balance_claim_evaluator>();
-   register_evaluator<transfer_to_blind_evaluator>();
-   register_evaluator<transfer_from_blind_evaluator>();
-   register_evaluator<blind_transfer_evaluator>();
+  // register_evaluator<worker_create_evaluator>();
+   //register_evaluator<balance_claim_evaluator>();
+  // register_evaluator<transfer_to_blind_evaluator>();
+ //  register_evaluator<transfer_from_blind_evaluator>();
+  // register_evaluator<blind_transfer_evaluator>();
    register_evaluator<asset_claim_fees_evaluator>();
    register_evaluator<guard_refund_balance_evaluator>();
    register_evaluator<guard_refund_crosschain_trx_evaluator>();
@@ -285,10 +286,10 @@ void database::initialize_indexes()
    prop_index->add_secondary_index<required_approval_index>();
 
    add_index< primary_index<withdraw_permission_index > >();
-   add_index< primary_index<vesting_balance_index> >();
+   //add_index< primary_index<vesting_balance_index> >();
    add_index< primary_index<worker_index> >();
    add_index< primary_index<balance_index> >();
-   add_index< primary_index<blinded_balance_index> >();
+   //add_index< primary_index<blinded_balance_index> >();
 
    //Implementation object indexes
    add_index< primary_index<transaction_index                             > >();
@@ -296,6 +297,7 @@ void database::initialize_indexes()
    add_index< primary_index<account_binding_index                         > >();
    add_index< primary_index<multisig_account_pair_index                   > >();
    add_index< primary_index<multisig_address_index                        > >();
+   add_index< primary_index<otc_contract_index_index                        > >();
   // add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();
