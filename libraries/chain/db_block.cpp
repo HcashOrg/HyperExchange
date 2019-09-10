@@ -1117,7 +1117,7 @@ void database::_apply_block( const signed_block& next_block )
    {
       /* We do not need to push the undo state for each transaction
        * because they either all apply and are valid or the
-       * entire block fails to apply.  We only need an "undo" state
+       //* entire block fails to apply.  We only need an "undo" state
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
