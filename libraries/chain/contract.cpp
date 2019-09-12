@@ -147,6 +147,11 @@ namespace graphene {
 
 	}
 
+	bool contract_invoke_result::maybe_invalid() const {
+		return (storage_changes.empty() && contract_withdraw.empty() &&
+			contract_balances.empty() && deposit_to_address.empty() && deposit_contract.empty() &&
+			transfer_fees.empty() && events.empty());
+	}
 
 	int64_t contract_invoke_result::count_storage_gas() const {
 		cbor_diff::CborDiff differ;

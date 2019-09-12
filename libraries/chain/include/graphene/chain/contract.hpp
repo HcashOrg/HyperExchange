@@ -71,7 +71,7 @@ namespace graphene {
 
 			// @throws uvm::core::UvmException
 			void validate();
-
+			bool maybe_invalid() const;
 			// count storage gas and events gas
 			int64_t count_storage_gas() const;
 			int64_t count_event_gas() const;
