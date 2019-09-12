@@ -123,7 +123,11 @@ namespace graphene {
 		acctual_fee = obj.acctual_fee;
 		invoker = obj.invoker;
 		contract_registed = obj.contract_registed;
-
+		
+		for (auto it = obj.storage_changes.begin(); it != obj.storage_changes.end(); it++)
+		{
+			storage_changes.insert(make_pair(it->first, it->second));
+		}
 		for (auto it = obj.contract_withdraw.begin(); it != obj.contract_withdraw.end(); it++)
 		{
 			contract_withdraw.insert(make_pair(it->first, it->second));
