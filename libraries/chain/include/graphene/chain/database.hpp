@@ -572,16 +572,17 @@ namespace graphene { namespace chain {
 		 void update_all_otc_contract(const uint32_t block_num);
 		 Cached_levelDb l_db;
 		 leveldb::DB *         get_contract_db()const { return real_l_db; }
-		 Cached_levelDb          get_cache_contract_db()const { return l_db; }
+		 const Cached_levelDb*          get_cache_contract_db()const { return &l_db; }
       private:
 		  leveldb::DB * real_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);
 		 bool                  _need_rollback(const proposal_object& proposal);
-		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
          ///Steps involved in applying a new block
          ///@{
+		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
+
          const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
          const miner_object& _validate_block_header( const signed_block& next_block )const;
          void create_block_summary(const signed_block& next_block);

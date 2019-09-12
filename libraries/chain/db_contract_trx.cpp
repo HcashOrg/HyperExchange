@@ -317,7 +317,8 @@ namespace graphene {
 			try {
 				leveldb::WriteOptions write_ops;
 				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
-				get_contract_db()->Delete(write_ops,start);
+				//get_contract_db()->Delete(write_ops,start);
+				l_db.Delete(start);
 			}FC_CAPTURE_AND_RETHROW((trx_id)(op_num));
 		}
 
@@ -327,7 +328,7 @@ namespace graphene {
 				leveldb::ReadOptions read_options;
 				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
 				string value;
-				leveldb::Status sta = get_cache_contract_db().Get(read_options, start, &value, get_contract_db());
+				leveldb::Status sta = get_cache_contract_db()->Get(read_options, start, &value, get_contract_db());
 				if (sta.ok())
 				{
 					vector<char> vec (value.begin(),value.end());
@@ -352,7 +353,7 @@ namespace graphene {
 				}*/
 				auto start = trx_id.str() + "|invoke_result|";
 				leveldb::ReadOptions read_options;
-				auto temp_to_return = get_cache_contract_db().GetToDelete(read_options, start, get_contract_db(),false);
+				auto temp_to_return = get_cache_contract_db()->GetToDelete(read_options, start, get_contract_db(),false);
 				for (auto value : temp_to_return) {
 					vector<char> vec(value.begin(), value.end());
 					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);

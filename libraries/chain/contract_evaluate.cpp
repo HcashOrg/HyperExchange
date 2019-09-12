@@ -137,6 +137,7 @@ namespace graphene {
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 				}
+				//std::cout << "5current trx id is" << get_current_trx_id().str() << std::endl;
 				if_store = true;
 				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 				invoke_contract_result = contract_invoke_result();
@@ -258,6 +259,7 @@ namespace graphene {
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 					}
+					//std::cout <<"current trx id is"<<get_current_trx_id().str() << std::endl;
 					if_store = true;
 					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 					invoke_contract_result = contract_invoke_result();
@@ -361,6 +363,7 @@ namespace graphene {
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 					}
+					//std::cout << "2current trx id is" << get_current_trx_id().str() << std::endl;
 					if_store = true;
 					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 					invoke_contract_result = contract_invoke_result();
@@ -504,6 +507,7 @@ namespace graphene {
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 				}
+				//strd::cout << "3current trx id is" << get_current_trx_id().str() << std::endl;
 				if_store = true;
 				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 				invoke_contract_result = contract_invoke_result();
@@ -1026,6 +1030,7 @@ namespace graphene {
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 					}
+					//std::cout << "4current trx id is" << get_current_trx_id().str() << std::endl;
 					if_store = true;
 					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
 					invoke_contract_result = contract_invoke_result();

@@ -182,7 +182,7 @@ leveldb::Status Cached_levelDb::Put(leveldb::Slice key, leveldb::Slice value) {
 	cache_store[key.ToString()] = value.ToString();
 	return leveldb::Status::OK();
 };
-leveldb::Status Cached_levelDb::Get(const leveldb::ReadOptions& read_op, leveldb::Slice key, std::string* value,leveldb::DB* l_db) {
+leveldb::Status Cached_levelDb::Get(const leveldb::ReadOptions& read_op, leveldb::Slice key, std::string* value,leveldb::DB* l_db)const {
 	auto exist = cache_store.count(key.ToString());
 	if (exist == 0) {
 		string temp;
@@ -200,7 +200,7 @@ leveldb::Status Cached_levelDb::Get(const leveldb::ReadOptions& read_op, leveldb
 		return leveldb::Status::OK();
 	}
 	else {
-		auto temp = cache_store[key.ToString()];
+		auto temp = cache_store.at(key.ToString());
 		*value = temp;
 		return leveldb::Status::OK();
 	}
@@ -234,26 +234,35 @@ leveldb::Status Cached_levelDb::Flush(leveldb::WriteOptions w_op,leveldb::DB* l_
 		cache_store.erase(cache_store.begin(), cache_store.end());
 		cache_delete.erase(cache_delete.begin(), cache_delete.end());
 	}
+	else {
+		std::cout << "flush failed" << std::endl;
+	}
 	return ret;
 };
-vector<string> Cached_levelDb::GetToDelete(const leveldb::ReadOptions& read_op, std::string key, leveldb::DB* l_db, bool getKey) {
+vector<string> Cached_levelDb::GetToDelete(const leveldb::ReadOptions& read_op, std::string key, leveldb::DB* l_db, bool getKey)const {
 	vector<string> ret;
-	for (auto iter_d : cache_store)
+	auto cache_it = cache_store.upper_bound(key);
+	for (;cache_it != cache_store.end();++cache_it)
 	{
-		auto store_key = iter_d.first;
-		auto pos = store_key.find(key);
-		if (pos != store_key.npos && store_key != key)
+		auto store_key = cache_it->first;
+		if (store_key == key)
 		{
+			continue;
+		}
+		auto pos = store_key.find(key);
+		if (pos == 0) {
 			if (getKey)
 			{
 				ret.push_back(store_key);
 			}
 			else {
-				ret.push_back(iter_d.second);
+				ret.push_back(cache_it->second);
 			}
-			
 		}
-	}
+		else {
+			break;
+		}
+	}	
 	leveldb::Iterator* it = l_db->NewIterator(read_op);
 	for (it->Seek(key); it->Valid(); it->Next()) {
 		if (!it->key().starts_with(key))
@@ -262,7 +271,8 @@ vector<string> Cached_levelDb::GetToDelete(const leveldb::ReadOptions& read_op, 
 			continue;
 		std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
 		auto exist_iter = cache_delete.find(it->key().ToString());
-		if (exist_iter != cache_delete.end())
+		auto cache_count = cache_store.count(it->key().ToString());
+		if (exist_iter != cache_delete.end() || cache_count != 0)
 		{
 			continue;
 		}

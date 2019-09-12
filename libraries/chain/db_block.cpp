@@ -706,7 +706,7 @@ void database::pop_block()
    {
 	   contract_packed(trx, head_block->block_num());
    }
-   if (head_block->block_num() % 100 == 0)
+   if (head_block->block_num() % 100000 == 0)
    {
 	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
    }
@@ -764,7 +764,7 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    {
       _apply_block( next_block );
    } );
-   if (block_num % 100 == 0)
+   if (block_num % 100000 == 0)
    {
 	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
    }
@@ -956,10 +956,10 @@ std::vector<otc_contract_object> database::get_token_contract_info(std::string c
 		return std::vector<otc_contract_object>();
 	}
 	std::vector<otc_contract_object> ret_vec;
-	std::cout << "ret string is " << ret << std::endl;
+	//std::cout << "ret string is " << ret << std::endl;
 	
 	auto handled_contracts = fc::json::from_string(ret);
-	std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
+	//std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
 	if (handled_contracts.is_object())
 	{
 		auto contracts_info = handled_contracts.get_object();
@@ -1180,7 +1180,7 @@ void database::_apply_block( const signed_block& next_block )
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if (!sync_otc_mode && !rebuild_mode) {
-	  std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
+	  //std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
 	   update_otc_contract(next_block_num - 1);
    }
    if( !_node_property_object.debug_updates.empty() )
