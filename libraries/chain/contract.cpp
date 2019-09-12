@@ -123,7 +123,11 @@ namespace graphene {
 		acctual_fee = obj.acctual_fee;
 		invoker = obj.invoker;
 		contract_registed = obj.contract_registed;
-
+		
+		for (auto it = obj.storage_changes.begin(); it != obj.storage_changes.end(); it++)
+		{
+			storage_changes.insert(make_pair(it->first, it->second));
+		}
 		for (auto it = obj.contract_withdraw.begin(); it != obj.contract_withdraw.end(); it++)
 		{
 			contract_withdraw.insert(make_pair(it->first, it->second));
@@ -147,6 +151,11 @@ namespace graphene {
 
 	}
 
+	bool contract_invoke_result::maybe_invalid() const {
+		return (storage_changes.empty() && contract_withdraw.empty() &&
+			contract_balances.empty() && deposit_to_address.empty() && deposit_contract.empty() &&
+			transfer_fees.empty() && events.empty());
+	}
 
 	int64_t contract_invoke_result::count_storage_gas() const {
 		cbor_diff::CborDiff differ;

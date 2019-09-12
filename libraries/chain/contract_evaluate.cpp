@@ -132,7 +132,7 @@ namespace graphene {
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				if (invoke_contract_result.storage_changes.size() > 0 )
+				if (!invoke_contract_result.maybe_invalid() )
 				{
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -254,7 +254,7 @@ namespace graphene {
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -358,7 +358,7 @@ namespace graphene {
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -502,7 +502,7 @@ namespace graphene {
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				if (invoke_contract_result.storage_changes.size() > 0)
+				if (!invoke_contract_result.maybe_invalid())
 				{
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -1025,7 +1025,7 @@ namespace graphene {
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
 					related_contract.insert(o.contract_id);
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
