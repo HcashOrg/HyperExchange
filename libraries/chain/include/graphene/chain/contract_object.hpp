@@ -168,7 +168,7 @@ namespace graphene {
 			share_type gas;
             address invoker;
 			optional<address> contract_registed;
-            std::map<std::string, contract_storage_changes_type, comparator_for_string> storage_changes;
+            std::map<std::string, contract_storage_changes_type> storage_changes;
 
            std::map<std::pair<address, asset_id_type>, share_type> contract_withdraw;
            std::map<std::pair<address, asset_id_type>, share_type> contract_balances;
@@ -224,7 +224,7 @@ FC_REFLECT(graphene::chain::contract_storage_view,
 FC_REFLECT_DERIVED(graphene::chain::contract_event_notify_object, (graphene::db::object),
 	(contract_address)(event_name)(event_arg)(trx_id)(block_num)(op_num))
 FC_REFLECT_DERIVED(graphene::chain::contract_invoke_result_object, (graphene::db::object),
-    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(gas)(invoker)(contract_registed)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
+    (trx_id)(block_num)(op_num)(api_result)(events)(exec_succeed)(acctual_fee)(gas)(invoker)(contract_registed)(storage_changes)(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)(transfer_fees))
 	//(contract_withdraw)(contract_balances)(deposit_to_address)(deposit_contract)
 FC_REFLECT(graphene::chain::contract_hash_entry, (contract_address)(hash))
 FC_REFLECT(graphene::chain::execution_result, (fee)(gas_count)(result))

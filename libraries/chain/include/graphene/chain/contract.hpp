@@ -47,7 +47,7 @@ namespace graphene {
 			}
 		};
 
-		typedef std::map<std::string, StorageDataChangeType, comparator_for_string> contract_storage_changes_type;
+		typedef std::map<std::string, StorageDataChangeType> contract_storage_changes_type;
 		struct contract_invoke_result_object;
 		struct contract_invoke_result
 		{

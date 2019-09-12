@@ -523,6 +523,10 @@ namespace graphene {
 				obj.op_num = op_num;
 				obj.invoker = invoker;
 				obj.contract_registed = res.contract_registed;
+				for (auto it = res.storage_changes.begin(); it != res.storage_changes.end(); it++)
+				{
+					obj.storage_changes.insert(make_pair(it->first,it->second));
+				}
 				for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
 				{
 					obj.contract_withdraw.insert(make_pair(it->first, it->second));
