@@ -677,6 +677,8 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
 		return create_obj_unique_ptr<vote_object>(var);
 	case vote_result_object_type:
 		return  create_obj_unique_ptr<vote_result_object>(var);
+	case otc_contract_object_type:
+		return  create_obj_unique_ptr<otc_contract_object>(var);
     default:
         break;
     }

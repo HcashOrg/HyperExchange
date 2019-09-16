@@ -706,6 +706,10 @@ void database::pop_block()
    {
 	   contract_packed(trx, head_block->block_num());
    }
+   if (head_block->block_num() % 100000 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
@@ -760,9 +764,336 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    {
       _apply_block( next_block );
    } );
+   if (block_num % 100000 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
    return;
 }
+static void load_apis_in_contract_object_if_native(contract_object& cont) {
+	// if is native contract, get contract apis and fill it
+	if (cont.type_of_contract == contract_type::native_contract) {
+		auto native_contract = native_contract_finder::create_native_contract_by_key(nullptr, cont.native_contract_key, cont.contract_address);
+		if (native_contract) {
+			cont.code.abi = native_contract->apis();
+			//cont.code.abi.clear();
+			//for(const auto& api : native_contract->apis()) {
+			//      cont.code.abi.push(api);
+			//}
+			cont.code.offline_abi = native_contract->offline_apis();
+			//cont.code.offline_abi.clear();
+			//for(const auto& api : native_contract->offline_apis()) {
+			//        cont.code.offline_abi.push(api);
+			//}
+			cont.code.events = native_contract->events();
+			//cont.code.events.clear();
+			//for(const auto& event : native_contract->events()) {
+			//        cont.code.events.push(event);
+			//}
+		}
+	}
+}
+string database::invoke_contract_offline_indb(const string& caller_pubkey_str, const string& contract_address_or_name, const string& contract_api, const string& contract_arg) {
+	try {
 
+
+		contract_invoke_operation contract_invoke_op;
+
+		//juge if the name has been registered in the chain
+
+		public_key_type caller_pubkey(caller_pubkey_str);
+		contract_object cont;
+		std::string contract_address = contract_address_or_name;
+		//try {
+		 //   auto temp = graphene::chain::address(contract_address_or_name);
+		 //   FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		//}
+		//catch (fc::exception& e)
+		//{
+		 //   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+		 //   contract_address = string(cont.contract_address);
+		//}
+		bool is_valid_address = true;
+		try {
+			auto temp = graphene::chain::address(contract_address_or_name);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		}
+		catch (fc::exception& e)
+		{
+			is_valid_address = false;
+		}
+		if (!is_valid_address)
+		{
+			cont = get_contract(address(contract_address));
+			load_apis_in_contract_object_if_native(cont);
+			contract_address = string(cont.contract_address);
+		}
+		else
+		{
+			cont = get_contract(address(contract_address));
+			load_apis_in_contract_object_if_native(cont);
+			contract_address = string(cont.contract_address);
+		}
+		if (cont.type_of_contract == contract_type::native_contract) {
+			// ignore check of api
+		}
+		else {
+			auto& abi = cont.code.offline_abi;
+			if (abi.find(contract_api) == abi.end())
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		}
+
+		contract_invoke_op.gas_price = 0;
+		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		contract_invoke_op.caller_addr = caller_pubkey;
+		contract_invoke_op.caller_pubkey = caller_pubkey;
+		contract_invoke_op.contract_id = address(contract_address);
+		contract_invoke_op.contract_api = contract_api;
+		contract_invoke_op.contract_arg = contract_arg;
+		contract_invoke_op.fee.amount = 0;
+		contract_invoke_op.fee.asset_id = asset_id_type(0);
+		//contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		//contract_invoke_op.guarantee_id = get_guarantee_id();
+		signed_transaction tx;
+		tx.operations.push_back(contract_invoke_op);
+		auto current_fees = get_global_properties().parameters.current_fees;
+		for (auto& op : tx.operations)
+			current_fees->set_fee(op);
+
+		auto dyn_props = get_dynamic_global_properties();
+		tx.set_reference_block(dyn_props.head_block_id);
+		tx.set_expiration(dyn_props.time + fc::seconds(30));
+		tx.validate();
+		signed_transaction signed_tx(tx);
+		auto trx_res = validate_transaction(signed_tx, true);
+		share_type gas_count = 0;
+		string res = "some error happened, not api result get";
+		for (auto op_res : trx_res.operation_results)
+		{
+			try {
+				res = op_res.get<contract_operation_result_info>().api_result;
+			}
+			catch (...)
+			{
+				break;
+			}
+		}
+		return res;
+	}
+	catch (...) {
+		return "";
+	}
+}
+bool database::check_contract_type(std::string contract_addr)
+{
+	const auto& tempdb = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>();
+	auto iter = tempdb.find(contract_addr);
+	if (iter != tempdb.end()) {
+		return true;
+	}
+	else{
+		return false;
+	}/*
+	auto contract_a = ContractEntryPrintable(get_contract(contract_addr));
+	auto ofa = contract_a.code_printable.offline_abi;
+	std::vector<std::string> std_offline_abi;
+	std_offline_abi.push_back("dumpData");
+	std_offline_abi.push_back("owner");
+	std_offline_abi.push_back("owner_assets");
+	std_offline_abi.push_back("sell_orders");
+	std_offline_abi.push_back("sell_orders_num");
+	std_offline_abi.push_back("state");
+	for (auto abi : std_offline_abi) {
+		auto exist = ofa.count(abi);
+		if (!exist) {
+			return false;
+		}
+	}
+	auto otc_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("hxcollector")));
+	auto ret = invoke_contract_offline_indb(std::string(public_key_type(otc_key.get_public_key())), contract_addr, "state", "");
+	if (ret != "COMMON") {
+		return false;
+	}
+	return true;*/
+};
+int split_indb(const std::string& str, std::vector<std::string>& ret_, std::string sep)
+{
+	if (str.empty())
+	{
+		return 0;
+	}
+
+	std::string tmp;
+	std::string::size_type pos_begin = str.find_first_not_of(sep);
+	std::string::size_type comma_pos = 0;
+
+	while (pos_begin != std::string::npos)
+	{
+		comma_pos = str.find(sep, pos_begin);
+		if (comma_pos != std::string::npos)
+		{
+			tmp = str.substr(pos_begin, comma_pos - pos_begin);
+			pos_begin = comma_pos + sep.length();
+		}
+		else
+		{
+			tmp = str.substr(pos_begin);
+			pos_begin = comma_pos;
+		}
+
+		if (!tmp.empty())
+		{
+			ret_.push_back(tmp);
+			tmp.clear();
+		}
+	}
+	return 0;
+}
+std::vector<otc_contract_object> database::get_token_contract_info(std::string contract_addr) {
+	auto otc_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("hxcollector")));
+	auto ret = invoke_contract_offline_indb(std::string(public_key_type(otc_key.get_public_key())), contract_addr, "sell_orders", "");
+	if (ret == "") {
+		return std::vector<otc_contract_object>();
+	}
+	std::vector<otc_contract_object> ret_vec;
+	//std::cout << "ret string is " << ret << std::endl;
+	
+	auto handled_contracts = fc::json::from_string(ret);
+	//std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
+	if (handled_contracts.is_object())
+	{
+		auto contracts_info = handled_contracts.get_object();
+		for (auto iter = contracts_info.begin(); iter != contracts_info.end(); ++iter) {
+			auto contract_key_info = iter->key();
+			vector<string> from_to_asset;
+			split_indb(contract_key_info, from_to_asset, ",");
+			variants contract_orderlist;
+			try{
+				auto contract_order_json_info = iter->value().as_string();
+				auto order_list = fc::json::from_string(contract_order_json_info).get_object();
+				if (order_list.contains("orderArray")){
+					contract_orderlist = order_list["orderArray"].get_array();
+				}
+				
+			}
+			catch (...)
+			{
+				continue;
+			}
+			for (int i = 0; i < contract_orderlist.size(); i++)
+			{
+				vector<string> from_to_supply_price;
+				auto orderlist = contract_orderlist[i].as_string();
+				split_indb(orderlist, from_to_supply_price, ",");
+				if (from_to_asset.size() != 2 || from_to_supply_price.size() != 3){
+					continue;
+				}
+				otc_contract_object temp;
+				temp.from_asset = from_to_asset[0];
+				temp.to_asset = from_to_asset[1];
+				temp.from_supply = from_to_supply_price[0];
+				temp.to_supply = from_to_supply_price[1];
+				temp.price = from_to_supply_price[2];
+				temp.contract_address = contract_addr;
+				ret_vec.push_back(temp);
+			}
+			
+		}
+	}
+	/*if (handled_contracts.is_array())
+	{
+		auto contracts_array = handled_contracts.get_array();
+		for (int i = 0; i < contracts_array.size(); i++) {
+			auto contract_temp = contracts_array[i].as_string();
+			vector<string> key_value_vec;
+			split_indb(contract_temp, key_value_vec, ":");
+			if (key_value_vec.size() != 2) {
+				continue;
+			}
+			auto key = key_value_vec[0];
+			auto value = key_value_vec[1];
+			vector<string> from_to_asset;
+			vector<string> from_to_supply_price;
+			split_indb(key, from_to_asset, ",");
+			split_indb(value, from_to_supply_price, ",");
+			if (from_to_asset.size() != 2 || from_to_supply_price.size() != 3)
+			{
+				continue;
+			}
+			otc_contract_object temp;
+			temp.from_asset = from_to_asset[0];
+			temp.to_asset = from_to_asset[1];
+			temp.from_supply = from_to_supply_price[0];
+			temp.to_supply = from_to_supply_price[1];
+			temp.price = from_to_supply_price[2];
+			temp.contract_address = contract_addr;
+			ret_vec.push_back(temp);
+		}
+		
+	}*/
+	return ret_vec;
+};
+void database::update_otc_contract(uint32_t block_num) {
+	vector<contract_blocknum_pair> changed_contracts;
+	if (block_num == -1){
+		auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_block_num>().equal_range(-1);
+		for (auto iter : boost::make_iterator_range(range.first, range.second)) {
+			contract_blocknum_pair temp;
+			temp.block_num = iter.block_num;
+			temp.contract_address = iter.contract_address;
+			changed_contracts.push_back(temp);
+		}
+	}
+	else {
+		changed_contracts = get_contract_changed(block_num, 1);
+	}
+	std::vector<otc_contract_object> update;
+	for (auto changed_contract : changed_contracts) {
+		bool bCommonContract = check_contract_type(changed_contract.contract_address);
+		if (bCommonContract) {
+			const auto& need_update = get_token_contract_info(changed_contract.contract_address);
+			if (need_update.size() != 0) {
+				update.insert(update.end(), need_update.begin(), need_update.end());
+			}
+			auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(changed_contract.contract_address);
+			vector <object_id_type> to_delete_otc_id;
+			for (auto iter : boost::make_iterator_range(range.first, range.second)) {
+				if (iter.block_num != -1){
+					to_delete_otc_id.push_back(iter.id);
+				}
+			}
+			for (auto id : to_delete_otc_id){
+				auto& otc_db = get_index_type<otc_contract_index_index>().indices().get<by_id>();
+				auto iter = otc_db.find(id);
+				if (iter != otc_db.end()) {
+					remove(*iter);
+				}
+			}
+		}
+	}
+	for (auto item : update)
+	{
+		create<otc_contract_object>([&](otc_contract_object& otc_obj) {
+			otc_obj.from_asset = item.from_asset;
+			otc_obj.to_asset = item.to_asset;
+			otc_obj.from_supply = item.from_supply;
+			otc_obj.to_supply = item.to_supply;
+			otc_obj.price = item.price;
+			otc_obj.contract_address = item.contract_address;
+			if (block_num == -1){
+				otc_obj.block_num = _current_block_num;
+			}
+			else {
+				otc_obj.block_num = block_num;
+			}
+		});
+	}
+
+};
+void database::update_all_otc_contract(const uint32_t block_num)  {
+	std::cout << "in update_allotc" << std::endl;
+	update_otc_contract(block_num);
+}
 void database::_apply_block( const signed_block& next_block )
 { try {
    uint32_t next_block_num = next_block.block_num();
@@ -848,6 +1179,10 @@ void database::_apply_block( const signed_block& next_block )
    process_bonus();
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
+   if (!sync_otc_mode && !rebuild_mode) {
+	  //std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
+	   update_otc_contract(next_block_num - 1);
+   }
    if( !_node_property_object.debug_updates.empty() )
       apply_debug_updates();
    // notify observers that the block has been applied

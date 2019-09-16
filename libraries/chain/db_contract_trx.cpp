@@ -188,14 +188,19 @@ namespace graphene {
 				obj.storage_name = name;
 				obj.diff = diff.storage_data;
 				obj.trx_id = trx_id;
-				leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), trx_id.str()+"|storage_diff_object|", &value);
+				//leveldb::Status sta = get_contract_db()->Get(leveldb::ReadOptions(), trx_id.str()+"|storage_diff_object|", &value);
+				leveldb::Status sta = l_db.Get(leveldb::ReadOptions(), trx_id.str() + "|storage_diff_object|", &value,get_contract_db());
 				if (!sta.ok())
 				{
-					sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", "storage_diff_object");
+					//sta = get_contract_db()->Put(write_options,trx_id.str()+"|storage_diff_object|", "storage_diff_object");
+					sta = l_db.Put(trx_id.str() + "|storage_diff_object|", "storage_diff_object");
 					FC_ASSERT(sta.ok(), "put data in contract db failed.");
 				}
 				const auto& vec = fc::raw::pack(obj);
-				sta = get_contract_db()->Put(write_options, trx_id.str() + "|storage_diff_object|" \
+				//sta = get_contract_db()->Put(write_options, trx_id.str() + "|storage_diff_object|" \
+				//	+ contract_id.address_to_string() + "|" \
+				//	+ name, leveldb::Slice(vec.data(),vec.size()));
+				sta = l_db.Put(trx_id.str() + "|storage_diff_object|" \
 					+ contract_id.address_to_string() + "|" \
 					+ name, leveldb::Slice(vec.data(),vec.size()));
 				if (!sta.ok())
@@ -312,7 +317,8 @@ namespace graphene {
 			try {
 				leveldb::WriteOptions write_ops;
 				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
-				get_contract_db()->Delete(write_ops,start);
+				//get_contract_db()->Delete(write_ops,start);
+				l_db.Delete(start);
 			}FC_CAPTURE_AND_RETHROW((trx_id)(op_num));
 		}
 
@@ -322,7 +328,7 @@ namespace graphene {
 				leveldb::ReadOptions read_options;
 				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
 				string value;
-				leveldb::Status sta = get_contract_db()->Get(read_options, start, &value);
+				leveldb::Status sta = get_cache_contract_db()->Get(read_options, start, &value, get_contract_db());
 				if (sta.ok())
 				{
 					vector<char> vec (value.begin(),value.end());
@@ -345,7 +351,15 @@ namespace graphene {
 					res.push_back(*it);
 					it++;
 				}*/
-
+				auto start = trx_id.str() + "|invoke_result|";
+				leveldb::ReadOptions read_options;
+				auto temp_to_return = get_cache_contract_db()->GetToDelete(read_options, start, get_contract_db(),false);
+				for (auto value : temp_to_return) {
+					vector<char> vec(value.begin(), value.end());
+					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);
+					res.push_back(obj);
+				}
+				/*
 				leveldb::Iterator* it = get_contract_db()->NewIterator(leveldb::ReadOptions());
 				auto start = trx_id.str()+"|invoke_result|";
 				for (it->Seek(start); it->Valid(); it->Next()) {
@@ -358,7 +372,7 @@ namespace graphene {
 					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);
 					res.push_back(obj);
 				}
-				delete it;
+				delete it;*/
                 std::sort(res.begin(), res.end());
                 return res;
             }FC_CAPTURE_AND_RETHROW((trx_id))
@@ -380,7 +394,8 @@ namespace graphene {
 				leveldb::WriteOptions write_options;
 				//neeed to packed trx
 				string value;
-				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str() + "|invoke_result|", &value);
+				//leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str() + "|invoke_result|", &value);
+				leveldb::Status sta = l_db.Get(read_options, trx_id.str() + "|invoke_result|", &value, get_contract_db());
 				if (!sta.ok())
 					return;
 				std::cout << "contract_packed ..." << std::endl;
@@ -388,8 +403,16 @@ namespace graphene {
 				vector<string> contract_ids;
 				vector<string> storage_names;
 				vector<transaction_contract_storage_diff_object> diff_objs;
-				leveldb::Iterator* it = get_contract_db()->NewIterator(read_options);
 				auto start = trx_id.str() + "|invoke_result|";
+				auto temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
+				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
+				start = trx_id.str() + "|storage_diff_object|";
+				temp_to_erase.swap(vector<string>());
+				temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
+				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
+					/*
+				leveldb::Iterator* it = get_contract_db()->NewIterator(read_options);
+				
 				for (it->Seek(start); it->Valid(); it->Next()) {
 					if (!it->key().starts_with(start))
 						break;
@@ -398,13 +421,13 @@ namespace graphene {
 					std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
 					need_to_erase.push_back(it->key().ToString());
 				}
-				start = trx_id.str() + "|storage_diff_object|";
+				
 				for (it->Seek(start); it->Valid(); it->Next()) {
 					if (!it->key().starts_with(start))
 						break;
 					if (it->key().ToString() == start)
 						continue;
-					need_to_erase.push_back(it->key().ToString());
+					need_to_erase.push_back(it->key().ToString());*/
 					/*auto key = it->key().ToString();
 					auto value = it->value().ToString();
 					std::cout <<"storage diff object " << key << ":" << value << std::endl;
@@ -417,11 +440,12 @@ namespace graphene {
 					auto name = contract_name.assign(contract_name, contract_name.find_first_of("|") + 1);*/
 					//contract_ids.push_back(contract_name);
 					//storage_names.push_back(name);
-				}
-				delete it;
+				//}
+				//delete it;
 				for (const auto key : need_to_erase)
 				{
-					get_contract_db()->Delete(write_options, key);
+					//get_contract_db()->Delete(write_options, key);
+					l_db.Delete(key);
 				}
 				
 				/*for (const auto obj : diff_objs)
@@ -548,15 +572,18 @@ namespace graphene {
 					obj.transfer_fees.insert(make_pair(it->first, it->second));
 				}
 				string value;
-				leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str()+"|invoke_result|", &value);
+				//leveldb::Status sta = get_contract_db()->Get(read_options, trx_id.str()+"|invoke_result|", &value);
+				leveldb::Status sta = l_db.Get(read_options, trx_id.str() + "|invoke_result|", &value, get_contract_db());
 				if (!sta.ok())
 				{
 					const auto& vec = fc::raw::pack(op_num);
-					sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", leveldb::Slice(vec.data(),vec.size()));
+					//sta = get_contract_db()->Put(write_options, trx_id.str() + "|invoke_result|", leveldb::Slice(vec.data(),vec.size()));
+					sta = l_db.Put( trx_id.str() + "|invoke_result|", leveldb::Slice(vec.data(), vec.size()));
 					FC_ASSERT(sta.ok(), "Put Data to contract db failed");
 				}
 				const auto& vec = fc::raw::pack(obj);
-				sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), leveldb::Slice(vec.data(),vec.size()));
+				//sta = get_contract_db()->Put(write_options, trx_id.str()+"|invoke_result|"+fc::variant(op_num).as_string(), leveldb::Slice(vec.data(),vec.size()));
+				sta = l_db.Put(trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string(), leveldb::Slice(vec.data(), vec.size()));
 				if (!sta.ok())
 				{
 					elog("Put error: ${error}", ("error", (trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string()).c_str()));

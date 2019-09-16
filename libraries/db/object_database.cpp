@@ -27,6 +27,7 @@
 #include <fc/container/flat.hpp>
 #include <fc/uint128.hpp>
 #include <leveldb/db.h>
+#include <leveldb/write_batch.h>
 namespace graphene { namespace db {
 
 object_database::object_database()
@@ -154,5 +155,138 @@ void object_database::save_undo_remove(const object& obj)
 {
    _undo_db.on_remove( obj );
 }
+
+//void Cached_levelDb::Close(const leveldb::DB* l_db) {
+//	leveldb::WriteOptions wop;
+//	
+//	if (l_db != nullptr) {
+//		Flush(wop, l_db);
+//	}
+//}
+//leveldb::Status Cached_levelDb::Open(const leveldb::Options& options, const std::string& dbname, const leveldb::DB* l_db) {
+//	if (l_db != nullptr) {
+//		delete l_db;
+//	}
+//	auto open_status = leveldb::DB::Open(options, dbname, &l_db);
+//	if (!open_status.ok())
+//	{
+//		l_db = nullptr;
+//	}
+//	return open_status;
+//};
+leveldb::Status Cached_levelDb::Put(leveldb::Slice key, leveldb::Slice value) {
+	auto exist_iter = cache_delete.find(key.ToString());
+	if (exist_iter != cache_delete.end()) {
+		cache_delete.erase(exist_iter);
+	}
+	cache_store[key.ToString()] = value.ToString();
+	return leveldb::Status::OK();
+};
+leveldb::Status Cached_levelDb::Get(const leveldb::ReadOptions& read_op, leveldb::Slice key, std::string* value,leveldb::DB* l_db)const {
+	auto exist = cache_store.count(key.ToString());
+	if (exist == 0) {
+		string temp;
+		auto ret =l_db->Get(read_op,key,&temp);
+		if (!ret.ok())
+		{
+			return ret;
+		}
+		auto exist_iter = cache_delete.find(key.ToString());
+		if (exist_iter != cache_delete.end())
+		{
+			return leveldb::Status::NotFound("Not found");
+		}
+		*value = temp;
+		return leveldb::Status::OK();
+	}
+	else {
+		auto temp = cache_store.at(key.ToString());
+		*value = temp;
+		return leveldb::Status::OK();
+	}
+};
+leveldb::Status Cached_levelDb::Delete( leveldb::Slice key) {
+	auto exist_iter = cache_store.find(key.ToString());
+	if (exist_iter != cache_store.end()) {
+		cache_store.erase(exist_iter);
+	}
+	cache_delete.insert(key.ToString());
+	return leveldb::Status::OK();
+};
+leveldb::Status Cached_levelDb::Flush(leveldb::WriteOptions w_op,leveldb::DB* l_db) {
+	leveldb::WriteBatch wb;
+	for (auto iter : cache_store)
+	{
+		wb.Put(iter.first, iter.second);
+	}
+	for (auto iter_d : cache_delete)
+	{
+		wb.Delete(iter_d);
+	}
+	if (l_db == nullptr)
+	{
+		return leveldb::Status::IOError("level db ptr is NULL");
+	}
+	//w_op.sync = true;
+	auto ret = l_db->Write(w_op, &wb);
+	if (ret.ok())
+	{
+		cache_store.erase(cache_store.begin(), cache_store.end());
+		cache_delete.erase(cache_delete.begin(), cache_delete.end());
+	}
+	else {
+		std::cout << "flush failed" << std::endl;
+	}
+	return ret;
+};
+vector<string> Cached_levelDb::GetToDelete(const leveldb::ReadOptions& read_op, std::string key, leveldb::DB* l_db, bool getKey)const {
+	vector<string> ret;
+	auto cache_it = cache_store.upper_bound(key);
+	for (;cache_it != cache_store.end();++cache_it)
+	{
+		auto store_key = cache_it->first;
+		if (store_key == key)
+		{
+			continue;
+		}
+		auto pos = store_key.find(key);
+		if (pos == 0) {
+			if (getKey)
+			{
+				ret.push_back(store_key);
+			}
+			else {
+				ret.push_back(cache_it->second);
+			}
+		}
+		else {
+			break;
+		}
+	}	
+	leveldb::Iterator* it = l_db->NewIterator(read_op);
+	for (it->Seek(key); it->Valid(); it->Next()) {
+		if (!it->key().starts_with(key))
+			break;
+		if (it->key().ToString() == key)
+			continue;
+		std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
+		auto exist_iter = cache_delete.find(it->key().ToString());
+		auto cache_count = cache_store.count(it->key().ToString());
+		if (exist_iter != cache_delete.end() || cache_count != 0)
+		{
+			continue;
+		}
+		if (getKey)
+		{
+			ret.push_back(it->key().ToString());
+		}
+		else {
+			ret.push_back(it->value().ToString());
+		}
+		
+	}
+	delete it;
+	return ret;
+};
 
 } } // namespace graphene::db
