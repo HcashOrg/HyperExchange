@@ -51,7 +51,12 @@ namespace uvm {
 			return hashstr;
 		}
 
-        bool Code::operator!=(const Code& it) const
+		bool Code::operator==(const Code& it) const
+		{
+			return !(*this != it);
+		}
+
+		bool Code::operator!=(const Code& it) const
         {
             if (abi != it.abi)
                 return true;

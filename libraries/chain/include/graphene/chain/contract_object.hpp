@@ -36,11 +36,13 @@ namespace graphene {
 			string native_contract_key; // key to find native contract code
             vector<address> derived;
             address inherit_from;
+			string code_hash;
 
         };
         struct by_owner{};
         struct by_contract_obj_id {};
         struct by_registered_block {};
+		struct by_code_hash {};
         typedef multi_index_container<
             contract_object,
             indexed_by<
@@ -48,7 +50,8 @@ namespace graphene {
             ordered_unique<tag<by_contract_id>, member<contract_object, address, &contract_object::contract_address>>,
 			ordered_non_unique<tag<by_contract_name>, member<contract_object, string, &contract_object::contract_name>>,
             ordered_non_unique<tag<by_owner>, member<contract_object, address, &contract_object::owner_address>>,
-            ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>
+            ordered_non_unique<tag<by_registered_block>, member<contract_object, uint32_t, &contract_object::registered_block>>,
+			ordered_non_unique<tag<by_code_hash>, member<contract_object, string, &contract_object::code_hash>>
             >> contract_object_multi_index_type;
         typedef generic_index<contract_object, contract_object_multi_index_type> contract_object_index;
         class contract_storage_change_object : public abstract_object<contract_storage_change_object> {
@@ -216,7 +219,7 @@ namespace graphene {
 }
 
 FC_REFLECT_DERIVED(graphene::chain::contract_object, (graphene::db::object),
-    (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from))
+    (registered_block)(registered_trx)(code)(owner_address)(create_time)(name)(contract_address)(type_of_contract)(native_contract_key)(contract_name)(contract_desc)(derived)(inherit_from)(code_hash))
 FC_REFLECT_DERIVED(graphene::chain::contract_storage_object, (graphene::db::object),
 	(contract_address)(storage_name)(storage_value))
 FC_REFLECT(graphene::chain::contract_storage_view,

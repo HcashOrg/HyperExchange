@@ -113,6 +113,7 @@ namespace graphene {
 					origin_op.contract_id = fid;
 			new_contract.contract_address = origin_op.contract_id;
 			new_contract.code = o.contract_code;
+			new_contract.code_hash = new_contract.code.GetHash();
 			new_contract.owner_address = o.owner_addr;
 			new_contract.create_time = o.register_time;
 			new_contract.inherit_from = o.inherit_from;
@@ -684,7 +685,7 @@ namespace graphene {
                     base_contract.derived.push_back(new_contract.contract_address);
                     d.update_contract(base_contract);
                 }
-				//auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				//auto obj_op = d.get_contract_invoke_result(get_current_trx_ id(), gen_eval->get_trx_eval_state()->op_num);
 				apply_storage_change(d, new_contract.registered_block, trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.owner_addr);

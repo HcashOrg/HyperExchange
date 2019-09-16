@@ -1660,8 +1660,17 @@ public:
 			   (std::istreambuf_iterator<char>()));
 		   in.close();
 		   auto contract_code = ContractHelper::load_contract_from_file(contract_filepath);
-		   contract_register_op.contract_code = contract_code;
-		   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
+		   auto same_code_contract=_remote_db->get_contract_address_with_same_code(contract_code);
+		   if (same_code_contract.valid())
+		   {
+			   contract_register_op.inherit_from = *same_code_contract;
+		   }
+		   else
+		   {
+			   contract_register_op.contract_code = contract_code;
+			   contract_register_op.contract_code.code_hash = contract_register_op.contract_code.GetHash();
+		   }
+
 		   contract_register_op.register_time = fc::time_point::now()+fc::seconds(1); 
 		   contract_register_op.contract_id = contract_register_op.calculate_contract_id();
 		   contract_register_op.fee.amount = 0;

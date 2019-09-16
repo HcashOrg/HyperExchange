@@ -75,6 +75,7 @@ namespace uvm {
 			bool valid() const;
 			std::string GetHash() const;
             bool operator!=(const Code& it)const;
+			bool operator ==(const Code& it)const;
 		};
 	}
 }

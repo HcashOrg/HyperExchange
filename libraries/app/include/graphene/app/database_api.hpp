@@ -658,7 +658,7 @@ class database_api
 	  vector<optional<guarantee_object>> get_guarantee_orders(const address& addr, bool all) const;
       vector<contract_event_notify_object> get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const;
       optional<contract_event_notify_object> get_contract_event_notify_by_id(const contract_event_notify_object_id_type& id);
-
+	  optional<address>get_contract_address_with_same_code(const uvm::blockchain::Code& code)const;
       vector<contract_invoke_result_object> get_contract_invoke_object(const string& trx_id)const ;
 	  //
 	  std::pair<asset, share_type> register_contract_testing(const string& pubkey_str, const string& contract_filepath);
@@ -836,6 +836,7 @@ FC_API(graphene::app::database_api,
     (get_contract_info)
 	(get_simple_contract_info)
     (get_contract_info_by_name)
+	(get_contract_address_with_same_code)
     (get_contract_balance)
     (get_contract_event_notify)
 	(get_gurantee_object)

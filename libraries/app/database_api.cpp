@@ -3150,6 +3150,27 @@ optional<contract_event_notify_object> database_api::get_contract_event_notify_b
 {
     return my->get_contract_event_notify_by_id(id);
 }
+
+graphene::chain::optional<graphene::chain::address> database_api::get_contract_address_with_same_code(const uvm::blockchain::Code& code) const
+{
+	if(code==uvm::blockchain::Code())
+		return optional<graphene::chain::address>();
+	auto code_hash = code.GetHash();
+	auto& idx=my->_db.get_index_type<contract_object_index>().indices().get<by_code_hash>();
+	auto itr = idx.lower_bound(code_hash);
+	auto itr_end = idx.upper_bound(code_hash);
+	while (itr != itr_end)
+	{
+		if (itr->code != uvm::blockchain::Code()&&itr->type_of_contract==normal_contract)
+		{
+			if (code == itr->code)
+				return itr->contract_address;
+		}
+		itr++;
+	}
+	return optional<graphene::chain::address>();
+}
+
 vector<contract_event_notify_object> database_api::get_contract_event_notify(const address& contract_id, const transaction_id_type& trx_id, const string& event_name) const
 {
     return my->_db.get_contract_event_notify(contract_id,trx_id, event_name);

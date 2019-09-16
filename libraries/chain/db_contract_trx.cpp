@@ -655,6 +655,7 @@ namespace graphene {
                     obj.derived = contract.derived;
                     obj.registered_block = contract.registered_block;
 					obj.registered_trx = contract.registered_trx;
+					obj.code_hash = contract.code_hash;
                 });
             }
             else
@@ -684,6 +685,7 @@ namespace graphene {
                         obj.inherit_from = contract.inherit_from;
                         obj.derived = contract.derived;
                         obj.registered_block = contract.registered_block;
+						obj.code_hash = obj.code_hash;
 					});
 				}
 				else

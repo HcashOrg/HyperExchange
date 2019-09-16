@@ -850,7 +850,7 @@ free(storage_buf); \
 			INIT_STORAGE_FROM_FILE(code.storage_properties, blockchain::contract_engine::read_storage_count_fail, blockchain::contract_engine::read_storage_name_len_fail, blockchain::contract_engine::read_storage_name_fail, blockchain::contract_engine::read_storage_type_fail);
 
 			fclose(f);
-
+			code.code_hash = code.GetHash();
 			return code;
 		}
 
