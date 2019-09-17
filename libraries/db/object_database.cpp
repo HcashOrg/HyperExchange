@@ -269,7 +269,6 @@ vector<string> Cached_levelDb::GetToDelete(const leveldb::ReadOptions& read_op, 
 			break;
 		if (it->key().ToString() == key)
 			continue;
-		std::cout << "invoke_result " << it->key().ToString() << ":" << it->value().ToString() << std::endl;
 		auto exist_iter = cache_delete.find(it->key().ToString());
 		auto cache_count = cache_store.count(it->key().ToString());
 		if (exist_iter != cache_delete.end() || cache_count != 0)
