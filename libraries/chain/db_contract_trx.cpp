@@ -407,7 +407,8 @@ namespace graphene {
 				auto temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
 				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
 				start = trx_id.str() + "|storage_diff_object|";
-				temp_to_erase.swap(vector<string>());
+				temp_to_erase.clear();
+				vector<string>().swap(temp_to_erase);
 				temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
 				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
 					/*
