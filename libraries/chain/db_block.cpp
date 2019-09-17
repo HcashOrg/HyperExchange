@@ -1036,7 +1036,7 @@ std::vector<otc_contract_object> database::get_token_contract_info(std::string c
 void database::update_otc_contract(uint32_t block_num) {
 	vector<contract_blocknum_pair> changed_contracts;
 	if (block_num == -1){
-		auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_block_num>().equal_range(-1);
+		const auto range = get_index_type<otc_contract_index_index>().indices().get<by_otc_block_num>().equal_range(-1);
 		for (auto iter : boost::make_iterator_range(range.first, range.second)) {
 			contract_blocknum_pair temp;
 			temp.block_num = iter.block_num;
@@ -1055,7 +1055,7 @@ void database::update_otc_contract(uint32_t block_num) {
 			if (need_update.size() != 0) {
 				update.insert(update.end(), need_update.begin(), need_update.end());
 			}
-			auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(changed_contract.contract_address);
+			const auto range = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(changed_contract.contract_address);
 			vector <object_id_type> to_delete_otc_id;
 			for (auto iter : boost::make_iterator_range(range.first, range.second)) {
 				if (iter.block_num != -1){
