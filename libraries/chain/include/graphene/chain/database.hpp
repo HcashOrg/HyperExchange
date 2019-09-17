@@ -383,7 +383,7 @@ namespace graphene { namespace chain {
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
          //get account address by account name
          address get_account_address(const string& name) const;
-
+		 string invoke_contract_offline_indb(const string& caller_pubkey, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
 		 vector<multisig_address_object> get_multisig_address_list();
@@ -553,7 +553,8 @@ namespace graphene { namespace chain {
       private:
          optional<undo_database::session>       _pending_tx_session;
          vector< unique_ptr<op_evaluator> >     _operation_evaluators;
-		 leveldb::DB* l_db = nullptr;;
+		 
+		 //leveldb::DB* l_db = nullptr;;
 		 leveldb::Status open_status;
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
@@ -568,15 +569,20 @@ namespace graphene { namespace chain {
          processed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
 		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
-		 leveldb::DB*          get_contract_db()const { return l_db; }
+		 void update_all_otc_contract(const uint32_t block_num);
+		 Cached_levelDb l_db;
+		 leveldb::DB *         get_contract_db()const { return real_l_db; }
+		 const Cached_levelDb*          get_cache_contract_db()const { return &l_db; }
       private:
+		  leveldb::DB * real_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);
 		 bool                  _need_rollback(const proposal_object& proposal);
-		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
          ///Steps involved in applying a new block
          ///@{
+		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
+
          const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
          const miner_object& _validate_block_header( const signed_block& next_block )const;
          void create_block_summary(const signed_block& next_block);
@@ -592,7 +598,9 @@ namespace graphene { namespace chain {
          void update_maintenance_flag( bool new_maintenance_flag );
          void update_withdraw_permissions();
          bool check_for_blackswan( const asset_object& mia, bool enable_black_swan = true );
-
+		 void update_otc_contract(uint32_t block_num);
+		 bool check_contract_type(std::string contract_addr);
+		 std::vector<otc_contract_object> get_token_contract_info(std::string contract_addr);
          ///Steps performed only at maintenance intervals
          ///@{
 		
@@ -660,8 +668,10 @@ namespace graphene { namespace chain {
 		bool ontestnet = false;
 		volatile bool stop_process = false;
 		bool rewind_on_close = false;
+		bool rebuild_mode = false;
 		std::mutex                         db_lock;
 		bool								sync_mode = false;
+		bool								sync_otc_mode = false;
 		fc::variant_object				   _network_get_info_data;
    };
 

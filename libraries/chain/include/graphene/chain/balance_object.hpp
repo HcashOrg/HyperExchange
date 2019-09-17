@@ -92,7 +92,55 @@ namespace graphene { namespace chain {
     * @ingroup object_index
     */
    using balance_index = generic_index<balance_object, balance_multi_index_type>;
+   class otc_contract_object;
+   class otc_contract_object :public graphene::db::abstract_object<otc_contract_object> {
+   public:
+	   static const uint8_t space_id = protocol_ids;
+	   static const uint8_t type_id = otc_contract_object_type;
+	   std::string from_asset;
+	   std::string to_asset;
+	   std::string from_supply;
+	   std::string to_supply;
+	   std::string price;
+	   std::string contract_address;
+	   uint32_t	block_num;
+   };
+   struct by_otc_contract_id;
+   struct by_from_to_asset;
+   struct by_otc_block_num;
+   using otc_contract_index_type = multi_index_container <
+	   otc_contract_object,
+	   indexed_by <
+	   ordered_unique< tag<by_id>,
+	   member<object, object_id_type, &object::id>
+	   >,
+	   ordered_non_unique< tag<by_otc_contract_id>,
+	   member<otc_contract_object, string, &otc_contract_object::contract_address>
+	   >,
+	   ordered_non_unique< tag<by_otc_block_num>,
+	   member<otc_contract_object, uint32_t, &otc_contract_object::block_num>
+	   >,
+	   ordered_non_unique< tag<by_from_to_asset>,
+		   composite_key<
+		   otc_contract_object,
+		   member<otc_contract_object, std::string, &otc_contract_object::from_asset>,
+		   member<otc_contract_object, std::string, &otc_contract_object::to_asset>
+		   >
+      >
+   >
+>;
+   using otc_contract_index_index = generic_index<otc_contract_object, otc_contract_index_type>;
 } }
 
 FC_REFLECT_DERIVED( graphene::chain::balance_object, (graphene::db::object),
                     (owner)(balance)(frozen)(vesting_policy)(last_claim_date)(multisignatures) )
+FC_REFLECT_DERIVED(graphene::chain::otc_contract_object, (graphene::db::object),
+	(from_asset)
+		(to_asset)
+		(from_supply)
+		(to_supply)
+		(price)
+		(contract_address)
+		(block_num)
+	)
+

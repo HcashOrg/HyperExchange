@@ -1127,7 +1127,7 @@ class wallet_api
        * @return the total balance of all blinded commitments that can be claimed by the
        * given account key or label
        */
-      vector<asset>                get_blind_balances( string key_or_label );
+      //vector<asset>                get_blind_balances( string key_or_label );
       /** @return all blind accounts */
       map<string,public_key_type> get_blind_accounts()const;
       /** @return all blind accounts for which this wallet has the private key */
@@ -1163,22 +1163,22 @@ class wallet_api
 
       /**
        * Transfers funds from a set of blinded balances to a public account balance.
-       */
+      
       blind_confirmation transfer_from_blind( 
                                             string from_blind_account_key_or_label,
                                             string to_account_id_or_name, 
                                             string amount,
                                             string asset_symbol,
-                                            bool broadcast = false );
+                                            bool broadcast = false ); */
 
       /**
        *  Used to transfer from one set of blinded balances to another
-       */
+       
 	  blind_confirmation blind_transfer(string from_key_or_label,
 		  string to_key_or_label,
 		  string amount,
 		  string symbol,
-		  bool broadcast = false);
+		  bool broadcast = false);*/
 
       /** Place a limit order attempting to sell one asset for another.
        *
@@ -2017,13 +2017,13 @@ class wallet_api
       // end script wallet apis
       /**
        *  Used to transfer from one set of blinded balances to another
-       */
+       
       blind_confirmation blind_transfer_help( string from_key_or_label,
                                          string to_key_or_label,
                                          string amount,
                                          string symbol,
                                          bool broadcast = false,
-                                         bool to_temp = false );
+                                         bool to_temp = false );*/
 
 	  full_transaction refund_request(const string& refund_account,const string txid, bool broadcast = false);
 	  full_transaction refund_uncombined_transaction(const string senator,const string txid, const int64_t& expiration_time, bool broadcast = false);
@@ -2098,6 +2098,7 @@ class wallet_api
 	  optional<account_object> get_account_by_addr(const address& addr) const;
 	  map<public_key_type,address> create_multisignature_address(const string& account,const fc::flat_set<public_key_type>& pubs, int required, bool broadcast = true);
 	  map<account_id_type, vector<asset>> get_citizen_lockbalance_info(const string& account);
+	  vector<fc::optional<otc_contract_object>>get_otc_contract(const string& from_asset, const string& to_asset, const uint32_t& limit);
 	public_key_type get_pubkey_from_priv(const string& privkey);
 	public_key_type get_pubkey_from_account(const string& account);
 	  string sign_multisig_trx(const address& addr,const string& trx);
@@ -3194,7 +3195,7 @@ FC_API( graphene::wallet::wallet_api,
         (create_asset)
 	    (get_acquire_transaction)
         (update_asset)
-        (update_bitasset)
+        //(update_bitasset)
         (update_asset_feed_producers)
         (publish_asset_feed)
 		(publish_normal_asset_feed)
@@ -3294,6 +3295,7 @@ FC_API( graphene::wallet::wallet_api,
 		(register_native_contract)
         (register_contract_like)
 		(invoke_contract)
+			(get_otc_contract)
 		(invoke_contract_offline)
 		(upgrade_contract)
         (get_contract_info)

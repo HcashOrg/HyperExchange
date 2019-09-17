@@ -685,7 +685,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.25";
+	  result["version"] = "1.3.0";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -9950,6 +9950,9 @@ map<account_id_type, vector<asset>> wallet_api::get_citizen_lockbalance_info(con
 {
 	return my->get_citizen_lockbalance_info(account);
 }
+vector<fc::optional<otc_contract_object>> wallet_api::get_otc_contract(const string& from_asset, const string& to_asset, const uint32_t& limit) {
+	return my->_remote_db->get_otc_contract_object(from_asset, to_asset, limit);
+}
 vector<optional< eth_multi_account_trx_object>> wallet_api::get_eth_multi_account_trx(const int & mul_acc_tx_state) {
 	return my->get_eth_multi_account_trx(mul_acc_tx_state);
 }
@@ -10088,7 +10091,7 @@ public_key_type    wallet_api::create_blind_account( string label, string brain_
    save_wallet_file();
    return pub_key;
 }
-
+/*
 vector<asset>   wallet_api::get_blind_balances( string key_or_label )
 {
    vector<asset> result;
@@ -10143,7 +10146,7 @@ blind_confirmation wallet_api::transfer_from_blind( string from_blind_account_ke
 
    auto conf = blind_transfer_help( from_blind_account_key_or_label,
                                from_blind_account_key_or_label,
-                               blind_in, symbol, false, true/*to_temp*/ );
+                               blind_in, symbol, false, true/*to_temp );
    FC_ASSERT( conf.outputs.size() > 0 );
 
    auto to_account = my->get_account( to_account_id_or_name );
@@ -10188,7 +10191,8 @@ blind_confirmation wallet_api::blind_transfer( string from_key_or_label,
                                                bool broadcast )
 {
    return blind_transfer_help( from_key_or_label, to_key_or_label, amount_in, symbol, broadcast, false );
-}
+}*/
+/*
 blind_confirmation wallet_api::blind_transfer_help( string from_key_or_label,
                                                string to_key_or_label,
                                                string amount_in,
@@ -10335,6 +10339,7 @@ blind_confirmation wallet_api::blind_transfer_help( string from_key_or_label,
    confirm.outputs.push_back( conf_output );
 
    /** commitments must be in sorted order */
+/*
    std::sort( blind_tr.outputs.begin(), blind_tr.outputs.end(),
               [&]( const blind_output& a, const blind_output& b ){ return a.commitment < b.commitment; } );
    std::sort( blind_tr.inputs.begin(), blind_tr.inputs.end(),
@@ -10356,7 +10361,7 @@ blind_confirmation wallet_api::blind_transfer_help( string from_key_or_label,
    return confirm;
 } FC_CAPTURE_AND_RETHROW( (from_key_or_label)(to_key_or_label)(amount_in)(symbol)(broadcast)(confirm) ) }
 
-
+*/
 
 /**
  *  Transfers a public balance from @from to one or more blinded balances using a

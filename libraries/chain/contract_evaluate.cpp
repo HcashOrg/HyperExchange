@@ -17,6 +17,7 @@
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <fc/crypto/hex.hpp>
+#include <graphene/chain/balance_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -131,7 +132,7 @@ namespace graphene {
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				if (invoke_contract_result.storage_changes.size() > 0 )
+				if (!invoke_contract_result.maybe_invalid() )
 				{
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -252,7 +253,7 @@ namespace graphene {
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -355,7 +356,7 @@ namespace graphene {
 					invoke_contract_result.transfer_from_obj(*obj_op);
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -498,7 +499,7 @@ namespace graphene {
 				invoke_contract_result.transfer_from_obj(*obj_op);
 				gas_count = obj_op->gas;
 				unspent_fee = total_fee - obj_op->acctual_fee;
-				if (invoke_contract_result.storage_changes.size() > 0)
+				if (!invoke_contract_result.maybe_invalid())
 				{
 					if_store = false;
 					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
@@ -689,6 +690,35 @@ namespace graphene {
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.owner_addr);
                 do_apply_balance();
+				auto handled_contract = ContractEntryPrintable(new_contract);
+				auto ofa = handled_contract.code_printable.offline_abi;
+				std::vector<std::string> std_offline_abi;
+				std_offline_abi.emplace_back("dumpData");
+				std_offline_abi.emplace_back("owner");
+				std_offline_abi.emplace_back("owner_assets");
+				std_offline_abi.emplace_back("sell_orders");
+				std_offline_abi.emplace_back("sell_orders_num");
+				std_offline_abi.emplace_back("state");
+				bool is_otc_contract = true;
+				for (auto abi : std_offline_abi) {
+					auto exist = ofa.count(abi);
+					if (!exist) {
+						is_otc_contract = false;
+						break;
+					}
+				}
+				if (is_otc_contract)
+				{
+					auto str_contract_addr = new_contract.contract_address.address_to_string();
+					auto range = d.get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(str_contract_addr);
+					if (range.first == range.second)
+					{
+						d.create<otc_contract_object>([&](otc_contract_object& obj) {
+							obj.contract_address = str_contract_addr;
+							obj.block_num = -1;
+						});
+					}
+				}
             }
 			if (if_store)
 				d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result, gas_count);
@@ -991,7 +1021,7 @@ namespace graphene {
 					gas_count = obj_op->gas;
 					unspent_fee = total_fee - obj_op->acctual_fee;
 					related_contract.insert(o.contract_id);
-					if (invoke_contract_result.storage_changes.size() > 0)
+					if (!invoke_contract_result.maybe_invalid())
 					{
 						if_store = false;
 						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);

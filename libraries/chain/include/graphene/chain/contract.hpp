@@ -47,7 +47,7 @@ namespace graphene {
 			}
 		};
 
-		typedef std::map<std::string, StorageDataChangeType, comparator_for_string> contract_storage_changes_type;
+		typedef std::map<std::string, StorageDataChangeType> contract_storage_changes_type;
 		struct contract_invoke_result_object;
 		struct contract_invoke_result
 		{
@@ -71,7 +71,7 @@ namespace graphene {
 
 			// @throws uvm::core::UvmException
 			void validate();
-
+			bool maybe_invalid() const;
 			// count storage gas and events gas
 			int64_t count_storage_gas() const;
 			int64_t count_event_gas() const;
