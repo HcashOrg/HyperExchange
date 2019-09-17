@@ -440,7 +440,7 @@ class wallet_api
    public:
       wallet_api( const wallet_data& initial_data, fc::api<login_api> rapi );
       virtual ~wallet_api();
-
+	  void stop_schedule();
       bool copy_wallet_file( string destination_filename );
 
       fc::ecc::private_key derive_private_key(const std::string& prefix_string, int sequence_number) const;
