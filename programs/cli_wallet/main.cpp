@@ -322,8 +322,8 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-
-		run(options, string());
+		auto str = string();
+		run(options, str);
 	}
 	return 0;
 }
