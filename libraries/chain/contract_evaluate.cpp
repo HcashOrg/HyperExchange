@@ -18,6 +18,33 @@
 #include <graphene/chain/witness_object.hpp>
 #include <fc/crypto/hex.hpp>
 #include <graphene/chain/balance_object.hpp>
+
+#ifdef _WIN32
+void print_trace(void)
+{
+}
+#else
+#include <execinfo.h>
+void
+print_trace (void)
+{
+  void *array[10];
+  size_t size;
+  char **strings;
+  size_t i;
+
+  size = backtrace (array, 10);
+  strings = backtrace_symbols (array, size);
+
+  printf ("Obtained %zd stack frames.\n", size);
+
+  for (i = 0; i < size; i++)
+     printf ("%s\n", strings[i]);
+
+  free (strings);
+}
+#endif
+
 namespace graphene {
 	namespace chain {
 
@@ -171,6 +198,7 @@ namespace graphene {
 				// }
 				catch (std::exception &e)
 				{
+					print_trace();
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 					// FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 				}
@@ -417,6 +445,7 @@ namespace graphene {
 					//}
 					catch (std::exception &e)
 					{
+						print_trace();
 						//printf("invoke contract error: %s\n", e.what());
 						FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 						// FC_THROW_EXCEPTION(fc::assert_exception, "contract vm execute internal error", ("error", e.what()));
@@ -566,6 +595,7 @@ namespace graphene {
 					//}
 					catch (std::exception &e)
 					{
+						print_trace();
 						FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 						// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 					}
@@ -601,6 +631,7 @@ namespace graphene {
 			//}
 			catch (std::exception &e)
 			{
+				print_trace();
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
@@ -655,6 +686,7 @@ namespace graphene {
 				}
 				catch (std::exception &e)
 				{
+					print_trace();
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 					// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 				}
@@ -1114,6 +1146,7 @@ namespace graphene {
 						//}
 						catch (std::exception &e)
 						{
+							print_trace();
 							FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 							// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 						}
