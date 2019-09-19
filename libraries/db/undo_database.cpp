@@ -839,7 +839,8 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 			elog("id argument of block_database::store() was not initialized for block ${id}", ("id", id));
 		}
 		leveldb::WriteOptions write_options;
-		leveldb::Status sta = db->Put(write_options, _id.str(), fc::json::to_string(b));
+		const auto& vec = fc::raw::pack(b);
+		leveldb::Status sta = db->Put(write_options, _id.str(), leveldb::Slice(vec.data(), vec.size()));
 		if (!sta.ok())
 		{
 			elog("Put error: ${error}", ("error", (_id.str()+":"+sta.ToString()).c_str()));
@@ -886,7 +887,8 @@ optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_
 			elog("read error: ${key}", ("key", id.str().c_str()));
 			FC_ASSERT(false, "fetch_optional Data from undo_storage failed");
 		}
-		serializable_undo_state state = fc::json::from_string(out).as<serializable_undo_state>();
+		vector<char> vec(out.begin(),out.end());
+		serializable_undo_state state = fc::raw::unpack<serializable_undo_state>(vec);
 		return state;
 	}
 	catch (const fc::exception&)
