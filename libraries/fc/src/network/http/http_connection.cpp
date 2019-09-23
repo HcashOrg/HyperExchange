@@ -529,6 +529,15 @@ namespace fc {
 			}
 			catch (std::exception& ex) {
 				std::cout << ex.what() << std::endl;
+				rep.status = http::reply::InternalServerError;
+				is_done = true;
+				is_timeout = true;
+				if (!is_release) {
+					is_release = true;
+					_deadline.get_io_service().post([&]() {try { _deadline.cancel(); }
+					catch (...) {} });
+				}
+				return rep;
 			}
 			catch (fc::exception& e) {
 				elog("${exception}", ("exception", e.to_detail_string()));
