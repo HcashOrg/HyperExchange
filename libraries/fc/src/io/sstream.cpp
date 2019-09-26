@@ -47,7 +47,13 @@ namespace fc {
     return my->ss.eof();
   }
   size_t stringstream::writesome( const char* buf, size_t len ) {
-    my->ss.write(buf,len);
+	  if (len == 1)
+	  {
+		  my->ss.put(*buf);
+	  }
+	  else {
+		  my->ss.write(buf, len);
+	  }
     if( my->ss.eof() )
     {
        FC_THROW_EXCEPTION( eof_exception, "stringstream" );
