@@ -541,8 +541,8 @@ namespace graphene {
 				obj.gas = gas;
 				obj.api_result = res.api_result;
 				obj.exec_succeed = res.exec_succeed;
-				if (get_global_properties().event_need)
-					obj.events = res.events;
+				/*if (get_global_properties().event_need)*/
+				obj.events = res.events;
 				obj.trx_id = trx_id;
 				obj.block_num = block_num + 1;
 				obj.op_num = op_num;

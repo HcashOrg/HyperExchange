@@ -292,7 +292,7 @@ namespace graphene {
             result_array.push_back(transfer_fees_array);
 
 
-			auto array_json_str = json_dumps(result_array);
+			const auto& array_json_str = json_dumps(result_array);
 			return fc::sha256::hash(array_json_str.c_str(), array_json_str.size()).str();
 		}
 

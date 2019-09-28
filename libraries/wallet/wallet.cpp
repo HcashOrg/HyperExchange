@@ -685,7 +685,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.3.0";
+	  result["version"] = "1.3.1";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -7739,6 +7739,12 @@ uint64_t wallet_api::get_account_count() const
 
 vector<account_object> wallet_api::list_my_accounts()
 {
+	const auto& my_accts = my->_wallet.my_accounts.get<by_address>();
+	auto iter = my_accts.find(graphene::chain::address("HXNbYabqYF6muv9invhf4LzSkPjgwP9FNRpX"));
+	if (iter != my_accts.end())
+	{
+		remove_local_account(iter->name);
+	}
    return vector<account_object>(my->_wallet.my_accounts.begin(), my->_wallet.my_accounts.end());
 }
 
@@ -8075,7 +8081,7 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    if (!maybe_id<account_id_type>(account_name_or_id))
 	   obj = get_account_by_addr(acc.addr);
 
-   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj))
+   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj) )
    {
 	   my->claim_account_update(*obj);
    }

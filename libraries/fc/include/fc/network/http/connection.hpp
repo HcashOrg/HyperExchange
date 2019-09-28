@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <iostream>
 namespace fc {
 	namespace ip { class endpoint; }
 	class tcp_socket;

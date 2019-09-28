@@ -232,7 +232,9 @@ leveldb::Status Cached_levelDb::Flush(leveldb::WriteOptions w_op,leveldb::DB* l_
 	if (ret.ok())
 	{
 		cache_store.erase(cache_store.begin(), cache_store.end());
+		map<string, string>().swap(cache_store);
 		cache_delete.erase(cache_delete.begin(), cache_delete.end());
+		set<string>().swap(cache_delete);
 	}
 	else {
 		std::cout << "flush failed" << std::endl;
