@@ -669,6 +669,33 @@ optional<signed_block> database_api::get_block(uint32_t block_num)const
 	auto block = my->get_block(block_num);
    return block;
 }
+
+graphene::chain::optional<graphene::chain::signed_block> database_api::get_block_for_contract(uint32_t block_num, address contract_address)
+{
+	auto block = my->get_block(block_num);
+	if (!block.valid())
+	{
+		return block;
+	}
+	graphene::chain::signed_block res_blk = *block;
+	res_blk.transactions.resize(0);
+
+	auto history=get_contract_history(contract_address.address_to_string(), block_num, block_num);
+	std::set<transaction_id_type> hiset;
+	for (auto &his : history)
+	{
+		hiset.insert(his);
+	}
+	for (auto& trx : block->transactions)
+	{
+		if (hiset.find(trx.id()) != hiset.end())
+		{
+			res_blk.transactions.push_back(trx);
+		}
+	}
+	return res_blk;
+}
+
 vector<full_transaction> database_api::fetch_block_transactions(uint32_t block_num)const
 {
 	vector<full_transaction> results;
