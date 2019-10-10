@@ -711,6 +711,7 @@ namespace graphene {
             {
                 
                 d.store_contract(new_contract);
+				related_contract.insert(new_contract.contract_address);
                 if (new_contract.inherit_from != address())
                 {
                     auto base_contract = d.get_contract(new_contract.inherit_from);
@@ -751,6 +752,8 @@ namespace graphene {
 						});
 					}
 				}
+
+				do_apply_history();
             }
 			if (if_store)
 				d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result, gas_count);
@@ -765,14 +768,16 @@ namespace graphene {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
+			related_contract.insert(new_contract.contract_address);
 			apply_storage_change(d, new_contract.registered_block, trx_id);
 			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
-
+			do_apply_history();
             }
 			invoke_contract_result.contract_registed = new_contract.contract_address;
 			if (if_store)
 				db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result, gas_count);
+			
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -786,9 +791,11 @@ namespace graphene {
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
+				do_apply_history();
             }
 			if(if_store)
 				db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
+			
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -807,10 +814,11 @@ namespace graphene {
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
-
+				do_apply_history();
             }
 			if (if_store)
 				db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
+
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -1203,6 +1211,7 @@ namespace graphene {
 				apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 do_apply_balance();
+				do_apply_history();
                 if(!gen_eval->get_trx_eval_state()->testing)
                     db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
@@ -1362,9 +1371,9 @@ namespace graphene {
         //}
         void contract_common_evaluate::do_apply_balance()
         {
-			auto trx_id = get_current_trx_id();
             for (auto to_contract = invoke_contract_result.deposit_contract.begin(); to_contract != invoke_contract_result.deposit_contract.end(); to_contract++)
             {
+				related_contract.insert(to_contract->first.first);
 				if (to_contract->second != 0)
 				{
 					get_db().adjust_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
@@ -1372,6 +1381,7 @@ namespace graphene {
             }
             for (auto to_withraw = invoke_contract_result.contract_withdraw.begin(); to_withraw != invoke_contract_result.contract_withdraw.end(); to_withraw++)
             {
+				related_contract.insert(to_withraw->first.first);
                 if (to_withraw->second != 0)
 				{
 					get_db().adjust_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
@@ -1383,12 +1393,19 @@ namespace graphene {
                 if (to_deposit->second != 0)
                     get_db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
             }
+
+        }
+
+		void contract_common_evaluate::do_apply_history()
+		{
+			auto trx_id = get_current_trx_id();
 			for (auto addr : related_contract)
 			{
 				get_db().store_contract_related_transaction(trx_id, addr);
 			}
-        }
-        transaction_id_type contract_common_evaluate::get_current_trx_id() const
+		}
+
+		transaction_id_type contract_common_evaluate::get_current_trx_id() const
         {
 			FC_ASSERT(gen_eval->get_trx_eval_state()->_trx != nullptr);
             return gen_eval->get_trx_eval_state()->_trx->id();
@@ -1663,7 +1680,7 @@ namespace graphene {
 		 {
 			 return gas_limit;
 		 }
-         void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const
+         void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id)
          {
 
              set<address> contracts;
@@ -1686,6 +1703,7 @@ namespace graphene {
 			 }
 			 for(auto& addr:contracts)
 			 {
+				 this->related_contract.insert(addr);
 				 d.store_contract_storage_change_obj(addr, block_num);
 			 }
          }

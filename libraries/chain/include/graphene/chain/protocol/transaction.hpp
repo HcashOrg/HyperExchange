@@ -178,6 +178,28 @@ namespace graphene { namespace chain {
       /// Removes all operations and signatures
       void clear() { operations.clear(); signatures.clear(); }
    };
+   struct signed_transaction_without_code:public signed_transaction
+   {
+	   signed_transaction_without_code(const signed_transaction& trx)
+	   {
+		   this->operations = trx.operations;
+		   for (auto& op : this->operations)
+		   {
+			   switch (op.which())
+			   {
+			   case operation::tag<contract_register_operation>::value:
+				   contract_register_operation oop = op.get<contract_register_operation>();
+				   oop.contract_code = uvm::blockchain::Code();
+				   op = oop;
+				   break;
+			   }
+		   }
+	   }
+	   signed_transaction get_sign_transaction()
+	   {
+		   return *this;
+	   }
+   };
    struct full_transaction :signed_transaction
    {
 	   uint32_t block_num =0;
@@ -232,3 +254,4 @@ FC_REFLECT( graphene::chain::transaction, (ref_block_num)(ref_block_prefix)(expi
 FC_REFLECT_DERIVED( graphene::chain::signed_transaction, (graphene::chain::transaction), (signatures) )
 FC_REFLECT_DERIVED(graphene::chain::full_transaction, (graphene::chain::signed_transaction), (block_num)(trxid)(contract_id))
 FC_REFLECT_DERIVED( graphene::chain::processed_transaction, (graphene::chain::signed_transaction), (operation_results) )
+FC_REFLECT_DERIVED(graphene::chain::signed_transaction_without_code, (graphene::chain::signed_transaction))

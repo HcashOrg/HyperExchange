@@ -300,7 +300,7 @@ processed_transaction database::push_transaction( const signed_transaction& trx,
       result = _push_transaction( trx );
    } ); 
    return result;
-} FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx)) ) }
 
 processed_transaction database::_push_transaction( const signed_transaction& trx )
 {
@@ -1313,8 +1313,18 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    std::for_each(range.first, range.second, [](const account_balance_object& b) { FC_ASSERT(b.balance == 0); });
 
    return ptrx;
-} FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx).get_sign_transaction()) ) }
 
+operation without_code(const operation& op)
+{
+	if (op.which()==operation::tag<contract_register_operation>::value)
+	{
+		auto o=op.get<contract_register_operation>();
+		o.contract_code = uvm::blockchain::Code();
+		return o;
+	}
+	return op;
+}
 operation_result database::apply_operation(transaction_evaluation_state& eval_state, const operation& op)
 { try {
    int i_which = op.which();
@@ -1331,7 +1341,7 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
   // set_applied_operation_result( op_id, result );
    eval_state.op_num++;
    return result;
-} FC_CAPTURE_AND_RETHROW( (op) ) }
+} FC_CAPTURE_AND_RETHROW( (without_code(op)) ) }
 
 unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
 {

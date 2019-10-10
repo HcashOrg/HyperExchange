@@ -178,6 +178,7 @@ class database_api
        * @return the referenced block, or null if no matching block was found
        */
       optional<signed_block> get_block(uint32_t block_num)const;
+	  optional<signed_block> get_block_for_contract(uint32_t block_num, address contract_address);
 	  vector<full_transaction> fetch_block_transactions(uint32_t block_num)const;
       /**
        * @brief used to fetch an individual transaction.
@@ -706,6 +707,7 @@ FC_API(graphene::app::database_api,
 	(get_block_header)
 	(get_block_header_batch)
 	(get_block)
+	(get_block_for_contract)
 	(fetch_block_transactions)
 	(set_acquire_block_num)
 	(get_acquire_transaction)

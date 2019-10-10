@@ -58,6 +58,7 @@ namespace graphene {
             void deposit_to_contract(const address& contract, const asset& amount);
             //void do_apply_fees_balance(const address& caller_addr);
             void do_apply_balance();
+			void do_apply_history();
             transaction_id_type get_current_trx_id() const;
             void do_apply_contract_event_notifies();
             void transfer_to_address(const address& contract, const asset & amount, const address & to);
@@ -72,7 +73,7 @@ namespace graphene {
 			gas_count_type get_gas_limit() const;
             void pay_fee_and_refund() const; 
             bool check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const;
-            void apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const;
+            void apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id);
 
 			std::string get_address_role(const std::string& addr_str) const;
 			virtual bool has_contract(const address& addr, const string& method = "");
