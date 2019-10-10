@@ -232,7 +232,7 @@ void database::pay_miner(const miner_id_type& miner_id,asset trxfee)
 		auto committe_obj = get(all_guard_infos.at(committee_count-1).guard_member_account);
 		adjust_pay_back_balance(committe_obj.addr, asset(all_committee_paid - committee_pay, asset_id_type(0)), miner_id);
 		
-		uint64_t develop_team_paid = current_block_reward.value *(HX_DEVELOP_TEAM_PAY_TATIO) / 100;
+		uint64_t develop_team_paid = current_block_reward.value - all_committee_paid - current_block_reward.value *(GRAPHENE_ALL_MINER_PAY_RATIO) / 100;
 		//adjust_pay_back_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid),miner_acc.name);
 		adjust_balance(contract_register_operation::get_first_contract_id(),asset(develop_team_paid));
 		if (cache_datas.count(miner_id) > 0)
