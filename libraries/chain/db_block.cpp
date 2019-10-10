@@ -300,7 +300,7 @@ processed_transaction database::push_transaction( const signed_transaction& trx,
       result = _push_transaction( trx );
    } ); 
    return result;
-} FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx)) ) }
 
 processed_transaction database::_push_transaction( const signed_transaction& trx )
 {
@@ -706,7 +706,7 @@ void database::pop_block()
    {
 	   contract_packed(trx, head_block->block_num());
    }
-   if (head_block->block_num() % 100 == 0)
+   if (head_block->block_num() % 100000 == 0)
    {
 	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
    }
@@ -764,7 +764,7 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    {
       _apply_block( next_block );
    } );
-   if (block_num % 100 == 0)
+   if (block_num % 100000 == 0)
    {
 	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
    }
@@ -956,10 +956,10 @@ std::vector<otc_contract_object> database::get_token_contract_info(std::string c
 		return std::vector<otc_contract_object>();
 	}
 	std::vector<otc_contract_object> ret_vec;
-	std::cout << "ret string is " << ret << std::endl;
+	//std::cout << "ret string is " << ret << std::endl;
 	
 	auto handled_contracts = fc::json::from_string(ret);
-	std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
+	//std::cout << "handled_contracts type is " << handled_contracts.get_type() << std::endl;
 	if (handled_contracts.is_object())
 	{
 		auto contracts_info = handled_contracts.get_object();
@@ -1036,7 +1036,7 @@ std::vector<otc_contract_object> database::get_token_contract_info(std::string c
 void database::update_otc_contract(uint32_t block_num) {
 	vector<contract_blocknum_pair> changed_contracts;
 	if (block_num == -1){
-		auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_block_num>().equal_range(-1);
+		const auto range = get_index_type<otc_contract_index_index>().indices().get<by_otc_block_num>().equal_range(-1);
 		for (auto iter : boost::make_iterator_range(range.first, range.second)) {
 			contract_blocknum_pair temp;
 			temp.block_num = iter.block_num;
@@ -1055,7 +1055,7 @@ void database::update_otc_contract(uint32_t block_num) {
 			if (need_update.size() != 0) {
 				update.insert(update.end(), need_update.begin(), need_update.end());
 			}
-			auto& range = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(changed_contract.contract_address);
+			const auto range = get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(changed_contract.contract_address);
 			vector <object_id_type> to_delete_otc_id;
 			for (auto iter : boost::make_iterator_range(range.first, range.second)) {
 				if (iter.block_num != -1){
@@ -1117,7 +1117,7 @@ void database::_apply_block( const signed_block& next_block )
    {
       /* We do not need to push the undo state for each transaction
        * because they either all apply and are valid or the
-       * entire block fails to apply.  We only need an "undo" state
+       //* entire block fails to apply.  We only need an "undo" state
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
@@ -1180,7 +1180,7 @@ void database::_apply_block( const signed_block& next_block )
    update_miner_schedule();
    update_witness_random_seed(next_block.previous_secret);
    if (!sync_otc_mode && !rebuild_mode) {
-	  std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
+	  //std::cout << " two mode is " << sync_mode << " " << rebuild_mode << std::endl;
 	   update_otc_contract(next_block_num - 1);
    }
    if( !_node_property_object.debug_updates.empty() )
@@ -1313,8 +1313,18 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    std::for_each(range.first, range.second, [](const account_balance_object& b) { FC_ASSERT(b.balance == 0); });
 
    return ptrx;
-} FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx).get_sign_transaction()) ) }
 
+operation without_code(const operation& op)
+{
+	if (op.which()==operation::tag<contract_register_operation>::value)
+	{
+		auto o=op.get<contract_register_operation>();
+		o.contract_code = uvm::blockchain::Code();
+		return o;
+	}
+	return op;
+}
 operation_result database::apply_operation(transaction_evaluation_state& eval_state, const operation& op)
 { try {
    int i_which = op.which();
@@ -1331,7 +1341,7 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
   // set_applied_operation_result( op_id, result );
    eval_state.op_num++;
    return result;
-} FC_CAPTURE_AND_RETHROW( (op) ) }
+} FC_CAPTURE_AND_RETHROW( (without_code(op)) ) }
 
 unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
 {

@@ -440,7 +440,7 @@ class wallet_api
    public:
       wallet_api( const wallet_data& initial_data, fc::api<login_api> rapi );
       virtual ~wallet_api();
-
+	  void stop_schedule();
       bool copy_wallet_file( string destination_filename );
 
       fc::ecc::private_key derive_private_key(const std::string& prefix_string, int sequence_number) const;
@@ -2007,7 +2007,9 @@ class wallet_api
       vector<contract_blocknum_pair> get_contract_storage_changed(const uint32_t block_num = 0);
 	  vector<transaction_id_type> get_contract_history(const string& contract_id, uint64_t start=0, uint64_t end=UINT64_MAX);
 	  full_transaction create_contract_transfer_fee_proposal(const string& proposer,share_type fee_rate, int64_t expiration_time, bool broadcast = false);
-      // end contract wallet apis
+	  graphene::chain::optional<graphene::chain::signed_block> get_block_for_contract(uint32_t block_num, address contract_address);
+
+	  // end contract wallet apis
       // begin script wallet apis
       //std::string add_script(const string& script_path);
       //vector<script_object>list_scripts();
@@ -2018,7 +2020,6 @@ class wallet_api
       /**
        *  Used to transfer from one set of blinded balances to another
        
-
       blind_confirmation blind_transfer_help( string from_key_or_label,
                                          string to_key_or_label,
                                          string amount,
@@ -3387,6 +3388,7 @@ FC_API( graphene::wallet::wallet_api,
 		(get_contract_storage)
 		(signrawmultransaction)
 		(combinemultisigtransaction)
+		//(get_block_for_contract)
 		//(correct_chain_data)
 		(get_votes)
 		(create_vote)

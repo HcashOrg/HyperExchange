@@ -369,6 +369,7 @@ namespace graphene { namespace chain {
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
 		 optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id,const uint32_t op_num)const;
+		 void remove_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num);
          vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
 		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
@@ -570,7 +571,7 @@ namespace graphene { namespace chain {
 		 void update_all_otc_contract(const uint32_t block_num);
 		 Cached_levelDb l_db;
 		 leveldb::DB *         get_contract_db()const { return real_l_db; }
-		 Cached_levelDb          get_cache_contract_db()const { return l_db; }
+		 const Cached_levelDb*          get_cache_contract_db()const { return &l_db; }
       private:
 		  leveldb::DB * real_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );

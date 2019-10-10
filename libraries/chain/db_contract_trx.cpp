@@ -7,6 +7,7 @@
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/contract_object.hpp>
+#include <fc/crypto/hex.hpp>
 #include <uvm/uvm_api.h>
 #include <cbor_diff/cbor_diff.h>
 #include <fc/crypto/ripemd160.hpp>
@@ -118,7 +119,6 @@ namespace graphene {
 				auto& index = get_index_type<contract_object_index>().indices().get<by_contract_id>();
 				auto itr = index.find(contract_id);
 				FC_ASSERT(itr != index.end());
-
 				auto& storage_index = get_index_type<contract_storage_object_index>().indices().get<by_contract_id_storage_name>();
 				auto storage_iter = storage_index.find(boost::make_tuple(contract_id, name));
 				if (storage_iter == storage_index.end()) {
@@ -312,13 +312,23 @@ namespace graphene {
                 return res;
             } FC_CAPTURE_AND_RETHROW((contract_id)(trx_id)(event_name));
         }
+		void database::remove_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num)
+		{
+			try {
+				leveldb::WriteOptions write_ops;
+				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
+				//get_contract_db()->Delete(write_ops,start);
+				l_db.Delete(start);
+			}FC_CAPTURE_AND_RETHROW((trx_id)(op_num));
+		}
+
 		optional<contract_invoke_result_object> database::get_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num) const
 		{
 			try {
 				leveldb::ReadOptions read_options;
 				auto start = trx_id.str() + "|invoke_result|" + fc::variant(op_num).as_string();
 				string value;
-				leveldb::Status sta = get_cache_contract_db().Get(read_options, start, &value, get_contract_db());
+				leveldb::Status sta = get_cache_contract_db()->Get(read_options, start, &value, get_contract_db());
 				if (sta.ok())
 				{
 					vector<char> vec (value.begin(),value.end());
@@ -343,7 +353,7 @@ namespace graphene {
 				}*/
 				auto start = trx_id.str() + "|invoke_result|";
 				leveldb::ReadOptions read_options;
-				auto temp_to_return = get_cache_contract_db().GetToDelete(read_options, start, get_contract_db(),false);
+				auto temp_to_return = get_cache_contract_db()->GetToDelete(read_options, start, get_contract_db(),false);
 				for (auto value : temp_to_return) {
 					vector<char> vec(value.begin(), value.end());
 					contract_invoke_result_object obj = fc::raw::unpack<contract_invoke_result_object>(vec);
@@ -397,7 +407,8 @@ namespace graphene {
 				auto temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
 				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
 				start = trx_id.str() + "|storage_diff_object|";
-				temp_to_erase.swap(vector<string>());
+				temp_to_erase.clear();
+				vector<string>().swap(temp_to_erase);
 				temp_to_erase = l_db.GetToDelete(read_options, start, get_contract_db());
 				need_to_erase.insert(need_to_erase.end(), temp_to_erase.begin(), temp_to_erase.end());
 					/*
@@ -530,13 +541,17 @@ namespace graphene {
 				obj.gas = gas;
 				obj.api_result = res.api_result;
 				obj.exec_succeed = res.exec_succeed;
-				if (get_global_properties().event_need)
-					obj.events = res.events;
+				/*if (get_global_properties().event_need)*/
+				obj.events = res.events;
 				obj.trx_id = trx_id;
 				obj.block_num = block_num + 1;
 				obj.op_num = op_num;
 				obj.invoker = invoker;
 				obj.contract_registed = res.contract_registed;
+				for (auto it = res.storage_changes.begin(); it != res.storage_changes.end(); it++)
+				{
+					obj.storage_changes.insert(make_pair(it->first,it->second));
+				}
 				for (auto it = res.contract_withdraw.begin(); it != res.contract_withdraw.end(); it++)
 				{
 					obj.contract_withdraw.insert(make_pair(it->first, it->second));

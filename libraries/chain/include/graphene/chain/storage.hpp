@@ -213,7 +213,7 @@ FC_REFLECT(graphene::chain::StorageStringArrayType,
 (raw_storage_map)
 )
 
-FC_REFLECT(graphene::chain::StorageDataChangeType, (storage_diff));
+FC_REFLECT(graphene::chain::StorageDataChangeType, (storage_diff)(before)(after));
 
 FC_REFLECT(graphene::chain::storage_operation::fee_parameters_type, (fee)(price_per_kbyte));
 FC_REFLECT(graphene::chain::storage_operation, (fee)(caller_addr)(contract_id)(contract_change_storages));

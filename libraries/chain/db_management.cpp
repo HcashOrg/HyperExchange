@@ -308,7 +308,6 @@ void database::close()
 	   l_db.Flush(leveldb::WriteOptions(), real_l_db);
 	   delete real_l_db;
    }
-	   
    real_l_db = nullptr;
    /*
    if (l_db != nullptr)

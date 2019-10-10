@@ -561,7 +561,7 @@ namespace detail {
          // never replay if data dir is empty
          if( fc::exists( _data_dir ) && fc::directory_iterator( _data_dir ) != fc::directory_iterator() )
          {
-            if( _options->count("replay-blockchain") )
+            if( _options->count("replay-blockchain") || _options->count("replay-withoutContract") )
             {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
@@ -617,6 +617,8 @@ namespace detail {
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
 			fc::remove_all(_data_dir / "db_version");
+			if (_options->count("replay-withoutContract"))
+				fc::remove_all(_data_dir / "blockchain" / "contract_db");
 			_chain_db->rebuild_mode = true;
 			_chain_db->reindex(_data_dir / "blockchain", initial_state());
 			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
@@ -1206,6 +1208,7 @@ void application::set_program_options(boost::program_options::options_descriptio
           "missing fields in a Genesis State will be added, and any unknown fields will be removed. If no file or an "
           "invalid file is found, it will be replaced with an example Genesis State.")
          ("replay-blockchain", "Rebuild object graph by replaying all blocks")
+	     ("replay-withoutContract", "Rebuild object graph by replaying all blocks and remove contract db")
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
 		 ("testnet", "Start for testnet")

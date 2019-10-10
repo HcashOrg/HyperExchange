@@ -175,17 +175,16 @@ namespace graphene { namespace db {
    public:
 	   Cached_levelDb() {}
 	   ~Cached_levelDb() {
-		   
+
 	   };
 	   //void Close(const leveldb::DB* l_db);
 	   //leveldb::Status Open(const leveldb::Options& options, const std::string& dbname, const leveldb::DB* l_db);
 	   leveldb::Status Put(leveldb::Slice key, leveldb::Slice value);
-	   leveldb::Status Get(const leveldb::ReadOptions& read_op, leveldb::Slice key, std::string* value,leveldb::DB* l_db);
+	   leveldb::Status Get(const leveldb::ReadOptions& read_op, leveldb::Slice key, std::string* value,leveldb::DB* l_db)const;
 	   leveldb::Status Delete( leveldb::Slice key);
 	   leveldb::Status Flush(leveldb::WriteOptions w_op, leveldb::DB* l_db);
-	   vector<string> GetToDelete(const leveldb::ReadOptions& read_op, std::string key,  leveldb::DB* l_db,bool getKey = true);
+	   vector<string> GetToDelete(const leveldb::ReadOptions& read_op, std::string key,  leveldb::DB* l_db,bool getKey = true)const;
    private:
-	   
 	   map<string, string> cache_store;
 	   set<string> cache_delete;
    };

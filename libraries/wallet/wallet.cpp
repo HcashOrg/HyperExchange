@@ -61,7 +61,7 @@
 #include <fc/time.hpp>
 #include <cborcpp/cbor.h>
 #include <cbor_diff/cbor_diff.h>
-
+#include <fc/thread/scoped_lock.hpp>
 #ifndef WIN32
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -558,6 +558,7 @@ public:
    {
       try
       {
+		  stop_schedule();
          _remote_db->cancel_all_subscriptions();
       }
       catch (const fc::exception& e)
@@ -573,27 +574,29 @@ public:
    {
 	   _wallet.update_account(obj);
    }
+   fc::future<void> _schedule_loop_task;
    void schedule_loop()
    {
 	   //std::cout << "schedule_loop" << std::endl;
+
 	   fc::time_point next_wakeup(fc::time_point::now() + fc::seconds(5));
-	   try {
-		   static uint32_t block_num = 0;
-		   auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
-		   fc::time_point now = fc::time_point::now();
-		   next_wakeup=fc::time_point(now + fc::seconds(block_interval));
-		   auto height = _remote_db->get_dynamic_global_properties().head_block_number;
-		   if (height != block_num)
-		   {
-			   block_num = height;
-			   resync();
-		   }
-	   }
-	   catch (const fc::exception& e)
-	   {
-		   //std::cout << e.to_detail_string()<< std::endl;
-	   }
-	   fc::schedule([this] {schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
+		try {
+		  static uint32_t block_num = 0;
+		  auto block_interval = _remote_db->get_global_properties().parameters.block_interval;
+		  fc::time_point now = fc::time_point::now();
+		  next_wakeup = fc::time_point(now + fc::seconds(block_interval));
+		  auto height = _remote_db->get_dynamic_global_properties().head_block_number;
+		  if (height != block_num)
+		  {
+		   block_num = height;
+		   resync();
+		  }
+		}
+		catch (const fc::exception& e)
+		{
+		  //std::cout << e.to_detail_string()<< std::endl;
+		}
+	   _schedule_loop_task =fc::schedule([this] {schedule_loop(); }, next_wakeup, "Resync From The Node", fc::priority::max());
 
 	   //std::cout << "schedule_loop  end" << std::endl;
    }
@@ -616,7 +619,10 @@ public:
    {
       fc::async([this]{resync();}, "Resync after block");
    }
-
+   void stop_schedule()
+   {
+	   _schedule_loop_task.cancel();
+   }
    bool copy_wallet_file( string destination_filename )
    {
       fc::path src_path = get_wallet_filename();
@@ -679,7 +685,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.2.25";
+	  result["version"] = "1.3.1";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
@@ -7702,6 +7708,11 @@ wallet_api::~wallet_api()
 {
 }
 
+void wallet_api::stop_schedule()
+{
+	my->stop_schedule();
+}
+
 bool wallet_api::copy_wallet_file(string destination_filename)
 {
    return my->copy_wallet_file(destination_filename);
@@ -7732,6 +7743,12 @@ uint64_t wallet_api::get_account_count() const
 
 vector<account_object> wallet_api::list_my_accounts()
 {
+	const auto& my_accts = my->_wallet.my_accounts.get<by_address>();
+	auto iter = my_accts.find(graphene::chain::address("HXNbYabqYF6muv9invhf4LzSkPjgwP9FNRpX"));
+	if (iter != my_accts.end())
+	{
+		remove_local_account(iter->name);
+	}
    return vector<account_object>(my->_wallet.my_accounts.begin(), my->_wallet.my_accounts.end());
 }
 
@@ -8068,7 +8085,7 @@ fc::variant_object wallet_api::get_account(string account_name_or_id) const
    if (!maybe_id<account_id_type>(account_name_or_id))
 	   obj = get_account_by_addr(acc.addr);
 
-   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj))
+   if ( obj.valid() && fc::json::to_string(acc) != fc::json::to_string(*obj) )
    {
 	   my->claim_account_update(*obj);
    }

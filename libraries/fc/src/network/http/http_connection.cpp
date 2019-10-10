@@ -274,12 +274,13 @@ namespace fc {
 				std::cout << "handle_reply error" << error.value() << error.message() << std::endl;
 				return;
 			}
+			std::lock_guard<std::mutex> lk(read_lock);
+
 			if (is_timeout)
 				return;
 
 			if (is_release)
 				return;
-			std::lock_guard<std::mutex> lk(read_lock);
 			//is_timeout = false;
 			is_done = true;
 
@@ -292,13 +293,15 @@ namespace fc {
 
 		}
 		void connection_sync::handle_reply(const boost::system::error_code & error, size_t bytes_transferred) {
-			if (is_timeout)
-				return;
+			
 			if (error) {
 				std::cout << "handle_reply error" << error.message() << std::endl;
 				return;
 			}
+			
 			std::lock_guard<std::mutex> lk(read_lock);
+			if (is_timeout)
+				return;
 			//is_timeout = false;
 
 			//std::cout << error.message() << "          " << bytes_transferred << std::endl;
@@ -389,22 +392,25 @@ namespace fc {
 				return;
 			}
 			if (is_timeout || is_done || is_release)
+			{
 				return;
-			
-
+			}
 			if (_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 			{
+
 				std::lock_guard<std::mutex> lk(read_lock);
-				is_timeout = true;
+				if (is_timeout || is_done || is_release) {
+					return;
+				}
+					
+				
 
 				close_socket();
 
 				boost::this_thread::sleep(boost::posix_time::seconds(3));
-
+				is_timeout = true;
 				//close_socket();
-
 				m_cond.notify_all();
-
 			}
 
 
@@ -426,7 +432,7 @@ namespace fc {
 						//m_cond.wait(lk);
 					}
 					if (is_timeout) {
-						std::cout << "query timeout" << std::endl;
+						std::cout << "query timeout1" << std::endl;
 						rep.status = reply::status_code::InternalServerError;
 						return rep;
 					}
@@ -466,30 +472,32 @@ namespace fc {
 				}
 				content_length -= line.size();
 				boost::system::error_code error;
-				std::unique_lock<std::mutex> lk(read_lock);
-				_deadline.expires_from_now(boost::posix_time::seconds(50));
-				_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error));
-
-				if (content_length > 0) {
-					boost::asio::async_read(_socket, line, boost::asio::transfer_at_least(content_length), boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
-					//, boost::asio::placeholders::error,boost::asio::placeholders::bytes_transferred
-				}
-
-				while (!(is_done || is_timeout) && content_length>0) {
-					auto now = std::chrono::system_clock::now();
-					m_cond.wait_until(lk, now + std::chrono::seconds(2));
-				}
-				if (is_timeout) {
-					std::cout << "query timeout" << std::endl;
-					rep.status = reply::status_code::InternalServerError;
-					return rep;
-				}
-				if (line.size())
 				{
-					std::istream response_stream1(&line);
-					std::istreambuf_iterator<char> eos;
-					auto reponse_data = string(std::istreambuf_iterator<char>(response_stream1), eos);
-					rep.body.assign(reponse_data.begin(), reponse_data.end());
+					std::unique_lock<std::mutex> lk(read_lock);
+					
+					if (content_length > 0) {
+						_deadline.expires_from_now(boost::posix_time::seconds(50));
+						_deadline.async_wait(boost::bind(&connection_sync::check_deadline, this, boost::asio::placeholders::error));
+
+						boost::asio::async_read(_socket, line, boost::asio::transfer_at_least(content_length), boost::bind(&connection_sync::handle_reply, this, boost::asio::placeholders::error));
+						//, boost::asio::placeholders::error,boost::asio::placeholders::bytes_transferred
+					}
+
+					while (!(is_done || is_timeout) && content_length>0) {
+						auto now = std::chrono::system_clock::now();
+						m_cond.wait_until(lk, now + std::chrono::seconds(2));
+					}
+					if (is_timeout) {
+						rep.status = reply::status_code::InternalServerError;
+						return rep;
+					}
+					if (line.size())
+					{
+						std::istream response_stream1(&line);
+						std::istreambuf_iterator<char> eos;
+						auto reponse_data = string(std::istreambuf_iterator<char>(response_stream1), eos);
+						rep.body.assign(reponse_data.begin(), reponse_data.end());
+					}
 				}
 				return rep;
 				/*
@@ -529,22 +537,25 @@ namespace fc {
 			}
 			catch (std::exception& ex) {
 				std::cout << ex.what() << std::endl;
+				
 			}
 			catch (fc::exception& e) {
 				elog("${exception}", ("exception", e.to_detail_string()));
-				is_done = true;
-				is_timeout = true;
-				if (!is_release) {
-					is_release = true;
-					_deadline.get_io_service().post([&]() {try { _deadline.cancel(); }
-					catch (...) {} });
-				}
-
-
-
-				rep.status = http::reply::InternalServerError;
-				return rep;
+				
 			}
+			is_done = true;
+			is_timeout = true;
+			if (!is_release) {
+				is_release = true;
+				_deadline.get_io_service().dispatch([&]() {try { _deadline.cancel(); }
+				catch (...) {} });
+			}
+
+
+
+			rep.status = http::reply::InternalServerError;
+			std::lock_guard<std::mutex> lk_end2(read_lock);
+			return rep;
 		}
 	} // fc::http
 }
