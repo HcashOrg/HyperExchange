@@ -3049,9 +3049,9 @@ public:
 		   _current_crosschain_brain_key->next_info[GRAPHENE_SYMBOL] += 1;
 		   save_wallet_file();
 		   //return address(priv_key.get_public_key());
-		   return ret;
+		   
 		}
-	   
+		return ret;
    }
    void recover_crosschain_key_form_crosschain_brain_key(std::string asset_symbol,vector<string> registed_accounts, const string& out_key_file, const string& encrypt_key, int32_t limit){
 	   std::set<string> regised_addr;
