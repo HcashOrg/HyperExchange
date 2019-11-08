@@ -233,7 +233,6 @@ struct op_prototype_visitor
       name2op[ name ] = Type();
    }
 };
-
 class wallet_api_impl
 {
 public:
@@ -9860,63 +9859,1027 @@ string wallet_api::help()const
    }
    return ss.str();
 }
+std::string getwalletcommandinfo(std::string command) {
+	std::string ret = "";
+
+	if ("stop_schedule" == command) {
+		ret = "{\"command\" : \"stop_schedule\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("copy_wallet_file" == command) {
+		ret = "{\"command\" : \"copy_wallet_file\",\"command_ret_value\" : \"bool\",\"args\":[\"string destination_filename\"]}";
+	}
+	if ("derive_private_key" == command) {
+		ret = "{\"command\" : \"derive_private_key\",\"command_ret_value\" : \"fc::ecc::private_key\",\"args\":[\"const std::string& prefix_string\",\"int sequence_number\"]}";
+	}
+	if ("change_acquire_plugin_num" == command) {
+		ret = "{\"command\" : \"change_acquire_plugin_num\",\"command_ret_value\" : \"void\",\"args\":[\"const string&symbol\",\"const uint32_t& blocknum\"]}";
+	}
+	if ("info" == command) {
+		ret = "{\"command\" : \"info\",\"command_ret_value\" : \"variant\",\"args\":[]}";
+	}
+	if ("about" == command) {
+		ret = "{\"command\" : \"about\",\"command_ret_value\" : \"variant_object\",\"args\":[]}";
+	}
+	if ("get_block" == command) {
+		ret = "{\"command\" : \"get_block\",\"command_ret_value\" : \"optional<signed_block_with_info>\",\"args\":[\"uint32_t num\"]}";
+	}
+	if ("get_account_count" == command) {
+		ret = "{\"command\" : \"get_account_count\",\"command_ret_value\" : \"uint64_t\",\"args\":[]}";
+	}
+	if ("list_my_accounts" == command) {
+		ret = "{\"command\" : \"list_my_accounts\",\"command_ret_value\" : \"vector<account_object>\",\"args\":[]}";
+	}
+	if ("list_accounts" == command) {
+		ret = "{\"command\" : \"list_accounts\",\"command_ret_value\" : \"map<string,account_id_type>\",\"args\":[\"const string& lowerbound\",\"uint32_t limit\"]}";
+	}
+	if ("list_account_balances" == command) {
+		ret = "{\"command\" : \"list_account_balances\",\"command_ret_value\" : \"vector<asset>\",\"args\":[\"const string& id\"]}";
+	}
+	if ("get_addr_balances" == command) {
+		ret = "{\"command\" : \"get_addr_balances\",\"command_ret_value\" : \"vector<asset>\",\"args\":[\"const string& addr\"]}";
+	}
+	if ("get_account_balances" == command) {
+		ret = "{\"command\" : \"get_account_balances\",\"command_ret_value\" : \"vector<asset>\",\"args\":[\"const string& account\"]}";
+	}
+	if ("list_assets" == command) {
+		ret = "{\"command\" : \"list_assets\",\"command_ret_value\" : \"vector<asset_object>\",\"args\":[\"const string& lowerbound\",\"uint32_t limit\"]}";
+	}
+	if ("get_account_history" == command) {
+		ret = "{\"command\" : \"get_account_history\",\"command_ret_value\" : \"vector<operation_detail>\",\"args\":[\"string name\",\"int limit\"]}";
+	}
+	if ("get_relative_account_history" == command) {
+		ret = "{\"command\" : \"get_relative_account_history\",\"command_ret_value\" : \"vector<operation_detail>\",\"args\":[\"string name\",\"uint32_t stop\",\"int limit\",\"uint32_t start\"]}";
+	}
+	if ("get_market_history" == command) {
+		ret = "{\"command\" : \"get_market_history\",\"command_ret_value\" : \"vector<bucket_object>\",\"args\":[\"string symbol\",\"string symbol2\",\"uint32_t bucket\",\"fc::time_point_sec start\",\"fc::time_point_sec end\"]}";
+	}
+	if ("get_limit_orders" == command) {
+		ret = "{\"command\" : \"get_limit_orders\",\"command_ret_value\" : \"vector<limit_order_object>\",\"args\":[\"string a\",\"string b\",\"uint32_t limit\"]}";
+	}
+	if ("get_call_orders" == command) {
+		ret = "{\"command\" : \"get_call_orders\",\"command_ret_value\" : \"vector<call_order_object>\",\"args\":[\"string a\",\"uint32_t limit\"]}";
+	}
+	if ("get_settle_orders" == command) {
+		ret = "{\"command\" : \"get_settle_orders\",\"command_ret_value\" : \"vector<force_settlement_object>\",\"args\":[\"string a\",\"uint32_t limit\"]}";
+	}
+	if ("get_global_properties" == command) {
+		ret = "{\"command\" : \"get_global_properties\",\"command_ret_value\" : \"global_property_object\",\"args\":[]}";
+	}
+	if ("get_dynamic_global_properties" == command) {
+		ret = "{\"command\" : \"get_dynamic_global_properties\",\"command_ret_value\" : \"dynamic_global_property_object\",\"args\":[]}";
+	}
+	if ("get_account" == command) {
+		ret = "{\"command\" : \"get_account\",\"command_ret_value\" : \"fc::variant_object\",\"args\":[\"string account_name_or_id\"]}";
+	}
+	if ("change_account_name" == command) {
+		ret = "{\"command\" : \"change_account_name\",\"command_ret_value\" : \"account_object\",\"args\":[\"const string& oldname\",\"const string& newname\"]}";
+	}
+	if ("remove_local_account" == command) {
+		ret = "{\"command\" : \"remove_local_account\",\"command_ret_value\" : \"void\",\"args\":[\"const string & account_name\"]}";
+	}
+	if ("get_asset" == command) {
+		ret = "{\"command\" : \"get_asset\",\"command_ret_value\" : \"asset_object\",\"args\":[\"string asset_name_or_id\"]}";
+	}
+	if ("get_asset_imp" == command) {
+		ret = "{\"command\" : \"get_asset_imp\",\"command_ret_value\" : \"fc::variant\",\"args\":[\"string asset_name_or_id\"]}";
+	}
+	if ("get_bitasset_data" == command) {
+		ret = "{\"command\" : \"get_bitasset_data\",\"command_ret_value\" : \"asset_bitasset_data_object\",\"args\":[\"string asset_name_or_id\"]}";
+	}
+	if ("get_account_id" == command) {
+		ret = "{\"command\" : \"get_account_id\",\"command_ret_value\" : \"account_id_type\",\"args\":[\"string account_name_or_id\"]}";
+	}
+	if ("get_account_addr" == command) {
+		ret = "{\"command\" : \"get_account_addr\",\"command_ret_value\" : \"address\",\"args\":[\"string account_name\"]}";
+	}
+	if ("get_asset_id" == command) {
+		ret = "{\"command\" : \"get_asset_id\",\"command_ret_value\" : \"asset_id_type\",\"args\":[\"string asset_name_or_id\"]}";
+	}
+	if ("get_object" == command) {
+		ret = "{\"command\" : \"get_object\",\"command_ret_value\" : \"variant\",\"args\":[\"object_id_type id\"]}";
+	}
+	if ("get_wallet_filename" == command) {
+		ret = "{\"command\" : \"get_wallet_filename\",\"command_ret_value\" : \"string\",\"args\":[]}";
+	}
+	if ("get_private_key" == command) {
+		ret = "{\"command\" : \"get_private_key\",\"command_ret_value\" : \"string\",\"args\":[\"public_key_type pubkey\"]}";
+	}
+	if ("begin_builder_transaction" == command) {
+		ret = "{\"command\" : \"begin_builder_transaction\",\"command_ret_value\" : \"transaction_handle_type\",\"args\":[]}";
+	}
+	if ("build_transaction" == command) {
+		ret = "{\"command\" : \"build_transaction\",\"command_ret_value\" : \"fc::variant\",\"args\":[\"fc::variant op\"]}";
+	}
+	if ("add_operation_to_builder_transaction" == command) {
+		ret = "{\"command\" : \"add_operation_to_builder_transaction\",\"command_ret_value\" : \"void\",\"args\":[\"transaction_handle_type transaction_handle\",\"const operation& op\"]}";
+	}
+	if ("replace_operation_in_builder_transaction" == command) {
+		ret = "{\"command\" : \"replace_operation_in_builder_transaction\",\"command_ret_value\" : \"void\",\"args\":[\"transaction_handle_type handle\",\"unsigned operation_index\",\"const operation& new_op\"]}";
+	}
+	if ("set_fees_on_builder_transaction" == command) {
+		ret = "{\"command\" : \"set_fees_on_builder_transaction\",\"command_ret_value\" : \"asset\",\"args\":[\"transaction_handle_type handle\",\"string fee_asset = GRAPHENE_SYMBOL\"]}";
+	}
+	if ("preview_builder_transaction" == command) {
+		ret = "{\"command\" : \"preview_builder_transaction\",\"command_ret_value\" : \"transaction\",\"args\":[\"transaction_handle_type handle\"]}";
+	}
+	if ("sign_builder_transaction" == command) {
+		ret = "{\"command\" : \"sign_builder_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"transaction_handle_type transaction_handle\",\"bool broadcast = true\"]}";
+	}
+	if ("propose_builder_transaction" == command) {
+		ret = "{\"command\" : \"propose_builder_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"transaction_handle_type handle\",\"time_point_sec expiration = time_point::now()+ fc::minutes(1)\",\"uint32_t review_period_seconds = 0\",\"bool broadcast = true\"]}";
+	}
+	if ("propose_builder_transaction2" == command) {
+		ret = "{\"command\" : \"propose_builder_transaction2\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"transaction_handle_type handle\",\"string account_name_or_id\",\"time_point_sec expiration = time_point::now()+ fc::minutes(1)\",\"uint32_t review_period_seconds = 0\",\"bool broadcast = true\"]}";
+	}
+	if ("get_address_pay_back_balance" == command) {
+		ret = "{\"command\" : \"get_address_pay_back_balance\",\"command_ret_value\" : \"std::map<std::string,asset>\",\"args\":[\"const address& owner_addr\",\"std::string asset_symbol = ""\"]}";
+	}
+	if ("get_bonus_balance" == command) {
+		ret = "{\"command\" : \"get_bonus_balance\",\"command_ret_value\" : \"std::map<std::string,share_type>\",\"args\":[\"const address& owner_addr\"]}";
+	}
+	if ("obtain_pay_back_balance" == command) {
+		ret = "{\"command\" : \"obtain_pay_back_balance\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& pay_back_owner\",\"std::map<std::string\",\"asset> nums\",\"bool broadcast = true\"]}";
+	}
+	if ("obtain_bonus_balance" == command) {
+		ret = "{\"command\" : \"obtain_bonus_balance\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& bonus_owner\",\"std::map<std::string\",\"share_type> nums\",\"bool broadcast = true\"]}";
+	}
+	if ("remove_builder_transaction" == command) {
+		ret = "{\"command\" : \"remove_builder_transaction\",\"command_ret_value\" : \"void\",\"args\":[\"transaction_handle_type handle\"]}";
+	}
+	if ("is_new" == command) {
+		ret = "{\"command\" : \"is_new\",\"command_ret_value\" : \"bool\",\"args\":[]}";
+	}
+	if ("is_locked" == command) {
+		ret = "{\"command\" : \"is_locked\",\"command_ret_value\" : \"bool\",\"args\":[]}";
+	}
+	if ("lock" == command) {
+		ret = "{\"command\" : \"lock\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("unlock" == command) {
+		ret = "{\"command\" : \"unlock\",\"command_ret_value\" : \"void\",\"args\":[\"string password\"]}";
+	}
+	if ("set_password" == command) {
+		ret = "{\"command\" : \"set_password\",\"command_ret_value\" : \"void\",\"args\":[\"string password\",\"bool use_crosschain_brain_key = false\"]}";
+	}
+	if ("dump_private_keys" == command) {
+		ret = "{\"command\" : \"dump_private_keys\",\"command_ret_value\" : \"map<address,string>\",\"args\":[]}";
+	}
+	if ("dump_private_key" == command) {
+		ret = "{\"command\" : \"dump_private_key\",\"command_ret_value\" : \"map<address,string>\",\"args\":[\"string account_name\"]}";
+	}
+	if ("dump_crosschain_private_key" == command) {
+		ret = "{\"command\" : \"dump_crosschain_private_key\",\"command_ret_value\" : \"map<string,crosschain_prkeys>\",\"args\":[\"string pubkey\"]}";
+	}
+	if ("dump_crosschain_private_keys" == command) {
+		ret = "{\"command\" : \"dump_crosschain_private_keys\",\"command_ret_value\" : \"map<string,crosschain_prkeys>\",\"args\":[]}";
+	}
+	if ("help" == command) {
+		ret = "{\"command\" : \"help\",\"command_ret_value\" : \"string\",\"args\":[]}";
+	}
+	if ("gethelp" == command) {
+		ret = "{\"command\" : \"gethelp\",\"command_ret_value\" : \"string\",\"args\":[\"const string& method\"]}";
+	}
+	if ("load_wallet_file" == command) {
+		ret = "{\"command\" : \"load_wallet_file\",\"command_ret_value\" : \"bool\",\"args\":[\"string wallet_filename = ""\"]}";
+	}
+	if ("save_wallet_file" == command) {
+		ret = "{\"command\" : \"save_wallet_file\",\"command_ret_value\" : \"void\",\"args\":[\"string wallet_filename = ""\"]}";
+	}
+	if ("set_wallet_filename" == command) {
+		ret = "{\"command\" : \"set_wallet_filename\",\"command_ret_value\" : \"void\",\"args\":[\"string wallet_filename\"]}";
+	}
+	if ("suggest_brain_key" == command) {
+		ret = "{\"command\" : \"suggest_brain_key\",\"command_ret_value\" : \"brain_key_info\",\"args\":[]}";
+	}
+	if ("derive_owner_keys_from_brain_key" == command) {
+		ret = "{\"command\" : \"derive_owner_keys_from_brain_key\",\"command_ret_value\" : \"vector<brain_key_info>\",\"args\":[\"string brain_key\",\"int number_of_desired_keys = 1\"]}";
+	}
+	if ("is_public_key_registered" == command) {
+		ret = "{\"command\" : \"is_public_key_registered\",\"command_ret_value\" : \"bool\",\"args\":[\"string public_key\"]}";
+	}
+	if ("serialize_transaction" == command) {
+		ret = "{\"command\" : \"serialize_transaction\",\"command_ret_value\" : \"string\",\"args\":[\"signed_transaction tx\"]}";
+	}
+	if ("import_key" == command) {
+		ret = "{\"command\" : \"import_key\",\"command_ret_value\" : \"bool\",\"args\":[\"string account_name_or_id\",\"string wif_key\"]}";
+	}
+	if ("import_crosschain_key" == command) {
+		ret = "{\"command\" : \"import_crosschain_key\",\"command_ret_value\" : \"bool\",\"args\":[\"string wif_key\",\"string symbol\"]}";
+	}
+	if ("import_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"import_crosschain_brain_key\",\"command_ret_value\" : \"bool\",\"args\":[\"string crosschain_brain_key\",\"string password\",\"const string& keyfile\",\"const string& decryptkey\",\"int32_t limit = 20\"]}";
+	}
+	if ("recover_senator_crosschain_from_brain_key" == command) {
+		ret = "{\"command\" : \"recover_senator_crosschain_from_brain_key\",\"command_ret_value\" : \"vector<string>\",\"args\":[\"string account_name\",\"string symbol\",\"const string& out_key_file\",\"const string& encrypt_key\",\"int32_t limit = 20\"]}";
+	}
+	if ("import_accounts" == command) {
+		ret = "{\"command\" : \"import_accounts\",\"command_ret_value\" : \"map<string,bool>\",\"args\":[\"string filename\",\"string password\"]}";
+	}
+	if ("import_account_keys" == command) {
+		ret = "{\"command\" : \"import_account_keys\",\"command_ret_value\" : \"bool\",\"args\":[\"string filename\",\"string password\",\"string src_account_name\",\"string dest_account_name\"]}";
+	}
+	if ("import_balance" == command) {
+		ret = "{\"command\" : \"import_balance\",\"command_ret_value\" : \"vector<signed_transaction>\",\"args\":[\"string account_name_or_id\",\"const vector<string>& wif_keys\",\"bool broadcast\"]}";
+	}
+	if ("normalize_brain_key" == command) {
+		ret = "{\"command\" : \"normalize_brain_key\",\"command_ret_value\" : \"string\",\"args\":[\"string s\"]}";
+	}
+	if ("register_account" == command) {
+		ret = "{\"command\" : \"register_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string name\",\"bool broadcast = true\"]}";
+	}
+	if ("upgrade_account" == command) {
+		ret = "{\"command\" : \"upgrade_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string name\",\"bool broadcast\"]}";
+	}
+	if ("create_account_with_brain_key" == command) {
+		ret = "{\"command\" : \"create_account_with_brain_key\",\"command_ret_value\" : \"//full_transaction\",\"args\":[\"string brain_key\",\"// string account_name\",\"// string registrar_account\",\"// string referrer_account\",\"// bool broadcast = false\"]}";
+	}
+	if ("wallet_create_account" == command) {
+		ret = "{\"command\" : \"wallet_create_account\",\"command_ret_value\" : \"address\",\"args\":[\"string account_name\"]}";
+	}
+	if ("transfer" == command) {
+		ret = "{\"command\" : \"transfer\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer_to_address" == command) {
+		ret = "{\"command\" : \"transfer_to_address\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer_from_to_address" == command) {
+		ret = "{\"command\" : \"transfer_from_to_address\",\"command_ret_value\" : \"string\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"string memo\"]}";
+	}
+	if ("combine_transaction" == command) {
+		ret = "{\"command\" : \"combine_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const vector<string>& trxs\",\"bool broadcast = false\"]}";
+	}
+	if ("name_transfer_to_address" == command) {
+		ret = "{\"command\" : \"name_transfer_to_address\",\"command_ret_value\" : \"string\",\"args\":[\"string from\",\"address to\",\"asset amount\",\"string newname\"]}";
+	}
+	if ("confirm_name_transfer" == command) {
+		ret = "{\"command\" : \"confirm_name_transfer\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account \",\"string trx\",\"bool broadcast\"]}";
+	}
+	if ("undertaker_customize" == command) {
+		ret = "{\"command\" : \"undertaker_customize\",\"command_ret_value\" : \"string\",\"args\":[\"const string& maker\",\"const address& taker\",\"const fc::variant& maker_op\",\"const fc::variant& taker_op\"]}";
+	}
+	if ("confirm_undertaker" == command) {
+		ret = "{\"command\" : \"confirm_undertaker\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& taker\",\"string trx\",\"bool broadcast\"]}";
+	}
+	if ("lightwallet_broadcast" == command) {
+		ret = "{\"command\" : \"lightwallet_broadcast\",\"command_ret_value\" : \"string\",\"args\":[\"signed_transaction trx\"]}";
+	}
+	if ("lightwallet_get_refblock_info" == command) {
+		ret = "{\"command\" : \"lightwallet_get_refblock_info\",\"command_ret_value\" : \"string\",\"args\":[]}";
+	}
+	if ("transfer_to_account" == command) {
+		ret = "{\"command\" : \"transfer_to_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("lock_balance_to_citizen" == command) {
+		ret = "{\"command\" : \"lock_balance_to_citizen\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string citizen_account\",\"string lock_account\",\"string amount\",\"string asset_symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("lock_balance_to_citizens" == command) {
+		ret = "{\"command\" : \"lock_balance_to_citizens\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string lock_account\",\"map<string\",\"vector<asset>> lockbalances\",\"bool broadcast = false\"]}";
+	}
+	if ("senator_lock_balance" == command) {
+		ret = "{\"command\" : \"senator_lock_balance\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string senator_account\",\"string amount\",\"string asset_symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("foreclose_balance_from_citizen" == command) {
+		ret = "{\"command\" : \"foreclose_balance_from_citizen\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string citizen_account\",\"string foreclose_account\",\"string amount\",\"string asset_symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("foreclose_balance_from_citizens" == command) {
+		ret = "{\"command\" : \"foreclose_balance_from_citizens\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string foreclose_account\",\"map<string\",\"vector<asset>> foreclose_balances\",\"bool broadcast = false\"]}";
+	}
+	if ("senator_foreclose_balance" == command) {
+		ret = "{\"command\" : \"senator_foreclose_balance\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string senator_account\",\"string amount\",\"string asset_symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("withdraw_cross_chain_transaction" == command) {
+		ret = "{\"command\" : \"withdraw_cross_chain_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account_name\",\"string amount\",\"string asset_symbol\",\"string crosschain_account\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer_senator_multi_account" == command) {
+		ret = "{\"command\" : \"transfer_senator_multi_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string multi_account\",\"string amount\",\"string asset_symbol\",\"string multi_to_account\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer2" == command) {
+		ret = "{\"command\" : \"transfer2\",\"command_ret_value\" : \"pair<transaction_id_type,signed_transaction>\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"string memo\"]}";
+	}
+	if ("get_transaction_id" == command) {
+		ret = "{\"command\" : \"get_transaction_id\",\"command_ret_value\" : \"transaction_id_type\",\"args\":[\"const signed_transaction& trx\"]}";
+	}
+	if ("set_key_label" == command) {
+		ret = "{\"command\" : \"set_key_label\",\"command_ret_value\" : \"bool\",\"args\":[\"public_key_type\",\"string label\"]}";
+	}
+	if ("get_key_label" == command) {
+		ret = "{\"command\" : \"get_key_label\",\"command_ret_value\" : \"string\",\"args\":[\"public_key_type\"]}";
+	}
+	if ("create_blind_account" == command) {
+		ret = "{\"command\" : \"create_blind_account\",\"command_ret_value\" : \"public_key_type\",\"args\":[\"string label\",\"string brain_key\"]}";
+	}
+	if ("get_blind_balances" == command) {
+		ret = "{\"command\" : \"get_blind_balances\",\"command_ret_value\" : \"//vector<asset>\",\"args\":[\"string key_or_label\"]}";
+	}
+	if ("get_blind_accounts" == command) {
+		ret = "{\"command\" : \"get_blind_accounts\",\"command_ret_value\" : \"map<string,public_key_type>\",\"args\":[]}";
+	}
+	if ("get_my_blind_accounts" == command) {
+		ret = "{\"command\" : \"get_my_blind_accounts\",\"command_ret_value\" : \"map<string,public_key_type>\",\"args\":[]}";
+	}
+	if ("get_public_key" == command) {
+		ret = "{\"command\" : \"get_public_key\",\"command_ret_value\" : \"public_key_type\",\"args\":[\"string label\"]}";
+	}
+	if ("blind_history" == command) {
+		ret = "{\"command\" : \"blind_history\",\"command_ret_value\" : \"vector<blind_receipt>\",\"args\":[\"string key_or_account\"]}";
+	}
+	if ("receive_blind_transfer" == command) {
+		ret = "{\"command\" : \"receive_blind_transfer\",\"command_ret_value\" : \"blind_receipt\",\"args\":[\"string confirmation_receipt\",\"string opt_from\",\"string opt_memo\"]}";
+	}
+	if ("transfer_to_blind" == command) {
+		ret = "{\"command\" : \"transfer_to_blind\",\"command_ret_value\" : \"blind_confirmation\",\"args\":[\"string from_account_id_or_name\",\"string asset_symbol\",\"vector<pair<string\",\"string>> to_amounts\",\"bool broadcast = false\"]}";
+	}
+	if ("sell" == command) {
+		ret = "{\"command\" : \"sell\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string seller_account\",\"string base\",\"string quote\",\"double rate\",\"double amount\",\"bool broadcast\"]}";
+	}
+	if ("borrow_asset" == command) {
+		ret = "{\"command\" : \"borrow_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string borrower_name\",\"string amount_to_borrow\",\"string asset_symbol\",\"string amount_of_collateral\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_order" == command) {
+		ret = "{\"command\" : \"cancel_order\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"object_id_type order_id\",\"bool broadcast = false\"]}";
+	}
+	if ("create_asset" == command) {
+		ret = "{\"command\" : \"create_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string issuer\",\"string symbol\",\"uint8_t precision\",\"asset_options common\",\"fc::optional<bitasset_options> bitasset_opts\",\"bool broadcast = false\"]}";
+	}
+	if ("wallet_create_asset" == command) {
+		ret = "{\"command\" : \"wallet_create_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string issuer\",\"string symbol\",\"uint8_t precision\",\"share_type max_supply\",\"share_type core_fee_paid\",\"bool broadcast = false\"]}";
+	}
+	if ("wallet_create_erc_asset" == command) {
+		ret = "{\"command\" : \"wallet_create_erc_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string issuer\",\"string symbol\",\"uint8_t precision\",\"share_type max_supply\",\"share_type core_fee_paid\",\"std::string erc_address\",\"bool broadcast = false\"]}";
+	}
+	if ("issue_asset" == command) {
+		ret = "{\"command\" : \"issue_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string to_account\",\"string amount\",\"string symbol\",\"string memo\",\"bool broadcast = false\"]}";
+	}
+	if ("update_asset" == command) {
+		ret = "{\"command\" : \"update_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const std::string& symbol\",\"const std::string& description\",\"bool broadcast = false\"]}";
+	}
+	if ("update_bitasset" == command) {
+		ret = "{\"command\" : \"update_bitasset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string symbol\",\"bitasset_options new_options\",\"bool broadcast = false\"]}";
+	}
+	if ("update_asset_feed_producers" == command) {
+		ret = "{\"command\" : \"update_asset_feed_producers\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string symbol\",\"flat_set<string> new_feed_producers\",\"bool broadcast = false\"]}";
+	}
+	if ("publish_asset_feed" == command) {
+		ret = "{\"command\" : \"publish_asset_feed\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string publishing_account\",\"string symbol\",\"price_feed feed\",\"bool broadcast = false\"]}";
+	}
+	if ("publish_normal_asset_feed" == command) {
+		ret = "{\"command\" : \"publish_normal_asset_feed\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string publishing_account\",\"string symbol\",\"price_feed feed\",\"bool broadcast = false\"]}";
+	}
+	if ("fund_asset_fee_pool" == command) {
+		ret = "{\"command\" : \"fund_asset_fee_pool\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string symbol\",\"string amount\",\"bool broadcast = false\"]}";
+	}
+	if ("reserve_asset" == command) {
+		ret = "{\"command\" : \"reserve_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string amount\",\"string symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("global_settle_asset" == command) {
+		ret = "{\"command\" : \"global_settle_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string symbol\",\"price settle_price\",\"bool broadcast = false\"]}";
+	}
+	if ("settle_asset" == command) {
+		ret = "{\"command\" : \"settle_asset\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account_to_settle\",\"string amount_to_settle\",\"string symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("whitelist_account" == command) {
+		ret = "{\"command\" : \"whitelist_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string authorizing_account\",\"string account_to_list\",\"account_whitelist_operation::account_listing new_listing_status\",\"bool broadcast = false\"]}";
+	}
+	if ("create_senator_member" == command) {
+		ret = "{\"command\" : \"create_senator_member\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account\",\"bool broadcast = false\"]}";
+	}
+	if ("update_senator_formal" == command) {
+		ret = "{\"command\" : \"update_senator_formal\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string proposing_account\",\"map<account_id_type\",\"account_id_type> replace_queue\",\"int64_t expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("resign_senator_member" == command) {
+		ret = "{\"command\" : \"resign_senator_member\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string proposing_account\",\"string account\",\"int64_t expiration_time\",\"bool broadcast\"]}";
+	}
+	if ("list_citizens" == command) {
+		ret = "{\"command\" : \"list_citizens\",\"command_ret_value\" : \"map<string,miner_id_type>\",\"args\":[\"const string& lowerbound\",\"uint32_t limit\"]}";
+	}
+	if ("list_senator_members" == command) {
+		ret = "{\"command\" : \"list_senator_members\",\"command_ret_value\" : \"map<string,guard_member_id_type>\",\"args\":[\"const string& lowerbound\",\"uint32_t limit\"]}";
+	}
+	if ("list_all_senators" == command) {
+		ret = "{\"command\" : \"list_all_senators\",\"command_ret_value\" : \"map<string,guard_member_id_type>\",\"args\":[\"const string& lowerbound\",\"uint32_t limit\"]}";
+	}
+	if ("get_citizen" == command) {
+		ret = "{\"command\" : \"get_citizen\",\"command_ret_value\" : \"miner_object\",\"args\":[\"string owner_account\"]}";
+	}
+	if ("get_senator_member" == command) {
+		ret = "{\"command\" : \"get_senator_member\",\"command_ret_value\" : \"guard_member_object\",\"args\":[\"string owner_account\"]}";
+	}
+	if ("create_citizen" == command) {
+		ret = "{\"command\" : \"create_citizen\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string owner_account\",\"string url\",\"bool broadcast = false\"]}";
+	}
+	if ("update_witness" == command) {
+		ret = "{\"command\" : \"update_witness\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string witness_name\",\"string url\",\"string block_signing_key\",\"bool broadcast = false\"]}";
+	}
+	if ("create_worker" == command) {
+		ret = "{\"command\" : \"create_worker\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string owner_account\",\"time_point_sec work_begin_date\",\"time_point_sec work_end_date\",\"share_type daily_pay\",\"string name\",\"string url\",\"variant worker_settings\",\"bool broadcast = false\"]}";
+	}
+	if ("update_worker_votes" == command) {
+		ret = "{\"command\" : \"update_worker_votes\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account\",\"worker_vote_delta delta\",\"bool broadcast = false\"]}";
+	}
+	if ("get_vesting_balances" == command) {
+		ret = "{\"command\" : \"get_vesting_balances\",\"command_ret_value\" : \"vector<vesting_balance_object_with_info>\",\"args\":[\"string account_name\"]}";
+	}
+	if ("withdraw_vesting" == command) {
+		ret = "{\"command\" : \"withdraw_vesting\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string witness_name\",\"string amount\",\"string asset_symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("vote_for_committee_member" == command) {
+		ret = "{\"command\" : \"vote_for_committee_member\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string voting_account\",\"string committee_member\",\"bool approve\",\"bool broadcast = false\"]}";
+	}
+	if ("vote_for_witness" == command) {
+		ret = "{\"command\" : \"vote_for_witness\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string voting_account\",\"string witness\",\"bool approve\",\"bool broadcast = false\"]}";
+	}
+	if ("set_voting_proxy" == command) {
+		ret = "{\"command\" : \"set_voting_proxy\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account_to_modify\",\"optional<string> voting_account\",\"bool broadcast = false\"]}";
+	}
+	if ("set_desired_citizen_and_senator_member_count" == command) {
+		ret = "{\"command\" : \"set_desired_citizen_and_senator_member_count\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string account_to_modify\",\"uint16_t desired_number_of_witnesses\",\"uint16_t desired_number_of_committee_members\",\"bool broadcast = false\"]}";
+	}
+	if ("get_crosschain_transaction" == command) {
+		ret = "{\"command\" : \"get_crosschain_transaction\",\"command_ret_value\" : \"std::map<transaction_id_type,signed_transaction>\",\"args\":[\"int type\"]}";
+	}
+	if ("get_crosschain_transaction_by_block_num" == command) {
+		ret = "{\"command\" : \"get_crosschain_transaction_by_block_num\",\"command_ret_value\" : \"std::map<transaction_id_type,signed_transaction>\",\"args\":[\"const string& symbol\",\"const uint32_t& start_block_num\",\"const uint32_t& stop_block_num\",\"int crosschain_trx_state\"]}";
+	}
+	if ("get_account_crosschain_transaction" == command) {
+		ret = "{\"command\" : \"get_account_crosschain_transaction\",\"command_ret_value\" : \"std::vector<crosschain_trx_object>\",\"args\":[\"string account_address\",\"string trx_id\"]}";
+	}
+	if ("get_coldhot_transaction" == command) {
+		ret = "{\"command\" : \"get_coldhot_transaction\",\"command_ret_value\" : \"std::map<transaction_id_type,signed_transaction>\",\"args\":[\"const int& type\"]}";
+	}
+	if ("get_coldhot_transaction_by_blocknum" == command) {
+		ret = "{\"command\" : \"get_coldhot_transaction_by_blocknum\",\"command_ret_value\" : \"std::map<transaction_id_type,signed_transaction>\",\"args\":[\"const string& symbol\",\"const uint32_t& start_block_num\",\"const uint32_t& stop_block_num\",\"int crosschain_trx_state\"]}";
+	}
+	if ("get_withdraw_crosschain_without_sign_transaction" == command) {
+		ret = "{\"command\" : \"get_withdraw_crosschain_without_sign_transaction\",\"command_ret_value\" : \"std::map<transaction_id_type,signed_transaction>\",\"args\":[]}";
+	}
+	if ("senator_sign_crosschain_transaction" == command) {
+		ret = "{\"command\" : \"senator_sign_crosschain_transaction\",\"command_ret_value\" : \"void\",\"args\":[\"const string& trx_id\",\"const string& senator\"]}";
+	}
+	if ("senator_sign_coldhot_transaction" == command) {
+		ret = "{\"command\" : \"senator_sign_coldhot_transaction\",\"command_ret_value\" : \"void\",\"args\":[\"const string& tx_id\",\"const string& senator\",\"const string& keyfile\",\"const string& decryptkey\"]}";
+	}
+	if ("senator_sign_eths_multi_account_create_trx" == command) {
+		ret = "{\"command\" : \"senator_sign_eths_multi_account_create_trx\",\"command_ret_value\" : \"void\",\"args\":[\"const string& tx_id\",\"const string& senator\",\"const string& keyfile\",\"const string& decryptkey\"]}";
+	}
+	if ("senator_sign_eths_final_trx" == command) {
+		ret = "{\"command\" : \"senator_sign_eths_final_trx\",\"command_ret_value\" : \"void\",\"args\":[\"const string& tx_id\",\"const string& senator\"]}";
+	}
+	if ("senator_changer_eth_singer_trx" == command) {
+		ret = "{\"command\" : \"senator_changer_eth_singer_trx\",\"command_ret_value\" : \"void\",\"args\":[\"const string guard\",\"const string txid\",\"const string& newaddress\",\"const int64_t& expiration_time\",\"bool broadcast\"]}";
+	}
+	if ("senator_changer_eth_coldhot_singer_trx" == command) {
+		ret = "{\"command\" : \"senator_changer_eth_coldhot_singer_trx\",\"command_ret_value\" : \"void\",\"args\":[\"const string guard\",\"const string txid\",\"const string& newaddress\",\"const int64_t& expiration_time\",\"const string& keyfile\",\"const string& decryptkey\",\"bool broadcast\"]}";
+	}
+	if ("senator_sign_eths_coldhot_final_trx" == command) {
+		ret = "{\"command\" : \"senator_sign_eths_coldhot_final_trx\",\"command_ret_value\" : \"void\",\"args\":[\"const string& tx_id\",\"const string& senator\",\"const string& keyfile\",\"const string& decryptkey\"]}";
+	}
+	if ("sign_transaction" == command) {
+		ret = "{\"command\" : \"sign_transaction\",\"command_ret_value\" : \"signed_transaction\",\"args\":[\"signed_transaction tx\",\"bool broadcast = false\"]}";
+	}
+	if ("get_prototype_operation" == command) {
+		ret = "{\"command\" : \"get_prototype_operation\",\"command_ret_value\" : \"operation\",\"args\":[\"string operation_type\"]}";
+	}
+	if ("propose_parameter_change" == command) {
+		ret = "{\"command\" : \"propose_parameter_change\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposing_account\",\"const variant_object& changed_values\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("propose_coin_destory" == command) {
+		ret = "{\"command\" : \"propose_coin_destory\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposing_account\",\"fc::time_point_sec expiration_time\",\"const variant_object& destory_values\",\"bool broadcast = false\"]}";
+	}
+	if ("propose_senator_pledge_change" == command) {
+		ret = "{\"command\" : \"propose_senator_pledge_change\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposing_account\",\"fc::time_point_sec expiration_time\",\"const variant_object& changed_values\",\"bool broadcast = false\"]}";
+	}
+	if ("propose_pay_back_asset_rate_change" == command) {
+		ret = "{\"command\" : \"propose_pay_back_asset_rate_change\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposing_account\",\"const variant_object& changed_values\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("propose_fee_change" == command) {
+		ret = "{\"command\" : \"propose_fee_change\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposing_account\",\"const variant_object& changed_values\",\"int64_t expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("get_account_lock_balance" == command) {
+		ret = "{\"command\" : \"get_account_lock_balance\",\"command_ret_value\" : \"std::vector<lockbalance_object>\",\"args\":[\"const string& account\"]}";
+	}
+	if ("get_senator_lock_balance" == command) {
+		ret = "{\"command\" : \"get_senator_lock_balance\",\"command_ret_value\" : \"std::vector<guard_lock_balance_object>\",\"args\":[\"const string& citizen\"]}";
+	}
+	if ("get_citizen_lock_balance" == command) {
+		ret = "{\"command\" : \"get_citizen_lock_balance\",\"command_ret_value\" : \"std::vector<lockbalance_object>\",\"args\":[\"const string& citizen\"]}";
+	}
+	if ("get_acquire_transaction" == command) {
+		ret = "{\"command\" : \"get_acquire_transaction\",\"command_ret_value\" : \"std::vector<acquired_crosschain_trx_object>\",\"args\":[\"const int & type\",\"const string & trxid\"]}";
+	}
+	if ("get_eth_signer" == command) {
+		ret = "{\"command\" : \"get_eth_signer\",\"command_ret_value\" : \"guard_member_object\",\"args\":[\"const string& symbol\",\"const string& address\"]}";
+	}
+	if ("approve_proposal" == command) {
+		ret = "{\"command\" : \"approve_proposal\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& fee_paying_account\",\"const string& proposal_id\",\"const approval_delta& delta\",\"bool broadcast\"]}";
+	}
+	if ("approve_referendum" == command) {
+		ret = "{\"command\" : \"approve_referendum\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& fee_paying_account\",\"const string& referendum_id\",\"const approval_delta& delta\",\"bool broadcast\"]}";
+	}
+	if ("get_proposal" == command) {
+		ret = "{\"command\" : \"get_proposal\",\"command_ret_value\" : \"vector<proposal_object>\",\"args\":[\"const string& proposer\"]}";
+	}
+	if ("get_referendum_for_voter" == command) {
+		ret = "{\"command\" : \"get_referendum_for_voter\",\"command_ret_value\" : \"vector<referendum_object>\",\"args\":[\"const string& voter\"]}";
+	}
+	if ("get_order_book" == command) {
+		ret = "{\"command\" : \"get_order_book\",\"command_ret_value\" : \"order_book\",\"args\":[\"const string& base\",\"const string& quote\",\"unsigned limit = 50\"]}";
+	}
+	if ("dbg_push_blocks" == command) {
+		ret = "{\"command\" : \"dbg_push_blocks\",\"command_ret_value\" : \"void\",\"args\":[\"std::string src_filename\",\"uint32_t count\"]}";
+	}
+	if ("dbg_generate_blocks" == command) {
+		ret = "{\"command\" : \"dbg_generate_blocks\",\"command_ret_value\" : \"void\",\"args\":[\"std::string debug_wif_key\",\"uint32_t count\"]}";
+	}
+	if ("dbg_stream_json_objects" == command) {
+		ret = "{\"command\" : \"dbg_stream_json_objects\",\"command_ret_value\" : \"void\",\"args\":[\"const std::string& filename\"]}";
+	}
+	if ("dbg_update_object" == command) {
+		ret = "{\"command\" : \"dbg_update_object\",\"command_ret_value\" : \"void\",\"args\":[\"fc::variant_object update\"]}";
+	}
+	if ("flood_network" == command) {
+		ret = "{\"command\" : \"flood_network\",\"command_ret_value\" : \"void\",\"args\":[\"string prefix\",\"uint32_t number_of_transactions\"]}";
+	}
+	if ("network_add_nodes" == command) {
+		ret = "{\"command\" : \"network_add_nodes\",\"command_ret_value\" : \"void\",\"args\":[\"const vector<string>& nodes\"]}";
+	}
+	if ("network_get_connected_peers" == command) {
+		ret = "{\"command\" : \"network_get_connected_peers\",\"command_ret_value\" : \"vector<variant>\",\"args\":[]}";
+	}
+	if ("network_get_info" == command) {
+		ret = "{\"command\" : \"network_get_info\",\"command_ret_value\" : \"fc::variant_object\",\"args\":[]}";
+	}
+	if ("register_contract" == command) {
+		ret = "{\"command\" : \"register_contract\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& caller_account_name\",\"const string& gas_price\",\"const string& gas_limit\",\"const string& contract_filepath\"]}";
+	}
+	if ("register_contract_like" == command) {
+		ret = "{\"command\" : \"register_contract_like\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& caller_account_name\",\"const string& gas_price\",\"const string& gas_limit\",\"const string& base\"]}";
+	}
+	if ("register_contract_testing" == command) {
+		ret = "{\"command\" : \"register_contract_testing\",\"command_ret_value\" : \"std::pair<asset,share_type>\",\"args\":[\"const string& caller_account_name\",\"const string& contract_filepath\"]}";
+	}
+	if ("register_native_contract" == command) {
+		ret = "{\"command\" : \"register_native_contract\",\"command_ret_value\" : \"std::string\",\"args\":[\"const string& caller_account_name\",\"const string& gas_price\",\"const string& gas_limit\",\"const string& native_contract_key\"]}";
+	}
+	if ("register_native_contract_testing" == command) {
+		ret = "{\"command\" : \"register_native_contract_testing\",\"command_ret_value\" : \"std::pair<asset,share_type>\",\"args\":[\"const string& caller_account_name\",\"const string& native_contract_key\"]}";
+	}
+	if ("invoke_contract" == command) {
+		ret = "{\"command\" : \"invoke_contract\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& caller_account_name\",\"const string& gas_price\",\"const string& gas_limit\",\"const string& contract_address_or_name\",\"const string& contract_api\",\"const string& contract_arg\"]}";
+	}
+	if ("invoke_contract_testing" == command) {
+		ret = "{\"command\" : \"invoke_contract_testing\",\"command_ret_value\" : \"std::pair<asset,share_type>\",\"args\":[\"const string& caller_account_name\",\"const string& contract_address_or_name\",\"const string& contract_api\",\"const string& contract_arg\"]}";
+	}
+	if ("invoke_contract_offline" == command) {
+		ret = "{\"command\" : \"invoke_contract_offline\",\"command_ret_value\" : \"string\",\"args\":[\"const string& caller_account_name\",\"const string& contract_address_or_name\",\"const string& contract_api\",\"const string& contract_arg\"]}";
+	}
+	if ("upgrade_contract" == command) {
+		ret = "{\"command\" : \"upgrade_contract\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& caller_account_name\",\"const string& gas_price\",\"const string& gas_limit\",\"const string& contract_address\",\"const string& contract_name\",\"const string& contract_desc\"]}";
+	}
+	if ("upgrade_contract_testing" == command) {
+		ret = "{\"command\" : \"upgrade_contract_testing\",\"command_ret_value\" : \"std::pair<asset,share_type>\",\"args\":[\"const string& caller_account_name\",\"const string& contract_address\",\"const string& contract_name\",\"const string& contract_desc\"]}";
+	}
+	if ("get_contract_info" == command) {
+		ret = "{\"command\" : \"get_contract_info\",\"command_ret_value\" : \"ContractEntryPrintable\",\"args\":[\"const string& contract_address_or_name\"]}";
+	}
+	if ("get_simple_contract_info" == command) {
+		ret = "{\"command\" : \"get_simple_contract_info\",\"command_ret_value\" : \"ContractEntryPrintable\",\"args\":[\"const string& contract_address_or_name\"]}";
+	}
+	if ("transfer_to_contract" == command) {
+		ret = "{\"command\" : \"transfer_to_contract\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"const string& param\",\"const string& gas_price\",\"const string& gas_limit\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer_to_contract_testing" == command) {
+		ret = "{\"command\" : \"transfer_to_contract_testing\",\"command_ret_value\" : \"std::pair<asset,share_type>\",\"args\":[\"string from\",\"string to\",\"string amount\",\"string asset_symbol\",\"const string& param\"]}";
+	}
+	if ("get_contract_balance" == command) {
+		ret = "{\"command\" : \"get_contract_balance\",\"command_ret_value\" : \"vector<asset>\",\"args\":[\"const string& contract_address\"]}";
+	}
+	if ("get_contract_invoke_object" == command) {
+		ret = "{\"command\" : \"get_contract_invoke_object\",\"command_ret_value\" : \"vector<contract_invoke_result_object>\",\"args\":[\"const std::string&\"]}";
+	}
+	if ("get_contract_addresses_by_owner" == command) {
+		ret = "{\"command\" : \"get_contract_addresses_by_owner\",\"command_ret_value\" : \"vector<string>\",\"args\":[\"const std::string&\"]}";
+	}
+	if ("get_contracts_by_owner" == command) {
+		ret = "{\"command\" : \"get_contracts_by_owner\",\"command_ret_value\" : \"vector<ContractEntryPrintable>\",\"args\":[\"const std::string&\"]}";
+	}
+	if ("get_contracts_hash_entry_by_owner" == command) {
+		ret = "{\"command\" : \"get_contracts_hash_entry_by_owner\",\"command_ret_value\" : \"vector<contract_hash_entry>\",\"args\":[\"const std::string&\"]}";
+	}
+	if ("get_contract_events" == command) {
+		ret = "{\"command\" : \"get_contract_events\",\"command_ret_value\" : \"vector<contract_event_notify_object>\",\"args\":[\"const std::string&\"]}";
+	}
+	if ("get_contract_events_in_range" == command) {
+		ret = "{\"command\" : \"get_contract_events_in_range\",\"command_ret_value\" : \"vector<contract_event_notify_object>\",\"args\":[\"const std::string&\",\"uint64_t start\",\"uint64_t range\"]}";
+	}
+	if ("get_contract_registered" == command) {
+		ret = "{\"command\" : \"get_contract_registered\",\"command_ret_value\" : \"vector<contract_blocknum_pair>\",\"args\":[\"const uint32_t block_num = 0\"]}";
+	}
+	if ("get_contract_storage_changed" == command) {
+		ret = "{\"command\" : \"get_contract_storage_changed\",\"command_ret_value\" : \"vector<contract_blocknum_pair>\",\"args\":[\"const uint32_t block_num = 0\"]}";
+	}
+	if ("get_contract_history" == command) {
+		ret = "{\"command\" : \"get_contract_history\",\"command_ret_value\" : \"vector<transaction_id_type>\",\"args\":[\"const string& contract_id\",\"uint64_t start=0\",\"uint64_t end=UINT64_MAX\"]}";
+	}
+	if ("create_contract_transfer_fee_proposal" == command) {
+		ret = "{\"command\" : \"create_contract_transfer_fee_proposal\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"share_type fee_rate\",\"int64_t expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("get_block_for_contract" == command) {
+		ret = "{\"command\" : \"get_block_for_contract\",\"command_ret_value\" : \"graphene::chain::optional<graphene::chain::signed_block>\",\"args\":[\"uint32_t block_num\",\"address contract_address\"]}";
+	}
+	if ("add_script" == command) {
+		ret = "{\"command\" : \"add_script\",\"command_ret_value\" : \"//std::string\",\"args\":[\"const string& script_path\"]}";
+	}
+	//vector<script_object>list_scripts();
+	if ("remove_script" == command) {
+		ret = "{\"command\" : \"remove_script\",\"command_ret_value\" : \"//void\",\"args\":[\"const string& script_hash\"]}";
+	}
+	if ("bind_script_to_event" == command) {
+		ret = "{\"command\" : \"bind_script_to_event\",\"command_ret_value\" : \"//bool\",\"args\":[\"const string& script_hash\",\"const string& contract\",\"const string& event_name\"]}";
+	}
+	if ("remove_event_handle" == command) {
+		ret = "{\"command\" : \"remove_event_handle\",\"command_ret_value\" : \"//bool\",\"args\":[\"const string& script_hash\",\"const string& contract\",\"const string& event_name\"]}";
+	}
+	if ("refund_request" == command) {
+		ret = "{\"command\" : \"refund_request\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& refund_account\",\"const string txid\",\"bool broadcast = false\"]}";
+	}
+	if ("refund_uncombined_transaction" == command) {
+		ret = "{\"command\" : \"refund_uncombined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("refund_combined_transaction" == command) {
+		ret = "{\"command\" : \"refund_combined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_eth_sign_transaction" == command) {
+		ret = "{\"command\" : \"cancel_eth_sign_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("senator_pass_combined_transaction" == command) {
+		ret = "{\"command\" : \"senator_pass_combined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("senator_change_acquire_trx" == command) {
+		ret = "{\"command\" : \"senator_change_acquire_trx\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("senator_pass_coldhot_combined_transaction" == command) {
+		ret = "{\"command\" : \"senator_pass_coldhot_combined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("eth_cancel_fail_transaction" == command) {
+		ret = "{\"command\" : \"eth_cancel_fail_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_coldhot_eth_fail_transaction" == command) {
+		ret = "{\"command\" : \"cancel_coldhot_eth_fail_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_coldhot_uncombined_transaction" == command) {
+		ret = "{\"command\" : \"cancel_coldhot_uncombined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_coldhot_combined_transaction" == command) {
+		ret = "{\"command\" : \"cancel_coldhot_combined_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string senator\",\"const string txid\",\"const int64_t& expiration_time\",\"bool broadcast = false\"]}";
+	}
+	if ("cancel_cold_hot_uncreate_transaction" == command) {
+		ret = "{\"command\" : \"cancel_cold_hot_uncreate_transaction\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const string& trxid\",\"const int64_t& exception_time\",\"bool broadcast = false\"]}";
+	}
+	if ("transfer_from_cold_to_hot" == command) {
+		ret = "{\"command\" : \"transfer_from_cold_to_hot\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const string& from_account\",\"const string& to_account\",\"const string& amount\",\"const string& asset_symbol\",\"const string& memo\",\"const int64_t& exception_time\",\"bool broadcast=true\"]}";
+	}
+	if ("get_multi_account_senator" == command) {
+		ret = "{\"command\" : \"get_multi_account_senator\",\"command_ret_value\" : \"vector<optional<multisig_address_object>>\",\"args\":[\"const string & multi_address\",\"const string& symbol\"]}";
+	}
+	if ("get_binding_account" == command) {
+		ret = "{\"command\" : \"get_binding_account\",\"command_ret_value\" : \"vector<optional<account_binding_object>>\",\"args\":[\"const string& account\",\"const string& symbol\"]}";
+	}
+	if ("account_change_for_crosschain" == command) {
+		ret = "{\"command\" : \"account_change_for_crosschain\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const string& symbol\",\"const string& hot\",\"const string& cold\",\"int64_t expiration_time\",\"bool broadcast= false\"]}";
+	}
+	if ("withdraw_from_link" == command) {
+		ret = "{\"command\" : \"withdraw_from_link\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const string& symbol\",\"int64_t amount\",\"bool broadcast = true\"]}";
+	}
+	if ("update_asset_private_keys" == command) {
+		ret = "{\"command\" : \"update_asset_private_keys\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& from_account\",\"const string& symbol\",\"const string& out_key_file\",\"const string& encrypt_key\",\"bool broadcast = true\"]}";
+	}
+	if ("update_asset_private_keys_with_brain_key" == command) {
+		ret = "{\"command\" : \"update_asset_private_keys_with_brain_key\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& from_account\",\"const string& symbol\",\"const string& out_key_file\",\"const string& encrypt_key\",\"bool broadcast = true\"]}";
+	}
+	if ("update_asset_private_keys_with_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"update_asset_private_keys_with_crosschain_brain_key\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& from_account\",\"const string& symbol\",\"const string& out_key_file\",\"const string& encrypt_key\",\"bool broadcast = true\"]}";
+	}
+	if ("update_asset_private_with_coldkeys" == command) {
+		ret = "{\"command\" : \"update_asset_private_with_coldkeys\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& from_account\",\"const string& symbol\",\"const string& cold_address\",\"const string& cold_pubkey\",\"bool broadcast\"]}";
+	}
+	if ("update_asset_private_with_keys" == command) {
+		ret = "{\"command\" : \"update_asset_private_with_keys\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& from_account\",\"const string& symbol\",\"const string& hot_address\",\"const string& hot_pubkey\",\"const string& cold_address\",\"const string& cold_pubkey\",\"bool broadcast\"]}";
+	}
+	if ("bind_tunnel_account" == command) {
+		ret = "{\"command\" : \"bind_tunnel_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& link_account\",\"const string& tunnel_account\",\"const string& symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("bind_tunnel_account_with_script" == command) {
+		ret = "{\"command\" : \"bind_tunnel_account_with_script\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& link_account\",\"const string& tunnel_account\",\"const string& script\",\"const string& symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("wallet_create_crosschain_symbol" == command) {
+		ret = "{\"command\" : \"wallet_create_crosschain_symbol\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("wallet_create_crosschain_symbol_with_brain_key" == command) {
+		ret = "{\"command\" : \"wallet_create_crosschain_symbol_with_brain_key\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("wallet_create_crosschain_symbol_with_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"wallet_create_crosschain_symbol_with_crosschain_brain_key\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("create_crosschain_symbol" == command) {
+		ret = "{\"command\" : \"create_crosschain_symbol\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("create_crosschain_symbol_with_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"create_crosschain_symbol_with_crosschain_brain_key\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("create_crosschain_symbol_cold" == command) {
+		ret = "{\"command\" : \"create_crosschain_symbol_cold\",\"command_ret_value\" : \"crosschain_prkeys\",\"args\":[\"const string &symbol\",\"const string& out_key_file\",\"const string& encrypt_key\"]}";
+	}
+	if ("set_balance_for_addr" == command) {
+		ret = "{\"command\" : \"set_balance_for_addr\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const address& addr\",\"const asset& balance\",\"bool broadcast= false\"]}";
+	}
+	if ("unbind_tunnel_account" == command) {
+		ret = "{\"command\" : \"unbind_tunnel_account\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& link_account\",\"const string& tunnel_account\",\"const string& symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("unbind_tunnel_account_with_script" == command) {
+		ret = "{\"command\" : \"unbind_tunnel_account_with_script\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& link_account\",\"const string& tunnel_account\",\"const string& script\",\"const string& symbol\",\"bool broadcast = false\"]}";
+	}
+	if ("get_multisig_asset_tx" == command) {
+		ret = "{\"command\" : \"get_multisig_asset_tx\",\"command_ret_value\" : \"vector<multisig_asset_transfer_object>\",\"args\":[]}";
+	}
+	if ("sign_multi_asset_trx" == command) {
+		ret = "{\"command\" : \"sign_multi_asset_trx\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"multisig_asset_transfer_id_type id\",\"const string& senator\",\"bool broadcast = false\"]}";
+	}
+	if ("get_multi_address_obj" == command) {
+		ret = "{\"command\" : \"get_multi_address_obj\",\"command_ret_value\" : \"vector<optional<multisig_address_object>>\",\"args\":[\"const string& symbol\",\"const account_id_type& senator\"]}";
+	}
+	if ("get_multisig_account_pair" == command) {
+		ret = "{\"command\" : \"get_multisig_account_pair\",\"command_ret_value\" : \"vector<optional<multisig_account_pair_object>>\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("get_multisig_account_pair_by_id" == command) {
+		ret = "{\"command\" : \"get_multisig_account_pair_by_id\",\"command_ret_value\" : \"optional<multisig_account_pair_object>\",\"args\":[\"const multisig_account_pair_id_type& id\"]}";
+	}
+	if ("get_current_multi_address_obj" == command) {
+		ret = "{\"command\" : \"get_current_multi_address_obj\",\"command_ret_value\" : \"optional<multisig_address_object>\",\"args\":[\"const string& symbol\",\"const account_id_type& senator\"]}";
+	}
+	if ("get_current_multi_address" == command) {
+		ret = "{\"command\" : \"get_current_multi_address\",\"command_ret_value\" : \"optional<multisig_account_pair_object>\",\"args\":[\"const string& symbol\"]}";
+	}
+	if ("create_guarantee_order" == command) {
+		ret = "{\"command\" : \"create_guarantee_order\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const string& asset_orign\",\"const string& asset_target \",\"const string& symbol\",\"bool broadcast=false\"]}";
+	}
+	if ("cancel_guarantee_order" == command) {
+		ret = "{\"command\" : \"cancel_guarantee_order\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const guarantee_object_id_type id\",\"bool broadcast = false\"]}";
+	}
+	if ("list_guarantee_order" == command) {
+		ret = "{\"command\" : \"list_guarantee_order\",\"command_ret_value\" : \"vector<optional<guarantee_object>>\",\"args\":[\"const string& chain_type\",\"bool all=true\"]}";
+	}
+	if ("get_my_guarantee_order" == command) {
+		ret = "{\"command\" : \"get_my_guarantee_order\",\"command_ret_value\" : \"vector<optional<guarantee_object>>\",\"args\":[\"const string& account\",\"bool all = true\"]}";
+	}
+	if ("get_transaction" == command) {
+		ret = "{\"command\" : \"get_transaction\",\"command_ret_value\" : \"fc::variant\",\"args\":[\"transaction_id_type id\"]}";
+	}
+	if ("decoderawtransaction" == command) {
+		ret = "{\"command\" : \"decoderawtransaction\",\"command_ret_value\" : \"fc::variant_object\",\"args\":[\"const string& raw_trx\",\"const string& symbol\"]}";
+	}
+	if ("createrawtransaction" == command) {
+		ret = "{\"command\" : \"createrawtransaction\",\"command_ret_value\" : \"fc::variant_object\",\"args\":[\"const string& from\",\"const string& to\",\"const string& amount\",\"const string& symbol\"]}";
+	}
+	if ("signrawtransaction" == command) {
+		ret = "{\"command\" : \"signrawtransaction\",\"command_ret_value\" : \"string\",\"args\":[\"const string& from\",\"const string& symbol\",\"const fc::variant_object& trx\",\"bool broadcast=true\"]}";
+	}
+	if ("signrawmultransaction" == command) {
+		ret = "{\"command\" : \"signrawmultransaction\",\"command_ret_value\" : \"string\",\"args\":[\"const string& from\",\"const string& to\",\"const string& symbol\",\"const fc::variant_object& trx\",\"const string& password \",\"const string& file\"]}";
+	}
+	if ("combinemultisigtransaction" == command) {
+		ret = "{\"command\" : \"combinemultisigtransaction\",\"command_ret_value\" : \"fc::variant_object\",\"args\":[\"const fc::variant_object& trx\",\"const fc::flat_set<string>& hexs\",\"const string& symbol\",\"bool broadcast=true\"]}";
+	}
+	if ("list_transactions" == command) {
+		ret = "{\"command\" : \"list_transactions\",\"command_ret_value\" : \"vector<transaction_id_type>\",\"args\":[\"uint32_t blocknum=0\",\"uint32_t nums=-1\"]}";
+	}
+	if ("set_guarantee_id" == command) {
+		ret = "{\"command\" : \"set_guarantee_id\",\"command_ret_value\" : \"void\",\"args\":[\"const guarantee_object_id_type id\"]}";
+	}
+	if ("remove_guarantee_id" == command) {
+		ret = "{\"command\" : \"remove_guarantee_id\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("get_guarantee_order" == command) {
+		ret = "{\"command\" : \"get_guarantee_order\",\"command_ret_value\" : \"optional<guarantee_object>\",\"args\":[\"const guarantee_object_id_type id\"]}";
+	}
+	if ("senator_appointed_publisher" == command) {
+		ret = "{\"command\" : \"senator_appointed_publisher\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const account_id_type publisher\",\"const string& symbol\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_cancel_publisher" == command) {
+		ret = "{\"command\" : \"senator_cancel_publisher\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const account_id_type publisher\",\"const string& symbol\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_appointed_crosschain_fee" == command) {
+		ret = "{\"command\" : \"senator_appointed_crosschain_fee\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const share_type fee\",\"const string& symbol\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_change_eth_gas_price" == command) {
+		ret = "{\"command\" : \"senator_change_eth_gas_price\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const string& gas_price\",\"const string& symbol\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_appointed_lockbalance_senator" == command) {
+		ret = "{\"command\" : \"senator_appointed_lockbalance_senator\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const std::map<string\",\"asset>& lockbalance\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_determine_withdraw_deposit" == command) {
+		ret = "{\"command\" : \"senator_determine_withdraw_deposit\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"bool can\",\"const string& symbol \",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("senator_determine_block_payment" == command) {
+		ret = "{\"command\" : \"senator_determine_block_payment\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const std::map<uint32_t\",\"uint32_t>& blocks_pays\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("proposal_block_address" == command) {
+		ret = "{\"command\" : \"proposal_block_address\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const fc::flat_set<address>& block_addr\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("proposal_cancel_block_address" == command) {
+		ret = "{\"command\" : \"proposal_cancel_block_address\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& account\",\"const fc::flat_set<address>& block_addr\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("citizen_referendum_for_senator" == command) {
+		ret = "{\"command\" : \"citizen_referendum_for_senator\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& citizen\",\"const string& amount\",\"const map<account_id_type\",\"account_id_type>& replacement\",\"bool broadcast = true\"]}";
+	}
+	if ("referendum_accelerate_pledge" == command) {
+		ret = "{\"command\" : \"referendum_accelerate_pledge\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const referendum_id_type referendum_id\",\"const string& amount\",\"bool broadcast = true\"]}";
+	}
+	if ("add_whiteOperation" == command) {
+		ret = "{\"command\" : \"add_whiteOperation\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const address& addr\",\"const fc::flat_set<int>& ops\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("remove_whiteOperation" == command) {
+		ret = "{\"command\" : \"remove_whiteOperation\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const address& addr\",\"int64_t expiration_time\",\"bool broadcast = true\"]}";
+	}
+	if ("create_vote" == command) {
+		ret = "{\"command\" : \"create_vote\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& proposer\",\"const string& title\",\"const vector<string>& options \",\"int64_t expiration\",\"bool broadcast=true\"]}";
+	}
+	if ("cast_vote" == command) {
+		ret = "{\"command\" : \"cast_vote\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& caster\",\"const vote_object_id_type& id \",\"const int index\",\"bool broadcast= true\"]}";
+	}
+	if ("get_whiteOperation" == command) {
+		ret = "{\"command\" : \"get_whiteOperation\",\"command_ret_value\" : \"optional<whiteOperationList_object>\",\"args\":[\"const string& account\"]}";
+	}
+	if ("get_pending_transactions" == command) {
+		ret = "{\"command\" : \"get_pending_transactions\",\"command_ret_value\" : \"vector<transaction_id_type>\",\"args\":[]}";
+	}
+	if ("get_account_by_addr" == command) {
+		ret = "{\"command\" : \"get_account_by_addr\",\"command_ret_value\" : \"optional<account_object>\",\"args\":[\"const address& addr\"]}";
+	}
+	if ("create_multisignature_address" == command) {
+		ret = "{\"command\" : \"create_multisignature_address\",\"command_ret_value\" : \"map<public_key_type,address>\",\"args\":[\"const string& account\",\"const fc::flat_set<public_key_type>& pubs\",\"int required\",\"bool broadcast = true\"]}";
+	}
+	if ("get_citizen_lockbalance_info" == command) {
+		ret = "{\"command\" : \"get_citizen_lockbalance_info\",\"command_ret_value\" : \"map<account_id_type,vector<asset>>\",\"args\":[\"const string& account\"]}";
+	}
+	if ("get_otc_contract" == command) {
+		ret = "{\"command\" : \"get_otc_contract\",\"command_ret_value\" : \"vector<fc::optional<otc_contract_object>>\",\"args\":[\"const string& from_asset\",\"const string& to_asset\",\"const uint32_t& limit\"]}";
+	}
+	if ("get_pubkey_from_priv" == command) {
+		ret = "{\"command\" : \"get_pubkey_from_priv\",\"command_ret_value\" : \"public_key_type\",\"args\":[\"const string& privkey\"]}";
+	}
+	if ("get_pubkey_from_account" == command) {
+		ret = "{\"command\" : \"get_pubkey_from_account\",\"command_ret_value\" : \"public_key_type\",\"args\":[\"const string& account\"]}";
+	}
+	if ("sign_multisig_trx" == command) {
+		ret = "{\"command\" : \"sign_multisig_trx\",\"command_ret_value\" : \"string\",\"args\":[\"const address& addr\",\"const string& trx\"]}";
+	}
+	if ("decode_multisig_transaction" == command) {
+		ret = "{\"command\" : \"decode_multisig_transaction\",\"command_ret_value\" : \"signed_transaction\",\"args\":[\"const string& trx\"]}";
+	}
+	if ("get_multisig_address" == command) {
+		ret = "{\"command\" : \"get_multisig_address\",\"command_ret_value\" : \"variant_object\",\"args\":[\"const address& addr\"]}";
+	}
+	if ("set_citizen_pledge_pay_back_rate" == command) {
+		ret = "{\"command\" : \"set_citizen_pledge_pay_back_rate\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& citizen\",\"int pledge_pay_back_rate\",\"bool broadcast=true\"]}";
+	}
+	if ("correct_chain_data" == command) {
+		ret = "{\"command\" : \"correct_chain_data\",\"command_ret_value\" : \"full_transaction\",\"args\":[\"const string& payer\",\"vector<address> addresses\",\"bool broadcast=true\"]}";
+	}
+	if ("get_pledge" == command) {
+		ret = "{\"command\" : \"get_pledge\",\"command_ret_value\" : \"fc::uint128_t\",\"args\":[]}";
+	}
+	if ("list_active_citizens" == command) {
+		ret = "{\"command\" : \"list_active_citizens\",\"command_ret_value\" : \"flat_set<miner_id_type>\",\"args\":[]}";
+	}
+	if ("get_eth_multi_account_trx" == command) {
+		ret = "{\"command\" : \"get_eth_multi_account_trx\",\"command_ret_value\" : \"vector<optional<eth_multi_account_trx_object>>\",\"args\":[\"const int & mul_acc_tx_state\"]}";
+	}
+	if ("encrypt_keys" == command) {
+		ret = "{\"command\" : \"encrypt_keys\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("get_first_contract_address" == command) {
+		ret = "{\"command\" : \"get_first_contract_address\",\"command_ret_value\" : \"fc::string\",\"args\":[]}";
+	}
+	if ("decrypt_coldkeys" == command) {
+		ret = "{\"command\" : \"decrypt_coldkeys\",\"command_ret_value\" : \"map<string,crosschain_prkeys>\",\"args\":[\"const string& key\",\"const string& file\"]}";
+	}
+	if ("start_citizen" == command) {
+		ret = "{\"command\" : \"start_citizen\",\"command_ret_value\" : \"void\",\"args\":[\"bool\"]}";
+	}
+	if ("start_mining" == command) {
+		ret = "{\"command\" : \"start_mining\",\"command_ret_value\" : \"void\",\"args\":[\"const vector<string>& accts\"]}";
+	}
+	if ("witness_node_stop" == command) {
+		ret = "{\"command\" : \"witness_node_stop\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("get_ntp_info" == command) {
+		ret = "{\"command\" : \"get_ntp_info\",\"command_ret_value\" : \"std::map<std::string,fc::ntp_info>\",\"args\":[]}";
+	}
+	if ("ntp_update_time" == command) {
+		ret = "{\"command\" : \"ntp_update_time\",\"command_ret_value\" : \"void\",\"args\":[]}";
+	}
+	if ("set_brain_key" == command) {
+		ret = "{\"command\" : \"set_brain_key\",\"command_ret_value\" : \"bool\",\"args\":[\"string key\",\"const int next=1\"]}";
+	}
+	if ("set_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"set_crosschain_brain_key\",\"command_ret_value\" : \"bool\",\"args\":[\"string key\",\"string symbol\",\"const int next = 1\"]}";
+	}
+	if ("dump_brain_key_usage_info" == command) {
+		ret = "{\"command\" : \"dump_brain_key_usage_info\",\"command_ret_value\" : \"brain_key_usage_info\",\"args\":[\"const string& password\"]}";
+	}
+	if ("dump_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"dump_crosschain_brain_key\",\"command_ret_value\" : \"crosschain_brain_key_usage_info\",\"args\":[\"const string& password\"]}";
+	}
+	if ("wallet_create_account_with_brain_key" == command) {
+		ret = "{\"command\" : \"wallet_create_account_with_brain_key\",\"command_ret_value\" : \"address\",\"args\":[\"const string& name\"]}";
+	}
+	if ("wallet_create_account_with_crosschain_brain_key" == command) {
+		ret = "{\"command\" : \"wallet_create_account_with_crosschain_brain_key\",\"command_ret_value\" : \"address\",\"args\":[\"const string& name\"]}";
+	}
+	if ("list_address_indexes" == command) {
+		ret = "{\"command\" : \"list_address_indexes\",\"command_ret_value\" : \"map<string,int>\",\"args\":[\"string& password\"]}";
+	}
+	if ("derive_wif_key" == command) {
+		ret = "{\"command\" : \"derive_wif_key\",\"command_ret_value\" : \"string\",\"args\":[\"const string& brain_key\",\"int index\",\"const string& symbol\"]}";
+	}
+	if ("send_coldhot_transfer_with_sign" == command) {
+		ret = "{\"command\" : \"send_coldhot_transfer_with_sign\",\"command_ret_value\" : \"void\",\"args\":[\"const string& tx_id\",\"const string& guard\",\"const string& siging\"]}";
+	}
+	if ("get_coldhot_trx_sig" == command) {
+		ret = "{\"command\" : \"get_coldhot_trx_sig\",\"command_ret_value\" : \"string\",\"args\":[\"const string& tx_id\",\"const string& guard\",\"const string& keyfile\",\"const string& decryptkey\"]}";
+	}
+	if ("extra_imp" == command) {
+		ret = "{\"command\" : \"extra_imp\",\"command_ret_value\" : \"fc::variant\",\"args\":[\"const fc::variant_object& param_list\"]}";
+	}
+	if ("set_gas_limit_in_block" == command) {
+		ret = "{\"command\" : \"set_gas_limit_in_block\",\"command_ret_value\" : \"void\",\"args\":[\"const share_type& new_limit\"]}";
+	}
+	if ("get_contract_storage" == command) {
+		ret = "{\"command\" : \"get_contract_storage\",\"command_ret_value\" : \"contract_storage_view\",\"args\":[\"const address& contract_address\",\"const string& storage_name\"]}";
+	}
+	if ("get_votes" == command) {
+		ret = "{\"command\" : \"get_votes\",\"command_ret_value\" : \"vector<fc::variant>\",\"args\":[\"const string& account\"]}";
+	}
+	return ret;
+}
 
 string wallet_api::gethelp(const string& method)const
 {
-   fc::api<wallet_api> tmp;
-   std::stringstream ss;
-   ss << "\n";
+	fc::api<wallet_api> tmp;
+	//std::stringstream ss;
+	//ss << "\n";
 
-   if( method == "import_key" )
-   {
-      ss << "usage: import_key ACCOUNT_NAME_OR_ID  WIF_PRIVATE_KEY\n\n";
-      ss << "example: import_key \"1.3.11\" 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3\n";
-      ss << "example: import_key \"usera\" 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3\n";
-   }
-   else if( method == "transfer" )
-   {
-      ss << "usage: transfer FROM TO AMOUNT SYMBOL \"memo\" BROADCAST\n\n";
-      ss << "example: transfer \"1.3.11\" \"1.3.4\" 1000.03 CORE \"memo\" true\n";
-      ss << "example: transfer \"usera\" \"userb\" 1000.123 CORE \"memo\" true\n";
-   }
-   else if( method == "create_account_with_brain_key" )
-   {
-      ss << "usage: create_account_with_brain_key BRAIN_KEY ACCOUNT_NAME REGISTRAR REFERRER BROADCAST\n\n";
-      ss << "example: create_account_with_brain_key \"my really long brain key\" \"newaccount\" \"1.3.11\" \"1.3.11\" true\n";
-      ss << "example: create_account_with_brain_key \"my really long brain key\" \"newaccount\" \"someaccount\" \"otheraccount\" true\n";
-      ss << "\n";
-      ss << "This method should be used if you would like the wallet to generate new keys derived from the brain key.\n";
-      ss << "The BRAIN_KEY will be used as the owner key, and the active key will be derived from the BRAIN_KEY.  Use\n";
-      ss << "register_account if you already know the keys you know the public keys that you would like to register.\n";
+	//if (method == "import_key")
+	//{
+	//	ss << "usage: import_key ACCOUNT_NAME_OR_ID  WIF_PRIVATE_KEY\n\n";
+	//	ss << "example: import_key \"1.3.11\" 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3\n";
+	//	ss << "example: import_key \"usera\" 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3\n";
+	//}
+	//else if (method == "transfer")
+	//{
+	//	ss << "usage: transfer FROM TO AMOUNT SYMBOL \"memo\" BROADCAST\n\n";
+	//	ss << "example: transfer \"1.3.11\" \"1.3.4\" 1000.03 CORE \"memo\" true\n";
+	//	ss << "example: transfer \"usera\" \"userb\" 1000.123 CORE \"memo\" true\n";
+	//}
+	//else if (method == "create_account_with_brain_key")
+	//{
+	//	ss << "usage: create_account_with_brain_key BRAIN_KEY ACCOUNT_NAME REGISTRAR REFERRER BROADCAST\n\n";
+	//	ss << "example: create_account_with_brain_key \"my really long brain key\" \"newaccount\" \"1.3.11\" \"1.3.11\" true\n";
+	//	ss << "example: create_account_with_brain_key \"my really long brain key\" \"newaccount\" \"someaccount\" \"otheraccount\" true\n";
+	//	ss << "\n";
+	//	ss << "This method should be used if you would like the wallet to generate new keys derived from the brain key.\n";
+	//	ss << "The BRAIN_KEY will be used as the owner key, and the active key will be derived from the BRAIN_KEY.  Use\n";
+	//	ss << "register_account if you already know the keys you know the public keys that you would like to register.\n";
 
-   }
-   else if( method == "register_account" )
-   {
-      ss << "usage: register_account ACCOUNT_NAME OWNER_PUBLIC_KEY ACTIVE_PUBLIC_KEY REGISTRAR REFERRER REFERRER_PERCENT BROADCAST\n\n";
-      ss << "example: register_account \"newaccount\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"1.3.11\" \"1.3.11\" 50 true\n";
-      ss << "\n";
-      ss << "Use this method to register an account for which you do not know the private keys.";
-   }
-   else if( method == "create_asset" )
-   {
-      ss << "usage: ISSUER SYMBOL PRECISION_DIGITS OPTIONS BITASSET_OPTIONS BROADCAST\n\n";
-      ss << "PRECISION_DIGITS: the number of digits after the decimal point\n\n";
-      ss << "Example value of OPTIONS: \n";
-      ss << fc::json::to_pretty_string( graphene::chain::asset_options() );
-      ss << "\nExample value of BITASSET_OPTIONS: \n";
-      ss << fc::json::to_pretty_string( graphene::chain::bitasset_options() );
-      ss << "\nBITASSET_OPTIONS may be null\n";
-   }
-   else
-   {
-      std::string doxygenHelpString = my->method_documentation.get_detailed_description(method);
-      if (!doxygenHelpString.empty())
-         ss << doxygenHelpString;
-      else
-         ss << "No help defined for method " << method << "\n";
-   }
+	//}
+	//else if (method == "register_account")
+	//{
+	//	ss << "usage: register_account ACCOUNT_NAME OWNER_PUBLIC_KEY ACTIVE_PUBLIC_KEY REGISTRAR REFERRER REFERRER_PERCENT BROADCAST\n\n";
+	//	ss << "example: register_account \"newaccount\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"1.3.11\" \"1.3.11\" 50 true\n";
+	//	ss << "\n";
+	//	ss << "Use this method to register an account for which you do not know the private keys.";
+	//}
+	//else if (method == "create_asset")
+	//{
+	//	ss << "usage: ISSUER SYMBOL PRECISION_DIGITS OPTIONS BITASSET_OPTIONS BROADCAST\n\n";
+	//	ss << "PRECISION_DIGITS: the number of digits after the decimal point\n\n";
+	//	ss << "Example value of OPTIONS: \n";
+	//	ss << fc::json::to_pretty_string(graphene::chain::asset_options());
+	//	ss << "\nExample value of BITASSET_OPTIONS: \n";
+	//	ss << fc::json::to_pretty_string(graphene::chain::bitasset_options());
+	//	ss << "\nBITASSET_OPTIONS may be null\n";
+	//}
+	//else
+	//{
+	//	std::string doxygenHelpString = my->method_documentation.get_detailed_description(method);
+	//	if (!doxygenHelpString.empty())
+	//		ss << doxygenHelpString;
+	//	else
+	//		ss << "No help defined for method " << method << "\n";
+	//}
 
-   return ss.str();
+	//return ss.str();
+	return getwalletcommandinfo(method);
 }
 
 bool wallet_api::load_wallet_file( string wallet_filename )

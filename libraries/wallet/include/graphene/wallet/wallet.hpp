@@ -28,6 +28,7 @@
 #include <graphene/wallet/contract_event_handler.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
+#include <fc/api.hpp>
 using namespace graphene::app;
 using namespace graphene::chain;
 using namespace graphene::utilities;
@@ -3190,6 +3191,7 @@ FC_API( graphene::wallet::wallet_api,
         (help)
         (info)
         (about)
+		(gethelp)
 	    (is_locked)
 	    (is_new)
 	    (get_address_pay_back_balance)
@@ -3248,7 +3250,7 @@ FC_API( graphene::wallet::wallet_api,
         (get_dynamic_global_properties)
         (get_object)
         (get_private_key)
-        (load_wallet_file)
+        //(load_wallet_file)
         (save_wallet_file)
 		(senator_change_acquire_trx)
         (serialize_transaction)
@@ -3305,7 +3307,6 @@ FC_API( graphene::wallet::wallet_api,
 		(unbind_tunnel_account)
 		(update_asset_private_keys)
 			(dump_crosschain_brain_key)
-		//(update_asset_private_keys_with_brain_key)
 		(update_asset_private_with_coldkeys)
 		(get_multisig_account_pair)
 		(senator_sign_crosschain_transaction)
