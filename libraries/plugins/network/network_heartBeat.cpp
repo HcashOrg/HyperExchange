@@ -59,7 +59,7 @@ namespace graphene {
 				HeartBeatMsg msg;
 				msg.blockHeight = last_block;
 				msg.id = "hx_node_"+fc::to_string(_listenIPport.port());
-				msg.connectNum = num;
+				msg.peerCount = num;
 				msg.chainId = _chainId;
 				msg.ip = _listenIPport.get_address();
 				msg.p2pPort = _listenIPport.port();

@@ -57,7 +57,9 @@ struct HeartBeatMsg
 	string chainId;
 	uint32_t blockHeight;
 	uint32_t p2pPort;
-	uint32_t connectNum ;
+	uint32_t peerCount;
+	string memo;
+
 };
 
 
@@ -89,4 +91,4 @@ private:
 };
 
 } } //graphene::miner_plugin
-FC_REFLECT(graphene::network_plugin::HeartBeatMsg, (id)(labels)(ip)(status)(chainId)(blockHeight)(p2pPort)(connectNum))
+FC_REFLECT(graphene::network_plugin::HeartBeatMsg, (id)(labels)(ip)(status)(chainId)(blockHeight)(p2pPort)(peerCount)(memo))
