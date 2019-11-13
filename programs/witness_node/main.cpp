@@ -27,6 +27,7 @@
 #include <graphene/account_history/account_history_plugin.hpp>
 #include <graphene/crosschain/crosschain_transaction_record_plugin.hpp>
 #include <graphene/transaction/transaction_plugin.hpp>
+#include <graphene/network/network_heartBeat.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/interprocess/signals.hpp>
@@ -119,7 +120,7 @@ int main(int argc, char** argv) {
       //auto history_plug = node->register_plugin<account_history::account_history_plugin>();
 	  auto transaction_plg = node->register_plugin<graphene::transaction::transaction_plugin>();
 	  auto crosschain_record_plug = node->register_plugin<crosschain::crosschain_record_plugin>();
-	  
+	  auto heartBeate_plug = node->register_plugin<graphene::network_plugin::network_heartBeat_plugin>();
 	  
       try
       {
