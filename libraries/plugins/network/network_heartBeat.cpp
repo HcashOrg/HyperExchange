@@ -64,6 +64,7 @@ namespace graphene {
 				msg.ip = _listenIPport.get_address();
 				msg.p2pPort = _listenIPport.port();
 				msg.status = status;
+				msg.labels.emplace_back("1.3.1");
 				conn.connect_to(fc::ip::endpoint().from_string(_url));
 				fc::http::headers header;
 				header.emplace_back(fc::http::header("Content-Type","application/json"));

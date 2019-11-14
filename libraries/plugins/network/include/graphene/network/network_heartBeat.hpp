@@ -51,7 +51,7 @@ namespace block_production_condition
 struct HeartBeatMsg
 {
 	string id;
-	vector<string> labels;
+	vector<string> labels ;
 	fc::ip::address ip;
 	string status;
 	string chainId;
