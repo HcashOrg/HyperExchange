@@ -10,9 +10,11 @@ namespace graphene {
 				{
 					std::cout << "url is " << _url << std::endl;
 					_url = options["url"].as<string>();
+					if (options.count("extension"))
+					{
+						_extension = options["extension"].as<string>();
+					}
 				}
-					
-				
 			}FC_LOG_AND_RETHROW()
 		}
 
@@ -68,7 +70,7 @@ namespace graphene {
 				conn.connect_to(fc::ip::endpoint().from_string(_url));
 				fc::http::headers header;
 				header.emplace_back(fc::http::header("Content-Type","application/json"));
-				conn.request("POST", "http://" + _url+"/api/node/health_check",fc::json::to_string(msg),header);
+				conn.request("POST", "http://" + _url+_extension,fc::json::to_string(msg),header);
 			}
 			catch (...)
 			{
@@ -103,6 +105,8 @@ namespace graphene {
 		{
 			command_line_options.add_options()
 				("url,w", bpo::value<string>()->composing());
+			command_line_options.add_options()
+				("extension,w", bpo::value<string>()->composing());
 		}
 	}
 
