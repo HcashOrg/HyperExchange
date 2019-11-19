@@ -24,8 +24,9 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/crypto/aes.hpp>
 #include <graphene/wallet/wallet.hpp>
-
-
+#include <algorithm>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 // 
 // std::string key_to_compressed_wif(const fc::sha256& secret)
 // {
@@ -290,6 +291,18 @@ int main(int argc, char** argv)
 ////std::cout << graphene::chain::address(wif_pub_key).address_to_string() << std::endl;
 auto addr =graphene::privatekey_management::get_address_by_pubkey("0406CCAE7536386DA2C5ADD428B099C7658814CA837F94FADE365D0EC6B1519385FF83EC5F2C0C8F016A32134589F7B9E97ACBFEFD2EF12A91FA622B38A1449EEB", 0);
 std::cout << addr << std::endl;
+boost::uuids::uuid uid = boost::uuids::random_generator()();
+
+vector<int> vec(uid.begin(),uid.begin()+2);
+
+
+for (int i : vec)
+{
+	std::cout << i;
+}
+std::cout <<std::endl;
+
+
 getchar();
 	return 0;
 }

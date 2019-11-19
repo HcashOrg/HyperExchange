@@ -46,6 +46,10 @@ namespace graphene {
 				{
 					_chainId = database().get_chain_id().str();
 				}
+				if (_uid.empty())
+				{
+					_uid = database().get_uuid();
+				}
 				fc::http::connection conn;
 				std::ostringstream req_body;
 				const auto& _db = database();
@@ -60,7 +64,7 @@ namespace graphene {
 
 				HeartBeatMsg msg;
 				msg.blockHeight = last_block;
-				msg.id = "hx_node_"+fc::to_string(_listenIPport.port());
+				msg.id = _uid;
 				msg.peerCount = num;
 				msg.chainId = _chainId;
 				msg.ip = _listenIPport.get_address();

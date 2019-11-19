@@ -36,6 +36,9 @@
 #include "boost/filesystem/operations.hpp"
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <fc/io/fstream.hpp>
 namespace graphene { namespace chain {
 
 database::database()
@@ -239,6 +242,30 @@ void database::clear()
 
 }
 
+std::string database::get_uuid()
+{
+	string  t_uid;
+	try {
+		std::cout << "dir is " << (get_data_dir().parent_path() /"uuid").string() << std::endl;
+		if (!fc::exists(get_data_dir().parent_path() / "uuid"))
+		{
+			boost::uuids::uuid uid = boost::uuids::random_generator()();
+			vector<int> vec(uid.begin(), uid.end());
+			stringstream str;
+			copy(vec.begin(), vec.end(), std::ostream_iterator<int>(str, ""));
+			std::ofstream outFile((get_data_dir().parent_path() / "uuid").generic_string().c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+			outFile << str.str();
+			outFile.close();
+			return str.str();
+		}
+		fc::read_file_contents(get_data_dir() / "uuid", t_uid);
+	}
+	catch (const fc::exception& e)
+	{
+		wlog("generate uuid failed: ${e}", ("e", e));
+	}
+	return t_uid;
+}
 
 void database::close()
 {

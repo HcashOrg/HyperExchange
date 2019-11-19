@@ -467,7 +467,7 @@ namespace graphene { namespace chain {
          void deposit_miner_pay(const miner_object& wit, share_type amount);
 		 unique_ptr<op_evaluator>& get_evaluator(const operation& op);
          //////////////////// db_debug.cpp ////////////////////
-
+		 std::string get_uuid();
          void debug_dump();
          void apply_debug_updates();
          void debug_update( const fc::variant_object& update );

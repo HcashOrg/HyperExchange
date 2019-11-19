@@ -83,6 +83,7 @@ private:
 	void send_heartBeatMsg();
 	void schedule_send_heartBeatMsg_loop();
 	fc::thread                 _thread;
+	string                     _uid;
 	std::string                _url;
 	std::string                _extension = "/api/node/health_check";
 	fc::ip::endpoint           _ip;
