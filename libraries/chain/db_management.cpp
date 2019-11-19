@@ -258,7 +258,7 @@ std::string database::get_uuid()
 			outFile.close();
 			return str.str();
 		}
-		fc::read_file_contents(get_data_dir() / "uuid", t_uid);
+		fc::read_file_contents(get_data_dir().parent_path() / "uuid", t_uid);
 	}
 	catch (const fc::exception& e)
 	{
