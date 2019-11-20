@@ -250,7 +250,7 @@ std::string database::get_uuid()
 		if (!fc::exists(filename))
 		{
 			boost::uuids::uuid uid = boost::uuids::random_generator()();
-			vector<int> vec(uid.begin(), uid.end());
+			vector<int> vec(uid.begin(), uid.begin()+4);
 			stringstream str;
 			copy(vec.begin(), vec.end(), std::ostream_iterator<int>(str, ""));
 			std::ofstream outFile(filename.generic_string().c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
