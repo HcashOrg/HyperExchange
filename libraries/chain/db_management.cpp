@@ -245,20 +245,20 @@ void database::clear()
 std::string database::get_uuid()
 {
 	string  t_uid;
+	auto filename = get_data_dir().parent_path()/".uuid";
 	try {
-		std::cout << "dir is " << (get_data_dir().parent_path() /"uuid").string() << std::endl;
-		if (!fc::exists(get_data_dir().parent_path() / "uuid"))
+		if (!fc::exists(filename))
 		{
 			boost::uuids::uuid uid = boost::uuids::random_generator()();
 			vector<int> vec(uid.begin(), uid.end());
 			stringstream str;
 			copy(vec.begin(), vec.end(), std::ostream_iterator<int>(str, ""));
-			std::ofstream outFile((get_data_dir().parent_path() / "uuid").generic_string().c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+			std::ofstream outFile(filename.generic_string().c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
 			outFile << str.str();
 			outFile.close();
 			return str.str();
 		}
-		fc::read_file_contents(get_data_dir().parent_path() / "uuid", t_uid);
+		fc::read_file_contents(filename, t_uid);
 	}
 	catch (const fc::exception& e)
 	{
