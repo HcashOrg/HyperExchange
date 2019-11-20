@@ -608,7 +608,7 @@ FC_REFLECT_DERIVED(graphene::chain::multisig_address_object,
 					(guard_account)(chain_type)(new_address_hot)(new_pubkey_hot)(new_address_cold)(new_pubkey_cold)(multisig_account_pair_object_id)(signature))
 					
 FC_REFLECT_DERIVED(graphene::chain::account_statistics_object,
-                    (graphene::chain::object),
+                    (graphene::db::object),
                     (owner)
                     (most_recent_op)
                     (total_ops)(removed_ops)
