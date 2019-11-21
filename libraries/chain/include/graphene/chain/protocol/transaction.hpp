@@ -199,6 +199,7 @@ namespace graphene { namespace chain {
 	   {
 		   return *this;
 	   }
+	   void * nouse;
    };
    struct full_transaction :signed_transaction
    {
@@ -254,4 +255,4 @@ FC_REFLECT( graphene::chain::transaction, (ref_block_num)(ref_block_prefix)(expi
 FC_REFLECT_DERIVED( graphene::chain::signed_transaction, (graphene::chain::transaction), (signatures) )
 FC_REFLECT_DERIVED(graphene::chain::full_transaction, (graphene::chain::signed_transaction), (block_num)(trxid)(contract_id))
 FC_REFLECT_DERIVED( graphene::chain::processed_transaction, (graphene::chain::signed_transaction), (operation_results) )
-FC_REFLECT_DERIVED(graphene::chain::signed_transaction_without_code, (graphene::chain::signed_transaction))
+FC_REFLECT_DERIVED(graphene::chain::signed_transaction_without_code, (graphene::chain::signed_transaction),(nouse))
