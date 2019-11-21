@@ -199,7 +199,7 @@ namespace graphene { namespace chain {
 	   {
 		   return *this;
 	   }
-	   void * nouse;
+	   char nouse;
    };
    struct full_transaction :signed_transaction
    {
