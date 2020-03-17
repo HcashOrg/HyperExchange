@@ -17,6 +17,7 @@ BitShares OS X Build Instructions
    ```
    brew install boost cmake git openssl autoconf automake 
    brew link --force openssl 
+   If openssl cannot be linked ,try to set the path to OpenSSL root folder in the system variable OPENSSL_ROOT_DIR
    ```
 
 5. *Optional.* To support importing Bitcoin wallet files:
@@ -29,13 +30,13 @@ BitShares OS X Build Instructions
    brew install google-perftools
    ```
 
-7. Clone the Graphene repository:
+7. Clone the HyperExchange repository:
    ```
-   git clone https://github.com/cryptonomex/graphene.git
-   cd graphene
+   git clone https://github.com/HcashOrg/HyperExchange.git
    ```
+   cd HyperExchange
 
-8. Build BitShares:
+8. Build HyperExchange:
    ```
    git submodule update --init --recursive
    cmake .
