@@ -4,3 +4,6 @@
 [submodule "libraries/jsondiff"]
 	path = libraries/jsondiff
 	url = https://github.com/BlockLink/jsondiff-cpp.git
+[submodule "libraries/blocklink_crosschain_privatekey"]
+	path = libraries/blocklink_crosschain_privatekey
+	url = https://github.com/BlockLink/blocklink_crosschain_privatekey.git

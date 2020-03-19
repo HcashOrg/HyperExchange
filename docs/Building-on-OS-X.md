@@ -15,10 +15,11 @@ BitShares OS X Build Instructions
 
 4. Install dependencies:
    ```
-   brew install boost cmake git openssl autoconf automake 
+   brew install boost cmake git openssl autoconf automake libtool
    brew link --force openssl 
-   If openssl cannot be linked ,try to set the path to OpenSSL root folder in the system variable OPENSSL_ROOT_DIR
+
    ```
+      If openssl cannot be linked ,try to set the path to OpenSSL root folder in the system variable OPENSSL_ROOT_DIR
 
 5. *Optional.* To support importing Bitcoin wallet files:
    ```
