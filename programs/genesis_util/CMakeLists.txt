@@ -7,7 +7,7 @@ IF(WIN32)
 target_link_libraries( genesis_update PRIVATE graphene_app graphene_chain graphene_egenesis_none fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ELSE()
 target_link_libraries( genesis_update
-                       PRIVATE graphene_app graphene_chain graphene_witness graphene_egenesis_none fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a  ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
+                       PRIVATE graphene_app graphene_chain graphene_witness graphene_egenesis_none fc crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin cryptopp  ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ENDIF()
 
 
@@ -25,7 +25,7 @@ IF(WIN32)
  target_link_libraries( get_dev_key	PRIVATE graphene_app graphene_chain graphene_egenesis_none graphene_utilities fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ELSE()
 target_link_libraries( get_dev_key
-                       PRIVATE graphene_app graphene_chain graphene_egenesis_none graphene_utilities fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+                       PRIVATE graphene_app graphene_chain graphene_egenesis_none graphene_utilities fc crosschain_privatekey_management  blocklink_libbitcoin_secp256k1 blocklink_libbitcoin  ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ENDIF()
 
 
@@ -42,6 +42,6 @@ IF(WIN32)
 target_link_libraries( convert_address	 PRIVATE graphene_chain fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ELSE()
 target_link_libraries( convert_address
-                       PRIVATE graphene_chain fc crosschain_privatekey_management $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+                       PRIVATE graphene_chain fc crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ENDIF()
 

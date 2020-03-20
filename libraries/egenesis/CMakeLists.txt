@@ -14,7 +14,7 @@ add_executable( embed_genesis
 IF(WIN32)
 target_link_libraries( embed_genesis graphene_chain  graphene_egenesis_none fc leveldb)
 ELSE()
-target_link_libraries( embed_genesis  graphene_chain  graphene_witness graphene_egenesis_none fc crosschain_privatekey_management "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a" $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a  $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a leveldb)
+target_link_libraries( embed_genesis  graphene_chain  graphene_witness graphene_egenesis_none fc crosschain_privatekey_management blocklink_libbitcoin blocklink_libbitcoin_secp256k1 eth_sign cryptopp ${Boost_LIBRARIES} leveldb)
 ENDIF()
 
 set( embed_genesis_args
@@ -49,8 +49,8 @@ IF(WIN32)
 target_link_libraries( graphene_egenesis_brief graphene_chain fc )
 target_link_libraries( graphene_egenesis_full graphene_chain fc )
 ELSE()
-target_link_libraries( graphene_egenesis_brief  graphene_chain fc crosschain_privatekey_management "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a" $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a  $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a)
-target_link_libraries( graphene_egenesis_full  graphene_chain fc crosschain_privatekey_management "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a" "$ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a" $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a  $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a)
+target_link_libraries( graphene_egenesis_brief  graphene_chain fc crosschain_privatekey_management blocklink_libbitcoin blocklink_libbitcoin_secp256k1 eth_sign cryptopp)
+target_link_libraries( graphene_egenesis_full  graphene_chain fc crosschain_privatekey_management blocklink_libbitcoin blocklink_libbitcoin_secp256k1 eth_sign cryptopp)
 ENDIF()
 
 

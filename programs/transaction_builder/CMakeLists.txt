@@ -13,7 +13,7 @@ IF(WIN32)
                         PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_brief graphene_utilities graphene_wallet fc )
 ELSE()
 target_link_libraries( transaction_builder
-                       PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_brief graphene_utilities graphene_wallet fc crosschain_privatekey_management  $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+                       PRIVATE graphene_app graphene_net graphene_chain graphene_egenesis_brief graphene_utilities graphene_wallet fc crosschain_privatekey_management  blocklink_libbitcoin_secp256k1 blocklink_libbitcoin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 ENDIF()
 
 if(MSVC)

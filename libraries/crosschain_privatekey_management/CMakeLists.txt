@@ -74,9 +74,8 @@ target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain   
 																$ENV{ETH_CROSSCHAIN_PROJECT}/libs/cryptlib.lib
 															   )
 ELSE()
-	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
-	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a
-	$ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a
+	target_link_libraries( crosschain_privatekey_management PUBLIC graphene_chain blocklink_libbitcoin_secp256k1 blocklink_libbitcoin
+	eth_sign
 	)
 ENDIF()
 target_include_directories( crosschain_privatekey_management
@@ -94,11 +93,11 @@ target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_pr
 															$ENV{ETH_CROSSCHAIN_PROJECT}/libs/cryptlib.lib)
 
 ELSE()
- target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_privatekey_management ${Boost_LIBRARIES}
-                                                            $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin_secp256k1.a
-                                                            $ENV{CROSSCHAIN_PRIVATEKEY_PROJECT}/libblocklink_libbitcoin.a
-							    $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/libeth_sign.a
-							    $ENV{ETH_CROSSCHAIN_PROJECT}/eth_sign/cryptopp/libcryptopp.a
+ target_link_libraries(crosschain_privatekey_management_exe PRIVATE crosschain_privatekey_management 
+                                                         blocklink_libbitcoin
+                                                         blocklink_libbitcoin_secp256k1
+							                                    eth_sign
+                                                         ${Boost_LIBRARIES}
 )
 
 ENDIF()
