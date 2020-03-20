@@ -1,5 +1,13 @@
+set( ENV{CROSSCHAIN_PRIVATEKEY_PROJECT} ${CMAKE_CURRENT_SOURCE_DIR}/blocklink_crosschain_privatekey)
+message($ENV{CROSSCHAIN_PRIVATEKEY_PROJECT})
+set( ENV{ETH_CROSSCHAIN_PROJECT} ${CMAKE_CURRENT_SOURCE_DIR}/eth_crosschain_privatekey)
+message($ENV{ETH_CROSSCHAIN_PROJECT})
+
 add_subdirectory( fc )
+
 add_subdirectory( db )
+add_subdirectory( eth_crosschain_privatekey/eth_sign )
+add_subdirectory( blocklink_crosschain_privatekey )
 add_subdirectory( deterministic_openssl_rand )
 add_subdirectory( chain )
 add_subdirectory( egenesis )

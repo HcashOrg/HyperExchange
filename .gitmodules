@@ -7,3 +7,6 @@
 [submodule "libraries/blocklink_crosschain_privatekey"]
 	path = libraries/blocklink_crosschain_privatekey
 	url = https://github.com/BlockLink/blocklink_crosschain_privatekey.git
+[submodule "libraries/eth_crosschain_privatekey"]
+	path = libraries/eth_crosschain_privatekey
+	url = https://github.com/BlockLink/eth_crosschain_privatekey.git
