@@ -28,7 +28,7 @@ add_executable( performance_test ${PERFORMANCE_TESTS} ${COMMON_SOURCES} )
 IF(WIN32)
 target_link_libraries( performance_test graphene_chain graphene_app graphene_account_history graphene_egenesis_none fc  ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ELSE()
-target_link_libraries( performance_test graphene_chain graphene_app graphene_witness graphene_account_history graphene_egenesis_none fc  crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin cryptopp ${PLATFORM_SPECIFIC_LIBS} leveldb)
+target_link_libraries( performance_test graphene_chain graphene_app graphene_witness graphene_account_history graphene_egenesis_none fc  crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin eth_sign cryptopp ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ENDIF()
 
 file(GLOB BENCH_MARKS "benchmarks/*.cpp")
