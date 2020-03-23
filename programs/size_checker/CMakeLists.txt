@@ -6,7 +6,7 @@ IF(WIN32)
  target_link_libraries( size_checker  PRIVATE graphene_chain graphene_egenesis_none fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ELSE()
 target_link_libraries( size_checker
-                       PRIVATE graphene_chain graphene_egenesis_none fc crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin cryptopp ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
+                       PRIVATE graphene_chain graphene_egenesis_none fc crosschain_privatekey_management blocklink_libbitcoin_secp256k1 blocklink_libbitcoin eth_sign cryptopp ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} leveldb)
 ENDIF()
 
 
