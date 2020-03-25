@@ -31,7 +31,12 @@ add_library( crosschain
              ${HEADERS} )
 target_link_libraries( crosschain fc graphene_chain graphene_wallet graphene_app crosschain_privatekey_management graphene_utilities )
 target_include_directories( crosschain
-                            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+                            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" 
+                            ${BOOST_INCLUDE_DIR}
+   )
+if(MSVC)
+  set_source_files_properties( crosschain_interface_emu.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+endif(MSVC)
 if (USE_PCH)
   set_target_properties(crosschain PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
   cotire(crosschain)
