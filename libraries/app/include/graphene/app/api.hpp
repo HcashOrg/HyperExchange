@@ -289,9 +289,14 @@ namespace graphene { namespace app {
    {
       public:
          crypto_api();
-         
+         /**
           * @brief Generates a pedersen commitment: *commit = blind * G + value * G2.
-         
+          * The commitment is 33 bytes, the blinding factor is 32 bytes.
+          * For more information about pederson commitment check url https://en.wikipedia.org/wiki/Commitment_scheme
+          * @param blind Sha-256 blind factor type
+          * @param value Positive 64-bit integer value
+          * @return A 33-byte pedersen commitment: *commit = blind * G + value * G2
+          */
                                                                   
          fc::ecc::commitment_type blind( const fc::ecc::blind_factor_type& blind, uint64_t value );
          
