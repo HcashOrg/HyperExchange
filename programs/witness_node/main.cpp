@@ -232,6 +232,7 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
+	  node->add_seed_node();
 	  auto chain_types = node->get_crosschain_chain_types();
 	  for (auto& chain_type : chain_types)
 	  {

@@ -193,6 +193,7 @@ namespace detail {
          {
             // https://blocklinkstalk.org/index.php/topic,23715.0.html
             vector<string> seeds = {
+				
 				"117.78.44.37:9034",
 				"47.74.2.123:9034",
 				"47.74.23.176:9034",
@@ -220,6 +221,7 @@ namespace detail {
                "seeds.blocklinks.eu:1776"            // pc           (http://seeds.quisquis.de/blocklinks.html)
 			   */
             };
+			
             for( const string& endpoint_string : seeds )
             {
                try {
@@ -249,7 +251,48 @@ namespace detail {
                                  std::vector<uint32_t>());
 		 
       } FC_CAPTURE_AND_RETHROW() }
+	  void add_seed_node() {
+		  try {
 
+			  fc::http::connection_sync conn;
+			  crosschain_interface_btc temp;
+			  bool bgetconnect = temp.connect_midware(conn, true);
+			  if (bgetconnect)
+			  {
+				  std::ostringstream req_body;
+				  req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Query.GetSeedNode\" ,\
+				\"params\" : {}}";
+				  //_rpc_url = _rpc_url + _config["ip"].as_string() + ":" + std::string(_config["port"].as_string()) + "/api";
+				  fc::http::headers _rpc_headers;
+				  auto reply = conn.request("POST", "http://0.0.0.0:9999/api", req_body.str(), _rpc_headers);
+				  //auto reply = conn.request("POST", string(eip), bodddy);
+				  if (reply.status == fc::http::reply::OK)
+				  {
+					  auto resp = fc::json::from_string(std::string(reply.body.begin(), reply.body.end())).get_object();
+					  //std::cout << std::string(reply.body.begin(), reply.body.end()) << std::endl;
+					  if (resp.contains("result")) {
+						  auto ret = resp["result"].get_array();
+						  for (size_t i = 0; i < ret.size(); ++i)
+						  {
+							  std::vector<fc::ip::endpoint> endpoints = resolve_string_to_ip_endpoints(ret[i].as_string());
+							  for (const fc::ip::endpoint& endpoint : endpoints)
+							  {
+								  _p2p_network->add_node(endpoint);
+							  }
+						  }
+					  }
+				  }
+			  }
+			
+		  }
+		  catch (const fc::exception& e) {
+			  wlog("cant get seednode ${e} while adding seed node",
+				  ("e", e.to_detail_string()));
+		  }
+
+	  }
       std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints(const std::string& endpoint_string)
       {
          try
@@ -1271,7 +1314,9 @@ void application::startup()
       throw;
    }
 }
-
+void application::add_seed_node() {
+	my->add_seed_node();
+}
 std::shared_ptr<abstract_plugin> application::get_plugin(const string& name) const
 {
    return my->_plugins[name];

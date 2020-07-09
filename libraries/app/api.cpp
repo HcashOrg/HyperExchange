@@ -350,7 +350,9 @@ namespace graphene { namespace app {
     {
        return _app.p2p_node()->get_potential_peers();
     }
-
+	void network_node_api::update_seed_node() {
+		_app.add_seed_node();
+	}
     fc::variant_object network_node_api::get_advanced_node_parameters() const
     {
        return _app.p2p_node()->get_advanced_node_parameters();

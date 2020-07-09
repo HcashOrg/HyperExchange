@@ -825,11 +825,12 @@ namespace graphene {
 			}
 			return std::vector<fc::ip::endpoint>();
 		}
-		void abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con)
+		bool abstract_crosschain_interface::connect_midware(fc::http::connection_sync& con, bool onetime)
 		{
 
 			vector<int> counts;
 			int ep_idx = -1;
+			bool get_from_mid = false;
 			while(ep_idx==-1)
 			{
 				bool caught = false;
@@ -849,10 +850,14 @@ namespace graphene {
 					//µ÷ÕûË³Ðò
 					if (ep_idx != 0)
 						swap(midware_eps[0], midware_eps[ep_idx]);
-					return;
+					return true;
 				}
 				catch (...)
 				{
+					if (onetime && get_from_mid)
+					{
+						return false;
+					}
 					caught = true;
 				}
 				if (caught&&b_get_eps_from_service) {
@@ -864,6 +869,7 @@ namespace graphene {
 							set_midwares(servers);
 						else
 							set_midwares(midware_eps_backup);
+						get_from_mid = onetime;
 					}
 					catch (...)
 					{

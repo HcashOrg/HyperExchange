@@ -2141,6 +2141,7 @@ class wallet_api
 	  void set_gas_limit_in_block(const share_type& new_limit);
 	  contract_storage_view get_contract_storage(const address& contract_address, const string& storage_name);
 	  vector<fc::variant> get_votes(const string& account) const;
+	  void update_seed_node();
 	  /*void testaaa1() {}
 	  void testaaa2() {}
 	  void testaaa3() {}
@@ -3211,7 +3212,7 @@ FC_API( graphene::wallet::wallet_api,
         (list_senator_members)
 	    (list_all_senators)
         (create_citizen)
-        (set_desired_citizen_and_senator_member_count)
+        //(set_desired_citizen_and_senator_member_count)
         (get_account)
 		(change_account_name)
 	    (remove_local_account)
@@ -3400,4 +3401,5 @@ FC_API( graphene::wallet::wallet_api,
 		(confirm_undertaker)
 		(get_pledge)
 		(build_transaction)
+		(update_seed_node)
       )
