@@ -685,7 +685,7 @@ public:
       result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
-	  result["version"] = "1.3.1";
+	  result["version"] = "1.3.2";
       result["next_maintenance_time"] = fc::get_approximate_relative_time_string(dynamic_props.next_maintenance_time);
       result["chain_id"] = chain_props.chain_id;
 	  //result["data_dir"] = (*_remote_local_node)->get_data_dir();
