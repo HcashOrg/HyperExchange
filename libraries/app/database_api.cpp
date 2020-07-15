@@ -26,7 +26,7 @@
 #include <graphene/chain/get_config.hpp>
 
 #include <fc/bloom_filter.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 
 #include <fc/crypto/hex.hpp>
 

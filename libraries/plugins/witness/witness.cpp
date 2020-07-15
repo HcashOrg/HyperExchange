@@ -31,7 +31,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/wallet/wallet.hpp>
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/thread.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <iostream>

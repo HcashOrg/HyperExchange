@@ -23,7 +23,7 @@
  */
 #include <graphene/chain/protocol/operations.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 
 namespace graphene { namespace chain {
 

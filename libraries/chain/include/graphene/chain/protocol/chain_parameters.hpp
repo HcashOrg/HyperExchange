@@ -24,7 +24,7 @@
 #pragma once
 #include <graphene/chain/protocol/base.hpp>
 #include <graphene/chain/protocol/types.hpp>
-#include <fc/smart_ref_fwd.hpp>
+
 
 namespace graphene { namespace chain { struct fee_schedule; } }
 /*

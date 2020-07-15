@@ -25,7 +25,7 @@
 #include <graphene/chain/protocol/fee_schedule.hpp>
 #include <fc/io/raw.hpp>
 #include <fc/bitutil.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <algorithm>
 #include <iostream>
 #include <fc/crypto/base58.hpp>

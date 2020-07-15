@@ -31,7 +31,7 @@
 #include <graphene/chain/evaluator.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/thread.hpp>
 #include <iostream>
 namespace graphene { namespace transaction {

@@ -37,7 +37,7 @@
 #include <graphene/utilities/key_conversion.hpp>
 #include <graphene/chain/worker_evaluator.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 
 #include <fc/io/fstream.hpp>
 #include <fc/rpc/api_connection.hpp>

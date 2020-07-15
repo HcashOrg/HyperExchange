@@ -38,7 +38,7 @@
 #include <graphene/chain/worker_object.hpp>
 #include <iostream>
 #include <fc/crypto/hex.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/future.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/chain/contract_object.hpp>

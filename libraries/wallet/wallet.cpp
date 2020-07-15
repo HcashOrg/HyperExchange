@@ -46,7 +46,7 @@
 #include <graphene/wallet/api_documentation.hpp>
 #include <graphene/wallet/reflect_util.hpp>
 #include <graphene/debug_witness/debug_api.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/crosschain/crosschain_interface_emu.hpp>
 #include <graphene/chain/transaction_object.hpp>
