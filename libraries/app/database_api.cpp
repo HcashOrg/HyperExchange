@@ -2949,9 +2949,9 @@ std::pair<asset, share_type> database_api::register_contract_testing(const strin
 
 		signed_transaction tx;
 		tx.operations.push_back(contract_register_op);
-		auto current_fees = get_global_properties().parameters.current_fees;
+		const auto current_fees = get_global_properties().parameters.get_current_fees();
 		for (auto& op : tx.operations)
-			current_fees->set_fee(op);
+			current_fees.set_fee(op);
 		signed_transaction signed_tx(tx);
 		auto dyn_props = get_dynamic_global_properties();
 		signed_tx.set_reference_block(dyn_props.head_block_id);
@@ -2998,9 +2998,9 @@ std::pair<asset, share_type> database_api::transfer_to_contract_testing(string p
 
 	signed_transaction tx;
 	tx.operations.push_back(transfer_to_contract_op);
-	auto current_fees = get_global_properties().parameters.current_fees;
+	const auto current_fees = get_global_properties().parameters.get_current_fees();
 	for (auto& op : tx.operations)
-		current_fees->set_fee(op);
+		current_fees.set_fee(op);
 
 
 	auto dyn_props = get_dynamic_global_properties();
@@ -3065,9 +3065,9 @@ execution_result database_api::invoke_contract_testing(const string & pubkey, co
 
 		signed_transaction tx;
 		tx.operations.push_back(contract_invoke_op);
-		auto current_fees = get_global_properties().parameters.current_fees;
+		auto current_fees = get_global_properties().parameters.get_current_fees();
 		for (auto& op : tx.operations)
-			current_fees->set_fee(op);
+			current_fees.set_fee(op);
 
 		auto dyn_props = get_dynamic_global_properties();
 		tx.set_reference_block(dyn_props.head_block_id);
@@ -3157,9 +3157,9 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 		//contract_invoke_op.guarantee_id = get_guarantee_id();
 		signed_transaction tx;
 		tx.operations.push_back(contract_invoke_op);
-		auto current_fees = get_global_properties().parameters.current_fees;
+		auto current_fees = get_global_properties().parameters.get_current_fees();
 		for (auto& op : tx.operations)
-			current_fees->set_fee(op);
+			current_fees.set_fee(op);
 
 		auto dyn_props = get_dynamic_global_properties();
 		tx.set_reference_block(dyn_props.head_block_id);

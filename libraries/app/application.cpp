@@ -84,7 +84,7 @@ namespace detail {
       auto hyper_exchange_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("hyper-exchange")));
       dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(hyper_exchange_key)));
       genesis_state_type initial_state;
-      initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
+      initial_state.initial_parameters.get_mutable_fees() = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
       initial_state.initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
       initial_state.initial_timestamp = time_point_sec(time_point::now().sec_since_epoch() /
             initial_state.initial_parameters.block_interval *

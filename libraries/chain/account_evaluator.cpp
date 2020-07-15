@@ -169,7 +169,7 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
    if( dynamic_properties.accounts_registered_this_interval %
        global_properties.parameters.accounts_per_fee_scale == 0 )
       db().modify(global_properties, [&dynamic_properties](global_property_object& p) {
-         p.parameters.current_fees->get<account_create_operation>().basic_fee <<= p.parameters.account_fee_scale_bitshifts;
+         p.parameters.get_mutable_fees().get<account_create_operation>().basic_fee <<= p.parameters.account_fee_scale_bitshifts;
       });
 
    if(    o.extensions.value.owner_special_authority.valid()
