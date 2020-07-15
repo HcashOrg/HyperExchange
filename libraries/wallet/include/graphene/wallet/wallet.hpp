@@ -2141,7 +2141,7 @@ class wallet_api
 	  void set_gas_limit_in_block(const share_type& new_limit);
 	  contract_storage_view get_contract_storage(const address& contract_address, const string& storage_name);
 	  vector<fc::variant> get_votes(const string& account) const;
-	  void update_seed_node();
+	  bool update_seed_node();
 	  /*void testaaa1() {}
 	  void testaaa2() {}
 	  void testaaa3() {}

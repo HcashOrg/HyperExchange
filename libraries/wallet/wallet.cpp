@@ -1597,8 +1597,10 @@ public:
 		   return _remote_db->get_pledge();
 	   }FC_LOG_AND_RETHROW();
    }
-   void update_seed_node() {
+   bool update_seed_node() {
+	   use_network_node_api();
 	  (*_remote_net_node)->update_seed_node();
+	  return true;
    }
    full_transaction register_account(string name, bool broadcast)
    {
@@ -8409,8 +8411,8 @@ fc::uint128_t wallet_api::get_pledge() const
 {
 	return my->get_pledge();
 }
-void wallet_api::update_seed_node() {
-	my->update_seed_node();
+bool wallet_api::update_seed_node() {
+	return my->update_seed_node();
 }
 fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
 {
