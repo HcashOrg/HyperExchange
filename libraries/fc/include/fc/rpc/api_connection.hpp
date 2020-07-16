@@ -12,7 +12,7 @@
 
 namespace fc {
    class api_connection;
-
+   class wallet_api;
    namespace detail {
       template<typename Signature>
       class callback_functor
@@ -465,6 +465,7 @@ namespace fc {
    {
       return conn.register_api( *this );
    }
+
 
    template< typename T >
    api<T> api_base::as()
