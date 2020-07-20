@@ -9458,7 +9458,7 @@ string wallet_api::help()const
    return ss.str();
 }
 
-std::string getwalletcommandinfo(std::string command,int64_t reserve_int) {
+std::string getwalletcommandinfo(std::string command) {
 	std::string ret = "";
 
 	if ("stop_schedule" == command) {
@@ -10425,8 +10425,6 @@ std::string getwalletcommandinfo(std::string command,int64_t reserve_int) {
 string wallet_api::gethelp(const string& method)
 {
 	fc::api<wallet_api> tmp;
-	int64_t tmp_int = tmp.get_handle();
-	just_defined_for_mac = tmp_int;
 	fc::local_api_connection tmp_a;
 	tmp.register_api(tmp_a);
 	//std::stringstream ss;
@@ -10482,7 +10480,7 @@ string wallet_api::gethelp(const string& method)
 	//}
 
 	//return ss.str();
-	return getwalletcommandinfo(method,tmp_int);
+	return getwalletcommandinfo(method);
 }
 
 bool wallet_api::load_wallet_file( string wallet_filename )
