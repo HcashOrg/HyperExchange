@@ -9457,7 +9457,7 @@ string wallet_api::help()const
    return ss.str();
 }
 
-std::string getwalletcommandinfo(std::string command) {
+std::string getwalletcommandinfo(std::string command,int64_t reserve_int) {
 	std::string ret = "";
 
 	if ("stop_schedule" == command) {
@@ -10479,7 +10479,7 @@ string wallet_api::gethelp(const string& method)
 	//}
 
 	//return ss.str();
-	return getwalletcommandinfo(method);
+	return getwalletcommandinfo(method,tmp_int);
 }
 
 bool wallet_api::load_wallet_file( string wallet_filename )
