@@ -745,7 +745,7 @@ class wallet_api
        * @param method the name of the API command you want help with
        * @returns a multi-line string suitable for displaying on a terminal
        */
-      string  gethelp(const string& method)const;
+      string  gethelp(const string& method);
 
       /** Loads a specified Graphene wallet.
        *
@@ -2126,6 +2126,8 @@ class wallet_api
 	  contract_storage_view get_contract_storage(const address& contract_address, const string& storage_name);
 	  vector<fc::variant> get_votes(const string& account) const;
 	  bool update_seed_node();
+	  private:
+	  int64_t just_defined_for_mac;
 
 };
 

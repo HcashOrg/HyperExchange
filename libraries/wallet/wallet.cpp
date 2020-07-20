@@ -10421,9 +10421,11 @@ std::string getwalletcommandinfo(std::string command) {
 	return ret;
 }
 
-string wallet_api::gethelp(const string& method)const
+string wallet_api::gethelp(const string& method)
 {
 	fc::api<wallet_api> tmp;
+	int64_t tmp_int = tmp.get_handle();
+	just_defined_for_mac = tmp_int;
 	//std::stringstream ss;
 	//ss << "\n";
 
