@@ -79,9 +79,17 @@ namespace graphene { namespace chain {
 	  flat_map<string, asset>  min_pay_back_balance_other_asset;
 	  int64_t               validate_time_period = GRAPHENE_VALIDATE_CROSSCHAIN_PERIOD;
       extensions_type         extensions;
-
+	  
+	  chain_parameters();
+	  chain_parameters(const chain_parameters& other);
+	  chain_parameters(chain_parameters&& other);
+	  chain_parameters& operator=(const chain_parameters& other);
+	  chain_parameters& operator=(chain_parameters&& other);
       /** defined in fee_schedule.cpp */
       void validate()const;
+   private:
+	   static void safe_copy(chain_parameters& to, const chain_parameters& from);
+	   
    };
 
 } }  // graphene::chain

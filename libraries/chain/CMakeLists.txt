@@ -59,6 +59,7 @@ add_library( graphene_chain
              protocol/fee_schedule.cpp
              protocol/confidential.cpp
              protocol/vote.cpp
+             protocol/chain_parameters.cpp
 			eth_seri_record_evaluate.cpp
 			eth_seri_record.cpp
              genesis_state.cpp
