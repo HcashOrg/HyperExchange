@@ -172,8 +172,8 @@
 #define HX_DEVELOP_TEAM_PAY_TATIO                            20
 #define HX_REFERENDUM_PACKING_PERIOD                         24*3600
 #define HX_REFERENDUM_VOTING_PERIOD                          7*24*3600
-#define HX_CHECK_POINT                                       "001b77403468c26f49ebae2febd0dfb6ff0bd2ba"
-#define HX_CHECK_POINT_BLOCK                                 1800000
+#define HX_CHECK_POINT                                       "009d2a6055e9275f1d26364b4e4a6d4d848a5058"
+#define HX_CHECK_POINT_BLOCK                                 10300000
 /**
  *  Reserved Account IDs with special meaning
  */
