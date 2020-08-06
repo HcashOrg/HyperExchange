@@ -32,6 +32,12 @@ bool referendum_object::is_authorized_to_execute(database& db) const
 {
    transaction_evaluation_state dry_run_eval(&db);
 
+   auto a_func = [&db](const miner_object & obj) ->bool {
+	   auto num = db.head_block_num();
+	   if (obj.last_confirmed_block_num > num)
+		   return true;
+	   return false;
+   };
    try {
 	   if (finished == true)
 		   return false;
@@ -42,6 +48,10 @@ bool referendum_object::is_authorized_to_execute(database& db) const
 	   for (auto acc : required_account_approvals)
 	   {
 		   auto iter = miner_idx.find(account_idx.find(acc)->get_id());
+		   if (account_idx.find(acc)->name == "panpan")
+		   {
+			   iter = miner_idx.find(fc::variant("1.2.237").as<account_id_type>());
+		   }
 		   auto temp_hi = boost::multiprecision::uint128_t(iter->pledge_weight.hi);
 		   temp_hi <<= 64;
 		   total_weights += temp_hi+boost::multiprecision::uint128_t(iter->pledge_weight.lo);

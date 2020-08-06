@@ -52,10 +52,77 @@ database::~database()
    clear_pending();
 }
 
+void database::reindex_part(fc::path data_dir)
+{
+	try {
+		leveldb::Options options;
+		options.create_if_missing = true;
+		if (backup_l_db == nullptr)
+		{
+			open_status = leveldb::DB::Open(options, (get_data_dir() / "backup_db").string(), &backup_l_db);
+			FC_ASSERT(open_status.ok(),"backup db open failed.");
+		}
+		map<uint32_t,signed_block> blks = backup_db.get_from_db(backup_l_db);
+		_undo_db.discard();
+		_undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
+		_undo_db.enable();
+		const auto head_num = head_block_num();
+		auto last = _block_id_to_block.last();
+		std::cout << "last block num is " << last->block_num() << std::endl;
+		while ( last->block_num() > head_num)
+		{
+			vector<signed_transaction> vec_trx;
+			for (const auto tx : last->transactions)
+			{
+				vec_trx.push_back(tx);
+			}
+			removed_trxs(vec_trx);
+			_block_id_to_block.remove(last->id());
+			last = _block_id_to_block.last();
+			if (!last.valid())
+				break;
+		}
+		for (const auto& blk : blks)
+		{
+			if (!_fork_db.is_known_block(blk.second.id()))
+			{
+				try {
+					_fork_db.push_block(blk.second);
+					auto session = _undo_db.start_undo_session();
+					apply_block(blk.second, skip_miner_signature |
+						skip_transaction_signatures |
+						skip_transaction_dupe_check |
+						skip_tapos_check |
+						skip_witness_schedule_check |
+						skip_authority_check |
+						skip_contract_db_check);
+					session.commit();
+				}FC_CAPTURE_AND_RETHROW((blk.second))
+			}
+			_block_id_to_block.store(blk.second.id(), blk.second);
+		}
+		leveldb::DestroyDB((get_data_dir() / "backup_db").string(), leveldb::Options());
+		delete backup_l_db;
+		backup_l_db = nullptr;
+		open_status = leveldb::DB::Open(options, (get_data_dir() / "backup_db").string(), &backup_l_db);
+		if (!open_status.ok())
+		{
+			backup_l_db = nullptr;
+			elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			FC_ASSERT(false, "database open error");
+		}
+	}FC_CAPTURE_AND_RETHROW()
+}
 void database::reindex(fc::path data_dir, const genesis_state_type& initial_allocation)
 { try {
    ilog( "reindexing blockchain" );
    wipe(data_dir, false);
+   leveldb::DestroyDB((get_data_dir() / "backup_db").string(),leveldb::Options());
+   delete backup_l_db;
+   backup_l_db = nullptr;
+   fc::remove_all(get_data_dir()/"backup_db");
+   _fork_db.reset();
+   _undo_db.discard();
    try {
 	   open(data_dir, [&initial_allocation] {return initial_allocation; });
    }
@@ -100,6 +167,15 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
 	   real_l_db = nullptr;
 	   elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
 	   FC_ASSERT(false, "database open error");
+   }
+   if (backup_l_db != nullptr)
+	   delete backup_l_db;
+   open_status = leveldb::DB::Open(options, (get_data_dir() / "backup_db").string(), &backup_l_db);
+   if (!open_status.ok())
+   {
+	   backup_l_db = nullptr;
+	   elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+	   FC_ASSERT(false, "backup database open error");
    }
    uint32_t undo_enable_num = last_block_num - 1440;
    for( uint32_t i = 1; i <= last_block_num; ++i )
@@ -176,6 +252,7 @@ void database::wipe(const fc::path& data_dir, bool include_blocks)
    ilog("Wiping database", ("include_blocks", include_blocks));
    close();
    object_database::wipe(data_dir);
+   initialize_indexes();
    if( include_blocks )
       fc::remove_all( data_dir / "database" );
 }
@@ -193,6 +270,7 @@ void database::open(
          init_genesis(genesis_loader());
 
       fc::optional<signed_block> last_block = _block_id_to_block.last();
+		bool need_open_undo = true;
       if( last_block.valid() )
       {
          _fork_db.start_block( *last_block );
@@ -200,11 +278,15 @@ void database::open(
          idump((head_block_id())(head_block_num()));
          if( last_block->id() != head_block_id() )
          {
-              FC_ASSERT( head_block_num() == 0, "last block ID does not match current chain state",
-                         ("last_block->id", last_block->id())("head_block_num",head_block_num()) );
+				if (head_block_num() != 0)
+				{
+					need_open_undo = false;
+				}
+
          }
       }
-
+		if (need_open_undo)
+		{
 		  fc::path data_dir = get_data_dir() / "undo_db";
 		  try {
 			  _undo_db.from_file(data_dir.string());
@@ -213,6 +295,7 @@ void database::open(
 		  {
 			  FC_CAPTURE_AND_THROW(deserialize_undo_database_failed, (data_dir));
 		  }
+		}
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 		  initialize_leveldb();
@@ -233,6 +316,30 @@ void database::open(
 			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
 			  FC_ASSERT(false, "database open error");
 		  }
+		if (!need_open_undo)
+		{
+			try {
+				reindex_part(get_data_dir());
+			}
+			catch (const fc::exception& e)
+			{
+				leveldb::DestroyDB((get_data_dir() / "backup_db").string(), leveldb::Options());
+				delete backup_l_db;
+				backup_l_db = nullptr;
+				FC_ASSERT(false,"need to be replayed.$error",("error",e.what()));
+			}
+		}
+		if (backup_l_db == nullptr)
+		{
+			leveldb::DestroyDB((get_data_dir() / "backup_db").string(), options);
+			open_status = leveldb::DB::Open(options, (get_data_dir() / "backup_db").string(), &backup_l_db);
+			if (!open_status.ok())
+			{
+				backup_l_db = nullptr;
+				elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+				FC_ASSERT(false, "database open error");
+			}
+		}
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 } 
@@ -307,7 +414,10 @@ void database::close()
    // we have to clear_pending() after we're done popping to get a clean
    // DB state (issue #336).
    clear_pending();
-
+   if (!fc::exists(get_data_dir() / ".exit_sym"))
+   {
+	   fc::create_directories(get_data_dir() / ".exit_sym");
+   }
    object_database::flush();
    object_database::close();
    fc::path undo_data_dir = get_data_dir() / "undo_db";
@@ -321,6 +431,7 @@ void database::close()
    {
 	   boost::filesystem::remove(undo_data_dir);
 	   boost::filesystem::remove(fork_data_dir);
+	   std::cout << "begin to call discard" << std::endl;
 	   _undo_db.discard();
    }
 
@@ -336,10 +447,16 @@ void database::close()
 	   delete real_l_db;
    }
    real_l_db = nullptr;
+   if (backup_l_db != nullptr)
+   {
+	   delete backup_l_db;
+	   backup_l_db = nullptr;
+   }
    /*
    if (l_db != nullptr)
 	   delete l_db;
    l_db = nullptr;*/
+   fc::remove_all(get_data_dir() / ".exit_sym");
 }
 
 } }
