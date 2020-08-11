@@ -202,8 +202,8 @@ void transaction_plugin::plugin_initialize(const boost::program_options::variabl
 {
    database().applied_block.connect( [&]( const signed_block& b){ my->update_transaction_record(b); } );
    database().removed_trxs.connect([&](const vector<signed_transaction>& b) {my->erase_transaction_records(b); });
-   database().add_index <primary_index<trx_index         > >();
-   database().add_index <primary_index<history_transaction_index > >();
+   //database().add_index <primary_index<trx_index         > >();
+   //database().add_index <primary_index<history_transaction_index > >();
    LOAD_VALUE_SET(options, "track-address", my->_tracked_addresses, graphene::chain::address);
 }
 
