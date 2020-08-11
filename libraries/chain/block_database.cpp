@@ -190,6 +190,10 @@ void block_database::open(const fc::path& dbdir)
 			return;
 		leveldb::Options options;
 		options.create_if_missing = true;
+		if (!fc::exists(dbdir))
+		{
+			fc::create_directories(dbdir);
+		}
 		auto open_status = leveldb::DB::Open(options, dbdir.generic_string(), &_blocks_db);
 		FC_ASSERT(open_status.ok(),"block database open error.");
 	}FC_CAPTURE_AND_RETHROW((dbdir))
