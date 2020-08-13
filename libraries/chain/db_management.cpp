@@ -82,6 +82,8 @@ void database::reindex_part(fc::path data_dir)
 			if (!last.valid())
 				break;
 		}
+		//${msg}", ("msg", open_status.ToString().c_str())
+		ilog("need to execute replay partly from ${num} to ${last}",("num",head_num)("last",last->block_num()));
 		for (const auto& blk : blks)
 		{
 			if (!_fork_db.is_known_block(blk.second.id()))
@@ -101,6 +103,7 @@ void database::reindex_part(fc::path data_dir)
 			}
 			_block_id_to_block.store(blk.second.id(), blk.second);
 		}
+		ilog("reindex partly is over");
 		leveldb::DestroyDB((get_data_dir() / "backup_db").string(), leveldb::Options());
 		delete backup_l_db;
 		backup_l_db = nullptr;
