@@ -612,6 +612,7 @@ namespace detail {
 			else if (fc::exists(_data_dir/"blockchain" / ".exit_sym"))
             {
                replay = true;
+			   fc::remove_all(_data_dir / "blockchain" / ".exit_sym");
 				replay_reason = "exit unsuccessfully last time.";
             }
 			/* else if( !clean )
