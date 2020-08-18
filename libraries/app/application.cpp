@@ -842,7 +842,7 @@ namespace detail {
                }
             }
 			const auto& ir_blk = _chain_db->fetch_block_by_number(_chain_db->get_dynamic_global_properties().last_irreversible_block_num);
-			if (ir_blk.valid() && !sync_mode)
+			if (ir_blk.valid())
 				_chain_db->applied_backup(*ir_blk);
             return result;
          } catch ( const graphene::chain::unlinkable_block_exception& e ) {

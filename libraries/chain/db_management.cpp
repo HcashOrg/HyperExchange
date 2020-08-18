@@ -69,6 +69,7 @@ void database::reindex_part(fc::path data_dir)
 		const auto head_num = head_block_num();
 		auto last = _block_id_to_block.last();
 		std::cout << "last block num is " << last->block_num() << std::endl;
+		ilog("need to execute replay partly from ${num} to ${last}", ("num", head_num)("last", last->block_num()));
 		while ( last->block_num() > head_num)
 		{
 			vector<signed_transaction> vec_trx;
@@ -83,7 +84,7 @@ void database::reindex_part(fc::path data_dir)
 				break;
 		}
 		//${msg}", ("msg", open_status.ToString().c_str())
-		ilog("need to execute replay partly from ${num} to ${last}",("num",head_num)("last",last->block_num()));
+		
 		for (const auto& blk : blks)
 		{
 			if (!_fork_db.is_known_block(blk.second.id()))
