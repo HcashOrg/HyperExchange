@@ -195,6 +195,7 @@ namespace graphene { namespace chain {
 		 fc::signal<void(const signed_block&)>           applied_block;
 		 fc::signal<void(const signed_block&)>               applied_backup;
 		 fc::signal<void(const vector<signed_transaction>&)>  removed_trxs;
+		 fc::signal<void(const deque< signed_transaction>&)> broad_trxs;
          /**
           * This signal is emitted any time a new transaction is added to the pending
           * block state.
@@ -543,6 +544,7 @@ namespace graphene { namespace chain {
          /** when popping a block, the transactions that were removed get cached here so they
           * can be reapplied at the proper time */
          std::deque< signed_transaction >       _popped_tx;
+		  std::set<transaction_id_type>         _push_transaction_tx_ids;
 
          /**
           * @}

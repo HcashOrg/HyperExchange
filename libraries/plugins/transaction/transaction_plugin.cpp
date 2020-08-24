@@ -74,6 +74,7 @@ void transaction_plugin_impl::erase_transaction_records(const vector<signed_tran
 	for (auto tx : trxs)
 	{
 		leveldb::WriteOptions write_options;
+		write_options.sync = true;
 		db.get_levelDB()->Delete(write_options, tx.id().str());
 	}
 }

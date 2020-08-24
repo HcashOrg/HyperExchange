@@ -174,6 +174,7 @@
 #define HX_REFERENDUM_VOTING_PERIOD                          7*24*3600
 #define HX_CHECK_POINT                                       "009d2a6055e9275f1d26364b4e4a6d4d848a5058"
 #define HX_CHECK_POINT_BLOCK                                 10300000
+#define GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM						10
 /**
  *  Reserved Account IDs with special meaning
  */

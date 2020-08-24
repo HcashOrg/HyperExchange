@@ -234,6 +234,10 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
+	  node->chain_database()->broad_trxs.connect([&](const deque<signed_transaction>& b) {
+		  for (const auto& one_trx : b){
+			  node->p2p_node()->broadcast_transaction(one_trx);
+		  } });
 	  node->add_seed_node();
 	  auto chain_types = node->get_crosschain_chain_types();
 	  for (auto& chain_type : chain_types)

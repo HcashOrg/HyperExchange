@@ -1363,7 +1363,9 @@ public:
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.get_current_fees());
 		   uint32_t expiration_time_offset = 0;
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   //tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   if (!hex)
@@ -1630,7 +1632,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   //tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 
@@ -1684,7 +1688,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 
@@ -1730,7 +1736,9 @@ public:
            set_operation_fees(tx, current_fees);
 
            auto dyn_props = get_dynamic_global_properties();
-           tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+           //tx.set_reference_block(dyn_props.head_block_id);
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
@@ -1779,7 +1787,9 @@ public:
            set_operation_fees(tx, current_fees);
 
            auto dyn_props = get_dynamic_global_properties();
-           tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+           //tx.set_reference_block(dyn_props.head_block_id);
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
@@ -1835,7 +1845,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 
@@ -1877,7 +1889,9 @@ public:
            set_operation_fees(tx, current_fees);
 
            auto dyn_props = get_dynamic_global_properties();
-           tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+           //tx.set_reference_block(dyn_props.head_block_id);
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
@@ -1964,7 +1978,9 @@ public:
            set_operation_fees(tx, current_fees);
 
            auto dyn_props = get_dynamic_global_properties();
-           tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+           //tx.set_reference_block(dyn_props.head_block_id);
            tx.set_expiration(dyn_props.time + fc::seconds(30));
            tx.validate();
 
@@ -2050,7 +2066,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 
@@ -2134,7 +2152,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 		   signed_transaction signed_tx(tx);
@@ -2189,7 +2209,9 @@ public:
 		   set_operation_fees(tx, current_fees);
 
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(30));
 		   tx.validate();
 
@@ -2440,7 +2462,9 @@ public:
            set_operation_fees(tx, current_fees);
 
            auto dyn_props = get_dynamic_global_properties();
-           tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+           //tx.set_reference_block(dyn_props.head_block_id);
            tx.set_expiration(dyn_props.time + fc::seconds(600));
            tx.validate();
 
@@ -2503,7 +2527,9 @@ public:
        set_operation_fees(tx, current_fees);
 
        auto dyn_props = get_dynamic_global_properties();
-       tx.set_reference_block(dyn_props.head_block_id);
+	   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+       //tx.set_reference_block(dyn_props.head_block_id);
        tx.set_expiration(dyn_props.time + fc::seconds(30));
        tx.validate();
 
@@ -2542,7 +2568,9 @@ public:
        set_operation_fees(tx, current_fees);
 
        auto dyn_props = get_dynamic_global_properties();
-       tx.set_reference_block(dyn_props.head_block_id);
+	   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+       //tx.set_reference_block(dyn_props.head_block_id);
        tx.set_expiration(dyn_props.time + fc::seconds(30));
        tx.validate();
 
@@ -2637,7 +2665,9 @@ public:
       vector<public_key_type> paying_keys = registrar_account_object.active.get_keys();
 
       auto dyn_props = get_dynamic_global_properties();
-      tx.set_reference_block( dyn_props.head_block_id );
+	  auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+      //tx.set_reference_block( dyn_props.head_block_id );
       tx.set_expiration( dyn_props.time + fc::seconds(30) );
       tx.validate();
 
@@ -2803,7 +2833,9 @@ public:
          vector<public_key_type> paying_keys = registrar_account_object.active.get_keys();
 
          auto dyn_props = get_dynamic_global_properties();
-         tx.set_reference_block( dyn_props.head_block_id );
+		 auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+         //tx.set_reference_block( dyn_props.head_block_id );
          tx.set_expiration( dyn_props.time + fc::seconds(30) );
          tx.validate();
 
@@ -5220,7 +5252,9 @@ public:
 
       uint32_t expiration_time_offset = 0;
 	  auto dyn_props = get_dynamic_global_properties();
-	  tx.set_reference_block(dyn_props.head_block_id);
+	  auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+	  //tx.set_reference_block(dyn_props.head_block_id);
 	  flat_set<address> approving_key_set;
 	  for (const authority& a : other_auths)
 	  {
@@ -6530,7 +6564,9 @@ public:
 		   set_operation_fees(tx, _remote_db->get_global_properties().parameters.get_current_fees());
 		   uint32_t expiration_time_offset = 0;
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
@@ -6563,7 +6599,9 @@ public:
 			set_operation_fees(tx, _remote_db->get_global_properties().parameters.get_current_fees());
 			uint32_t expiration_time_offset = 0;
 			auto dyn_props = get_dynamic_global_properties();
-			tx.set_reference_block(dyn_props.head_block_id);
+			auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+			//tx.set_reference_block(dyn_props.head_block_id);
 			tx.set_expiration(dyn_props.time + fc::seconds(3600 * 24 + expiration_time_offset));
 			tx.validate();
 			auto json_str = fc::json::to_string(tx);
@@ -6597,7 +6635,9 @@ public:
 
 		   uint32_t expiration_time_offset = 0;
 		   auto dyn_props = get_dynamic_global_properties();
-		   tx.set_reference_block(dyn_props.head_block_id);
+		   auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM > 0 ? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM : 0);
+		   tx.set_reference_block(ref_block_header->previous);
+		   //tx.set_reference_block(dyn_props.head_block_id);
 		   tx.set_expiration(dyn_props.time + fc::seconds(3600*24 + expiration_time_offset));
 		   tx.validate();
 		   auto json_str = fc::json::to_string(tx);
@@ -6686,7 +6726,9 @@ public:
 
          auto dyn_props = get_dynamic_global_properties();
          transaction tmp;
-         tmp.set_reference_block(dyn_props.head_block_id);
+		 auto ref_block_header = _remote_db->get_block_header(dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM>0? dyn_props.head_block_number - GRAPHENE_DELAY_TRX_REFER_BLOCK_NUM:0);
+		 tmp.set_reference_block(ref_block_header->previous);
+         //tmp.set_reference_block(dyn_props.head_block_id);
         
          auto res = fc::to_string(tmp.ref_block_num);
          res += "," + fc::to_string(tmp.ref_block_prefix);
