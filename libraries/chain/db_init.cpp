@@ -255,6 +255,7 @@ void database::initialize_evaluators()
    register_evaluator<vote_update_evaluator>();
    register_evaluator<undertaker_evaluator>();
    register_evaluator<name_transfer_evaluator>();
+   register_evaluator<withdraw_limit_modify_evaluator>();
 }
 
 void database::initialize_indexes()

@@ -3526,6 +3526,18 @@ public:
 		   return sign_transaction(tx, broadcast);
 	   }FC_CAPTURE_AND_RETHROW((account)(gas_price)(symbol)(expiration_time)(broadcast))
    }
+   full_transaction senator_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+   {
+	   try {
+		   FC_ASSERT(!is_locked());
+
+
+
+
+	   }FC_CAPTURE_AND_RETHROW((account)(limit)(symbol)(expiration_time)(broadcast))
+   }
+
+
    full_transaction senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
    {
 	   try {
@@ -10945,6 +10957,10 @@ full_transaction wallet_api::senator_cancel_publisher(const string& account, con
 full_transaction wallet_api::senator_appointed_crosschain_fee(const string& account, const share_type fee, const string& symbol, int64_t expiration_time, bool broadcast)
 {
 	return my->senator_appointed_crosschain_fee(account,fee,symbol, expiration_time,broadcast);
+}
+full_transaction wallet_api::senator_appointed_withdraw_limit(const string& account, const share_type limit, const string& symbol, int64_t expiration_time, bool broadcast /* = true */)
+{
+	return my->senator_appointed_withdraw_limit(account,limit, symbol,expiration_time,broadcast);
 }
 full_transaction wallet_api::senator_change_eth_gas_price(const string& account, const string& gas_price, const string& symbol, int64_t expiration_time, bool broadcast)
 {

@@ -268,6 +268,10 @@ void database::open(
    try
    {
       object_database::open(data_dir);
+	  if (_block_id_to_block.is_opendb(data_dir / "database" / "block_num_to_block"))
+	  {
+		  _block_id_to_block.migrate(data_dir / "database" / "block_num_to_block");
+	  }
 	  _block_id_to_block.open(data_dir / "database" / "block_num_to_block");
 	 
       if( !find(global_property_id_type()) )
