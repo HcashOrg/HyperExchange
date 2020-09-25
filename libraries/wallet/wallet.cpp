@@ -3530,7 +3530,24 @@ public:
    {
 	   try {
 		   FC_ASSERT(!is_locked());
+		   withdraw_limit_modify_operation op;
+		   auto wallfacer_member_account = get_guard_member(account);
+		   const chain_parameters& current_params = get_global_properties().parameters;
+		   op.asset_symbol = symbol;
+		   op.withdraw_limit = limit;
 
+		   auto publisher_appointed_op = operation(op);
+		   current_params.current_fees->set_fee(publisher_appointed_op);
+		   signed_transaction tx;
+		   proposal_create_operation prop_op;
+		   prop_op.expiration_time = fc::time_point_sec(time_point::now()) + fc::seconds(expiration_time);
+		   prop_op.proposer = get_account(account).get_id();
+		   prop_op.fee_paying_account = get_account(account).addr;
+		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
+		   tx.operations.push_back(prop_op);
+		   set_operation_fees(tx, current_params.current_fees);
+		   tx.validate();
+		   return sign_transaction(tx, broadcast);
 
 
 
