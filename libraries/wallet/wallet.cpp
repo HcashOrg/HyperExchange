@@ -3545,7 +3545,7 @@ public:
 		   prop_op.fee_paying_account = get_account(account).addr;
 		   prop_op.proposed_ops.emplace_back(publisher_appointed_op);
 		   tx.operations.push_back(prop_op);
-		   set_operation_fees(tx, current_params.current_fees);
+		   set_operation_fees(tx, current_params.get_current_fees());
 		   tx.validate();
 		   return sign_transaction(tx, broadcast);
 

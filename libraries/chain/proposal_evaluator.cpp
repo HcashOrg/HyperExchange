@@ -149,6 +149,10 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
+	   else if (op.op.which() == operation::tag<withdraw_limit_modify_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
 	   else if (op.op.which() == operation::tag<eths_cancel_unsigned_transaction_operation>::value)
 	   {
 		   FC_ASSERT(o.type == vote_id_type::cancel_commit, "Vote Type is error");
