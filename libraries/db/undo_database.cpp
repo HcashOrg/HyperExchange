@@ -61,8 +61,7 @@
 #include <iostream>
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
-#include <leveldb/write_batch.h>
-#include <fc/smart_ref_impl.hpp>
+
 #define STACK_FILE_NAME  "stack"
 #define STORAGE_FILE_NAME "storage"
 
@@ -106,9 +105,8 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
 	   {
 		   if (back.size() < max_size())
 		   {
-			   const auto& undo_id = back.front();
-			   _stack.push_back(undo_id.get_serializable_undo_state().undo_id());
-			   state_storage->store_undo_state(undo_id,_stack);
+			   auto id = state_storage->store_undo_state(back.front());
+			   _stack.push_back(id);
 		   }
 		   back.pop_front();
 	   }
@@ -117,9 +115,8 @@ undo_database::session undo_database::start_undo_session( bool force_enable )
    {
 	   //在pop将对应的db中的存储删掉
 	   if (size() > max_back_size&&_stack.size()>0) {
-		   auto undo_id = _stack.front();
+	   FC_ASSERT(state_storage->remove(_stack.front()));
 		   _stack.pop_front();
-		   FC_ASSERT(state_storage->remove(undo_id,_stack));
 	   }else
 	   {
 		   back.pop_front();
@@ -211,9 +208,8 @@ void undo_database::undo()
 	   {
 		   back.emplace_front();
 		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "undo load stack back failed");
-		   auto undo_id = _stack.back();
+		   FC_ASSERT(state_storage->remove(_stack.back()), "undo remove stack back failed");
 		   _stack.pop_back();
-		   FC_ASSERT(state_storage->remove(undo_id,_stack), "undo remove stack back failed");
 	   }
    }
    enable();
@@ -345,9 +341,8 @@ void undo_database::merge()
 	   {
 		   back.emplace_front();
 		   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "merge load stack back");
-		   auto undo_id = _stack.back();
+		   FC_ASSERT(state_storage->remove(_stack.back()), "merge remove stack back failed");
 		   _stack.pop_back();
-		   FC_ASSERT(state_storage->remove(undo_id, _stack), "merge remove stack back failed");
 	   }
 
    }
@@ -399,11 +394,10 @@ void undo_database::pop_commit()
 			   FC_ASSERT(state_storage->get_state(_stack.back(), back.front()), "pop_commit load stack back failed");
 			   //auto da = back.get_serializable_undo_state();
 			   //std::cout << "pop commit " << da.new_ids.size() << " " << da.old_index_next_ids.size() << " " << da.old_values.size() << " " << da.removed.size() << std::endl;
-			   auto undo_id = _stack.back();
-			   _stack.pop_back();
-			   FC_ASSERT(state_storage->remove(undo_id,_stack), "pop_commit remove stack back failed");
+			   FC_ASSERT(state_storage->remove(_stack.back()), "pop_commit remove stack back failed");
 			    
 			   std::cout << "stack_size:" << _stack.size() << std::endl;
+			   _stack.pop_back();
 		   }
 	   } 
 	   std::cout << "back_size:" << back.size() << std::endl;
@@ -435,14 +429,14 @@ const undo_state& undo_database::head()const
 		 return;
 	 for (auto& sta : back)
 	 { 
-		 _stack.push_back(sta.get_serializable_undo_state().undo_id());
-		 state_storage->store_undo_state(sta,_stack); 
+		 auto id = state_storage->store_undo_state(sta); 
+		 _stack.push_back(id);
 	 }
-	 /*if (_stack.size() > 0)
-	 {
-		 printf("undo size save:%d\n", _stack.size());
-		 fc::json::save_to_file(_stack, path+STACK_FILE_NAME);
-	 }*/
+	if (_stack.size() > 0)
+	{
+		printf("undo size save:%d\n", _stack.size());
+		fc::json::save_to_file(_stack, path+STACK_FILE_NAME);
+	}
 	state_storage->close();
 }
 
@@ -457,9 +451,6 @@ const undo_state& undo_database::head()const
 	 boost::filesystem::remove_all(storage_path + STACK_FILE_NAME); 
 	 state_storage->open(storage_path + STORAGE_FILE_NAME); 
  }
- void undo_database::remove_files()
- {
- }
  void undo_database::from_file(const fc::string & path)
 {
 	  
@@ -473,15 +464,15 @@ const undo_state& undo_database::head()const
 		 return;
      try {
 		 //从文件中读出，将最后一个从db中取出置入back
-         _stack = state_storage->fetch_undo_state_queue();
+         std::deque<undo_state_id_type>  out_stack = fc::json::from_file(path+STACK_FILE_NAME).as<std::deque<undo_state_id_type>>();
+         _stack=out_stack;
 		 int ssize = _stack.size();
 		 int back_size = ssize > max_back_size ? max_back_size : ssize;
 			 for (int i = 0; i < back_size;i++) {
 			 back.emplace_front(); 
 			 FC_ASSERT(state_storage->get_state(_stack.back(), back.front())); 
-			 auto undo_Id = _stack.back();
+			 FC_ASSERT(state_storage->remove(_stack.back())); 
 			 _stack.pop_back();
-			 FC_ASSERT(state_storage->remove(undo_Id,_stack)); 
 		 }
 	 }
 	 catch (...)
@@ -574,19 +565,12 @@ std::unique_ptr<object> create_obj_unique_ptr(const variant& var)
     std::unique_ptr<object> res = make_unique<T>(var.as<T>());
     return res;
 }
-template <typename T>
-std::unique_ptr<object> create_obj_unique_ptr(const vector<char>& var)
-{
-	std::unique_ptr<object> res = make_unique<T>(fc::raw::unpack<T>(var));
-	return res;
-}
 inline db::serializable_obj::serializable_obj(const object & obj) :obj(obj.to_variant())
 {
     s = obj.id.space();
     t = obj.id.type();
 }
-template <typename T>
-inline std::unique_ptr<object> to_protocol_object(uint8_t t,const T& var)
+inline std::unique_ptr<object> to_protocol_object(uint8_t t,const variant& var)
 {
     switch (t)
     {
@@ -703,8 +687,7 @@ inline std::unique_ptr<object> to_protocol_object(uint8_t t,const T& var)
 	FC_CAPTURE_AND_THROW(deserialize_object_failed, (var));
     return NULL;
 }
-template <typename T>
-inline std::unique_ptr<object> to_implementation_object(uint8_t t, const T& var)
+inline std::unique_ptr<object> to_implementation_object(uint8_t t, const variant& var)
 {
     switch (t)
     {
@@ -782,18 +765,6 @@ std::unique_ptr<object> db::serializable_obj::to_object() const
         throw;
     }
 }
-std::unique_ptr<object> to_object(int s,int t , const variant& obj) 
-{
-	switch (s)
-	{
-	case chain::protocol_ids:
-		return to_protocol_object(t, obj);
-	case  chain::implementation_ids:
-		return  to_implementation_object(t, obj);
-	default:
-		throw;
-	}
-}
 serializable_undo_state::serializable_undo_state(const serializable_undo_state & sta) 
 {
     this->new_ids = sta.new_ids;
@@ -850,14 +821,14 @@ bool undo_storage::get_state(const undo_state_id_type& id, undo_state& state)con
 	state = *res;
 	return true;
 }
-undo_state_id_type undo_storage::store_undo_state(const undo_state& b, const deque<undo_state_id_type>& q)
+undo_state_id_type undo_storage::store_undo_state(const undo_state& b)
 {
 	auto obj = b.get_serializable_undo_state();
 	auto id = obj.undo_id();
-	FC_ASSERT(store(id, obj,q),"store state failed");
+	FC_ASSERT(store(id, obj),"store state failed");
 	return id;
 }
-bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo_state& b, const deque<undo_state_id_type>& q )
+bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo_state& b)
 {
 	try {
 		undo_state_id_type id = _id;
@@ -867,12 +838,9 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 			id = b.undo_id();
 			elog("id argument of block_database::store() was not initialized for block ${id}", ("id", id));
 		}
-		leveldb::WriteBatch batch;
+		leveldb::WriteOptions write_options;
 		const auto& vec = fc::raw::pack(b);
-		batch.Put(_id.str(), leveldb::Slice(vec.data(), vec.size()));
-		const auto& vec_q = fc::raw::pack(q);
-		batch.Put("stack", leveldb::Slice(vec_q.data(), vec_q.size()));
-		const auto& sta = db->Write(leveldb::WriteOptions(), &batch);
+		leveldb::Status sta = db->Put(write_options, _id.str(), leveldb::Slice(vec.data(), vec.size()));
 		if (!sta.ok())
 		{
 			elog("Put error: ${error}", ("error", (_id.str()+":"+sta.ToString()).c_str()));
@@ -885,18 +853,15 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 	} FC_CAPTURE_AND_RETHROW((_id)(b))
 }
 
-bool undo_storage::remove(const undo_state_id_type& id, const deque<undo_state_id_type>& q )
+bool undo_storage::remove(const undo_state_id_type& id)
 {
 	try {
 
 		FC_ASSERT(id != undo_state_id_type());
+		leveldb::WriteOptions write_options;
 		//write_options.sync = true;
 		FC_ASSERT(db, "undo_storage closed");
-		leveldb::WriteBatch batch;
-		batch.Delete(id.str());
-		const auto& vec_q = fc::raw::pack(q);
-		batch.Put("stack", leveldb::Slice(vec_q.data(), vec_q.size()));
-		const auto& sta = db->Write(leveldb::WriteOptions(), &batch);
+		leveldb::Status sta = db->Delete(write_options, id.str());
 
 		if (!sta.ok())
 		{
@@ -908,29 +873,6 @@ bool undo_storage::remove(const undo_state_id_type& id, const deque<undo_state_i
 		} 
 		return true;
 	} FC_CAPTURE_AND_RETHROW((id))
-}
-deque<undo_state_id_type> undo_storage::fetch_undo_state_queue() const
-{
-	try {
-		string out;
-		leveldb::ReadOptions read_options;
-		FC_ASSERT(db, "undo_storage closed");
-		leveldb::Status sta = db->Get(read_options,"stack", &out);
-		if (!sta.ok())
-		{
-			FC_ASSERT(false, "fetch_optional Data from undo_storage failed");
-		}
-		vector<char> vec(out.begin(), out.end());
-		deque<undo_state_id_type> stack = fc::raw::unpack<deque<undo_state_id_type>>(vec);
-		return stack;
-	}
-	catch (const fc::exception&)
-	{
-	}
-	catch (const std::exception&)
-	{
-	}
-	return deque<undo_state_id_type>();
 }
 optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_id_type& id)const
 {

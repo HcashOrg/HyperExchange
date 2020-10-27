@@ -39,7 +39,6 @@
 #include <fc/crypto/elliptic.hpp>
 #include <graphene/chain/protocol/protocol.hpp>
 #include <graphene/chain/contract_object.hpp>
-#include <graphene/db/backup_database.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/uint128.hpp>
 
@@ -108,7 +107,7 @@ namespace graphene { namespace chain {
           * replaying blockchain history. When this method exits successfully, the database will be open.
           */
          void reindex(fc::path data_dir, const genesis_state_type& initial_allocation = genesis_state_type());
-		 void reindex_part(fc::path data_dir);
+
          /**
           * @brief wipe Delete database from disk, and potentially the raw chain as well.
           * @param include_blocks If true, delete the raw chain as well as the database.
@@ -193,7 +192,6 @@ namespace graphene { namespace chain {
 		 *  released.
 		 */
 		 fc::signal<void(const signed_block&)>           applied_block;
-		 fc::signal<void(const signed_block&)>               applied_backup;
 		 fc::signal<void(const vector<signed_transaction>&)>  removed_trxs;
 		 fc::signal<void(const deque< signed_transaction>&)> broad_trxs;
          /**
@@ -576,12 +574,9 @@ namespace graphene { namespace chain {
 		 void update_all_otc_contract(const uint32_t block_num);
 		 Cached_levelDb l_db;
 		 leveldb::DB *         get_contract_db()const { return real_l_db; }
-		 leveldb::DB *         get_backup_db()const { return backup_l_db; }
 		 const Cached_levelDb*          get_cache_contract_db()const { return &l_db; }
-		 backup_database                backup_db;
       private:
 		  leveldb::DB * real_l_db = nullptr;
-		  leveldb::DB * backup_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);

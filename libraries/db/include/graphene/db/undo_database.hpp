@@ -34,11 +34,6 @@
 #define GRAPHENE_UNDO_BUFF_MAX_SIZE 20
 
 namespace graphene {
-	namespace backup {
-		namespace detail {
-			class backup_plugin_impl;
-		}
-	}
 	namespace db {
 
 		using namespace boost::multi_index;
@@ -67,14 +62,13 @@ namespace graphene {
 			void flush();
 			void close();
 			~undo_storage() { close(); };
-			bool store(const undo_state_id_type & _id, const serializable_undo_state& b, const deque<undo_state_id_type>& q = deque<undo_state_id_type>());
-			undo_state_id_type store_undo_state(const undo_state& b, const deque<undo_state_id_type>& q = deque<undo_state_id_type>());
-			bool remove(const undo_state_id_type& id,const deque<undo_state_id_type>& q = deque<undo_state_id_type>());
+			bool store(const undo_state_id_type & _id, const serializable_undo_state& b);
+			undo_state_id_type store_undo_state(const undo_state& b);
+			bool remove(const undo_state_id_type& id);
 			bool get_state(const undo_state_id_type& id,undo_state& state) const ;
 			bool                   contains(const undo_state_id_type& id)const;
 			block_id_type          fetch_block_id(uint32_t block_num)const;
 			optional<serializable_undo_state> fetch_optional(const undo_state_id_type& id)const;
-			deque<undo_state_id_type> fetch_undo_state_queue() const;
 			optional<serializable_undo_state> fetch_by_number(uint32_t block_num)const;
 			optional<serializable_undo_state> last()const;
 			optional<undo_state_id_type> last_id()const;
@@ -96,7 +90,6 @@ namespace graphene {
 			class session
 			{
 			public:
-				friend class graphene::backup::detail::backup_plugin_impl;
 				session(session&& mv)
 					:_db(mv._db), _apply_undo(mv._apply_undo)
 				{
@@ -183,7 +176,6 @@ namespace graphene {
 			void from_file(const fc::string& path);
 			void reset();
 			void remove_storage();
-			void remove_files();
 		private:
 			void undo();
 			void merge();
@@ -202,6 +194,6 @@ namespace graphene {
 			std::deque<undo_state>              back;
 			int max_back_size = GRAPHENE_UNDO_BUFF_MAX_SIZE;
 		};
-		std::unique_ptr<object> to_object(int s, int t, const variant& obj);
+
 	}
 } // graphene::db

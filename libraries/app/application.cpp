@@ -609,22 +609,16 @@ namespace detail {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
             }
-			else if (fc::exists(_data_dir/"blockchain" / ".exit_sym"))
+            else if( !clean )
             {
                replay = true;
-			   fc::remove_all(_data_dir / "blockchain" / ".exit_sym");
-				replay_reason = "exit unsuccessfully last time.";
+               replay_reason = "unclean shutdown detected";
             }
-			/* else if( !clean )
-			 {
-				replay = true;
-				replay_reason = "unclean shutdown detected";
-			 }
-			 else if( !fc::exists( _data_dir / "db_version" ) )
-			 {
-				replay = true;
-				replay_reason = "db_version file not found";
-			 }*/
+            else if( !fc::exists( _data_dir / "db_version" ) )
+            {
+               replay = true;
+               replay_reason = "db_version file not found";
+            }
             else
             {
                std::string version_string;
@@ -841,9 +835,7 @@ namespace detail {
                   contained_transaction_message_ids.push_back(graphene::net::message(transaction_message).id());
                }
             }
-			const auto& ir_blk = _chain_db->fetch_block_by_number(_chain_db->get_dynamic_global_properties().last_irreversible_block_num);
-			if (ir_blk.valid())
-				_chain_db->applied_backup(*ir_blk);
+
             return result;
          } catch ( const graphene::chain::unlinkable_block_exception& e ) {
             // translate to a graphene::net exception

@@ -32,12 +32,6 @@ bool referendum_object::is_authorized_to_execute(database& db) const
 {
    transaction_evaluation_state dry_run_eval(&db);
 
-   auto a_func = [&db](const miner_object & obj) ->bool {
-	   auto num = db.head_block_num();
-	   if (obj.last_confirmed_block_num > num)
-		   return true;
-	   return false;
-   };
    try {
 	   if (finished == true)
 		   return false;
