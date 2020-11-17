@@ -2,7 +2,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/account_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 
 namespace graphene {
 	namespace chain {

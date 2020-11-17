@@ -28,7 +28,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/fba_accumulator_id.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 
 namespace graphene { namespace chain {
 

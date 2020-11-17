@@ -52,6 +52,8 @@ database::~database()
    clear_pending();
 }
 
+		//${msg}", ("msg", open_status.ToString().c_str())
+		
 void database::reindex(fc::path data_dir, const genesis_state_type& initial_allocation)
 { try {
    ilog( "reindexing blockchain" );
@@ -212,7 +214,7 @@ void database::open(
 		  catch (...)
 		  {
 			  FC_CAPTURE_AND_THROW(deserialize_undo_database_failed, (data_dir));
-		  }
+		}
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 		  initialize_leveldb();
@@ -232,7 +234,7 @@ void database::open(
 			  real_l_db = nullptr;
 			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
 			  FC_ASSERT(false, "database open error");
-		  }
+		}
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 } 

@@ -38,7 +38,7 @@
 #include <graphene/chain/worker_object.hpp>
 #include <iostream>
 #include <fc/crypto/hex.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/future.hpp>
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/chain/contract_object.hpp>
@@ -350,7 +350,9 @@ namespace graphene { namespace app {
     {
        return _app.p2p_node()->get_potential_peers();
     }
-
+	void network_node_api::update_seed_node() {
+		_app.add_seed_node();
+	}
     fc::variant_object network_node_api::get_advanced_node_parameters() const
     {
        return _app.p2p_node()->get_advanced_node_parameters();
@@ -705,19 +707,7 @@ namespace graphene { namespace app {
 
     crypto_api::crypto_api(){};
 
-    blind_signature crypto_api::blind_sign( const extended_private_key_type& key, const blinded_hash& hash, int i )
-    {
-       return fc::ecc::extended_private_key( key ).blind_sign( hash, i );
-    }
 
-    signature_type crypto_api::unblind_signature( const extended_private_key_type& key,
-                                                     const extended_public_key_type& bob,
-                                                     const blind_signature& sig,
-                                                     const fc::sha256& hash,
-                                                     int i )
-    {
-       return fc::ecc::extended_private_key( key ).unblind_signature( extended_public_key( bob ), sig, hash, i );
-    }
 
     commitment_type crypto_api::blind( const blind_factor_type& blind, uint64_t value )
     {

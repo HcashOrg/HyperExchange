@@ -552,6 +552,27 @@ namespace fc
           from_variant( var, *vo );
       }
    }
+
+   template<typename T>
+   void to_variant(const std::shared_ptr<const T>& var, variant& vo)
+   {
+	   if (var) to_variant(*var, vo);
+	   else vo = nullptr;
+   }
+
+   template<typename T>
+   void from_variant(const variant& var, std::shared_ptr<const T>& vo)
+   {
+	   if (var.is_null()) vo = nullptr;
+	   else
+	   {
+		   T tmp;
+		   from_variant(var, tmp);
+
+		   vo = std::make_shared<const T>(std::move(tmp));
+	   }
+   }
+
    template<typename T>
    void to_variant( const std::unique_ptr<T>& var,  variant& vo )
    {

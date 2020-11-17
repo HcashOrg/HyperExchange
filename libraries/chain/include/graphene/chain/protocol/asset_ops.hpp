@@ -595,6 +595,18 @@ namespace graphene { namespace chain {
 	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
 	   address fee_payer() const { return address(); }
    };
+   struct withdraw_limit_modify_operation : public base_operation
+   {
+	   struct fee_parameters_type {
+		   uint64_t fee = 0.001 * GRAPHENE_HXCHAIN_PRECISION;
+	   };
+	   asset fee;
+	   share_type withdraw_limit;
+	   string asset_symbol;
+	   void    validate() const {}
+	   share_type calculate_fee(const fee_parameters_type& k)const { return 0; }
+	   address fee_payer() const { return address(); }
+   };
 
    struct set_guard_lockbalance_operation : public base_operation
    {
@@ -695,6 +707,7 @@ FC_REFLECT(graphene::chain::gurantee_cancel_operation::fee_parameters_type, (fee
 FC_REFLECT(graphene::chain::publisher_appointed_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::publisher_canceled_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::asset_fee_modification_operation::fee_parameters_type, (fee))
+FC_REFLECT(graphene::chain::withdraw_limit_modify_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::senator_determine_withdraw_deposit_operation::fee_parameters_type, (fee))
 FC_REFLECT(graphene::chain::senator_determine_block_payment_operation::fee_parameters_type, (fee))
@@ -746,6 +759,7 @@ FC_REFLECT(graphene::chain::gurantee_cancel_operation, (fee)(owner_addr)(cancel_
 FC_REFLECT(graphene::chain::publisher_appointed_operation, (fee)(publisher)(asset_symbol));
 FC_REFLECT(graphene::chain::publisher_canceled_operation, (fee)(publisher)(asset_symbol));
 FC_REFLECT(graphene::chain::asset_fee_modification_operation, (fee)(crosschain_fee)(asset_symbol));
+FC_REFLECT(graphene::chain::withdraw_limit_modify_operation, (fee)(withdraw_limit)(asset_symbol));
 FC_REFLECT(graphene::chain::set_guard_lockbalance_operation, (fee)(lockbalance));
 FC_REFLECT(graphene::chain::senator_determine_withdraw_deposit_operation, (fee)(can)(symbol));
 FC_REFLECT(graphene::chain::senator_determine_block_payment_operation, (fee)(blocks_pairs));

@@ -36,7 +36,7 @@
 #include <fc/io/raw.hpp>
 #include <fc/uint128.hpp>
 #include <fc/static_variant.hpp>
-#include <fc/smart_ref_fwd.hpp>
+
 
 #include <memory>
 #include <vector>
@@ -64,7 +64,6 @@ namespace graphene { namespace chain {
    using                               std::tie;
    using                               std::make_pair;
 
-   using                               fc::smart_ref;
    using                               fc::variant_object;
    using                               fc::variant;
    using                               fc::enum_type;
@@ -413,6 +412,7 @@ namespace graphene { namespace chain {
       friend bool operator == ( const extended_private_key_type& p1, const extended_private_key_type& p2);
       friend bool operator != ( const extended_private_key_type& p1, const extended_private_key_type& p2);
    };
+   struct fee_schedule;
 } }  // graphene::chain
 
 namespace fc
@@ -423,6 +423,19 @@ namespace fc
     void from_variant( const fc::variant& var, graphene::chain::extended_public_key_type& vo );
     void to_variant( const graphene::chain::extended_private_key_type& var, fc::variant& vo );
     void from_variant( const fc::variant& var, graphene::chain::extended_private_key_type& vo );
+	void from_variant(const fc::variant& var, std::shared_ptr<const graphene::chain::fee_schedule>& vo);
+	template<>
+	struct get_typename<std::shared_ptr<const graphene::chain::fee_schedule>> {
+		static const char* name() {
+			return "shared_ptr<const fee_schedule>";
+		}
+	};
+	template<>
+	struct get_typename<std::shared_ptr<graphene::chain::fee_schedule>> {
+		static const char* name() {
+			return "shared_ptr<fee_schedule>";
+		}
+	};
 }
 
 FC_REFLECT( graphene::chain::public_key_type, (key_data) )

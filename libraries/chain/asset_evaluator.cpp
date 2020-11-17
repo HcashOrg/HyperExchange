@@ -764,6 +764,30 @@ void_result asset_fee_modification_evaluator::do_apply(const asset_fee_modificat
 		});
 	}FC_CAPTURE_AND_RETHROW((o))
 }
+void_result withdraw_limit_modify_evaluator::do_evaluate(const withdraw_limit_modify_operation& o)
+{
+	try {
+		const auto & _db = db();
+		const auto& asset_indx = _db.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		FC_ASSERT(iter != asset_indx.end());
+		const auto& dymic_asset_info = iter->dynamic_data(_db);
+		FC_ASSERT(dymic_asset_info.withdraw_limition != o.withdraw_limit);
+	}FC_CAPTURE_AND_RETHROW((o))
+}
+void_result withdraw_limit_modify_evaluator::do_apply(const withdraw_limit_modify_operation& o)
+{
+	try {
+		auto& d = db();
+		const auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+		const auto iter = asset_indx.find(o.asset_symbol);
+		auto& dymic_asset_info = iter->dynamic_data(d);
+		d.modify(dymic_asset_info, [&](asset_dynamic_data_object& obj) {
+			obj.withdraw_limition = o.withdraw_limit;
+		});
+
+	}FC_CAPTURE_AND_RETHROW((o))
+}
 
 void_result guard_lock_balance_set_evaluator::do_evaluate(const set_guard_lockbalance_operation& o)
 {

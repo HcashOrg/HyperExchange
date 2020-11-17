@@ -44,7 +44,7 @@ namespace graphene { namespace chain {
          optional<signed_block> last()const;
          optional<block_id_type> last_id()const;
       private:
-         mutable std::fstream _blocks;
-         mutable std::fstream _block_num_to_pos;
+		  mutable std::fstream _blocks;
+		  mutable std::fstream _block_num_to_pos;
    };
 } }

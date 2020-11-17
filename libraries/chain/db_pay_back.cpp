@@ -29,7 +29,7 @@ namespace graphene {
 						b.one_owner_balance += payback_asset;
 					});
 				}
-			}FC_CAPTURE_AND_RETHROW((payback_owner)(payback_asset))
+			}FC_CAPTURE_AND_RETHROW((payback_owner)(payback_asset)(miner_id))
 		}
 		std::map<string,asset> database::get_pay_back_balacne(address payback_owner,std::string symbol_type)const {
 			try {

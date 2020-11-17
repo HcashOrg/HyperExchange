@@ -61,7 +61,7 @@
 #include <iostream>
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
-#include <fc/smart_ref_impl.hpp>
+
 #define STACK_FILE_NAME  "stack"
 #define STORAGE_FILE_NAME "storage"
 

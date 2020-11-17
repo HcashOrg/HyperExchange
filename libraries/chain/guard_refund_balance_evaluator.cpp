@@ -2,7 +2,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 namespace graphene {
 	namespace chain {
 		void_result guard_refund_balance_evaluator::do_apply(const guard_refund_balance_operation& o)

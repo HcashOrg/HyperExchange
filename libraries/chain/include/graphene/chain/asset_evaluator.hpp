@@ -207,7 +207,13 @@ namespace graphene { namespace chain {
 	   void_result do_evaluate(const asset_fee_modification_operation& o);
 	   void_result do_apply(const asset_fee_modification_operation& o);
    };
-   
+   class withdraw_limit_modify_evaluator :public evaluator<withdraw_limit_modify_evaluator>
+   {
+   public:
+	   typedef withdraw_limit_modify_operation operation_type;
+	   void_result do_evaluate(const withdraw_limit_modify_operation& o);
+	   void_result do_apply(const withdraw_limit_modify_operation& o);
+   };
    class guard_lock_balance_set_evaluator :public evaluator<guard_lock_balance_set_evaluator>
    {
    public:

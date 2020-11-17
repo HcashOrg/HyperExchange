@@ -51,6 +51,7 @@ namespace graphene { namespace app {
 		 void shutdown_plugins();
 		 void stop_block_processing();
 		 void start_block_processing();
+		 void add_seed_node();
          template<typename PluginType>
          std::shared_ptr<PluginType> register_plugin()
          {

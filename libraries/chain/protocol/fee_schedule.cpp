@@ -23,7 +23,7 @@
  */
 #include <algorithm>
 #include <graphene/chain/protocol/fee_schedule.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <iostream>
 namespace fc
 {
@@ -39,9 +39,6 @@ namespace fc
 
 namespace graphene { namespace chain {
 
-   typedef fc::smart_ref<fee_schedule> smart_fee_schedule;
-
-   static smart_fee_schedule tmp;
 
    fee_schedule::fee_schedule()
    {
@@ -189,5 +186,7 @@ namespace graphene { namespace chain {
       FC_ASSERT( maximum_proposal_lifetime - committee_proposal_review_period > block_interval,
                  "Committee proposal review period must be less than the maximum proposal lifetime" );
    }
+
+  
 
 } } // graphene::chain

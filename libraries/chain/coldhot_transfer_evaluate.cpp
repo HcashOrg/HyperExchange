@@ -2,7 +2,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <graphene/chain/committee_member_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 namespace graphene {
 	namespace chain {
 		void_result coldhot_transfer_evaluate::do_evaluate(const coldhot_transfer_operation& o) {
