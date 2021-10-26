@@ -29,7 +29,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/witness_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 
 
 namespace graphene { namespace chain {
@@ -146,6 +146,10 @@ void_result proposal_create_evaluator::do_evaluate(const proposal_create_operati
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }
 	   else if (op.op.which() == operation::tag<senator_change_eth_gas_price_operation>::value)
+	   {
+		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
+	   }
+	   else if (op.op.which() == operation::tag<withdraw_limit_modify_operation>::value)
 	   {
 		   FC_ASSERT(o.type == vote_id_type::committee, "Vote Type is error");
 	   }

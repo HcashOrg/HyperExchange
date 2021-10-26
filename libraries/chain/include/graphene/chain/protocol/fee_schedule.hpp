@@ -77,6 +77,9 @@ namespace graphene { namespace chain {
        */
       flat_set<fee_parameters> parameters;
       uint32_t                 scale = GRAPHENE_100_PERCENT; ///< fee * scale / GRAPHENE_100_PERCENT
+	  friend bool operator ==(const fee_schedule& a, const fee_schedule& b) {
+		  return a.parameters == b.parameters&&a.scale == b.scale;
+	  }
    };
 
    typedef fee_schedule fee_schedule_type;

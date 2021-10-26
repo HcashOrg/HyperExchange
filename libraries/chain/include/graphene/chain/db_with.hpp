@@ -72,6 +72,7 @@ struct pending_transactions_restorer
       : _db(db), _pending_transactions( std::move(pending_transactions) )
    {
       _db.clear_pending();
+	   _db._push_transaction_tx_ids.clear();
    }
 
    ~pending_transactions_restorer()
@@ -79,7 +80,8 @@ struct pending_transactions_restorer
       for( const auto& tx : _db._popped_tx )
       {
          try {
-            if( !_db.is_known_transaction( tx.id() ) ) {
+            //if( !_db.is_known_transaction( tx.id() ) ) {
+			if(_db._push_transaction_tx_ids.count( tx.id()) == 0 ){
                // since push_transaction() takes a signed_transaction,
                // the operation_results field will be ignored.
 				bool need_continue = false;
@@ -101,6 +103,7 @@ struct pending_transactions_restorer
          } catch ( const fc::exception&  ) {
          }
       }
+	  _db.broad_trxs(_db._popped_tx);
       _db._popped_tx.clear();
       for( const processed_transaction& tx : _pending_transactions )
       {

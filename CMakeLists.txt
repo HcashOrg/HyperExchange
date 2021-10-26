@@ -149,7 +149,7 @@ else( WIN32 ) # Apple AND Linux
     else( APPLE )
         # Linux Specific Options Here
         message( STATUS "Configuring BlockLinks on Linux" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -Wall" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -Wall -pthread" )
         set( rt_library rt )
         set( pthread_library pthread)
         if ( NOT DEFINED crypto_library )
@@ -200,7 +200,7 @@ endif()
 
 add_subdirectory( libraries )
 add_subdirectory( programs )
-add_subdirectory( tests )
+#add_subdirectory( tests )
 
 
 if (ENABLE_INSTALLER)

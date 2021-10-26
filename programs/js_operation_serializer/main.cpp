@@ -37,7 +37,7 @@
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/worker_object.hpp>
 #include <graphene/chain/transaction_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <iostream>
 #include <graphene/chain/referendum_object.hpp>
 

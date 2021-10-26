@@ -255,6 +255,7 @@ void database::initialize_evaluators()
    register_evaluator<vote_update_evaluator>();
    register_evaluator<undertaker_evaluator>();
    register_evaluator<name_transfer_evaluator>();
+   register_evaluator<withdraw_limit_modify_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -492,7 +493,7 @@ void database::init_genesis(const genesis_state_type& genesis_state)
        p.parameters = genesis_state.initial_parameters;
        // Set fees to zero initially, so that genesis initialization needs not pay them
        // We'll fix it at the end of the function
-       p.parameters.current_fees->zero_all_fees();
+       p.parameters.get_mutable_fees().zero_all_fees();
 	   p.unorder_blocks_match[6307200] = 27 * GRAPHENE_HXCHAIN_PRECISION;
 	   p.unorder_blocks_match[12614400] = 25 * GRAPHENE_HXCHAIN_PRECISION;
 	   p.unorder_blocks_match[18921600] = 24 * GRAPHENE_HXCHAIN_PRECISION;

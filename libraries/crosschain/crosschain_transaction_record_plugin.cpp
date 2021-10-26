@@ -3,7 +3,7 @@
 #include <graphene/chain/database.hpp>
 #include <graphene/chain/crosschain_trx_object.hpp>
 #include <fc/thread/scoped_lock.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/thread.hpp>
 namespace bpo = boost::program_options;
 namespace graphene {

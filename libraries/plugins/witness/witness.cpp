@@ -31,7 +31,7 @@
 #include <graphene/crosschain/crosschain.hpp>
 #include <graphene/wallet/wallet.hpp>
 #include <graphene/crosschain/crosschain_interface_btc.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/thread.hpp>
 #include <graphene/chain/transaction_object.hpp>
 #include <iostream>
@@ -112,7 +112,7 @@ void miner_plugin::plugin_set_program_options(
          ("private-key", bpo::value<string>()->composing()->
           DEFAULT_VALUE_VECTOR(vec),
           "Tuple of [PublicKey, WIF private key] (just append)")
-		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("47.74.2.123"))
+		("crosschain-ip,w", bpo::value<string>()->composing()->default_value("112.5.37.186"))
 	    ("crosschain-port,w", bpo::value<string>()->composing()->default_value("5005"))
 	    ("chain-type,w",bpo::value<string>()->composing()->DEFAULT_VALUE_VECTOR(chain_type), (string(" chain-type for crosschains  (e.g. [\"BTC\"], quotes are required,  specify one times)")).c_str())
          ;
@@ -323,7 +323,7 @@ void miner_plugin::check_eths_generate_multi_addr(miner_id_type miner, fc::ecc::
 				op.chain_type = multi_withsign_trx->symbol;
 				signed_transaction trx;
 				trx.operations.emplace_back(op);
-				set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+				set_operation_fees(trx, db.get_global_properties().parameters.get_current_fees());
 				trx.set_reference_block(dyn_props.head_block_id);
 				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				trx.sign(pk, db.get_chain_id());
@@ -457,7 +457,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 						op.guard_to_sign = sign_guard_id;
 						op.chain_type = iter.symbol;
 						trx.operations.emplace_back(op);
-						set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+						set_operation_fees(trx, db.get_global_properties().parameters.get_current_fees());
 						trx.set_reference_block(dyn_props.head_block_id);
 						trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 						trx.sign(pk, db.get_chain_id());
@@ -480,7 +480,7 @@ fc::variant miner_plugin::check_generate_multi_addr(miner_id_type miner,fc::ecc:
 				op.multi_redeemScript_hot = multi_addr_hot_obj["redeemScript"];
 				op.chain_type = iter.symbol;
 				trx.operations.emplace_back(op);
-				set_operation_fees(trx,db.get_global_properties().parameters.current_fees);
+				set_operation_fees(trx,db.get_global_properties().parameters.get_current_fees());
 				trx.set_reference_block(dyn_props.head_block_id);
 				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				trx.sign(pk, db.get_chain_id());
@@ -516,7 +516,7 @@ void miner_plugin::check_multi_transfer(miner_id_type miner, fc::ecc::private_ke
 				op.id = transfer.id;
 				signed_transaction trx;
 				trx.operations.emplace_back(op);
-				set_operation_fees(trx, db.get_global_properties().parameters.current_fees);
+				set_operation_fees(trx, db.get_global_properties().parameters.get_current_fees());
 				trx.set_reference_block(dyn_props.head_block_id);
 				trx.set_expiration(dyn_props.time + fc::seconds(30 + expiration_time_offset));
 				trx.sign(pk, db.get_chain_id());

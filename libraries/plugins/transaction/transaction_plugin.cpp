@@ -31,7 +31,7 @@
 #include <graphene/chain/evaluator.hpp>
 #include <graphene/chain/transaction_evaluation_state.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 #include <fc/thread/thread.hpp>
 #include <iostream>
 namespace graphene { namespace transaction {
@@ -74,6 +74,7 @@ void transaction_plugin_impl::erase_transaction_records(const vector<signed_tran
 	for (auto tx : trxs)
 	{
 		leveldb::WriteOptions write_options;
+		write_options.sync = true;
 		db.get_levelDB()->Delete(write_options, tx.id().str());
 	}
 }

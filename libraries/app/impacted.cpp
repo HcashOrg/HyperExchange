@@ -63,7 +63,7 @@ struct get_impacted_account_visitor
       add_authority_accounts( _impacted, op.owner );
       add_authority_accounts( _impacted, op.active );
    }
-
+   void operator() (const withdraw_limit_modify_operation& op) {}
    void operator()( const account_update_operation& op )
    {
       _impacted.insert( op.account );

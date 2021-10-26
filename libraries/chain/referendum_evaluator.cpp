@@ -29,7 +29,7 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/witness_object.hpp>
-#include <fc/smart_ref_impl.hpp>
+
 
 namespace graphene { namespace chain {
 

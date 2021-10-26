@@ -37,7 +37,7 @@
 #include <graphene/utilities/key_conversion.hpp>
 #include <graphene/chain/worker_evaluator.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 
 #include <fc/io/fstream.hpp>
 #include <fc/rpc/api_connection.hpp>
@@ -84,7 +84,7 @@ namespace detail {
       auto hyper_exchange_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("hyper-exchange")));
       dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(hyper_exchange_key)));
       genesis_state_type initial_state;
-      initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
+      initial_state.initial_parameters.get_mutable_fees() = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
       initial_state.initial_active_miners = GRAPHENE_DEFAULT_MIN_MINER_COUNT;
       initial_state.initial_timestamp = time_point_sec(time_point::now().sec_since_epoch() /
             initial_state.initial_parameters.block_interval *
@@ -193,13 +193,16 @@ namespace detail {
          {
             // https://blocklinkstalk.org/index.php/topic,23715.0.html
             vector<string> seeds = {
+				
 				"117.78.44.37:9034",
 				"47.74.2.123:9034",
 				"47.74.23.176:9034",
 				"47.74.37.107:9034",
 				"52.194.253.245:9034",
 				"36.152.8.188:9034",
-				"172.81.250.51:9034"
+				"172.81.250.51:9034",
+				"106.13.38.27:9034",
+				"119.45.188.146:9034"
 				/*
                "104.236.144.84:1777",               // puppies      (USA)
                "128.199.143.47:2015",               // Harvey       (Singapore)
@@ -220,6 +223,7 @@ namespace detail {
                "seeds.blocklinks.eu:1776"            // pc           (http://seeds.quisquis.de/blocklinks.html)
 			   */
             };
+			
             for( const string& endpoint_string : seeds )
             {
                try {
@@ -249,7 +253,48 @@ namespace detail {
                                  std::vector<uint32_t>());
 		 
       } FC_CAPTURE_AND_RETHROW() }
+	  void add_seed_node() {
+		  try {
 
+			  fc::http::connection_sync conn;
+			  crosschain_interface_btc temp;
+			  bool bgetconnect = temp.connect_midware(conn, true);
+			  if (bgetconnect)
+			  {
+				  std::ostringstream req_body;
+				  req_body << "{ \"jsonrpc\": \"2.0\", \
+                \"id\" : \"45\", \
+				\"method\" : \"Zchain.Query.GetSeedNode\" ,\
+				\"params\" : {}}";
+				  //_rpc_url = _rpc_url + _config["ip"].as_string() + ":" + std::string(_config["port"].as_string()) + "/api";
+				  fc::http::headers _rpc_headers;
+				  auto reply = conn.request("POST", "http://0.0.0.0:9999/api", req_body.str(), _rpc_headers);
+				  //auto reply = conn.request("POST", string(eip), bodddy);
+				  if (reply.status == fc::http::reply::OK)
+				  {
+					  auto resp = fc::json::from_string(std::string(reply.body.begin(), reply.body.end())).get_object();
+					  //std::cout << std::string(reply.body.begin(), reply.body.end()) << std::endl;
+					  if (resp.contains("result")) {
+						  auto ret = resp["result"].get_array();
+						  for (size_t i = 0; i < ret.size(); ++i)
+						  {
+							  std::vector<fc::ip::endpoint> endpoints = resolve_string_to_ip_endpoints(ret[i].as_string());
+							  for (const fc::ip::endpoint& endpoint : endpoints)
+							  {
+								  _p2p_network->add_node(endpoint);
+							  }
+						  }
+					  }
+				  }
+			  }
+			
+		  }
+		  catch (const fc::exception& e) {
+			  wlog("cant get seednode ${e} while adding seed node",
+				  ("e", e.to_detail_string()));
+		  }
+
+	  }
       std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints(const std::string& endpoint_string)
       {
          try
@@ -410,7 +455,7 @@ namespace detail {
 				 }
 				 else
 				 {
-					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("112.5.37.186:5005") };
 					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
 				 }
 				 if (chain_type_vector.size() < 8)
@@ -446,7 +491,7 @@ namespace detail {
 							 abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
 						 else
 						 {
-							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("112.5.37.186:5005") };
 							 abstract_crosschain_interface::set_midwares(midware_sers);
 						 }
 					 }
@@ -1271,7 +1316,9 @@ void application::startup()
       throw;
    }
 }
-
+void application::add_seed_node() {
+	my->add_seed_node();
+}
 std::shared_ptr<abstract_plugin> application::get_plugin(const string& name) const
 {
    return my->_plugins[name];

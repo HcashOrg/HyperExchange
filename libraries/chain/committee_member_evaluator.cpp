@@ -35,7 +35,7 @@
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/guard_lock_balance_object.hpp>
 
-#include <fc/smart_ref_impl.hpp>
+
 
 #define GUARD_VOTES_EXPIRATION_TIME 7*24*3600
 #define  MINER_VOTES_REVIWE_TIME  24 * 3600
