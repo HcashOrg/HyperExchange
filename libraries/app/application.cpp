@@ -455,7 +455,7 @@ namespace detail {
 				 }
 				 else
 				 {
-					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+					 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("112.5.37.186:5005") };
 					 abstract_crosschain_interface::set_midwares_backup(midware_sers);
 				 }
 				 if (chain_type_vector.size() < 8)
@@ -491,7 +491,7 @@ namespace detail {
 							 abstract_crosschain_interface::set_midwares(abstract_crosschain_interface::midware_eps_backup);
 						 else
 						 {
-							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("47.74.2.123:5005"),fc::ip::endpoint::from_string("47.74.23.176:5005") };
+							 vector<fc::ip::endpoint> midware_sers = { fc::ip::endpoint::from_string("112.5.37.186:5005") };
 							 abstract_crosschain_interface::set_midwares(midware_sers);
 						 }
 					 }
